@@ -34,7 +34,7 @@ RSpec.describe "I18n view copy", type: :request do
   end
 
   describe "GET /projects [REQ-FIT-UI-005]" do
-    before { Project.delete_all }
+    before { Project.destroy_all }
 
     it "renders Spanish index copy" do
       with_locale(:es) { get projects_path }
