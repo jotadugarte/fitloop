@@ -2,6 +2,8 @@
 
 # [REQ-FIT-JOB-001] Start and cancel nesting jobs for a project.
 class NestingRunsController < ApplicationController
+  include StartsNesting
+
   before_action :set_project
   before_action -> { require_project_access!(@project) }
 
@@ -12,16 +14,8 @@ class NestingRunsController < ApplicationController
       return
     end
 
-    renesting = renest?
-
-    nesting_run = @project.nesting_runs.create!(status: "processing", params_snapshot: {})
-    @project.update!(
-      status: :processing,
-      progress_percent: 0,
-      progress_message: I18n.t("nesting.queued"),
-      estimated_finished_at: Time.current + 30.seconds
-    )
-    NestingJob.perform_later(nesting_run.id)
+    renesting = renesting?(@project)
+    start_nesting_for!(@project)
     notice = renesting ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
     redirect_to @project, notice: notice
   end
@@ -38,7 +32,4 @@ class NestingRunsController < ApplicationController
     @project = Project.find(params[:project_id])
   end
 
-  def renest?
-    @project.nested_dxf.attached? && (@project.completed? || @project.partial?)
-  end
 end

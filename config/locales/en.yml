@@ -189,7 +189,7 @@ en:
       title: "Layers — %{title}"
       back: "Back to project"
       legend: "Include layers in nesting"
-      save: "Save layer selection"
+      save: "Save and start nesting"
       empty: "No layers found in the attached DXF files."
       files_attached:
         one: "1 DXF file attached"

@@ -2,6 +2,8 @@
 
 # [REQ-FIT-DXF-001] Layer checklist built from union of uploaded DXF layer names.
 class ProjectLayersController < ApplicationController
+  include StartsNesting
+
   before_action :set_project
   before_action -> { require_project_access!(@project) }
 
@@ -13,7 +15,17 @@ class ProjectLayersController < ApplicationController
 
   def update
     update_layer_inclusions!
-    redirect_to project_layers_path(@project), notice: t("project_layers.updated")
+
+    readiness = ProjectReadinessValidator.validate(@project)
+    unless readiness.ok?
+      redirect_to project_layers_path(@project), alert: readiness.errors.join(" ")
+      return
+    end
+
+    renesting = renesting?(@project)
+    start_nesting_for!(@project)
+    notice = renesting ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
+    redirect_to @project, notice: notice
   end
 
   private
@@ -24,11 +36,9 @@ class ProjectLayersController < ApplicationController
 
   def update_layer_inclusions!
     permitted = params.fetch(:project_layers, {}).permit!
-    permitted.each do |id, attrs|
-      layer = @project.project_layers.find_by(id: id)
-      next unless layer
-
-      layer.update!(included: attrs[:included] == "1")
+    @project.project_layers.find_each do |layer|
+      attrs = permitted[layer.id.to_s]
+      layer.update!(included: attrs.present? && attrs[:included] == "1")
     end
   end
 end

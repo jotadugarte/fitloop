@@ -25,7 +25,7 @@ RSpec.describe "Project layers", type: :request do
   end
 
   describe "PATCH /projects/:project_id/layers [REQ-FIT-DXF-001]" do
-    it "saves layer inclusion selection" do
+    it "saves layer selection, starts nesting, and redirects to the project progress page" do
       unlock_project_for_spec!(project, pin: "445566")
 
       project.input_dxf.attach(
@@ -37,12 +37,16 @@ RSpec.describe "Project layers", type: :request do
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(included: false)
 
-      patch project_layers_path(project), params: {
-        project_layers: { layer.id.to_s => { included: "1" } }
-      }
+      expect do
+        patch project_layers_path(project), params: {
+          project_layers: { layer.id.to_s => { included: "1" } }
+        }
+      end.to have_enqueued_job(NestingJob)
 
-      expect(response).to redirect_to(project_layers_path(project))
+      expect(response).to redirect_to(project_path(project))
+      expect(flash[:notice]).to eq(I18n.t("nesting.started"))
       expect(layer.reload).to be_included
+      expect(project.reload.status).to eq("processing")
     end
   end
 

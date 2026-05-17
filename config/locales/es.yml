@@ -160,7 +160,7 @@ es:
       title: "Capas — %{title}"
       back: "Volver al proyecto"
       legend: "Incluir capas en el anidado"
-      save: "Guardar selección de capas"
+      save: "Guardar e iniciar anidado"
       empty: "No se encontraron capas en los archivos DXF adjuntos."
       files_attached:
         one: "1 archivo DXF adjunto"

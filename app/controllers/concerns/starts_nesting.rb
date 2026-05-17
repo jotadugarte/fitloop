@@ -1,0 +1,24 @@
+# frozen_string_literal: true
+
+# Shared nesting job kickoff for NestingRunsController and ProjectLayersController.
+module StartsNesting
+  extend ActiveSupport::Concern
+
+  private
+
+  def start_nesting_for!(project)
+    nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
+    project.update!(
+      status: :processing,
+      progress_percent: 0,
+      progress_message: I18n.t("nesting.queued"),
+      estimated_finished_at: Time.current + 30.seconds
+    )
+    NestingJob.perform_later(nesting_run.id)
+    nesting_run
+  end
+
+  def renesting?(project)
+    project.nested_dxf.attached? && (project.completed? || project.partial?)
+  end
+end
