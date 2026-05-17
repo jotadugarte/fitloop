@@ -118,3 +118,39 @@
   color: #1a1a1a;
   border-color: #ccc;
 }
+
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 40rem;
+  margin: 0.75rem auto 0;
+  padding: 0 1rem;
+}
+
+.locale-switcher {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.locale-switcher__form {
+  display: inline;
+  margin: 0;
+}
+
+.locale-switcher__btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #444;
+  cursor: pointer;
+}
+
+.locale-switcher__btn--active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}

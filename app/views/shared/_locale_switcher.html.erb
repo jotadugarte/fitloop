@@ -1,0 +1,11 @@
+<nav class="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
+  <% I18n.available_locales.each do |locale| %>
+    <% active = I18n.locale == locale %>
+    <%= button_to locale.to_s.upcase,
+          locale_path(locale: locale),
+          method: :patch,
+          class: "locale-switcher__btn#{' locale-switcher__btn--active' if active}",
+          aria: { current: (active ? "true" : "false") },
+          form: { class: "locale-switcher__form" } %>
+  <% end %>
+</nav>

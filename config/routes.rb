@@ -11,6 +11,8 @@ Rails.application.routes.draw do
 
   root "home#index"
 
+  resource :locale, only: :update, controller: "locales"
+
   resources :projects, except: :destroy do
     member do
       post :verify_pin

@@ -1,4 +1,7 @@
 es:
+  locale:
+    switcher_label: "Idioma"
+
   home:
     index:
       tagline: "Anidado de láminas DXF"

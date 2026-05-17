@@ -28,6 +28,9 @@
 #       enabled: "ON"
 
 en:
+  locale:
+    switcher_label: "Language"
+
   home:
     index:
       tagline: "DXF sheet nesting"
