@@ -3,6 +3,7 @@
 # [REQ-FIT-JOB-001] Start and cancel nesting jobs for a project.
 class NestingRunsController < ApplicationController
   before_action :set_project
+  before_action -> { require_project_access!(@project) }
 
   def create
     readiness = ProjectReadinessValidator.validate(@project)

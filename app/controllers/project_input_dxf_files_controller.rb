@@ -3,6 +3,7 @@
 # [REQ-FIT-DXF-001] Multi-DXF upload for a project.
 class ProjectInputDxfFilesController < ApplicationController
   before_action :set_project
+  before_action -> { require_project_access!(@project) }
 
   def create
     files = Array(params[:files]).compact

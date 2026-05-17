@@ -2,13 +2,16 @@
 
 # [REQ-FIT-UI-001] Project CRUD with ordered sheet inventory.
 class ProjectsController < ApplicationController
-  before_action :set_project, only: %i[show edit update]
+  before_action :set_project, only: %i[show edit update verify_pin]
+  before_action :require_project_access!, only: %i[edit update]
 
   def index
     @projects = Project.order(created_at: :desc)
   end
 
   def show
+    return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
+
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_runs = @project.nesting_runs.order(created_at: :desc)
@@ -34,6 +37,7 @@ class ProjectsController < ApplicationController
     assign_sheet_stock_sort_orders!(@project)
 
     if @project.save
+      grant_project_access!(@project)
       redirect_to @project, notice: t("projects.created")
     else
       render(:new, status: :unprocessable_content)
@@ -57,7 +61,21 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def verify_pin
+    if ProjectAccess.granted?(project: @project, pin: params[:pin])
+      grant_project_access!(@project)
+      redirect_to @project, notice: t("projects.access.granted")
+    else
+      flash.now[:alert] = t("projects.access.denied")
+      render("projects/pin_gate", status: :unprocessable_entity)
+    end
+  end
+
   private
+
+  def require_project_access!
+    super(@project)
+  end
 
   def set_project
     @project = Project.find(params[:id])

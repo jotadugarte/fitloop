@@ -1,0 +1,19 @@
+<main class="page pin-gate" data-testid="pin-gate">
+  <header class="page-header">
+    <%= image_tag "/images/logo.png", alt: "Fitloop", class: "page-header__logo" %>
+    <h1><%= @project.title %></h1>
+    <p><%= t("projects.access.prompt") %></p>
+  </header>
+
+  <%= form_with url: verify_pin_project_path(@project), method: :post, class: "pin-gate__form", data: { testid: "pin-form" } do %>
+    <div class="field">
+      <label for="pin"><%= t("projects.access.pin_label") %></label>
+      <%= password_field_tag :pin, nil, id: "pin", required: true, autocomplete: "off", maxlength: 10, inputmode: "numeric", data: { testid: "pin-input" } %>
+    </div>
+    <p class="form-actions">
+      <%= submit_tag t("projects.access.unlock"), class: "btn btn-primary" %>
+    </p>
+  <% end %>
+
+  <p><%= link_to t("projects.access.back_to_list"), projects_path %></p>
+</main>

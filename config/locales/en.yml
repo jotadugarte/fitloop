@@ -37,7 +37,15 @@ en:
     updated: "Project updated."
     index:
       title: "Projects"
+      tagline: "Open a project with your PIN to manage DXF nesting."
       new: "New project"
+    access:
+      prompt: "Enter the project PIN to continue."
+      pin_label: "Project PIN"
+      unlock: "Unlock project"
+      granted: "Access granted."
+      denied: "Incorrect PIN. Try again."
+      back_to_list: "Back to all projects"
     new:
       title: "New project"
     edit:

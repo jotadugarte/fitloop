@@ -28,6 +28,8 @@ RSpec.describe "Nesting progress UI", type: :system do
     project.project_layers.create!(layer_name: "PIECES", included: true)
 
     visit project_path(project)
+    fill_in I18n.t("projects.access.pin_label"), with: "445577"
+    click_button I18n.t("projects.access.unlock")
     click_button I18n.t("nesting.start")
 
     expect(page).to have_css('[data-testid="nesting-result"]')

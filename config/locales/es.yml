@@ -8,7 +8,15 @@ es:
     updated: "Proyecto actualizado."
     index:
       title: "Proyectos"
+      tagline: "Abre un proyecto con tu PIN para gestionar el anidado DXF."
       new: "Nuevo proyecto"
+    access:
+      prompt: "Introduce el PIN del proyecto para continuar."
+      pin_label: "PIN del proyecto"
+      unlock: "Desbloquear proyecto"
+      granted: "Acceso concedido."
+      denied: "PIN incorrecto. Inténtalo de nuevo."
+      back_to_list: "Volver a todos los proyectos"
     new:
       title: "Nuevo proyecto"
     edit:

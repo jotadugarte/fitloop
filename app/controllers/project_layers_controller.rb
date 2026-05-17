@@ -3,6 +3,7 @@
 # [REQ-FIT-DXF-001] Layer checklist built from union of uploaded DXF layer names.
 class ProjectLayersController < ApplicationController
   before_action :set_project
+  before_action -> { require_project_access!(@project) }
 
   def index
     Dxf::LayerSync.call(@project)

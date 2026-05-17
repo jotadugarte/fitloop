@@ -33,6 +33,7 @@ RSpec.describe "Re-nesting", type: :request do
       started_at: 2.hours.ago,
       finished_at: 1.hour.ago
     )
+    grant_project_access!(project, pin: "889900")
   end
 
   describe "POST /projects/:project_id/nesting_runs [REQ-FIT-NEST-004]" do

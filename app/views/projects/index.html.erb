@@ -1,10 +1,15 @@
-<main class="page">
-  <h1><%= t("projects.index.title") %></h1>
+<main class="page projects-index" data-testid="projects-index">
+  <header class="page-header">
+    <%= image_tag "/images/logo.png", alt: "Fitloop", class: "page-header__logo" %>
+    <h1><%= t("projects.index.title") %></h1>
+    <p class="page-header__tagline"><%= t("projects.index.tagline") %></p>
+  </header>
+
   <p><%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %></p>
 
   <ul class="project-list">
     <% @projects.each do |project| %>
-      <li><%= link_to project.title, project %></li>
+      <li data-testid="project-list-item"><%= link_to project.title, project %></li>
     <% end %>
   </ul>
 </main>

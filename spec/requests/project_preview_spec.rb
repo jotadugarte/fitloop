@@ -32,6 +32,8 @@ RSpec.describe "Project nesting preview", type: :request do
 
   describe "GET /projects/:id [REQ-FIT-UI-002]" do
     it "renders an SVG preview with one rect per sheet in placements.json" do
+      grant_project_access!(project, pin: "334422")
+
       project.placements_json.attach(
         io: StringIO.new(placements_payload.to_json),
         filename: "placements.json",

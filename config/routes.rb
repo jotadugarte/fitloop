@@ -12,6 +12,9 @@ Rails.application.routes.draw do
   root "home#index"
 
   resources :projects, except: :destroy do
+    member do
+      post :verify_pin
+    end
     resources :layers, only: %i[index update], controller: "project_layers"
     resources :input_dxf_files, only: :create, controller: "project_input_dxf_files"
     resources :nesting_runs, only: :create do
