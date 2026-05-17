@@ -4,6 +4,10 @@
 module ProjectAccessGate
   extend ActiveSupport::Concern
 
+  included do
+    helper_method :project_access_granted?
+  end
+
   def project_access_granted?(project)
     session[:project_access]&.fetch(project.id.to_s, false) == true
   end

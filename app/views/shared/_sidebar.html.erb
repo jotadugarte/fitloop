@@ -18,7 +18,7 @@
       <span class="app-sidebar__icon" aria-hidden="true">▦</span>
     <% end %>
 
-    <% if defined?(@project) && @project.present? %>
+    <% if defined?(@project) && @project&.persisted? %>
       <%= link_to @project,
             class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(@project)}",
             title: @project.title,

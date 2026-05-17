@@ -9,7 +9,7 @@
     <span class="bottom-nav__label"><%= t("nav.projects") %></span>
   <% end %>
 
-  <% if defined?(@project) && @project.present? %>
+  <% if defined?(@project) && @project&.persisted? %>
     <%= link_to @project, class: "bottom-nav__item#{' bottom-nav__item--active' if fitloop_nav_active?(@project, project_layers_path(@project), edit_project_path(@project))}", aria: { label: @project.title } do %>
       <span class="bottom-nav__icon" aria-hidden="true">◫</span>
       <span class="bottom-nav__label"><%= truncate(@project.title, length: 12) %></span>

@@ -17,11 +17,20 @@ RSpec.describe "Architecture-studio UI", type: :request do
   end
 
   describe "GET /projects [REQ-FIT-UI-004]" do
-    it "renders project grid layout" do
+    it "renders project grid when projects exist" do
+      Project.create!(title: "UI grid test", pin: "112233")
+
       get projects_path
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('class="project-grid"')
+    end
+
+    it "renders empty state when there are no projects" do
+      get projects_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="projects-empty"')
     end
   end
 end
