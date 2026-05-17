@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 - Execution (Iterative TDD)</current_phase>
-    <current_step>P0 complete — all steps 1–5 done; suggest finish-branch or P1</current_step>
+    <current_step>3.0 — Awaiting domain type confirmation for P1</current_step>
   </execution_context>
 </agent_state>

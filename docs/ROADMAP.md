@@ -4,7 +4,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Next action:** Run `start-task` on **P0 — Anchors & toolchain** (first pending item below).
+**Next action:** Run `start-task` on **P1 — Domain & access** (step 6: models & migrations).
 
 ---
 
@@ -12,22 +12,23 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 - [x] agentic:guild OS bootstrap (skills, governance docs, PR template) — 2026-05-16
 - [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Branch: `exploring-task` — Session: `task_dxf-nesting.md`
+- [x] **P0 — Anchors & toolchain** (items 1–5 below) — 2026-05-16 — Session: `task_dxf-nesting.md`
+
+### P0 — Anchors & toolchain (complete)
+
+1. [x] Lock stack in `docs/core/SYSTEM_ARCHITECTURE.md` (Rails 8, Hotwire, PostgreSQL, Solid Queue, Active Storage; nesting math only in Python; kill list) (REQ-FIT-ARCH-001) — 2026-05-16
+2. [x] Populate `docs/core/SPEC.md` with domain glossary, entities, workflows, and REQ-FIT-* traceability (REQ-FIT-SPEC-001) — 2026-05-16
+3. [x] Scaffold Rails 8 app at repo root: PostgreSQL, Hotwire, Active Storage, Solid Queue, I18n (`en`, `es`); request spec for Fitloop home (REQ-FIT-APP-001) — 2026-05-16
+4. [x] Add `nesting_engine/` Python package + `requirements.txt` + pytest; extract ≥1 closed contour on selected layer (REQ-FIT-EXT-001) — 2026-05-16
+5. [x] Spike nesting library + ADR `docs/core/ADRs/0001-nesting-library.md` (libnest2d target) (REQ-FIT-NEST-001) — 2026-05-16
 
 ## In Progress
 
-- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — Depends on: *(none; start P0)*
+- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P1 — Domain & access** (steps 6–8)
 
 ## Pending (by priority)
 
-### P0 — Anchors & toolchain *(start here)*
-
-1. [ ] Lock stack in `docs/core/SYSTEM_ARCHITECTURE.md` (Rails 8, Hotwire, PostgreSQL, Solid Queue, Active Storage; nesting math only in Python; kill list) (REQ-FIT-ARCH-001) — Depends on: *(none)*
-2. [ ] Populate `docs/core/SPEC.md` with domain glossary, entities, workflows, and REQ-FIT-* traceability (PIN, sheets, layers, statuses `completed|partial|failed`, CLI contract) (REQ-FIT-SPEC-001) — Depends on: Lock stack
-3. [ ] Scaffold Rails 8 app at repo root: PostgreSQL, Hotwire, Active Storage, Solid Queue, I18n (`en`, `es`); failing request spec for home → green (REQ-FIT-APP-001) — Depends on: SPEC populated
-4. [ ] Add `nesting_engine/` Python package + `requirements.txt` + pytest; failing test: sample DXF → ≥1 closed contour on selected layer (ezdxf + Shapely) (REQ-FIT-EXT-001) — Depends on: Rails scaffold
-5. [ ] Spike nesting library (libnest2d or fallback): holes + any-angle rotation; ADR `docs/core/ADRs/0001-nesting-library.md` (REQ-FIT-NEST-001) — Depends on: Python extractor skeleton
-
-### P1 — Domain & access
+### P1 — Domain & access *(start here)*
 
 6. [ ] Models & migrations: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (defaults: kerf 0, margin 5, curve tolerance 0.1, sheet gap 15, time limit 600s) (REQ-FIT-DOM-001) — Depends on: P0 complete
 7. [ ] PIN access: user 6-digit PIN at create (bcrypt); admin 10-digit master PIN from credentials; `ProjectAccess` service (REQ-FIT-AUTH-001) — Depends on: Models
@@ -50,20 +51,20 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 16. [ ] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — Depends on: Nesting pipeline
 17. [ ] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — Depends on: Preview
-18. [ ] **Locale switcher** — EN/ES toggle in app layout; `LocalesController`; `before_action :set_locale`; persist locale via cookie/session (REQ-FIT-UI-005) — Depends on: Rails scaffold (P0 step 3)
+18. [ ] **Locale switcher** — EN/ES toggle in app layout; `LocalesController`; `before_action :set_locale`; persist locale via cookie/session (REQ-FIT-UI-005) — Depends on: Rails scaffold
 19. [ ] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — Depends on: Re-nest
-20. [ ] **Architecture-studio web design** — Fitloop identity (name + `images/logo.png`), visual language aligned with architecture study workflows, approachable and polished UI (`en`/`es`); locale control styled in header/nav (REQ-FIT-UI-004) — Depends on: Locale switcher (step 18)
-21. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (Rails + Python venv on same host); run `sync-docs` + mark roadmap items done (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design (steps 19–20)
+20. [ ] **Architecture-studio web design** — Fitloop identity (name + `images/logo.png`), visual language aligned with architecture study workflows (REQ-FIT-UI-004) — Depends on: Locale switcher
+21. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (Rails + Python venv on same host); run `sync-docs` + mark roadmap items done (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design
 
-### Documentation (parallel after P0 step 2)
+### Documentation (parallel)
 
-- [ ] Enrich `docs/core/DATA_FLOW_MAP.md` (project lifecycle, nesting job side-effects, Turbo broadcasts) — Depends on: SPEC populated
-- [ ] Enrich `docs/core/TESTING_STRATEGY_MATRIX.md` (RSpec, pytest, system specs, REQ-ID rule) — Depends on: SPEC populated
+- [ ] Enrich `docs/core/DATA_FLOW_MAP.md` — Depends on: SPEC populated
+- [ ] Enrich `docs/core/TESTING_STRATEGY_MATRIX.md` — Depends on: SPEC populated
 - [ ] Add `docs/core/SCHEMA_REFERENCE.md` when first migrations land — Depends on: Models (P1 step 6)
 
 ## Backlog
 
-- [ ] **v1.1 — Auto-split** oversized pieces (curved polygons), split-line preview, apply splits then nest; labels Pieza-1a/1b in output DXF (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
+- [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Additional locales beyond `en` / `es`
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
