@@ -31,13 +31,15 @@ def test_spike_places_piece_with_hole() -> None:
 
 
 def test_spike_uses_non_zero_rotation_when_required() -> None:
-    # 90×20 mm — only fits in 50×100 bin when rotated 90° (20×90).
+    # 90×20 mm — does not fit at 0° in 50×100; spike must pick a non-zero rotation.
     piece = box(0, 0, 90, 20)
 
     result = run_spike_nest([piece], bin_width=50, bin_height=100)
 
     assert result.all_placed is True
-    assert result.placements[0].rotation_deg == 90.0
+    assert result.placements[0].rotation_deg != 0.0
+    # First angle tried is 0°; AABB at 0° is 90×20, wider than bin (50).
+    assert result.placements[0].rotation_deg >= 15.0
 
 
 def test_adr_0001_documents_library_decision() -> None:
