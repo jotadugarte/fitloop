@@ -64,4 +64,13 @@
       <route intent="Get an introduction to the agentic:guild OS, understand what it is, who the agent is, or what the user can do." trigger="who are you, what is agentic guild, hello, what can I do, how do I start">Read `.cursor/skills/hello/SKILL.md`</route>
     </routes>
   </intent_routing>
+
+  <project_rules>
+    <directive>Fitloop-specific rules for AI agents (nesting engine and tests).</directive>
+    <rules>
+      1. When editing `nesting_engine/`, tag new pytest cases with the appropriate `[REQ-FIT-NEST-*]` (or related REQ) from `docs/core/SPEC.md`.
+      2. Do not conflate `margin_mm` and `kerf_mm`: margin is sheet-edge inset only; kerf is piece-to-piece gap via `nest_bin._apply_kerf`. See `docs/core/SYSTEM_ARCHITECTURE.md` §7 and `REQ-FIT-NEST-002`.
+      3. Nesting placement logic stays in Python; Rails orchestrates CLI only (`docs/core/SYSTEM_ARCHITECTURE.md` kill list).
+    </rules>
+  </project_rules>
 </agentic_guild_os>

@@ -17,7 +17,7 @@
 | **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
 | **i18n** | Rails I18n | `en`, `es` in v1 |
-| **Nesting engine** | Python package `nesting_engine/` | ezdxf, Shapely; libnest2d (or ADR fallback) after spike |
+| **Nesting engine** | Python package `nesting_engine/` | **v1 production:** Shapely heuristic in `nest_spike.py` (`nest_bin` multi-bin). **Target:** libnest2d per ADR-0001 / roadmap. ezdxf + Shapely today. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
 Rails owns HTTP, auth (PIN), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
@@ -43,6 +43,7 @@ AI agents **must not** introduce the following without an ADR:
 * 🚫 **Exploding INSERT entities to loose geometry** for piece count (v1): one INSERT on selected layer = one piece; nested blocks resolved to depth 8 in Python.
 * 🚫 **Python owning persistence:** no SQLAlchemy/ORM project DB in the engine; Rails is system of record.
 * 🚫 **Tailwind / CSS-in-JS** unless explicitly adopted later via ADR (default: Rails/CSS following app conventions).
+* 🚫 **Margin as inter-piece gap:** Do not apply `margin_mm` between pieces on the same sheet. Sheet-edge inset only (`nest_spike`); piece-to-piece clearance via `kerf_mm` in `nest_bin._apply_kerf` (see §7 and `REQ-FIT-NEST-002`).
 
 ---
 
@@ -70,3 +71,16 @@ fitloop/                 # Rails 8 app (root)
 ## 6. Traceability
 
 Stack and boundary requirements are tracked in `docs/core/SPEC.md` as `REQ-FIT-ARCH-*` and verified by `test/architecture/system_architecture_doc_test.rb` (`[REQ-FIT-ARCH-001]`).
+
+---
+
+## 7. Nesting engine — margin vs kerf (normative)
+
+| Parameter | Role | Where enforced |
+|-----------|------|----------------|
+| **`margin_mm`** | Inset from **sheet edges** only | `nest_spike` bin fit and anchor candidates |
+| **`kerf_mm`** | Minimum **piece-to-piece** clearance | `nest_bin._apply_kerf` (symmetric buffer before placement obstacles) |
+
+**Requirement detail:** `REQ-FIT-NEST-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §1 (W3).
+
+**v1 placement library:** Shapely rotation sweep in `nest_spike.py` until libnest2d integration (ADR-0001). Do not assume libnest2d is active without checking the roadmap and engine capabilities.

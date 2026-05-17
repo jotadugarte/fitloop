@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>finish-branch</active_skill>
     <current_phase>4 — Final Spackle & PR</current_phase>
-    <current_step>4.1 — sync-docs complete [PAUSE]</current_step>
+    <current_step>4.2 — harvest-rules complete [PAUSE]</current_step>
   </execution_context>
 </agent_state>
