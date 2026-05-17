@@ -143,6 +143,7 @@ en:
       add_sheet: "Add"
       edit_sheet: "Edit"
       delete_sheet: "Delete"
+      sheet_actions: "Actions"
       quantity_unlimited: "Unlimited"
       quantity_hint: "Leave blank for unlimited sheets, or enter a number for a fixed count."
       sheet_summary: "%{width} × %{height} mm × %{quantity}"

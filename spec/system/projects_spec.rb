@@ -16,7 +16,10 @@ RSpec.describe "Project sheet inventory UI", type: :system do
     visit edit_project_path(project)
 
     expect(page).to have_css("[data-sheet-inventory]")
+    expect(page).to have_css(".sheet-inventory-table")
     expect(page).to have_css("[data-testid='sheet-stock-row']", count: 1)
+    expect(page).to have_content("100")
+    expect(page).to have_content("200")
     expect(page).to have_button(I18n.t("projects.form.add_sheet"))
     expect(page).to have_button(I18n.t("projects.form.edit_sheet"))
     expect(page).to have_button(I18n.t("projects.form.delete_sheet"))

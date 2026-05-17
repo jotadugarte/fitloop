@@ -699,32 +699,55 @@ h3 {
   margin-bottom: 1rem;
 }
 
-.sheet-inventory__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.sheet-inventory__table {
   min-height: 12rem;
+  overflow-x: auto;
 }
 
-.sheet-stock-list-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem 0.75rem;
-  align-items: center;
-  padding: 0.65rem 0.75rem;
-  background: var(--fit-bg);
-  border: 1px solid var(--fit-border);
-}
-
-.sheet-stock-list-item__summary {
-  margin: 0;
+.sheet-inventory-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 0.875rem;
-  font-family: ui-monospace, "Cascadia Code", monospace;
 }
 
-.sheet-stock-list-item__actions {
+.sheet-inventory-table thead th {
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fit-text-muted);
+  border-bottom: 1px solid var(--fit-border-strong);
+  white-space: nowrap;
+}
+
+.sheet-inventory-table tbody td {
+  padding: 0.55rem 0.65rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--fit-border);
+}
+
+.sheet-inventory-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sheet-inventory-table__dim {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-inventory-table__actions-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.sheet-inventory-table__actions {
+  text-align: right;
+}
+
+.sheet-inventory-table__action-buttons {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.35rem;
 }
 

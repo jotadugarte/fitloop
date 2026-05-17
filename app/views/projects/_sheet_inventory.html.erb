@@ -53,30 +53,46 @@
       </button>
     </div>
 
-    <div class="sheet-inventory__list panel" data-sheet-inventory-list>
-      <%= form.fields_for :sheet_stocks do |sheet_form| %>
-        <% next if sheet_form.object.marked_for_destruction? %>
-        <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
-      <% end %>
+    <div class="sheet-inventory__table panel">
+      <table class="sheet-inventory-table">
+        <thead>
+          <tr>
+            <th scope="col"><%= SheetStock.human_attribute_name(:width_mm) %></th>
+            <th scope="col"><%= SheetStock.human_attribute_name(:height_mm) %></th>
+            <th scope="col"><%= SheetStock.human_attribute_name(:quantity) %></th>
+            <th scope="col" class="sheet-inventory-table__actions-col"><%= t("projects.form.sheet_actions") %></th>
+          </tr>
+        </thead>
+        <tbody data-sheet-inventory-list>
+          <%= form.fields_for :sheet_stocks do |sheet_form| %>
+            <% next if sheet_form.object.marked_for_destruction? %>
+            <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <template data-sheet-inventory-row-template>
-    <div class="sheet-stock-list-item" data-sheet-inventory-row data-testid="sheet-stock-row">
-      <p class="sheet-stock-list-item__summary" data-sheet-inventory-summary></p>
-      <div class="sheet-stock-list-item__actions">
-        <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-edit>
-          <%= t("projects.form.edit_sheet") %>
-        </button>
-        <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-remove>
-          <%= t("projects.form.delete_sheet") %>
-        </button>
-      </div>
-      <input type="hidden" data-sheet-inventory-field="sort_order" value="0">
-      <input type="hidden" data-sheet-inventory-field="width_mm">
-      <input type="hidden" data-sheet-inventory-field="height_mm">
-      <input type="hidden" data-sheet-inventory-field="quantity">
-      <input type="hidden" data-sheet-inventory-field="_destroy" value="0">
-    </div>
+    <tr data-sheet-inventory-row data-testid="sheet-stock-row">
+      <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm"></td>
+      <td class="sheet-inventory-table__dim" data-sheet-inventory-display="height_mm"></td>
+      <td data-sheet-inventory-display="quantity"></td>
+      <td class="sheet-inventory-table__actions">
+        <div class="sheet-inventory-table__action-buttons">
+          <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-edit>
+            <%= t("projects.form.edit_sheet") %>
+          </button>
+          <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-remove>
+            <%= t("projects.form.delete_sheet") %>
+          </button>
+        </div>
+        <input type="hidden" data-sheet-inventory-field="sort_order" value="0">
+        <input type="hidden" data-sheet-inventory-field="width_mm">
+        <input type="hidden" data-sheet-inventory-field="height_mm">
+        <input type="hidden" data-sheet-inventory-field="quantity">
+        <input type="hidden" data-sheet-inventory-field="_destroy" value="0">
+      </td>
+    </tr>
   </template>
 </fieldset>

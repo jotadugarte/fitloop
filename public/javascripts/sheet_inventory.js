@@ -31,10 +31,21 @@
     root.dataset.editingIndex = "";
   }
 
-  function summaryText(root, width, height, quantity) {
-    const unlimited = root.dataset.summaryUnlimited;
-    const qtyLabel = quantity !== "" ? quantity : unlimited;
-    return `${width} × ${height} mm × ${qtyLabel}`;
+  function formatDimension(value) {
+    const number = parseFloat(value);
+    if (Number.isNaN(number)) return value;
+    if (Number.isInteger(number)) return String(number);
+    return String(Math.round(number * 10) / 10);
+  }
+
+  function quantityLabel(root, quantity) {
+    return quantity !== "" ? quantity : root.dataset.summaryUnlimited;
+  }
+
+  function updateRowDisplay(row, root, data) {
+    row.querySelector("[data-sheet-inventory-display='width_mm']").textContent = formatDimension(data.width);
+    row.querySelector("[data-sheet-inventory-display='height_mm']").textContent = formatDimension(data.height);
+    row.querySelector("[data-sheet-inventory-display='quantity']").textContent = quantityLabel(root, data.quantity);
   }
 
   function validateComposer(root, data) {
@@ -61,12 +72,7 @@
     const prefix = `project[sheet_stocks_attributes][${index}]`;
 
     row.dataset.sheetInventoryIndex = index;
-    row.querySelector("[data-sheet-inventory-summary]").textContent = summaryText(
-      root,
-      data.width,
-      data.height,
-      data.quantity
-    );
+    updateRowDisplay(row, root, data);
 
     const setField = (name, value) => {
       const input = row.querySelector(`[data-sheet-inventory-field='${name}']`);
@@ -85,12 +91,7 @@
   }
 
   function updateRow(row, root, data) {
-    row.querySelector("[data-sheet-inventory-summary]").textContent = summaryText(
-      root,
-      data.width,
-      data.height,
-      data.quantity
-    );
+    updateRowDisplay(row, root, data);
     row.querySelector("[data-sheet-inventory-field='width_mm']").value = data.width;
     row.querySelector("[data-sheet-inventory-field='height_mm']").value = data.height;
     row.querySelector("[data-sheet-inventory-field='quantity']").value = data.quantity;

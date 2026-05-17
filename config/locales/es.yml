@@ -114,6 +114,7 @@ es:
       add_sheet: "Agregar"
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"
+      sheet_actions: "Acciones"
       quantity_unlimited: "Ilimitada"
       quantity_hint: "Deja en blanco para láminas ilimitadas, o escribe un número para una cantidad fija."
       sheet_summary: "%{width} × %{height} mm × %{quantity}"
