@@ -38,8 +38,8 @@ es:
               invalid_format: "debe tener exactamente 6 dígitos"
             title:
               blank: "no puede estar en blanco"
-          base:
-            no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
+            base:
+              no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
         sheet_stock:
           attributes:
             width_mm:
@@ -50,6 +50,8 @@ es:
               blank: "no puede estar en blanco"
               not_a_number: "no es un número"
               greater_than: "debe ser mayor que %{count}"
+      messages:
+        record_invalid: "La validación falló: %{errors}"
 
   nav:
     primary: "Navegación principal"

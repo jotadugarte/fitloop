@@ -45,7 +45,15 @@ RSpec.describe "I18n view copy", type: :request do
   end
 
   describe "GET /projects/:id PIN gate [REQ-FIT-UI-005]" do
-    let(:project) { Project.create!(title: "Puerta", pin: "123456") }
+    let(:project) do
+      Project.create!(
+        title: "Puerta",
+        pin: "123456",
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 500, quantity: 1, sort_order: 0 }
+        }
+      )
+    end
 
     it "renders Spanish PIN gate copy" do
       with_locale(:es) { get project_path(project) }

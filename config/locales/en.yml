@@ -67,8 +67,8 @@ en:
               invalid_format: "must be exactly 6 digits"
             title:
               blank: "can't be blank"
-          base:
-            no_sheet_stocks: "add at least one sheet type to the inventory"
+            base:
+              no_sheet_stocks: "add at least one sheet type to the inventory"
         sheet_stock:
           attributes:
             width_mm:
@@ -79,6 +79,8 @@ en:
               blank: "can't be blank"
               not_a_number: "is not a number"
               greater_than: "must be greater than %{count}"
+      messages:
+        record_invalid: "Validation failed: %{errors}"
 
   nav:
     primary: "Main navigation"
