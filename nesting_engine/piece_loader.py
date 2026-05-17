@@ -30,3 +30,28 @@ def load_pieces(
 
     assert isinstance(pieces, list)
     return pieces
+
+
+def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
+    curve_tolerance_mm = float(config.get("curve_tolerance_mm", 0.1))
+    input_files = config.get("input_files")
+    if input_files:
+        pieces: list = []
+        for entry in input_files:
+            path = Path(entry["path"])
+            for layer_name in entry.get("included_layers", []):
+                contours = extract_closed_contours(
+                    path,
+                    layer_name,
+                    curve_tolerance_mm=curve_tolerance_mm,
+                    warnings=warnings,
+                )
+                pieces.extend(contours)
+        return pieces
+
+    return load_pieces(
+        config.get("input_dxf_paths", []),
+        config.get("included_layers", []),
+        curve_tolerance_mm=curve_tolerance_mm,
+        warnings=warnings,
+    )

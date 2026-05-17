@@ -1,0 +1,23 @@
+<nav class="app-sidebar" aria-label="<%= t("nav.primary") %>">
+  <%= link_to root_path, class: "app-sidebar__logo", title: t("application.name"), aria: { label: t("application.name") } do %>
+    <%= image_tag "/images/minilogo.png", alt: "" %>
+  <% end %>
+
+  <div class="app-sidebar__links">
+    <%= link_to root_path,
+          class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(root_path)}",
+          title: t("nav.home"),
+          aria: { label: t("nav.home") } do %>
+      <span class="app-sidebar__icon" aria-hidden="true">⌂</span>
+    <% end %>
+
+    <% if defined?(@project) && @project&.persisted? %>
+      <%= link_to @project,
+            class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(@project)}",
+            title: @project.ephemeral? ? t("projects.show.session_title") : @project.title,
+            aria: { label: t("projects.show.session_title") } do %>
+        <span class="app-sidebar__icon" aria-hidden="true">◫</span>
+      <% end %>
+    <% end %>
+  </div>
+</nav>

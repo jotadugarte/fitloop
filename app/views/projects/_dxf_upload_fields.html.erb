@@ -1,0 +1,16 @@
+<%# [REQ-FIT-DXF-001] DXF upload on project creation. %>
+<% if project.new_record? %>
+  <fieldset class="project-dxf-upload panel panel--subtle">
+    <legend><%= t("projects.form.dxf_upload_legend") %></legend>
+    <div class="field">
+      <label for="project_dxf_files">
+        <%= t("projects.form.dxf_upload_label") %>
+        <span class="field__hint"><%= t("projects.form.dxf_upload_hint") %></span>
+      </label>
+      <%= file_field_tag :files, multiple: true, accept: ".dxf,application/dxf", id: "project_dxf_files", data: { testid: "project-dxf-files" } %>
+      <% if project.errors.any? %>
+        <p class="field__hint" role="status"><%= t("projects.form.dxf_upload_resubmit_hint") %></p>
+      <% end %>
+    </div>
+  </fieldset>
+<% end %>

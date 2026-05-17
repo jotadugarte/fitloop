@@ -59,6 +59,7 @@ RSpec.describe "Re-nesting", type: :request do
       expect(response.body).to include('data-testid="download-nested-dxf"')
       expect(response.body).to include('data-testid="renest-nesting"')
       expect(response.body).to include(I18n.t("nesting.renest"))
+      expect(response.body).to include('data-controller="nesting-progress-sync"')
     end
   end
 end

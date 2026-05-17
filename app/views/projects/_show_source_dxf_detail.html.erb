@@ -1,0 +1,48 @@
+<%= turbo_frame_tag dom_id(project, :source_dxf_detail) do %>
+  <% selected_layers = project.project_layers.where(included: true) %>
+  <% file_count = project.input_dxf_attachments.size %>
+  <% expand_layers = local_assigns.fetch(:expand_layers, false) %>
+  <details class="collapsible-panel panel panel--chrome fit-section"
+           data-testid="source-dxf-detail"
+           <%= "open" if expand_layers %>>
+    <%= render "projects/fit_section_summary",
+               title: t("projects.show.source_dxf_detail_summary"),
+               meta: t("projects.show.source_dxf_detail_meta",
+                       files: file_count,
+                       selected: selected_layers.count,
+                       total: project.project_layers.count) %>
+
+    <div class="collapsible-panel__body fit-section__content">
+      <% if project.input_dxf_attachments.any? %>
+        <div class="panel panel--inset">
+          <%= form_with url: workspace_project_path(project),
+                        method: :patch,
+                        class: "source-dxf-detail__layers-form",
+                        data: { turbo_frame: dom_id(project, :source_dxf_detail) } do %>
+            <%= hidden_field_tag :section, "layers" %>
+            <%= render "projects/dxf_layers_checklist",
+                       project: project,
+                       context: "show",
+                       expand_layers: expand_layers,
+                       expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+            <p class="form-actions form-actions--inline">
+              <%= submit_tag t("projects.show.apply_layers"), class: "btn btn-secondary btn--compact" %>
+            </p>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="panel panel--inset">
+          <p><%= t("projects.show.source_dxf_detail_empty") %></p>
+        </div>
+      <% end %>
+
+      <div class="panel panel--inset source-dxf-detail__upload">
+        <%= render "projects/dxf_upload_controls",
+                   project: project,
+                   context: "show",
+                   input_id: "show_dxf_files",
+                   testid: "show-dxf-files" %>
+      </div>
+    </div>
+  </details>
+<% end %>

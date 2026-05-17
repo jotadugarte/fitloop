@@ -1,2 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Development server. Nesting jobs run via the :async adapter (in-process thread).
+# For Solid Queue instead: ACTIVE_JOB_QUEUE_ADAPTER=solid_queue SOLID_QUEUE_IN_PUMA=1 bin/dev
 exec "./bin/rails", "server", *ARGV

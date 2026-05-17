@@ -1,4 +1,15 @@
-<%= form_with model: project, class: "project-form" do |f| %>
+<%= form_with model: project,
+              class: "project-form",
+              html: {
+                multipart: true,
+                data: {
+                  controller: "sheet-inventory",
+                  action: "submit->sheet-inventory#flushOnSubmit",
+                  sheet_inventory_summary_unlimited_value: t("projects.form.quantity_unlimited"),
+                  sheet_inventory_alert_dimensions_value: t("projects.form.alert_dimensions"),
+                  sheet_inventory_alert_quantity_value: t("projects.form.alert_quantity")
+                }
+              } do |f| %>
   <% if project.errors.any? %>
     <div class="form-errors" role="alert">
       <h2><%= t("projects.form.errors_heading", count: project.errors.count) %></h2>
@@ -11,30 +22,20 @@
   <% end %>
 
   <div class="field">
-    <%= f.label :title, "Title" %>
+    <%= f.label :title %>
     <%= f.text_field :title, required: true %>
   </div>
 
   <div class="field">
-    <%= f.label :pin, "PIN" %>
-    <%= f.password_field :pin, required: true, maxlength: 6, autocomplete: "off" %>
+    <%= f.label :pin %>
+    <%= f.password_field :pin, value: project.pin, required: project.new_record?, maxlength: 6, autocomplete: "off" %>
   </div>
 
-  <fieldset class="sheet-stocks">
-    <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
+  <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {} %>
 
-    <div
-      class="sheet-stocks__list"
-      data-controller="sortable"
-      data-sortable-resource="sheet-stock"
-    >
-      <%= f.fields_for :sheet_stocks do |sheet_form| %>
-        <%= render "sheet_stock_fields", form: sheet_form %>
-      <% end %>
-    </div>
+  <%= render "nesting_settings", form: f %>
 
-    <%= f.button t("projects.form.add_sheet_type"), name: "add_sheet", value: "1", type: "submit", class: "btn btn-secondary" %>
-  </fieldset>
+  <%= render "dxf_upload_fields", project: project %>
 
   <div class="form-actions">
     <%= f.submit t("projects.form.save_project"), class: "btn btn-primary" %>

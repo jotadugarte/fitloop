@@ -27,6 +27,20 @@ class ProjectReadinessValidator
   end
 
   def extractable_piece_count
+    return 0 if @project.input_dxf_attachments.blank?
+
+    if per_file_layers?
+      count_with_per_file_layers
+    else
+      count_with_union_layers
+    end
+  end
+
+  def per_file_layers?
+    @project.project_layers.where.not(active_storage_attachment_id: nil).exists?
+  end
+
+  def count_with_union_layers
     layer_names = @project.project_layers.where(included: true).pluck(:layer_name)
     return 0 if layer_names.empty?
 
@@ -37,12 +51,38 @@ class ProjectReadinessValidator
     end
   end
 
+  def count_with_per_file_layers
+    total = 0
+    @project.input_dxf_attachments.each do |attachment|
+      layer_names = @project.project_layers
+        .where(included: true, active_storage_attachment_id: attachment.id)
+        .pluck(:layer_name)
+      next if layer_names.empty?
+
+      total += with_downloaded_path(attachment) do |path|
+        Dxf::PieceCounter.count(paths: [path], layer_names: layer_names)
+      end
+    end
+    total
+  end
+
+  def with_downloaded_path(attachment)
+    tempfile = Tempfile.new([ "fitloop_dxf", ".dxf" ], Dir.tmpdir)
+    tempfile.binmode
+    attachment.download { |chunk| tempfile.write(chunk) }
+    tempfile.flush
+    yield tempfile.path
+  ensure
+    tempfile&.close
+    tempfile&.unlink
+  end
+
   def with_downloaded_dxf_paths
     return yield [] if @project.input_dxf_attachments.blank?
 
     tempfiles = []
     paths = @project.input_dxf_attachments.map do |attachment|
-      tempfile = Tempfile.new(["fitloop_dxf", ".dxf"], Dir.tmpdir)
+      tempfile = Tempfile.new([ "fitloop_dxf", ".dxf" ], Dir.tmpdir)
       tempfiles << tempfile
       tempfile.binmode
       attachment.download { |chunk| tempfile.write(chunk) }

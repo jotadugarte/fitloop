@@ -1,28 +1,34 @@
 <%= turbo_stream_from @project %>
 
-<main class="page project-show" data-testid="project-show">
-  <header class="page-header">
-    <%= image_tag "/images/logo.png", alt: "Fitloop", class: "page-header__logo" %>
-    <h1><%= @project.title %></h1>
+<main
+  class="page page--wide project-show"
+  data-testid="project-show"
+  data-controller="nesting-progress-sync"
+  data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
+  data-project-status="<%= @project.status %>"
+>
+  <header class="page-header page-header--compact">
+    <h1><%= @project.ephemeral? ? t("projects.show.session_title") : @project.title %></h1>
+    <%= render "status_badge", project: @project %>
   </header>
-  <p><%= link_to t("projects.show.edit"), edit_project_path(@project) %></p>
-  <p><%= link_to t("projects.show.layers"), project_layers_path(@project) %></p>
 
-  <% if @project.nested_dxf.attached? && (@project.completed? || @project.partial?) %>
-    <%= link_to t("projects.show.download_nested_dxf"), rails_blob_path(@project.nested_dxf, disposition: "attachment"), data: { testid: "download-nested-dxf" } %>
-    <%= button_to t("nesting.renest"), project_nesting_runs_path(@project), method: :post, data: { testid: "renest-nesting" } %>
-  <% elsif @project.draft? || @project.ready? || @project.failed? %>
-    <%= button_to t("nesting.start"), project_nesting_runs_path(@project), method: :post, data: { testid: "start-nesting" } %>
-  <% end %>
+  <%= render "show_sheet_inventory", project: @project %>
 
-  <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
-  <%= render "nesting_preview", preview: @nesting_preview %>
-  <%= render "nesting_run_history", nesting_runs: @nesting_runs %>
+  <%= render "show_source_dxf_detail", project: @project %>
 
-  <% active_run = @project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
-  <% if active_run %>
-    <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(@project, active_run), method: :post, data: { testid: "cancel-nesting" } %>
-  <% end %>
+  <%= render "show_preview_zone",
+             project: @project,
+             preview: @nesting_preview,
+             orphans: @nesting_orphans %>
 
-  <p><%= link_to t("projects.show.back"), projects_path %></p>
+  <%= render "show_actions", project: @project %>
+
+  <section class="project-show__progress">
+    <%= render "nesting_progress",
+               project: @project,
+               eta_overrun: false,
+               time_limit_notice: @time_limit_notice %>
+  </section>
+
+  <%= render "nesting_parameters", project: @project %>
 </main>

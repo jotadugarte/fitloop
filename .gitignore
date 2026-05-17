@@ -1,6 +1,3 @@
-# agentic:guild Transient Memory
-.agenticguild/*
-!.agenticguild/.gitkeep
 
 # Python virtual environments
 .venv/

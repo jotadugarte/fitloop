@@ -4,7 +4,29 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Next action:** Merge MVP v1 PR; then backlog (locale switcher `REQ-FIT-UI-005`, architecture-studio `REQ-FIT-UI-004`, v1.1 auto-split).
+**Last audit:** 2026-05-16 — compared repo (`main` + `finish`) against SPEC, tests, and app code.
+
+**Next action:** Backlog — v1.1 auto-split (`REQ-FIT-SPLIT-001`) or optional FastAPI wrapper.
+
+---
+
+## Status summary
+
+| Phase | Scope | Status |
+|-------|--------|--------|
+| P0 | Anchors & toolchain | **Complete** |
+| P1 | Domain & access | **Complete** |
+| P2 | DXF inputs & validation | **Complete** |
+| P3 | Nesting pipeline | **Complete** |
+| P4 | UX completion & ship | **Complete** |
+| Docs | Core reference docs | **Complete** |
+| P5 / Backlog | v1.1+ | **Not started** |
+
+**MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
+
+**Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
+
+**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -14,9 +36,11 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 - [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Session: `task_dxf-nesting.md`
 - [x] **P0 — Anchors & toolchain** (items 1–5) — 2026-05-16
 - [x] **P1 — Domain & access** (items 6–8) — 2026-05-16
-- [x] **Fitloop MVP v1 — DXF sheet nesting** (P2–P4, steps 9–21) — 2026-05-16 — Session: `task_dxf-nesting.md`
+- [x] **P2 — DXF inputs & validation** (items 9–11) — 2026-05-16
+- [x] **P3 — Nesting pipeline** (items 12–15) — 2026-05-16
+- [x] **Fitloop MVP v1 — core product** (P4 items 16–17, 19, 21; merged PR #1) — 2026-05-16 — Session: `task_dxf-nesting.md`
 
-### P0 — Anchors & toolchain (complete)
+### P0 — Anchors & toolchain
 
 1. [x] Lock stack in `docs/core/SYSTEM_ARCHITECTURE.md` (REQ-FIT-ARCH-001) — 2026-05-16
 2. [x] Populate `docs/core/SPEC.md` (REQ-FIT-SPEC-001) — 2026-05-16
@@ -24,17 +48,11 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 4. [x] `nesting_engine/` extract + pytest (REQ-FIT-EXT-001) — 2026-05-16
 5. [x] Nesting library spike + ADR-0001 (REQ-FIT-NEST-001) — 2026-05-16
 
-### P1 — Domain & access (complete)
+### P1 — Domain & access
 
 6. [x] Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (REQ-FIT-DOM-001) — 2026-05-16
 7. [x] PIN access + `ProjectAccess` (REQ-FIT-AUTH-001) — 2026-05-16
 8. [x] Project CRUD + ordered `SheetStock` UI (REQ-FIT-UI-001) — 2026-05-16
-
-## In Progress
-
-_(none — MVP v1 shipped on branch `exploring-task`, 2026-05-16)_
-
-## Pending (by priority)
 
 ### P2 — DXF inputs & validation
 
@@ -49,20 +67,31 @@ _(none — MVP v1 shipped on branch `exploring-task`, 2026-05-16)_
 14. [x] Map job status `completed` | `partial` | `failed` from report; oversized pieces → orphans in v1 (REQ-FIT-NEST-003) — 2026-05-16
 15. [x] Job UX: Turbo Stream progress (%, message, ETA overrun text); 600s cap → partial + notice; cancel (REQ-FIT-JOB-001) — 2026-05-16
 
-### P4 — UX completion & ship
+### P4 — UX completion (shipped in MVP)
 
 16. [x] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — 2026-05-16
 17. [x] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — 2026-05-16
-18. [ ] **Locale switcher** (REQ-FIT-UI-005) — Depends on: Rails scaffold
-19. [x] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — 2026-05-16
-20. [ ] **Architecture-studio web design** (REQ-FIT-UI-004) — Depends on: Locale switcher
+19. [x] Download nested DXF; project list without login; PIN gate on show; functional UI + `en`/`es` locale files (REQ-FIT-UI-003) — 2026-05-16
 21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
+18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
+20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
+- [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
 
-### Documentation (parallel)
+---
 
-- [ ] Enrich `docs/core/DATA_FLOW_MAP.md` — Depends on: SPEC populated
-- [ ] Enrich `docs/core/TESTING_STRATEGY_MATRIX.md` — Depends on: SPEC populated
-- [ ] Add `docs/core/SCHEMA_REFERENCE.md` when first migrations land — Depends on: Models (P1 step 6)
+## In Progress
+
+_(none)_
+
+---
+
+## Pending (by priority)
+
+### Documentation
+
+_(complete)_
+
+---
 
 ## Backlog
 

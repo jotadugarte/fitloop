@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Project nesting preview", type: :request do
-  let(:project) { Project.create!(title: "Preview bench", pin: "334422") }
+  let(:project) { create_project_for_spec!(title: "Preview bench", pin: "334422") }
   let(:placements_payload) do
     {
       sheets: [
@@ -31,6 +31,38 @@ RSpec.describe "Project nesting preview", type: :request do
   end
 
   describe "GET /projects/:id [REQ-FIT-UI-002]" do
+    it "renders piece outlines with holes when placements include rings" do
+      unlock_project_for_spec!(project, pin: "334422")
+
+      payload = placements_payload.deep_dup
+      payload[:sheets][0][:pieces] = [
+        {
+          piece_index: 0,
+          x_mm: 10.0,
+          y_mm: 15.0,
+          rotation_deg: 0.0,
+          width_mm: 80.0,
+          height_mm: 40.0,
+          rings: [
+            [ [ 10.0, 15.0 ], [ 90.0, 15.0 ], [ 90.0, 55.0 ], [ 10.0, 55.0 ] ],
+            [ [ 30.0, 25.0 ], [ 70.0, 25.0 ], [ 70.0, 45.0 ], [ 30.0, 45.0 ] ]
+          ]
+        }
+      ]
+      project.placements_json.attach(
+        io: StringIO.new(payload.to_json),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+      project.update!(status: :completed)
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('fill-rule="evenodd"')
+      expect(response.body).to include("<path")
+    end
+
     it "renders an SVG preview with one rect per sheet in placements.json" do
       unlock_project_for_spec!(project, pin: "334422")
 
@@ -48,6 +80,13 @@ RSpec.describe "Project nesting preview", type: :request do
       expect(response.body).to include('data-testid="nesting-preview-svg"')
       expect(response.body.scan('data-testid="preview-sheet"').size).to eq(2)
       expect(response.body).to include(I18n.t("projects.preview.sheet_count", count: 2))
+      expect(response.body).to include(
+        I18n.t("projects.preview.sheet_dimensions", index: 1, width: "1000", height: "500")
+      )
+      expect(response.body).to include('data-testid="preview-sheet-dimensions"')
+      expect(response.body).to include('fill="#ffffff"')
+      expect(response.body).to include('y="0"')
+      expect(response.body).not_to match(/<rect[^>]+y="-\d/)
     end
   end
 end

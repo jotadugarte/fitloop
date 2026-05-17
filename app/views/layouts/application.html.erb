@@ -1,29 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="<%= I18n.locale %>">
   <head>
-    <title><%= content_for(:title) || "Fitloop" %></title>
+    <title><%= content_for(:title) || t("application.name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Fitloop">
+    <meta name="application-name" content="<%= t("application.name") %>">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
+    <%= action_cable_meta_tag %>
     <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="icon" href="/images/minilogo.png" type="image/png">
+    <link rel="apple-touch-icon" href="/images/minilogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
-
-  <body>
-    <%= render "shared/flash" %>
-    <%= yield %>
+  <body class="layout-app">
+    <%= render "shared/sidebar" %>
+    <%= render "shared/bottom_nav" %>
+    <div class="app-main">
+      <header class="app-main__toolbar">
+        <%= render "shared/locale_switcher" %>
+      </header>
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </div>
   </body>
 </html>

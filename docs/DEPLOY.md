@@ -18,7 +18,7 @@ Rails and Python share the same filesystem so Active Storage blobs and temp work
 
 - Ruby 3.x + Bundler (see `Gemfile`)
 - PostgreSQL 14+
-- Python 3.10+ with `pip install -r nesting_engine/requirements.txt` inside `.venv` at repo root
+- Python 3.10+ with `pip install -r requirements.txt` inside `.venv` at repo root
 
 ## Environment
 
@@ -37,11 +37,38 @@ Copy `.env.example` to `.env` and set:
 bundle install
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r nesting_engine/requirements.txt
+pip install -r requirements.txt
 cp .env.example .env
-bin/rails db:create db:migrate
+bin/rails db:create db:prepare
 bin/rails db:seed   # if seeds exist
 ```
+
+`db:prepare` loads the main schema and **Solid Queue** tables (`db/queue_schema.rb`) required for background nesting jobs.
+
+### Development: background nesting jobs
+
+By default, development uses the **`:async`** Active Job adapter (jobs run in a background thread inside `bin/rails server`). No separate worker process is required.
+
+```bash
+bin/dev
+```
+
+**Expected timing:** a small test DXF (e.g. `sample_piece.dxf`) on a 1000×2000 mm sheet usually finishes in **5–30 seconds**. Large or complex files can take **minutes** (up to the project time limit, default 10 minutes).
+
+**Stuck at 3% “En cola…”** for more than ~10 seconds means the job never started. Restart the server after `bin/rails db:prepare`. Check the Rails log for `Performing NestingJob`.
+
+To test **Solid Queue** locally (like production):
+
+```bash
+bin/rails db:prepare
+ACTIVE_JOB_QUEUE_ADAPTER=solid_queue SOLID_QUEUE_IN_PUMA=1 bin/dev
+```
+
+Or two terminals: `bin/rails server` and `bin/jobs start`.
+
+If you see `relation "solid_queue_processes" does not exist`, run `bin/rails db:schema:load:queue`.
+
+If `bin/dev` says a server is already running, stop the old process (`Ctrl+C` or remove `tmp/pids/server.pid` after stopping Puma) and start again.
 
 ## Production checklist
 

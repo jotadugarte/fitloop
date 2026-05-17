@@ -1,22 +1,41 @@
 <%= turbo_frame_tag dom_id(project, :nesting_progress) do %>
   <% if project.processing? %>
-    <section class="nesting-progress" data-testid="nesting-progress">
-      <h2><%= t("nesting.progress_heading") %></h2>
-      <progress value="<%= project.progress_percent.to_i %>" max="100"></progress>
-      <p data-testid="progress-message"><%= project.progress_message %></p>
-      <% if eta_overrun %>
-        <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
-      <% end %>
-      <% if time_limit_notice %>
-        <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
-      <% end %>
+    <% percent = project.progress_percent.to_i %>
+    <section class="nesting-progress panel panel--chrome fit-section" data-testid="nesting-progress">
+      <h2 class="fit-section__legend"><%= t("nesting.progress_heading") %></h2>
+      <div class="fit-section__content">
+        <div class="panel panel--inset">
+          <% if percent.positive? %>
+            <progress class="nesting-progress__bar" value="<%= percent %>" max="100"></progress>
+          <% else %>
+            <div class="nesting-progress__bar nesting-progress__bar--indeterminate" role="progressbar" aria-valuetext="<%= project.progress_message %>">          </div>
+          <% end %>
+          <p class="nesting-progress__status" data-testid="progress-message">
+            <% if percent.positive? %>
+              <span class="nesting-progress__percent"><%= percent %>%</span>
+            <% end %>
+            <%= project.progress_message %>
+          </p>
+          <% if eta_overrun %>
+            <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
+          <% end %>
+          <% if time_limit_notice %>
+            <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
+          <% end %>
+        </div>
+      </div>
     </section>
   <% elsif project.completed? || project.partial? %>
-    <section class="nesting-result" data-testid="nesting-result">
-      <p data-testid="progress-message"><%= project.progress_message %></p>
-      <% if time_limit_notice %>
-        <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
-      <% end %>
+    <section class="nesting-result panel panel--chrome fit-section" data-testid="nesting-result">
+      <h2 class="fit-section__legend"><%= t("nesting.progress_heading") %></h2>
+      <div class="fit-section__content">
+        <div class="panel panel--inset">
+          <p data-testid="progress-message"><%= project.progress_message %></p>
+          <% if time_limit_notice %>
+            <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
+          <% end %>
+        </div>
+      </div>
     </section>
   <% end %>
 <% end %>

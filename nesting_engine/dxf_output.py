@@ -10,6 +10,31 @@ from shapely.affinity import rotate, translate
 from nesting_engine.nest_bin import NestedSheet, PlacedPiece
 
 
+def write_piece_dxf(
+    path: Path | str,
+    rings: list[list[list[float]]],
+    *,
+    layer_name: str = "PIECES",
+) -> None:
+    assert rings, "at least one ring is required"
+    assert len(rings[0]) >= 3, "exterior ring must have at least three points"
+
+    doc = ezdxf.new("R2010")
+    if layer_name not in doc.layers:
+        doc.layers.add(layer_name)
+    msp = doc.modelspace()
+
+    exterior = [(float(x), float(y)) for x, y in rings[0]]
+    msp.add_lwpolyline(exterior, close=True, dxfattribs={"layer": layer_name})
+    for hole in rings[1:]:
+        if len(hole) < 3:
+            continue
+        coords = [(float(x), float(y)) for x, y in hole]
+        msp.add_lwpolyline(coords, close=True, dxfattribs={"layer": layer_name})
+
+    doc.saveas(path)
+
+
 def write_nested_dxf(path: Path | str, sheets: list[NestedSheet]) -> None:
     assert sheets is not None, "sheets required"
 
@@ -45,10 +70,12 @@ def _add_sheet_outline(msp, sheet: NestedSheet) -> None:
 
 def _add_piece(msp, placed: PlacedPiece, *, sheet_offset_x: float) -> None:
     rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
-    minx, miny, _, _ = rotated.bounds
-    dx = placed.placement.x - minx + sheet_offset_x
-    dy = placed.placement.y - miny
-    world = translate(rotated, xoff=dx, yoff=dy)
+    # placement.x/y are translation offsets from nest_spike (margin - bounds.min), not absolute coords.
+    world = translate(
+        rotated,
+        xoff=placed.placement.x + sheet_offset_x,
+        yoff=placed.placement.y,
+    )
 
     msp.add_lwpolyline(
         list(world.exterior.coords),

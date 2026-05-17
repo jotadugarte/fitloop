@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Shebang scripts must use LF (WSL/Linux break on CRLF)
+bin/* text eol=lf
+*.sh text eol=lf

@@ -2,5 +2,6 @@
 
 class HomeController < ApplicationController
   def index
+    Workspace.discard!(session)
   end
 end

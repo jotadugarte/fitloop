@@ -1,6 +1,11 @@
-<main class="fitloop-home">
-  <%= image_tag "/images/logo.png", alt: "Fitloop logo", class: "fitloop-home__logo" %>
-  <h1>Fitloop</h1>
-  <p><%= t(".tagline") %></p>
-  <p><%= link_to t("projects.index.title"), projects_path, class: "btn btn-primary" %></p>
+<main class="page page--landing fitloop-home" data-testid="fitloop-home">
+  <section class="landing-hero">
+    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "landing-hero__logo" %>
+    <h1 class="landing-hero__title"><%= t("application.name") %></h1>
+    <p class="landing-hero__tagline"><%= t(".tagline") %></p>
+    <p class="landing-hero__subtitle"><%= t(".subtitle") %></p>
+    <div class="landing-hero__actions">
+      <%= link_to t("home.index.cta_start"), start_project_path, class: "btn btn-primary" %>
+    </div>
+  </section>
 </main>

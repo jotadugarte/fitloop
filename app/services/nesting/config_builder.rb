@@ -15,10 +15,8 @@ module Nesting
 
     def build
       output_dir = @work_dir.join("output")
-      {
+      payload = {
         project_id: @project.id.to_s,
-        input_dxf_paths: @input_paths.map(&:to_s),
-        included_layers: included_layer_names,
         sheet_stocks: sheet_stock_payload,
         kerf_mm: @project.kerf_mm,
         margin_mm: @project.margin_mm,
@@ -27,9 +25,41 @@ module Nesting
         time_limit_sec: @project.nesting_time_limit_sec,
         output_dir: output_dir.to_s
       }
+      merge_input_layer_config!(payload)
+      payload
     end
 
     private
+
+    def merge_input_layer_config!(payload)
+      if per_file_layers?
+        payload[:input_files] = input_files_payload
+      else
+        payload[:input_dxf_paths] = @input_paths.map(&:to_s)
+        payload[:included_layers] = included_layer_names
+      end
+    end
+
+    def per_file_layers?
+      @project.project_layers.where.not(active_storage_attachment_id: nil).exists?
+    end
+
+    def input_files_payload
+      attachments = @project.input_dxf_attachments.to_a
+      @input_paths.map(&:to_s).zip(attachments).map do |path, attachment|
+        {
+          path: path,
+          included_layers: included_layers_for(attachment)
+        }
+      end
+    end
+
+    def included_layers_for(attachment)
+      @project.project_layers
+        .where(included: true, active_storage_attachment_id: attachment.id)
+        .order(:layer_name)
+        .pluck(:layer_name)
+    end
 
     def included_layer_names
       @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)

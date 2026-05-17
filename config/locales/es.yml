@@ -1,15 +1,135 @@
 es:
+  application:
+    name: "Fitloop"
+
+  locale:
+    switcher_label: "Idioma"
+
+  date:
+    abbr_day_names:
+      - dom
+      - lun
+      - mar
+      - mié
+      - jue
+      - vie
+      - sáb
+    abbr_month_names:
+      -
+      - ene
+      - feb
+      - mar
+      - abr
+      - may
+      - jun
+      - jul
+      - ago
+      - sep
+      - oct
+      - nov
+      - dic
+    day_names:
+      - domingo
+      - lunes
+      - martes
+      - miércoles
+      - jueves
+      - viernes
+      - sábado
+    formats:
+      short: "%-d %b %Y"
+    month_names:
+      -
+      - enero
+      - febrero
+      - marzo
+      - abril
+      - mayo
+      - junio
+      - julio
+      - agosto
+      - septiembre
+      - octubre
+      - noviembre
+      - diciembre
+  time:
+    formats:
+      short: "%-d %b %Y %H:%M"
+
+  activerecord:
+    models:
+      project:
+        one: "Proyecto"
+        other: "Proyectos"
+      sheet_stock:
+        one: "Tipo de lámina"
+        other: "Tipos de lámina"
+    attributes:
+      project:
+        title: "Título"
+        pin: "PIN (6 dígitos)"
+      sheet_stock:
+        width_mm: "Ancho (mm)"
+        height_mm: "Alto (mm)"
+        quantity: "Cantidad"
+        sort_order: "Orden"
+    errors:
+      models:
+        project:
+          attributes:
+            pin:
+              invalid_format: "debe tener exactamente 6 dígitos"
+            title:
+              blank: "no puede estar en blanco"
+            base:
+              no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
+        sheet_stock:
+          attributes:
+            width_mm:
+              blank: "no puede estar en blanco"
+              not_a_number: "no es un número"
+              greater_than: "debe ser mayor que %{count}"
+            height_mm:
+              blank: "no puede estar en blanco"
+              not_a_number: "no es un número"
+              greater_than: "debe ser mayor que %{count}"
+      messages:
+        record_invalid: "La validación falló: %{errors}"
+
+  nav:
+    primary: "Navegación principal"
+    mobile: "Navegación móvil"
+    home: "Inicio"
+    projects: "Proyectos"
+
+  workspace:
+    default_title: "Sesión de anidado"
+    expired: "Esta sesión ya no está disponible. Vuelve a empezar."
+
   home:
     index:
       tagline: "Anidado de láminas DXF"
+      subtitle: "Optimización de cortes para arquitectura"
+      cta_start: "Empezar"
 
   projects:
+    status:
+      draft: "Borrador"
+      ready: "Listo"
+      processing: "En curso"
+      completed: "Completado"
+      partial: "Parcial"
+      failed: "Fallido"
     created: "Proyecto creado."
     updated: "Proyecto actualizado."
+    nesting_parameters_updated: "Parámetros de anidado actualizados."
     index:
       title: "Proyectos"
-      tagline: "Abre un proyecto con tu PIN para gestionar el anidado DXF."
-      new: "Nuevo proyecto"
+      tagline: "Los trabajos de anidado son temporales: al salir de la app se descartan."
+      new: "Empezar"
+      empty: "No hay proyectos guardados. Pulsa Empezar en la página de inicio."
+    setup:
+      missing_dxf: "Sube al menos un archivo DXF antes de continuar."
     access:
       prompt: "Introduce el PIN del proyecto para continuar."
       pin_label: "PIN del proyecto"
@@ -19,28 +139,95 @@ es:
       back_to_list: "Volver a todos los proyectos"
     new:
       title: "Nuevo proyecto"
+      setup_title: "Parámetros iniciales"
     edit:
       title: "Editar %{title}"
     show:
+      session_title: "Tu anidado"
+      nesting_parameters_title: "Parámetros de anidado"
+      nesting_parameters_hint: "Ajusta la separación entre piezas y el margen del borde de la lámina."
+      apply_nesting_parameters: "Aplicar"
+      save_sheets: "Guardar láminas"
+      sheet_inventory_meta:
+        one: "1 lámina"
+        other: "%{count} láminas"
+      collapsible_hint: "Pulsa para desplegar"
+      preview_zone_title: "Vistas previas y piezas no colocadas"
+      nesting_parameters_meta: "Kerf %{kerf} mm · Margen %{margin} mm"
+      dxf_files_meta:
+        zero: "Sin archivos"
+        one: "1 archivo"
+        other: "%{count} archivos"
+      dxf_files_title: "Archivos DXF"
+      add_dxf_label: "Agregar archivos DXF"
+      add_dxf_hint: "Puedes subir más archivos en cualquier momento."
+      source_dxf_detail_summary: "Detalle DXF"
+      source_dxf_detail_meta: "%{files} archivos · %{selected} de %{total} capas"
+      source_dxf_detail_empty: "Sube un archivo DXF para ver capas y vista previa."
+      dxf_file_layers_meta: "%{selected} de %{total} capas"
+      remove_dxf: "Eliminar"
+      remove_dxf_confirm: "¿Eliminar %{filename}?"
+      apply_layers: "Aplicar capas"
+      nesting_value_mm: "%{value} mm"
       edit: "Editar"
+      adjust_setup: "Ajustar parámetros"
       layers: "Capas DXF"
       download_nested_dxf: "Descargar DXF anidado"
-      back: "Todos los proyectos"
+      back: "Inicio"
+      actions_title: "Acciones de anidado"
+      manage_title: "Ajustes"
     history:
       title: "Historial de anidados"
       finished: "finalizado %{time}"
+    source_preview:
+      title: "DXF original (capas seleccionadas)"
+      empty: "Selecciona capas para anidar y sube un DXF para ver el archivo original aquí."
+      layer_count:
+        one: "1 capa visible"
+        other: "%{count} capas visibles"
     preview:
       title: "Vista previa del anidado"
+      empty: "Aún no hay vista previa. Ejecuta un anidado para ver las colocaciones aquí."
       sheet_count:
         one: "1 lámina"
         other: "%{count} láminas"
+      sheet_dimensions: "Lámina %{index}: %{width} × %{height} mm"
     form:
       errors_heading:
         one: "1 error impidió guardar"
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
-      add_sheet_type: "Añadir tipo de lámina"
+      add_sheet: "Agregar"
+      edit_sheet: "Editar"
+      delete_sheet: "Eliminar"
+      sheet_actions: "Acciones"
+      quantity_unlimited: "Ilimitada"
+      quantity_hint: "Deja en blanco para láminas ilimitadas, o escribe un número para una cantidad fija."
+      sheet_summary: "%{width} × %{height} mm × %{quantity}"
+      alert_dimensions: "Introduce un ancho y un alto válidos en milímetros."
+      alert_quantity: "Introduce una cantidad de al menos 1, o deja el campo vacío para láminas ilimitadas."
+      dxf_upload_legend: "Archivos DXF"
+      dxf_upload_label: "Archivos DXF"
+      dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
+      dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
+      dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
+      dxf_layers_prompt: "Aún no hay archivos DXF. Elige uno o más arriba."
+      dxf_layers_empty: "No se encontraron capas en este archivo."
+      dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
+      nesting_settings_legend: "Parámetros de anidado"
+      kerf_mm: "Separación máxima entre piezas (mm)"
+      kerf_mm_hint: "Holgura mínima entre contornos de piezas en la misma lámina. Por defecto 0 mm."
+      margin_mm: "Margen del borde de la lámina (mm)"
+      margin_mm_hint: "Distancia mínima entre el contorno exterior de las piezas y el borde de la lámina. Por defecto 5 mm."
       save_project: "Guardar proyecto"
+      continue: "Continuar"
+
+  nesting_run:
+    status:
+      processing: "En curso"
+      completed: "Completado"
+      partial: "Parcial"
+      failed: "Fallido"
 
   nesting:
     start: "Iniciar anidado"
@@ -59,6 +246,20 @@ es:
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a anidar"
     renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
+    orphans_heading: "Piezas no colocadas"
+    orphan_reason:
+      oversized_for_sheet: "Demasiado grande para cualquier lámina del inventario"
+      no_sheet_capacity: "Cabe en una lámina pero no quedó espacio"
+      unknown: "No se pudo colocar"
+    orphan_preview:
+      piece_title: "Pieza %{piece_number}"
+      label: "Pieza %{piece_number} sin colocar"
+      dimensions: "%{width} × %{height} mm"
+      download_dxf: "Descargar DXF"
+    orphan_hint:
+      oversized_for_sheet: "Prueba una lámina más grande o divide la pieza en el DXF."
+      no_sheet_capacity: "Añade más láminas al inventario o vuelve a anidar."
+      unknown: "Revisa el DXF y el inventario de láminas, luego vuelve a anidar."
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"
@@ -69,6 +270,7 @@ es:
     updated: "Selección de capas guardada."
     upload:
       created: "Archivos DXF subidos."
+      removed: "Archivo DXF eliminado."
       missing: "Elige al menos un archivo DXF."
       legend: "Subir archivos DXF"
       label: "Archivos DXF"
@@ -77,8 +279,8 @@ es:
       title: "Capas — %{title}"
       back: "Volver al proyecto"
       legend: "Incluir capas en el anidado"
-      save: "Guardar selección de capas"
-      empty: "Sube archivos DXF para descubrir capas."
+      save: "Guardar e iniciar anidado"
+      empty: "No se encontraron capas en los archivos DXF adjuntos."
       files_attached:
         one: "1 archivo DXF adjunto"
         other: "%{count} archivos DXF adjuntos"

@@ -5,15 +5,68 @@ import json
 from pathlib import Path
 
 import ezdxf
-from shapely.geometry import box
+import pytest
+from shapely.geometry import Polygon, box
 
-from nesting_engine.nest import run_from_config
+from nesting_engine.nest import _piece_placement_dict, run_from_config
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample_piece.dxf"
 
 
-def test_unlimited_stock_opens_multiple_sheets() -> None:
+def test_mixed_sizes_use_one_sheet_when_rect_and_circle_fit_beside_large_pieces() -> None:
+    from shapely.geometry import Polygon
+    import math
+
+    def circle(radius: float, count: int = 48) -> Polygon:
+        return Polygon(
+            [
+                (radius * math.cos(2 * math.pi * i / count), radius * math.sin(2 * math.pi * i / count))
+                for i in range(count)
+            ]
+        )
+
+    washer = Polygon(circle(400).exterior.coords, [list(circle(150).exterior.coords)])
+    hexagon = Polygon(
+        [
+            (120 * math.cos(math.pi / 3 * i), 120 * math.sin(math.pi / 3 * i))
+            for i in range(6)
+        ]
+    )
+    pieces = [washer, hexagon, circle(60), box(0, 0, 150, 40), box(0, 0, 1200, 80)]
+    stocks = [SheetStockSpec(width_mm=1500.0, height_mm=1000.0, quantity=None, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=5.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=15.0,
+    )
+
+    assert result.orphans == []
+    assert len(result.sheets) <= 2
+    assert len(result.sheets[0].pieces) >= 4
+
+
+def test_multiple_pieces_pack_on_one_sheet() -> None:
+    pieces = [box(0, 0, 10, 10) for _ in range(3)]
+    stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=None, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=10.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert len(result.sheets[0].pieces) == 3
+    assert result.orphans == []
+
+
+def test_unlimited_stock_opens_extra_sheets_when_full() -> None:
     pieces = [box(0, 0, 15, 15) for _ in range(3)]
     stocks = [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)]
 
@@ -68,6 +121,29 @@ def test_oversized_piece_becomes_orphan() -> None:
     assert result.orphans[0].reason == "oversized_for_sheet"
 
 
+def test_placements_json_uses_sheet_local_bounds() -> None:
+    piece = box(5000.0, 3000.0, 5040.0, 3030.0)
+    stocks = [SheetStockSpec(width_mm=500.0, height_mm=400.0, quantity=1, sort_order=0)]
+    margin = 5.0
+
+    result = nest_multi_bin(
+        [piece],
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=15.0,
+    )
+
+    placed = result.sheets[0].pieces[0]
+    placement = _piece_placement_dict(placed)
+
+    assert placement["x_mm"] >= margin - 0.01
+    assert placement["y_mm"] >= margin - 0.01
+    assert len(placement["rings"]) >= 1
+    assert placement["x_mm"] + placement["width_mm"] <= 500.0 - margin + 0.01
+    assert placement["y_mm"] + placement["height_mm"] <= 400.0 - margin + 0.01
+
+
 def test_large_margin_prevents_placement() -> None:
     piece = box(0, 0, 40, 40)
     stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=0)]
@@ -77,6 +153,53 @@ def test_large_margin_prevents_placement() -> None:
 
     assert fits.orphans == []
     assert len(tight.orphans) == 1
+
+
+def test_placement_dict_includes_hole_rings_for_washer() -> None:
+    outer = box(0, 0, 100, 100)
+    inner = box(30, 30, 70, 70)
+    washer = Polygon(outer.exterior.coords, [list(inner.exterior.coords)])
+    stocks = [SheetStockSpec(width_mm=200.0, height_mm=200.0, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin([washer], stocks, margin_mm=0.0, kerf_mm=0.0, sheet_gap_mm=0.0)
+    placement = _piece_placement_dict(result.sheets[0].pieces[0])
+
+    assert len(placement["rings"]) == 2
+
+
+def test_placements_json_includes_orphan_geometry(tmp_path: Path) -> None:
+    import ezdxf
+
+    dxf_path = tmp_path / "oversized.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_lwpolyline([(0, 0), (500, 0), (500, 500), (0, 500)], close=True, dxfattribs={"layer": "PIECES"})
+    doc.saveas(dxf_path)
+
+    output_dir = tmp_path / "output"
+    config = {
+        "project_id": "1",
+        "input_dxf_paths": [str(dxf_path)],
+        "included_layers": ["PIECES"],
+        "sheet_stocks": [
+            {"width_mm": 100.0, "height_mm": 100.0, "quantity": 1, "sort_order": 0}
+        ],
+        "kerf_mm": 0.0,
+        "margin_mm": 0.0,
+        "curve_tolerance_mm": 0.25,
+        "sheet_gap_mm": 15.0,
+        "time_limit_sec": 600,
+        "output_dir": str(output_dir),
+    }
+
+    run_from_config(config)
+
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+    assert len(placements["orphans"]) == 1
+    orphan = placements["orphans"][0]
+    assert orphan["reason"] == "oversized_for_sheet"
+    assert orphan["rings"]
+    assert orphan["width_mm"] == pytest.approx(500.0, rel=0.01)
 
 
 def test_run_from_config_writes_outputs(tmp_path: Path) -> None:

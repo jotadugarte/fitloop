@@ -3,6 +3,9 @@
 # [REQ-FIT-DOM-001] Nesting project with sheet inventory, layers, and job parameters.
 # [REQ-FIT-AUTH-001] User-chosen 6-digit PIN stored as bcrypt digest.
 class Project < ApplicationRecord
+  scope :ephemeral, -> { where(ephemeral: true) }
+  scope :saved, -> { where(ephemeral: false) }
+
   has_many :sheet_stocks, -> { order(:sort_order) }, dependent: :destroy, inverse_of: :project
 
   accepts_nested_attributes_for :sheet_stocks, allow_destroy: true
@@ -24,9 +27,13 @@ class Project < ApplicationRecord
   attr_reader :pin
 
   validates :title, presence: true
-  validate :validate_pin_assignment
+  validates :kerf_mm, :margin_mm, :sheet_gap_mm,
+            numericality: { greater_than_or_equal_to: 0 }
+  validates :curve_tolerance_mm, numericality: { greater_than: 0 }
+  validate :validate_pin_assignment, unless: :ephemeral?
+  validate :must_have_sheet_stocks, unless: :ephemeral?
 
-  before_validation :digest_pin, if: :digestible_pin?
+  before_save :digest_pin, if: :digestible_pin?
 
   def pin=(value)
     @pin = value.to_s.presence
@@ -48,12 +55,18 @@ class Project < ApplicationRecord
     @pin.present? && self.class.valid_pin_format?(@pin)
   end
 
+  def must_have_sheet_stocks
+    return if sheet_stocks.reject(&:marked_for_destruction?).any?
+
+    errors.add(:base, :no_sheet_stocks)
+  end
+
   def validate_pin_assignment
     return if @pin.blank?
 
     return if self.class.valid_pin_format?(@pin)
 
-    errors.add(:pin, "must be exactly 6 digits")
+    errors.add(:pin, :invalid_format)
   end
 
   def digest_pin

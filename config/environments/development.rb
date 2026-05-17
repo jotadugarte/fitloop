@@ -54,6 +54,14 @@ Rails.application.configure do
 
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true
+  # :async runs jobs in a background thread inside the Rails process (no separate worker).
+  # Set ACTIVE_JOB_QUEUE_ADAPTER=solid_queue to test Solid Queue locally.
+  if ENV["ACTIVE_JOB_QUEUE_ADAPTER"] == "solid_queue"
+    config.active_job.queue_adapter = :solid_queue
+    config.solid_queue.connects_to = { database: { writing: :queue } }
+  else
+    config.active_job.queue_adapter = :async
+  end
 
   # Highlight code that triggered redirect in logs.
   config.action_dispatch.verbose_redirect_logs = true

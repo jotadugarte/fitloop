@@ -56,6 +56,23 @@ RSpec.describe "Project PIN access", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="download-nested-dxf"')
+      expect(response.body).to include('data-turbo="false"')
+    end
+
+    it "serves the nested DXF as a file download" do
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED DXF CONTENT"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+      unlock_project_for_spec!(project, pin: "556688")
+
+      get nested_dxf_project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("NESTED DXF CONTENT")
+      expect(response.headers["Content-Disposition"]).to include("attachment")
+      expect(response.headers["Content-Disposition"]).to include("nested.dxf")
     end
   end
 end

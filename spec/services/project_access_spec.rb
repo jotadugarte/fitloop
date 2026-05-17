@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ProjectAccess do
-  let(:project) { Project.create!(title: "Atelier", pin: "654321") }
+  let(:project) { create_project_for_spec!(title: "Atelier", pin: "654321") }
 
   describe ".granted? [REQ-FIT-AUTH-001]" do
     it "returns true for the correct user PIN" do
