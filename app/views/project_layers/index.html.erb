@@ -2,6 +2,17 @@
   <h1><%= t("project_layers.index.title", title: @project.title) %></h1>
   <p><%= link_to t("project_layers.index.back"), @project %></p>
 
+  <% unless @readiness.ok? %>
+    <div class="readiness-errors" data-testid="readiness-errors" role="alert">
+      <h2><%= t("project_readiness.heading") %></h2>
+      <ul>
+        <% @readiness.errors.each do |error| %>
+          <li><%= error %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
   <%= form_with url: project_input_dxf_files_path(@project), method: :post, multipart: true, class: "dxf-upload-form" do %>
     <fieldset>
       <legend><%= t("project_layers.upload.legend") %></legend>

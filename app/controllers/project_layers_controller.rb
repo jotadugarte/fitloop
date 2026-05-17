@@ -7,6 +7,7 @@ class ProjectLayersController < ApplicationController
   def index
     Dxf::LayerSync.call(@project)
     @project_layers = @project.project_layers.order(:layer_name)
+    @readiness = ProjectReadinessValidator.validate(@project)
   end
 
   def update

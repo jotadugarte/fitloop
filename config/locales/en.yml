@@ -54,6 +54,11 @@ en:
       add_sheet_type: "Add sheet type"
       save_project: "Save project"
 
+  project_readiness:
+    heading: "Cannot start nesting yet"
+    no_layers_selected: "Select at least one layer to include in nesting."
+    no_extractable_pieces: "No closed contours were found on the selected layers."
+
   project_layers:
     updated: "Layer selection saved."
     upload:

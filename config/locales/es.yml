@@ -25,6 +25,11 @@ es:
       add_sheet_type: "Añadir tipo de lámina"
       save_project: "Guardar proyecto"
 
+  project_readiness:
+    heading: "Aún no se puede iniciar el anidado"
+    no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."
+    no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
+
   project_layers:
     updated: "Selección de capas guardada."
     upload:
