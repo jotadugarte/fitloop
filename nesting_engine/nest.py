@@ -111,6 +111,7 @@ def run_from_config(config: dict) -> MultiBinResult:
         margin_mm=float(config.get("margin_mm", 0.0)),
         kerf_mm=float(config.get("kerf_mm", 0.0)),
         sheet_gap_mm=float(config.get("sheet_gap_mm", 15.0)),
+        time_limit_sec=float(config.get("time_limit_sec", 600)),
     )
     merged_warnings = warnings + list(result.warnings)
     result = MultiBinResult(

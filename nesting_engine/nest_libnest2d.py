@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
 
 from pynest2d import BLConfig, Box, Item, NfpConfig, Point, nest, nest_blp
@@ -25,6 +26,7 @@ _MIN_BIN_MM = 1.0
 _ROTATION_STEPS_DEG = tuple(float(step) for step in range(0, 360, 15))
 _PLACEMENT_AREA_TOLERANCE_MM2 = 150.0
 _MAX_ANGLE_SEARCH_DEG = 360
+_DEFAULT_TIME_LIMIT_SEC = 600.0
 
 
 @dataclass(frozen=True)
@@ -94,19 +96,31 @@ def nest_multi_bin(
     margin_mm: float,
     kerf_mm: float,
     sheet_gap_mm: float,
+    time_limit_sec: float | None = _DEFAULT_TIME_LIMIT_SEC,
 ) -> MultiBinResult:
     assert margin_mm >= 0 and kerf_mm >= 0 and sheet_gap_mm >= 0, "non-negative job parameters"
     assert sheet_stocks, "at least one sheet stock required"
+    if time_limit_sec is not None:
+        assert time_limit_sec > 0.0, "time_limit_sec must be positive when set"
 
     warnings: list[str] = []
+    deadline = _time_limit_deadline(time_limit_sec)
     remaining_indices = _indices_by_descending_area(pieces)
     sheets: list[NestedSheet] = []
     offset_x = 0.0
     stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
+    timed_out = False
 
     for stock in stocks:
+        if timed_out:
+            break
         sheets_used = 0
         while remaining_indices and _can_open_sheet(stock, sheets_used):
+            if _time_limit_exceeded(deadline):
+                warnings.append(_time_limit_warning(time_limit_sec))
+                timed_out = True
+                break
+
             placed, remaining_indices = _place_on_one_sheet(
                 pieces,
                 remaining_indices,
@@ -114,22 +128,28 @@ def nest_multi_bin(
                 stock.height_mm,
                 margin_mm=margin_mm,
                 kerf_mm=kerf_mm,
+                deadline=deadline,
             )
+            if placed:
+                sheets.append(
+                    NestedSheet(
+                        stock_sort_order=stock.sort_order,
+                        sheet_index=sheets_used,
+                        width_mm=stock.width_mm,
+                        height_mm=stock.height_mm,
+                        offset_x_mm=offset_x,
+                        pieces=placed,
+                    )
+                )
+                offset_x += stock.width_mm + sheet_gap_mm
+                sheets_used += 1
+
+            if _time_limit_exceeded(deadline):
+                warnings.append(_time_limit_warning(time_limit_sec))
+                timed_out = True
+                break
             if not placed:
                 break
-
-            sheets.append(
-                NestedSheet(
-                    stock_sort_order=stock.sort_order,
-                    sheet_index=sheets_used,
-                    width_mm=stock.width_mm,
-                    height_mm=stock.height_mm,
-                    offset_x_mm=offset_x,
-                    pieces=placed,
-                )
-            )
-            offset_x += stock.width_mm + sheet_gap_mm
-            sheets_used += 1
 
     sheets = _consolidate_sheets(
         sheets,
@@ -279,6 +299,23 @@ def _place_piece_on_sheet(
     )
 
 
+def _time_limit_deadline(time_limit_sec: float | None) -> float | None:
+    if time_limit_sec is None or time_limit_sec <= 0.0:
+        return None
+    return time.monotonic() + time_limit_sec
+
+
+def _time_limit_exceeded(deadline: float | None) -> bool:
+    if deadline is None:
+        return False
+    return time.monotonic() >= deadline
+
+
+def _time_limit_warning(time_limit_sec: float | None) -> str:
+    limit = time_limit_sec if time_limit_sec is not None else _DEFAULT_TIME_LIMIT_SEC
+    return f"time_limit_sec ({limit:g}s) exceeded; returning best-so-far placements"
+
+
 def _place_on_one_sheet(
     pieces: list[Polygon],
     indices: list[int],
@@ -287,15 +324,23 @@ def _place_on_one_sheet(
     *,
     margin_mm: float,
     kerf_mm: float,
+    deadline: float | None = None,
 ) -> tuple[list[PlacedPiece], list[int]]:
     placed_pieces: list[PlacedPiece] = []
     occupied: list[Polygon] = []
     pending = list(indices)
 
     while pending:
+        if _time_limit_exceeded(deadline):
+            return placed_pieces, pending
+
         progress = False
         next_pending: list[int] = []
         for index in pending:
+            if _time_limit_exceeded(deadline):
+                next_pending.extend(pending[pending.index(index) :])
+                return placed_pieces, next_pending
+
             fit_piece = _apply_kerf(pieces[index], kerf_mm)
             placement = _place_piece_on_sheet(
                 fit_piece,

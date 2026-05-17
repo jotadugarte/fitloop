@@ -194,6 +194,16 @@ def test_run_from_config_honors_time_limit_sec_with_partial_and_warning(
         lambda _config, warnings: pieces,
     )
 
+    calls = {"count": 0}
+
+    def fake_monotonic() -> float:
+        calls["count"] += 1
+        if calls["count"] <= 10:
+            return 0.0
+        return 100.0
+
+    monkeypatch.setattr("nesting_engine.nest_libnest2d.time.monotonic", fake_monotonic)
+
     output_dir = tmp_path / "nest_out"
     config = {
         "output_dir": str(output_dir),

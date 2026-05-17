@@ -61,6 +61,7 @@ def nest_multi_bin(
     margin_mm: float,
     kerf_mm: float,
     sheet_gap_mm: float,
+    time_limit_sec: float = 600.0,
 ) -> MultiBinResult:
     from nesting_engine.nest_libnest2d import nest_multi_bin as libnest_multi_bin
 
@@ -70,4 +71,5 @@ def nest_multi_bin(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
+        time_limit_sec=time_limit_sec,
     )
