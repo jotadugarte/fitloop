@@ -106,7 +106,7 @@
   ### Piece (runtime)
   - polygon with holes, mm, source ref, optional parent_piece_id after v1.1 split
 
-  ### Branded types (approved 2026-05-16)
+  ### Branded types (approved 2026-05-16; reconfirmed for P1 2026-05-16)
   - `Millimeters` — distances (kerf, margin, sheet gap, curve tolerance)
   - `Degrees` — piece rotation in nesting
   - `ProjectId` — project identifier
