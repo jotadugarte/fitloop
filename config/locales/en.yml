@@ -44,6 +44,7 @@ en:
       title: "Edit %{title}"
     show:
       edit: "Edit"
+      layers: "DXF layers"
       back: "All projects"
     form:
       errors_heading:
@@ -52,3 +53,21 @@ en:
       sheet_stocks_legend: "Sheet inventory"
       add_sheet_type: "Add sheet type"
       save_project: "Save project"
+
+  project_layers:
+    updated: "Layer selection saved."
+    upload:
+      created: "DXF files uploaded."
+      missing: "Choose at least one DXF file."
+      legend: "Upload DXF files"
+      label: "DXF files"
+      submit: "Upload"
+    index:
+      title: "Layers — %{title}"
+      back: "Back to project"
+      legend: "Include layers in nesting"
+      save: "Save layer selection"
+      empty: "Upload DXF files to discover layers."
+      files_attached:
+        one: "1 DXF file attached"
+        other: "%{count} DXF files attached"

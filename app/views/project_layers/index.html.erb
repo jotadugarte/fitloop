@@ -1,0 +1,42 @@
+<main class="page">
+  <h1><%= t("project_layers.index.title", title: @project.title) %></h1>
+  <p><%= link_to t("project_layers.index.back"), @project %></p>
+
+  <%= form_with url: project_input_dxf_files_path(@project), method: :post, multipart: true, class: "dxf-upload-form" do %>
+    <fieldset>
+      <legend><%= t("project_layers.upload.legend") %></legend>
+      <p>
+        <label for="files"><%= t("project_layers.upload.label") %></label>
+        <%= file_field_tag :files, multiple: true, accept: ".dxf,application/dxf", id: "files" %>
+      </p>
+      <p><%= submit_tag t("project_layers.upload.submit") %></p>
+    </fieldset>
+  <% end %>
+
+  <% if @project.input_dxf_attachments.any? %>
+    <p><%= t("project_layers.index.files_attached", count: @project.input_dxf.count) %></p>
+  <% end %>
+
+  <%= form_with url: project_layers_path(@project), method: :patch, class: "layer-checklist-form" do %>
+    <div data-testid="layer-checklist">
+      <fieldset>
+        <legend><%= t("project_layers.index.legend") %></legend>
+        <% if @project_layers.any? %>
+          <ul class="layer-list">
+            <% @project_layers.each do |layer| %>
+              <li>
+                <label>
+                  <%= check_box_tag "project_layers[#{layer.id}][included]", "1", layer.included %>
+                  <%= layer.layer_name %>
+                </label>
+              </li>
+            <% end %>
+          </ul>
+          <p><%= submit_tag t("project_layers.index.save") %></p>
+        <% else %>
+          <p><%= t("project_layers.index.empty") %></p>
+        <% end %>
+      </fieldset>
+    </div>
+  <% end %>
+</main>

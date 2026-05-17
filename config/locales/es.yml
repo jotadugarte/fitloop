@@ -15,6 +15,7 @@ es:
       title: "Editar %{title}"
     show:
       edit: "Editar"
+      layers: "Capas DXF"
       back: "Todos los proyectos"
     form:
       errors_heading:
@@ -23,3 +24,21 @@ es:
       sheet_stocks_legend: "Inventario de láminas"
       add_sheet_type: "Añadir tipo de lámina"
       save_project: "Guardar proyecto"
+
+  project_layers:
+    updated: "Selección de capas guardada."
+    upload:
+      created: "Archivos DXF subidos."
+      missing: "Elige al menos un archivo DXF."
+      legend: "Subir archivos DXF"
+      label: "Archivos DXF"
+      submit: "Subir"
+    index:
+      title: "Capas — %{title}"
+      back: "Volver al proyecto"
+      legend: "Incluir capas en el anidado"
+      save: "Guardar selección de capas"
+      empty: "Sube archivos DXF para descubrir capas."
+      files_attached:
+        one: "1 archivo DXF adjunto"
+        other: "%{count} archivos DXF adjuntos"

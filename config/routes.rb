@@ -11,5 +11,8 @@ Rails.application.routes.draw do
 
   root "home#index"
 
-  resources :projects, except: :destroy
+  resources :projects, except: :destroy do
+    resources :layers, only: %i[index update], controller: "project_layers"
+    resources :input_dxf_files, only: :create, controller: "project_input_dxf_files"
+  end
 end
