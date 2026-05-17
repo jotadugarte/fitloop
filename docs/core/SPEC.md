@@ -113,6 +113,8 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-002** | Browser preview from `placements.json` | P4 |
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
 | **REQ-FIT-UI-003** | Download nested DXF; list without login; PIN gate on show | P4 |
+| **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
+| **REQ-FIT-UI-005** | Locale switcher in layout: EN/ES toggle; `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
 | **REQ-FIT-SPLIT-001** | Auto-split oversized pieces (v1.1 backlog) | P5 |
 

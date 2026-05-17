@@ -1,5 +1,21 @@
-# agentic:guild Transient Memory
-.agenticguild/*
-!.agenticguild/.gitkeep
+
 
 /vendor/bundle/
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+/public/assets
+/spec/examples.txt
