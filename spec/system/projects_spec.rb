@@ -42,6 +42,7 @@ RSpec.describe "Project CRUD", type: :system do
     project = Project.create!(title: "Sort test", pin: "111222")
     project.sheet_stocks.create!(width_mm: 100, height_mm: 200, quantity: 1, sort_order: 0)
 
+    unlock_project_for_spec!(project, pin: "111222")
     visit edit_project_path(project)
 
     expect(page).to have_css("[data-controller~='sortable'][data-sortable-resource='sheet-stock']")
