@@ -7,7 +7,7 @@ require "fileutils"
 module Nesting
   # [REQ-FIT-CLI-001] Writes config.json, invokes nesting CLI, attaches nested.dxf.
   class CliRunner
-    DEFAULT_SCRIPT = Rails.root.join("nesting_engine/cli_mock.py").freeze
+    DEFAULT_SCRIPT = Rails.root.join("nesting_engine/nest.py").freeze
 
     Result = Struct.new(:exit_status, :work_dir, keyword_init: true)
 

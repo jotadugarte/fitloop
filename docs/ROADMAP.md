@@ -44,7 +44,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 ### P3 — Nesting pipeline
 
 12. [x] CLI contract JSON schema in `nesting_engine/README.md`; `NestingJob` + `Nesting::CliRunner` (mock → real) (REQ-FIT-CLI-001) — 2026-05-16
-13. [ ] Python nest: multi-bin ordered `SheetStock`, ∞ sheets, kerf/margin; outputs `placements.json` + `report.json` + nested DXF (REQ-FIT-NEST-002) — Depends on: CLI bridge
+13. [x] Python nest: multi-bin ordered `SheetStock`, ∞ sheets, kerf/margin; outputs `placements.json` + `report.json` + nested DXF (REQ-FIT-NEST-002) — 2026-05-16
 14. [ ] Map job status `completed` | `partial` | `failed` from report; oversized pieces → orphans in v1 (REQ-FIT-NEST-003) — Depends on: Real CLI integration
 15. [ ] Job UX: Turbo Stream progress (%, message, ETA overrun text); 600s cap → partial + notice; cancel (REQ-FIT-JOB-001) — Depends on: Status mapping
 

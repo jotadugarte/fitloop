@@ -90,7 +90,7 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
 | `cli_mock.py` | Test/dev mock: writes stub outputs (P3 bridge tests) |
 | `read_layers.py` | Layer name discovery |
 | `count_pieces.py` | Pre-flight piece count |
-| `nest.py` | Full nest pipeline (P3 step 13+) |
+| `nest.py` | Full nest pipeline (multi-bin, outputs) |
 
 Invocation:
 
