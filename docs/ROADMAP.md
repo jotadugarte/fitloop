@@ -51,7 +51,8 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 16. [ ] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — Depends on: Nesting pipeline
 17. [ ] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — Depends on: Preview
 18. [ ] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — Depends on: Re-nest
-19. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (Rails + Python venv on same host); run `sync-docs` + mark roadmap items done (REQ-FIT-QA-001) — Depends on: UI polish
+19. [ ] **Architecture-studio web design** — Fitloop identity (name + `images/logo.png`), visual language aligned with architecture study workflows, approachable and polished UI (`en`/`es`) (REQ-FIT-UI-004) — Depends on: Rails scaffold (P0 step 3)
+20. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (Rails + Python venv on same host); run `sync-docs` + mark roadmap items done (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design (step 19)
 
 ### Documentation (parallel after P0 step 2)
 
