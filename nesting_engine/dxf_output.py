@@ -14,6 +14,7 @@ def write_nested_dxf(path: Path | str, sheets: list[NestedSheet]) -> None:
     assert sheets is not None, "sheets required"
 
     doc = ezdxf.new("R2010")
+    _ensure_output_layers(doc)
     msp = doc.modelspace()
 
     for sheet in sheets:
@@ -22,6 +23,12 @@ def write_nested_dxf(path: Path | str, sheets: list[NestedSheet]) -> None:
             _add_piece(msp, placed, sheet_offset_x=sheet.offset_x_mm)
 
     doc.saveas(path)
+
+
+def _ensure_output_layers(doc: ezdxf.document.Drawing) -> None:
+    for layer_name in ("SHEETS", "PIECES"):
+        if layer_name not in doc.layers:
+            doc.layers.add(layer_name)
 
 
 def _add_sheet_outline(msp, sheet: NestedSheet) -> None:
