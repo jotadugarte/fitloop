@@ -1,0 +1,10 @@
+<main class="page">
+  <h1><%= t("projects.index.title") %></h1>
+  <p><%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %></p>
+
+  <ul class="project-list">
+    <% @projects.each do |project| %>
+      <li><%= link_to project.title, project %></li>
+    <% end %>
+  </ul>
+</main>

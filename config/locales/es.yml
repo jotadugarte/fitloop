@@ -2,3 +2,24 @@ es:
   home:
     index:
       tagline: "Anidado de láminas DXF"
+
+  projects:
+    created: "Proyecto creado."
+    updated: "Proyecto actualizado."
+    index:
+      title: "Proyectos"
+      new: "Nuevo proyecto"
+    new:
+      title: "Nuevo proyecto"
+    edit:
+      title: "Editar %{title}"
+    show:
+      edit: "Editar"
+      back: "Todos los proyectos"
+    form:
+      errors_heading:
+        one: "1 error impidió guardar"
+        other: "%{count} errores impidieron guardar"
+      sheet_stocks_legend: "Inventario de láminas"
+      add_sheet_type: "Añadir tipo de lámina"
+      save_project: "Guardar proyecto"

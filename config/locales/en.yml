@@ -31,3 +31,24 @@ en:
   home:
     index:
       tagline: "DXF sheet nesting"
+
+  projects:
+    created: "Project created."
+    updated: "Project updated."
+    index:
+      title: "Projects"
+      new: "New project"
+    new:
+      title: "New project"
+    edit:
+      title: "Edit %{title}"
+    show:
+      edit: "Edit"
+      back: "All projects"
+    form:
+      errors_heading:
+        one: "1 error prevented saving"
+        other: "%{count} errors prevented saving"
+      sheet_stocks_legend: "Sheet inventory"
+      add_sheet_type: "Add sheet type"
+      save_project: "Save project"

@@ -4,6 +4,8 @@
 # [REQ-FIT-AUTH-001] User-chosen 6-digit PIN stored as bcrypt digest.
 class Project < ApplicationRecord
   has_many :sheet_stocks, -> { order(:sort_order) }, dependent: :destroy, inverse_of: :project
+
+  accepts_nested_attributes_for :sheet_stocks, allow_destroy: true
   has_many :project_layers, dependent: :destroy, inverse_of: :project
   has_many :nesting_runs, dependent: :destroy, inverse_of: :project
 

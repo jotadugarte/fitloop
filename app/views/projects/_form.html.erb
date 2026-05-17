@@ -1,0 +1,42 @@
+<%= form_with model: project, class: "project-form" do |f| %>
+  <% if project.errors.any? %>
+    <div class="form-errors" role="alert">
+      <h2><%= t("projects.form.errors_heading", count: project.errors.count) %></h2>
+      <ul>
+        <% project.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :title, "Title" %>
+    <%= f.text_field :title, required: true %>
+  </div>
+
+  <div class="field">
+    <%= f.label :pin, "PIN" %>
+    <%= f.password_field :pin, required: true, maxlength: 6, autocomplete: "off" %>
+  </div>
+
+  <fieldset class="sheet-stocks">
+    <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
+
+    <div
+      class="sheet-stocks__list"
+      data-controller="sortable"
+      data-sortable-resource="sheet-stock"
+    >
+      <%= f.fields_for :sheet_stocks do |sheet_form| %>
+        <%= render "sheet_stock_fields", form: sheet_form %>
+      <% end %>
+    </div>
+
+    <%= f.button t("projects.form.add_sheet_type"), name: "add_sheet", value: "1", type: "submit", class: "btn btn-secondary" %>
+  </fieldset>
+
+  <div class="form-actions">
+    <%= f.submit t("projects.form.save_project"), class: "btn btn-primary" %>
+  </div>
+<% end %>

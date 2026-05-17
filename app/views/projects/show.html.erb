@@ -1,0 +1,5 @@
+<main class="page">
+  <h1><%= @project.title %></h1>
+  <p><%= link_to t("projects.show.edit"), edit_project_path(@project) %></p>
+  <p><%= link_to t("projects.show.back"), projects_path %></p>
+</main>
