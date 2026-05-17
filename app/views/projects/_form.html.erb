@@ -1,4 +1,15 @@
-<%= form_with model: project, class: "project-form", html: { multipart: true } do |f| %>
+<%= form_with model: project,
+              class: "project-form",
+              html: {
+                multipart: true,
+                data: {
+                  controller: "sheet-inventory",
+                  action: "submit->sheet-inventory#flushOnSubmit",
+                  sheet_inventory_summary_unlimited_value: t("projects.form.quantity_unlimited"),
+                  sheet_inventory_alert_dimensions_value: t("projects.form.alert_dimensions"),
+                  sheet_inventory_alert_quantity_value: t("projects.form.alert_quantity")
+                }
+              } do |f| %>
   <% if project.errors.any? %>
     <div class="form-errors" role="alert">
       <h2><%= t("projects.form.errors_heading", count: project.errors.count) %></h2>
@@ -17,10 +28,10 @@
 
   <div class="field">
     <%= f.label :pin %>
-    <%= f.password_field :pin, required: project.new_record?, maxlength: 6, autocomplete: "off" %>
+    <%= f.password_field :pin, value: project.pin, required: project.new_record?, maxlength: 6, autocomplete: "off" %>
   </div>
 
-  <%= render "sheet_inventory", form: f, project: project %>
+  <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {} %>
 
   <%= render "dxf_upload_fields", project: project %>
 
@@ -28,5 +39,3 @@
     <%= f.submit t("projects.form.save_project"), class: "btn btn-primary" %>
   </div>
 <% end %>
-
-<script src="/javascripts/sheet_inventory.js" defer data-turbo-track="reload"></script>

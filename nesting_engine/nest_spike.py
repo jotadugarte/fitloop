@@ -22,6 +22,8 @@ class NestingCapabilities:
 
 @dataclass(frozen=True)
 class Placement:
+    """Translation (x, y) to apply after rotation so the piece AABB sits at margin inside the sheet."""
+
     x: float
     y: float
     rotation_deg: float

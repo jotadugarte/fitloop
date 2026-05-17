@@ -152,6 +152,7 @@ en:
       dxf_upload_legend: "DXF files"
       dxf_upload_label: "DXF files"
       dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
+      dxf_upload_resubmit_hint: "If you had selected DXF files, choose them again before saving."
       save_project: "Save project"
 
   nesting_run:

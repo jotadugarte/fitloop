@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   resources :projects, except: :destroy do
     member do
       post :verify_pin
+      get :nesting_sync
     end
     resources :layers, only: :index, controller: "project_layers" do
       patch "", on: :collection, action: :update

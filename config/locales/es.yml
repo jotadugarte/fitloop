@@ -167,6 +167,7 @@ es:
       dxf_upload_legend: "Archivos DXF"
       dxf_upload_label: "Archivos DXF"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
+      dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
       save_project: "Guardar proyecto"
 
   nesting_run:

@@ -1,3 +1,4 @@
+<%= turbo_frame_tag dom_id(project, :nesting_preview) do %>
 <section class="nesting-preview-panel" data-testid="nesting-preview-panel">
   <h2><%= t("projects.preview.title") %></h2>
 
@@ -13,3 +14,4 @@
     </div>
   <% end %>
 </section>
+<% end %>

@@ -34,5 +34,7 @@ RSpec.describe "Nesting progress UI", type: :system do
 
     expect(page).to have_css('[data-testid="nesting-result"]')
     expect(page).to have_css('[data-testid="progress-message"]', text: I18n.t("nesting.completed"))
+    expect(page).to have_css('[data-testid="nesting-preview-svg"]')
+    expect(page).to have_css('[data-testid="preview-sheet"]', minimum: 1)
   end
 end

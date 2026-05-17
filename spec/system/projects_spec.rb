@@ -15,7 +15,7 @@ RSpec.describe "Project sheet inventory UI", type: :system do
     unlock_project_for_spec!(project, pin: "111222")
     visit edit_project_path(project)
 
-    expect(page).to have_css("[data-sheet-inventory]")
+    expect(page).to have_css("[data-controller='sheet-inventory']")
     expect(page).to have_css(".sheet-inventory-table")
     expect(page).to have_css("[data-testid='sheet-stock-row']", count: 1)
     expect(page).to have_content("100")

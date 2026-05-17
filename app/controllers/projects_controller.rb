@@ -4,7 +4,7 @@
 class ProjectsController < ApplicationController
   layout :fitloop_layout
 
-  before_action :set_project, only: %i[show edit update verify_pin]
+  before_action :set_project, only: %i[show edit update verify_pin nesting_sync]
   before_action :require_project_access!, only: %i[edit update]
 
   def index
@@ -15,17 +15,30 @@ class ProjectsController < ApplicationController
   def show
     return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
 
+    sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_runs = @project.nesting_runs.order(created_at: :desc)
   end
 
+  def nesting_sync
+    return head(:forbidden) unless project_access_granted?(@project)
+
+    sync_nesting_ui_state!
+    @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
+    @nesting_preview = Nesting::PreviewPresenter.for(@project)
+
+    render turbo_stream: nesting_sync_streams, formats: :turbo_stream
+  end
+
   def new
     @project = Project.new
+    @composer_draft = {}
   end
 
   def create
     @project = Project.new(normalized_project_attributes)
+    @project.pin = project_params[:pin] if project_params[:pin].present?
 
     assign_sheet_stock_sort_orders!(@project)
 
@@ -35,18 +48,21 @@ class ProjectsController < ApplicationController
       Dxf::LayerSync.call(@project) if @project.input_dxf_attachments.any?
       redirect_to project_layers_path(@project), notice: t("projects.created")
     else
+      @composer_draft = composer_draft_params
       render(:new, status: :unprocessable_content)
     end
   end
 
   def update
     @project.assign_attributes(normalized_project_attributes)
+    @project.pin = project_params[:pin] if project_params[:pin].present?
 
     assign_sheet_stock_sort_orders!(@project)
 
     if @project.save
       redirect_to @project, notice: t("projects.updated")
     else
+      @composer_draft = composer_draft_params
       render(:edit, status: :unprocessable_content)
     end
   end
@@ -119,5 +135,52 @@ class ProjectsController < ApplicationController
 
   def dxf_files_param
     Array(params[:files]).compact.reject { |file| file.respond_to?(:size) && file.size.zero? }
+  end
+
+  def composer_draft_params
+    params.fetch(:composer_draft, {}).permit(:width_mm, :height_mm, :quantity).to_h
+  end
+
+  def sync_nesting_ui_state!
+    Nesting::ProjectStatusSync.call(project: @project)
+    @project.reload
+  end
+
+  def nesting_sync_streams
+    streams = [
+      turbo_stream.replace(
+        dom_id(@project, :nesting_progress),
+        partial: "projects/nesting_progress",
+        locals: nesting_progress_locals
+      ),
+      turbo_stream.replace(
+        dom_id(@project, :status_badge),
+        partial: "projects/status_badge",
+        locals: { project: @project }
+      )
+    ]
+
+    unless @project.processing?
+      streams << turbo_stream.replace(
+        dom_id(@project, :show_actions),
+        partial: "projects/show_actions",
+        locals: { project: @project }
+      )
+      streams << turbo_stream.replace(
+        dom_id(@project, :nesting_preview),
+        partial: "projects/nesting_preview",
+        locals: { project: @project, preview: @nesting_preview }
+      )
+    end
+
+    streams
+  end
+
+  def nesting_progress_locals
+    {
+      project: @project,
+      eta_overrun: @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at,
+      time_limit_notice: @time_limit_notice
+    }
   end
 end

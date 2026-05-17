@@ -27,7 +27,7 @@ class Project < ApplicationRecord
   validate :validate_pin_assignment
   validate :must_have_sheet_stocks
 
-  before_validation :digest_pin, if: :digestible_pin?
+  before_save :digest_pin, if: :digestible_pin?
 
   def pin=(value)
     @pin = value.to_s.presence

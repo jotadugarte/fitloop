@@ -45,10 +45,12 @@ def _add_sheet_outline(msp, sheet: NestedSheet) -> None:
 
 def _add_piece(msp, placed: PlacedPiece, *, sheet_offset_x: float) -> None:
     rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
-    minx, miny, _, _ = rotated.bounds
-    dx = placed.placement.x - minx + sheet_offset_x
-    dy = placed.placement.y - miny
-    world = translate(rotated, xoff=dx, yoff=dy)
+    # placement.x/y are translation offsets from nest_spike (margin - bounds.min), not absolute coords.
+    world = translate(
+        rotated,
+        xoff=placed.placement.x + sheet_offset_x,
+        yoff=placed.placement.y,
+    )
 
     msp.add_lwpolyline(
         list(world.exterior.coords),

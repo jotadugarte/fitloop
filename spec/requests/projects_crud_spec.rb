@@ -49,5 +49,47 @@ RSpec.describe "Project CRUD", type: :request do
       expect(project.input_dxf.count).to eq(1)
       expect(project.project_layers.pluck(:layer_name)).to include("PIECES")
     end
+
+    it "re-renders the form with entered values when sheet inventory validation fails" do
+      post projects_path, params: {
+        project: {
+          title: "Proyecto sin láminas",
+          pin: "445566"
+        },
+        composer_draft: {
+          width_mm: "1200",
+          height_mm: "2400",
+          quantity: "3"
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Proyecto sin láminas")
+      expect(response.body).to include('value="445566"')
+      expect(response.body).to include('name="composer_draft[width_mm]"')
+      expect(response.body).to include('value="1200"')
+      expect(response.body).to include('value="2400"')
+      expect(response.body).to include('value="3"')
+      expect(Project.find_by(title: "Proyecto sin láminas")).to be_nil
+    end
+
+    it "re-renders sheet rows when another validation fails" do
+      post projects_path, params: {
+        project: {
+          title: "Proyecto con PIN inválido",
+          pin: "abc",
+          sheet_stocks_attributes: {
+            "0" => { width_mm: 900, height_mm: 1800, quantity: "", sort_order: 0 }
+          }
+        }
+      }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Proyecto con PIN inválido")
+      expect(response.body).to include('value="abc"')
+      expect(response.body).to include('name="project[sheet_stocks_attributes][0][width_mm]"')
+      expect(response.body).to include('value="900.0"').or include('value="900"')
+      expect(Project.find_by(title: "Proyecto con PIN inválido")).to be_nil
+    end
   end
 end

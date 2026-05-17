@@ -21,8 +21,8 @@ def _piece_placement_dict(placed: PlacedPiece) -> dict:
     minx, miny, maxx, maxy = rotated.bounds
     return {
         "piece_index": placed.piece_index,
-        "x_mm": placed.placement.x,
-        "y_mm": placed.placement.y,
+        "x_mm": float(minx + placed.placement.x),
+        "y_mm": float(miny + placed.placement.y),
         "rotation_deg": placed.placement.rotation_deg,
         "width_mm": float(maxx - minx),
         "height_mm": float(maxy - miny),

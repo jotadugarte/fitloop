@@ -27,10 +27,16 @@ module Nesting
       @sheets ||= Array(@data&.fetch("sheets", [])).map { |row| build_sheet(row) }
     end
 
+    def view_width
+      sheets.map { |sheet| sheet.offset_x_mm + sheet.width_mm }.max || 1.0
+    end
+
+    def view_height
+      sheets.map(&:height_mm).max || 1.0
+    end
+
     def view_box
-      width = sheets.map { |sheet| sheet.offset_x_mm + sheet.width_mm }.max || 1.0
-      height = sheets.map(&:height_mm).max || 1.0
-      "0 0 #{width} #{height}"
+      "0 0 #{view_width} #{view_height}"
     end
 
     private

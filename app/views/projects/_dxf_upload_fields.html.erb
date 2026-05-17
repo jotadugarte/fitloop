@@ -8,6 +8,9 @@
         <span class="field__hint"><%= t("projects.form.dxf_upload_hint") %></span>
       </label>
       <%= file_field_tag :files, multiple: true, accept: ".dxf,application/dxf", id: "project_dxf_files", data: { testid: "project-dxf-files" } %>
+      <% if project.errors.any? %>
+        <p class="field__hint" role="status"><%= t("projects.form.dxf_upload_resubmit_hint") %></p>
+      <% end %>
     </div>
   </fieldset>
 <% end %>

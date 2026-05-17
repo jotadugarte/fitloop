@@ -15,12 +15,12 @@
   </td>
   <td class="sheet-inventory-table__actions">
     <div class="sheet-inventory-table__action-buttons">
-      <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-edit>
-        <%= t("projects.form.edit_sheet") %>
-      </button>
-      <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-remove>
-        <%= t("projects.form.delete_sheet") %>
-      </button>
+          <button type="button" class="btn btn-secondary btn--small" data-action="sheet-inventory#edit">
+            <%= t("projects.form.edit_sheet") %>
+          </button>
+          <button type="button" class="btn btn-secondary btn--small" data-action="sheet-inventory#remove">
+            <%= t("projects.form.delete_sheet") %>
+          </button>
     </div>
     <% if sheet_form.object.persisted? %>
       <%= sheet_form.hidden_field :id, data: { sheet_inventory_field: "id" } %>

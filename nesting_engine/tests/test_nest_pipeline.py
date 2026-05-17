@@ -7,7 +7,7 @@ from pathlib import Path
 import ezdxf
 from shapely.geometry import box
 
-from nesting_engine.nest import run_from_config
+from nesting_engine.nest import _piece_placement_dict, run_from_config
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample_piece.dxf"
@@ -66,6 +66,28 @@ def test_oversized_piece_becomes_orphan() -> None:
     assert result.sheets == []
     assert len(result.orphans) == 1
     assert result.orphans[0].reason == "oversized_for_sheet"
+
+
+def test_placements_json_uses_sheet_local_bounds() -> None:
+    piece = box(5000.0, 3000.0, 5040.0, 3030.0)
+    stocks = [SheetStockSpec(width_mm=500.0, height_mm=400.0, quantity=1, sort_order=0)]
+    margin = 5.0
+
+    result = nest_multi_bin(
+        [piece],
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=15.0,
+    )
+
+    placed = result.sheets[0].pieces[0]
+    placement = _piece_placement_dict(placed)
+
+    assert placement["x_mm"] >= margin - 0.01
+    assert placement["y_mm"] >= margin - 0.01
+    assert placement["x_mm"] <= margin + 50.0
+    assert placement["y_mm"] <= margin + 50.0
 
 
 def test_large_margin_prevents_placement() -> None:

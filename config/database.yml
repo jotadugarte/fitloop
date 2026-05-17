@@ -24,24 +24,25 @@ default: &default
 
 
 development:
-  <<: *default
-  database: fitloop_development
-
-  # Schema search path. The server defaults to $user,public
-  #schema_search_path: myapp,sharedapp,public
-
-  # Minimum log levels, in increasing order:
-  #   debug5, debug4, debug3, debug2, debug1,
-  #   log, notice, warning, error, fatal, and panic
-  # Defaults to warning.
-  #min_messages: notice
+  primary:
+    <<: *default
+    database: fitloop_development
+  queue:
+    <<: *default
+    database: fitloop_development
+    migrations_paths: db/queue_migrate
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: fitloop_test
+  primary:
+    <<: *default
+    database: fitloop_test
+  queue:
+    <<: *default
+    database: fitloop_test
+    migrations_paths: db/queue_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
