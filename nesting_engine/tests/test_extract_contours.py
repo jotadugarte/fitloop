@@ -134,6 +134,23 @@ def test_slot_from_arcs_and_lines_is_extracted(tmp_path: Path) -> None:
     assert contours[0].area == pytest.approx(expected_area, rel=0.05)
 
 
+def test_micro_fragment_near_slot_is_not_extracted(tmp_path: Path) -> None:
+    path = tmp_path / "slot_with_tip.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_arc(center=(70, 0), radius=25, start_angle=90, end_angle=270, dxfattribs={"layer": LAYER})
+    msp.add_arc(center=(170, 0), radius=25, start_angle=270, end_angle=90, dxfattribs={"layer": LAYER})
+    msp.add_line((70, -25), (170, -25), dxfattribs={"layer": LAYER})
+    msp.add_line((170, 25), (70, 25), dxfattribs={"layer": LAYER})
+    msp.add_lwpolyline([(195, -5), (200, 0), (195, 5)], close=True, dxfattribs={"layer": LAYER})
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
+
+    assert len(contours) == 1
+    assert contours[0].area == pytest.approx(100 * 50 + math.pi * 25**2, rel=0.05)
+
+
 def test_concentric_arc_outlines_merge_without_duplicate_inner_disk(tmp_path: Path) -> None:
     path = tmp_path / "arc_washer.dxf"
     doc = ezdxf.new("R2010")

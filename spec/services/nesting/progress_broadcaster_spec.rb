@@ -18,11 +18,12 @@ RSpec.describe Nesting::ProgressBroadcaster do
         project,
         target: ActionView::RecordIdentifier.dom_id(project, :nesting_progress),
         partial: "projects/nesting_progress",
-        locals: {
+        locals: hash_including(
           project: project,
+          orphans: an_instance_of(Nesting::OrphansPresenter),
           eta_overrun: true,
           time_limit_notice: false
-        }
+        )
       )
       expect(project).to have_received(:broadcast_replace_to).with(
         project,
@@ -36,6 +37,24 @@ RSpec.describe Nesting::ProgressBroadcaster do
         partial: "projects/nesting_preview",
         locals: { project: project, preview: preview }
       )
+    end
+
+    it "renders nesting progress with orphans when project is partial" do
+      project.update!(status: :partial, progress_percent: 100, progress_message: "done")
+      project.nesting_runs.create!(
+        status: "partial",
+        report_json: { "orphans" => [{ "piece_index" => 0, "reason" => "oversized_for_sheet" }] },
+        finished_at: Time.current
+      )
+      orphans = Nesting::OrphansPresenter.for(project)
+
+      html = ApplicationController.render(
+        partial: "projects/nesting_progress",
+        locals: { project: project, orphans: orphans, eta_overrun: false, time_limit_notice: false }
+      )
+
+      expect(html).to include('data-testid="nesting-orphans"')
+      expect(html).to match(/Pieza 1|Piece 1/)
     end
 
     it "broadcasts only nesting progress while processing" do

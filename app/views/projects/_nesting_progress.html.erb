@@ -28,7 +28,7 @@
         <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
       <% end %>
       <% if local_assigns[:orphans]&.any? %>
-        <%= render "nesting_orphans", orphans: local_assigns[:orphans] %>
+        <%= render "projects/nesting_orphans", orphans: local_assigns[:orphans] %>
       <% end %>
     </section>
   <% end %>

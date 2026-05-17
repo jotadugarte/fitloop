@@ -77,7 +77,8 @@ def extract_closed_contours(
     inferred_specs, polygons = _circle_specs_from_polygons(polygons, curve_tolerance_mm=curve_tolerance_mm)
     polygons = _merge_circle_specs(circle_specs + inferred_specs, curve_tolerance_mm=curve_tolerance_mm) + polygons
     polygons = _associate_nested_contours(polygons, curve_tolerance_mm=curve_tolerance_mm)
-    return _drop_redundant_hole_fillers(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    polygons = _drop_redundant_hole_fillers(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    return _drop_micro_fragments(polygons, curve_tolerance_mm=curve_tolerance_mm)
 
 
 def _geometry_from_block(
@@ -249,11 +250,46 @@ def _polygon_fills_existing_hole(inner: Polygon, outer: Polygon, *, tolerance: f
     for hole_coords in outer.interiors:
         hole = Polygon(hole_coords)
         padded = hole.buffer(tolerance)
-        if padded.covers(inner):
-            return True
-        if padded.covers(inner.representative_point()):
-            return True
+        if not padded.covers(inner.representative_point()):
+            continue
+        if inner.area > hole.area * 1.05:
+            continue
+        if _compactness(inner) >= _MIN_CIRCLE_COMPACTNESS:
+            return _holes_match_circle(inner, hole, tolerance=tolerance)
+        return True
     return False
+
+
+def _holes_match_circle(inner: Polygon, hole: Polygon, *, tolerance: float) -> bool:
+    if _compactness(inner) < _MIN_CIRCLE_COMPACTNESS:
+        return False
+
+    inner_radius = math.sqrt(inner.area / math.pi)
+    hole_radius = math.sqrt(hole.area / math.pi)
+    center_gap = inner.centroid.distance(hole.centroid)
+    return center_gap <= tolerance * 2 and abs(inner_radius - hole_radius) <= tolerance * 2
+
+
+def _drop_micro_fragments(
+    polygons: list[Polygon],
+    *,
+    curve_tolerance_mm: float,
+) -> list[Polygon]:
+    """Drop tiny loops (e.g. arc-line join slivers) that are separate from the main piece."""
+    if len(polygons) <= 1:
+        return list(polygons)
+
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    max_area = max(polygon.area for polygon in polygons)
+    min_area = max(max_area * 0.015, (curve_tolerance_mm * 4.0) ** 2 * 20.0)
+    drop: set[int] = set()
+
+    for index, fragment in enumerate(polygons):
+        if fragment.area >= min_area:
+            continue
+        drop.add(index)
+
+    return [polygon for index, polygon in enumerate(polygons) if index not in drop]
 
 
 def _merge_circle_specs(
@@ -280,7 +316,8 @@ def _merge_circle_specs(
             if inner_r >= outer_r:
                 continue
             center_gap = math.hypot(outer_cx - inner_cx, outer_cy - inner_cy)
-            if center_gap > tolerance:
+            center_tolerance = max(tolerance, outer_r * 0.02)
+            if center_gap > center_tolerance:
                 continue
             if not _circle_fits_inside(outer_poly, inner_poly, tolerance=tolerance):
                 continue
@@ -386,7 +423,20 @@ def _polygons_from_line_segments(
         if geometry.is_empty or geometry.area <= 0:
             continue
         polygons.append(geometry)
-    return polygons
+    return _filter_polygon_slivers(polygons, curve_tolerance_mm=curve_tolerance_mm)
+
+
+def _filter_polygon_slivers(
+    polygons: list[Polygon],
+    *,
+    curve_tolerance_mm: float,
+) -> list[Polygon]:
+    if len(polygons) <= 1:
+        return polygons
+
+    max_area = max(polygon.area for polygon in polygons)
+    min_area = max(max_area * 0.015, (curve_tolerance_mm * 4.0) ** 2 * 20.0)
+    return [polygon for polygon in polygons if polygon.area >= min_area]
 
 
 def _linework_snap_tolerance(lines: list[LineString], *, curve_tolerance_mm: float) -> float:
@@ -521,7 +571,7 @@ def _is_polygon_contained(
     if not outer.envelope.covers(inner.envelope):
         return False
 
-    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    tolerance = _containment_tolerance(inner, outer, curve_tolerance_mm=curve_tolerance_mm)
     padded = outer.buffer(tolerance)
     if padded.covers(inner):
         return True
@@ -530,6 +580,21 @@ def _is_polygon_contained(
         return True
 
     return inner.within(padded)
+
+
+def _containment_tolerance(
+    inner: Polygon,
+    outer: Polygon,
+    *,
+    curve_tolerance_mm: float,
+) -> float:
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    inner_radius = _equivalent_circle_radius(inner)
+    outer_radius = _equivalent_circle_radius(outer)
+    if inner_radius is None or outer_radius is None:
+        return tolerance
+
+    return max(tolerance, outer_radius * 0.02, inner_radius * 0.02)
 
 
 def _are_coaxial_circles(inner: Polygon, outer: Polygon, tolerance: float) -> bool:
