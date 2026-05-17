@@ -49,7 +49,7 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 | Holes | Yes (`binding_spike_nest`) | Yes (libnest2d) |
 | Any-angle rotation | Yes (libnest2d NFP / BLP) | Yes |
 | Multi-bin / SheetStock order | No | Yes (`nest_multi_bin`, REQ-FIT-NEST-002) |
-| Kerf / margin | No | Yes (`nest_placement` + `nest_bin`) |
+| Kerf / margin | No | Yes (`nest_types.apply_kerf` + `nest_placement`; `nest_bin` delegates to `nest_libnest2d`) |
 | 600s best-so-far | No | Yes (`time_limit_sec`, REQ-FIT-NEST-003) |
 | Deploy / CI | — | `docs/DEPLOY.md`, `.github/workflows/ci.yml` `nesting_engine` job |
 

@@ -106,7 +106,7 @@ _(complete)_
   - **Reorder / move pieces between sheets** after an initial layout (local search under time cap).
   - **Repack** nearly full sheets (merge donors into targets; extend today’s `_consolidate_sheets`).
   - **Full-sheet nest** per bin with libnest2d once kerf and obstacles are modeled (this item’s core deliverable).
-  **Done prerequisite:** `python-libnest2d` integration + free-area-first scoring in `nest_placement.py` (2026-05-17). **Still open:** obstacle-aware libnest2d path, regression fixtures (sheet count / largest free region), update `DATA_FLOW_MAP.md` when wired. — Depends on: libnest2d integration (item 79, complete)
+  **Done prerequisite:** `python-libnest2d` integration + free-area-first scoring in `nest_placement.py` (2026-05-17); hybrid flow documented in `DATA_FLOW_MAP.md` / ADR-0001. **Still open:** obstacle-aware libnest2d path, regression fixtures (sheet count / largest free region).
 
 ### Product & platform
 
