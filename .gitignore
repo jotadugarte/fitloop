@@ -1,3 +1,44 @@
 # agentic:guild Transient Memory
-.agenticguild/*
+
 !.agenticguild/.gitkeep
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment variables
+.env
+.env.*
+
+# Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+/storage/*
+!/storage/.keep
+/public/assets
+.byebug_history
+/config/master.key
+/config/credentials/*.key
+
+# Bundler
+/vendor/bundle
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+*.swp
+*~
