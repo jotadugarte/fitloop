@@ -123,7 +123,7 @@
       <step id="5" status="complete">Spike: libnest2d (or fallback) with hole + rotation; record ADR `docs/core/ADRs/0001-nesting-library.md` with chosen lib and limits.</step>
     </phase>
     <phase name="P1 — Domain &amp; access" goal="Projects, stocks, PIN">
-      <step id="6" status="pending">Write failing model specs: Project (title, pin_digest, kerf/margin/tolerance defaults), SheetStock (w, h, qty nullable, sort_order), ProjectLayer, NestingRun → implement migrations/models.</step>
+      <step id="6" status="complete">Write failing model specs: Project (title, pin_digest, kerf/margin/tolerance defaults), SheetStock (w, h, qty nullable, sort_order), ProjectLayer, NestingRun → implement migrations/models.</step>
       <step id="7" status="pending">Write failing specs: user PIN validation (6 digits, chosen at create, bcrypt); admin master PIN from credentials unlocks project → implement `ProjectAccess` service.</step>
       <step id="8" status="pending">Write failing system spec: create project (title, user PIN), add ordered SheetStock rows (finite + ∞), assert sort_order persisted → CRUD UI with Stimulus sortable.</step>
     </phase>
