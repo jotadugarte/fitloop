@@ -4,7 +4,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Next action:** Run `finish-branch` to open a PR for MVP v1, or pick backlog (locale switcher, architecture-studio design).
+**Next action:** Merge MVP v1 PR; then backlog (locale switcher `REQ-FIT-UI-005`, architecture-studio `REQ-FIT-UI-004`, v1.1 auto-split).
 
 ---
 
@@ -14,6 +14,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 - [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Session: `task_dxf-nesting.md`
 - [x] **P0 — Anchors & toolchain** (items 1–5) — 2026-05-16
 - [x] **P1 — Domain & access** (items 6–8) — 2026-05-16
+- [x] **Fitloop MVP v1 — DXF sheet nesting** (P2–P4, steps 9–21) — 2026-05-16 — Session: `task_dxf-nesting.md`
 
 ### P0 — Anchors & toolchain (complete)
 
@@ -31,11 +32,11 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 ## In Progress
 
-- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P4 — UX completion** (ship checklist)
+_(none — MVP v1 shipped on branch `exploring-task`, 2026-05-16)_
 
 ## Pending (by priority)
 
-### P2 — DXF inputs & validation *(start here)*
+### P2 — DXF inputs & validation
 
 9. [x] Multi-DXF upload (Active Storage); union layer names; layer checklist UI (i18n) (REQ-FIT-DXF-001) — 2026-05-16
 10. [x] Pre-flight: reject zero layers selected / zero extractable pieces (i18n) via `ProjectReadinessValidator` (REQ-FIT-VAL-001) — 2026-05-16
