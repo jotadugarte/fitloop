@@ -6,8 +6,52 @@ es:
     switcher_label: "Idioma"
 
   date:
+    abbr_day_names:
+      - dom
+      - lun
+      - mar
+      - mié
+      - jue
+      - vie
+      - sáb
+    abbr_month_names:
+      -
+      - ene
+      - feb
+      - mar
+      - abr
+      - may
+      - jun
+      - jul
+      - ago
+      - sep
+      - oct
+      - nov
+      - dic
+    day_names:
+      - domingo
+      - lunes
+      - martes
+      - miércoles
+      - jueves
+      - viernes
+      - sábado
     formats:
       short: "%-d %b %Y"
+    month_names:
+      -
+      - enero
+      - febrero
+      - marzo
+      - abril
+      - mayo
+      - junio
+      - julio
+      - agosto
+      - septiembre
+      - octubre
+      - noviembre
+      - diciembre
   time:
     formats:
       short: "%-d %b %Y %H:%M"
@@ -124,6 +168,13 @@ es:
       dxf_upload_label: "Archivos DXF"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       save_project: "Guardar proyecto"
+
+  nesting_run:
+    status:
+      processing: "En curso"
+      completed: "Completado"
+      partial: "Parcial"
+      failed: "Fallido"
 
   nesting:
     start: "Iniciar anidado"

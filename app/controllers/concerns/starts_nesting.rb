@@ -10,10 +10,11 @@ module StartsNesting
     nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
     project.update!(
       status: :processing,
-      progress_percent: 0,
+      progress_percent: 3,
       progress_message: I18n.t("nesting.queued"),
       estimated_finished_at: Time.current + 30.seconds
     )
+    Nesting::ProgressBroadcaster.call(project: project.reload, eta_overrun: false, time_limit_notice: false)
     NestingJob.perform_later(nesting_run.id)
     nesting_run
   end

@@ -614,6 +614,45 @@ h3 {
   accent-color: var(--fit-navy);
 }
 
+.nesting-progress__bar--indeterminate {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--fit-navy) 18%, var(--fit-bg));
+  border-radius: 2px;
+}
+
+.nesting-progress__bar--indeterminate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--fit-navy-light), transparent);
+  animation: nesting-progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes nesting-progress-slide {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.nesting-progress__status {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+}
+
+.nesting-progress__percent {
+  display: inline-block;
+  min-width: 2.5rem;
+  margin-right: 0.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .nesting-run-history__list {
   padding: 0;
   margin: 0;

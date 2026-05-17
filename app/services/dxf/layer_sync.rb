@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Dxf
-  # [REQ-FIT-DXF-001] Persists unioned layer names from attached input DXFs.
+  # [REQ-FIT-DXF-001] Persists unioned layer names and colors from attached input DXFs.
   class LayerSync
     def self.call(project)
       new(project).call
@@ -15,8 +15,10 @@ module Dxf
       return if @project.input_dxf_attachments.blank?
 
       with_downloaded_dxf_paths do |paths|
-        LayerNamesReader.union(paths).each do |layer_name|
-          @project.project_layers.find_or_create_by!(layer_name: layer_name)
+        LayerNamesReader.catalog(paths).each do |entry|
+          layer = @project.project_layers.find_or_initialize_by(layer_name: entry["name"])
+          layer.color = entry["color"] if entry["color"].present?
+          layer.save!
         end
       end
     end
@@ -26,7 +28,7 @@ module Dxf
     def with_downloaded_dxf_paths
       tempfiles = []
       paths = @project.input_dxf_attachments.map do |attachment|
-        tempfile = Tempfile.new(["fitloop_dxf", ".dxf"], Dir.tmpdir)
+        tempfile = Tempfile.new([ "fitloop_dxf", ".dxf" ], Dir.tmpdir)
         tempfiles << tempfile
         tempfile.binmode
         attachment.download { |chunk| tempfile.write(chunk) }

@@ -29,7 +29,7 @@
               <li class="layer-list__item">
                 <label class="layer-list__label">
                   <%= check_box_tag "project_layers[#{layer.id}][included]", "1", layer.included %>
-                  <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer.layer_name) %>"></span>
+                  <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer) %>"></span>
                   <span class="layer-list__name"><%= layer.layer_name %></span>
                 </label>
               </li>

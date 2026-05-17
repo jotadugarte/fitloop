@@ -4,7 +4,7 @@
     <ol class="nesting-run-history__list">
       <% nesting_runs.each do |run| %>
         <li data-testid="nesting-run-row">
-          <span class="nesting-run-history__status <%= project_status_badge_class(run.status) %>"><%= project_status_label(run.status) %></span>
+          <span class="nesting-run-history__status <%= project_status_badge_class(run.status) %>"><%= nesting_run_status_label(run.status) %></span>
           <time datetime="<%= run.created_at.iso8601 %>"><%= l(run.created_at, format: :short) %></time>
           <% if run.finished_at.present? %>
             <span class="nesting-run-history__finished">

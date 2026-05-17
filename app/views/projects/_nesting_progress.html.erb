@@ -1,9 +1,19 @@
 <%= turbo_frame_tag dom_id(project, :nesting_progress) do %>
   <% if project.processing? %>
+    <% percent = project.progress_percent.to_i %>
     <section class="nesting-progress panel" data-testid="nesting-progress">
       <h2><%= t("nesting.progress_heading") %></h2>
-      <progress class="nesting-progress__bar" value="<%= project.progress_percent.to_i %>" max="100"></progress>
-      <p data-testid="progress-message"><%= project.progress_message %></p>
+      <% if percent.positive? %>
+        <progress class="nesting-progress__bar" value="<%= percent %>" max="100"></progress>
+      <% else %>
+        <div class="nesting-progress__bar nesting-progress__bar--indeterminate" role="progressbar" aria-valuetext="<%= project.progress_message %>"></div>
+      <% end %>
+      <p class="nesting-progress__status" data-testid="progress-message">
+        <% if percent.positive? %>
+          <span class="nesting-progress__percent"><%= percent %>%</span>
+        <% end %>
+        <%= project.progress_message %>
+      </p>
       <% if eta_overrun %>
         <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
       <% end %>
