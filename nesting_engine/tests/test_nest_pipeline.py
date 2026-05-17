@@ -66,7 +66,7 @@ def test_multiple_pieces_pack_on_one_sheet() -> None:
     assert result.orphans == []
 
 
-def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:
+def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:  # [REQ-FIT-NEST-002]
     from nesting_engine.nest_spike import placed_polygon
 
     pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
@@ -94,7 +94,7 @@ def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:
     assert second.bounds[0] == pytest.approx(margin + 10.0, abs=0.05)
 
 
-def test_kerf_keeps_minimum_gap_between_pieces() -> None:
+def test_kerf_keeps_minimum_gap_between_pieces() -> None:  # [REQ-FIT-NEST-002]
     from nesting_engine.nest_spike import placed_polygon
 
     kerf = 4.0
