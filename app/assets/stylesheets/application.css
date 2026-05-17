@@ -823,10 +823,12 @@ h3 {
 
 .layer-chip {
   flex-shrink: 0;
-  width: 0.75rem;
-  height: 0.75rem;
-  background: var(--layer-chip-color, var(--fit-navy));
-  border: 1px solid color-mix(in srgb, var(--layer-chip-color, var(--fit-navy)) 70%, #000);
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 2px;
+  background-color: var(--layer-chip-color, var(--fit-navy));
+  border: 1px solid color-mix(in srgb, var(--layer-chip-color, var(--fit-navy)) 55%, #1a2332);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 25%, transparent);
 }
 
 .layer-list__name {

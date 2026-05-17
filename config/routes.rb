@@ -17,7 +17,9 @@ Rails.application.routes.draw do
     member do
       post :verify_pin
     end
-    resources :layers, only: %i[index update], controller: "project_layers"
+    resources :layers, only: :index, controller: "project_layers" do
+      patch "", on: :collection, action: :update
+    end
     resources :input_dxf_files, only: :create, controller: "project_input_dxf_files"
     resources :nesting_runs, only: :create do
       member do

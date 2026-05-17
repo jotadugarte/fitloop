@@ -24,6 +24,28 @@ RSpec.describe "Project layers", type: :request do
     end
   end
 
+  describe "PATCH /projects/:project_id/layers [REQ-FIT-DXF-001]" do
+    it "saves layer inclusion selection" do
+      unlock_project_for_spec!(project, pin: "445566")
+
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSync.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(included: false)
+
+      patch project_layers_path(project), params: {
+        project_layers: { layer.id.to_s => { included: "1" } }
+      }
+
+      expect(response).to redirect_to(project_layers_path(project))
+      expect(layer.reload).to be_included
+    end
+  end
+
   describe "POST /projects/:project_id/input_dxf_files [REQ-FIT-DXF-001]" do
     it "accepts multiple DXF uploads in one request" do
       unlock_project_for_spec!(project, pin: "445566")
