@@ -4,7 +4,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-16 — compared repo (`main` + `finish`) against SPEC, tests, and app code.
+**Last audit:** 2026-05-17 — libnest2d integration complete; roadmap item closed.
 
 **Next action:** Backlog — v1.1 auto-split (`REQ-FIT-SPLIT-001`) or optional FastAPI wrapper.
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** libnest2d production nest (ADR-0001); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery; full libnest2d obstacle placement (margin/kerf still uses `nest_placement` sweep).
 
 ---
 
@@ -76,6 +76,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
 20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
 - [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
+- [x] **libnest2d integration** — `nest_libnest2d` + `python-libnest2d==0.1.3`; DEPLOY native deps; CI `nesting_engine` job (REQ-FIT-NEST-001, REQ-FIT-NEST-002, REQ-FIT-QA-001) — 2026-05-17 — Session: `task_libnest2d-integration.md`
 
 ---
 
@@ -89,7 +90,7 @@ _(none)_
 
 ### Nesting engine
 
-- [ ] **libnest2d integration** — Replace Shapely rotation-sweep in `nesting_engine/nest.py` with libnest2d/pynest2d per ADR-0001 (REQ-FIT-NEST-001); document cmake/Boost/native deps in `docs/DEPLOY.md`
+_(complete)_
 
 ### Documentation
 

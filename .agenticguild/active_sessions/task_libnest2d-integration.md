@@ -97,7 +97,7 @@
     <step id="6" status="complete">[REQ-FIT-NEST-002] Contract regression: run `test_nest_pipeline.py` CLI fixture tests — adjust assertions to structure/invariants only (not exact x/y); confirm `placements.json` / `report.json` keys unchanged.</step>
     <step id="7" status="complete">Remove Shapely placement from `nest_spike.py` (`run_spike_nest`, `_place_with_rotation`, rotation sweep); migrate `test_nest_spike.py` to libnest2d or fold into `test_libnest2d_binding.py`; keep Shapely only where used for affinity/simplify in `nest.py` / `dxf_output`.</step>
     <step id="8" status="complete">[REQ-FIT-QA-001] Document in `docs/DEPLOY.md`: apt packages, venv install, `python -c "import …"` smoke check, CI parity note; extend `.github/workflows/ci.yml` with `nesting_engine` job (apt + pip + pytest).</step>
-    <step id="9" status="pending">Update `docs/core/ADRs/0001-nesting-library.md` limits table (P3 = libnest2d active); mark roadmap item done in `docs/ROADMAP.md`.</step>
+    <step id="9" status="complete">Update `docs/core/ADRs/0001-nesting-library.md` limits table (P3 = libnest2d active); mark roadmap item done in `docs/ROADMAP.md`.</step>
     <step id="10" status="pending">Run full suite: `.venv/bin/pytest nesting_engine/`, `bundle exec rspec spec/system/golden_nesting_e2e_spec.rb` (contract/status only).</step>
   </implementation_plan>
 

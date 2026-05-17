@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
-    <current_step>3.2 complete — plan step 8 done; next plan step 9 (ADR + roadmap)</current_step>
+    <current_step>3.2 complete — plan step 9 done; next plan step 10 (full suite)</current_step>
   </execution_context>
 </agent_state>

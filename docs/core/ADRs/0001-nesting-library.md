@@ -26,12 +26,9 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 
 **Chosen option:** **libnest2d** as the **production** nesting core for MVP v1 integration in P3.
 
-**P0 spike:** In-repo **`nesting_engine/nest_spike.py`** uses a bounded Shapely rotation sweep (15° steps) to prove:
+**P0 spike (2026-05-16):** Validated hole-aware polygons and any-angle rotation via `binding_spike_nest` / tests in `test_libnest2d_binding.py`. The former `nest_spike.py` rotation sweep was removed in favor of production bindings.
 
-- Polygons with holes are accepted as valid pieces
-- A piece that only fits after rotation (e.g. 90×20 mm into 50×100 mm bin at 90°) is placed correctly
-
-This spike is **not** the shipping nest algorithm. It validates geometry assumptions and documents integration risk before binding libnest2d.
+**P3 integration (2026-05-17):** **`nesting_engine/nest_libnest2d.py`** uses **`python-libnest2d`** (`pynest2d`) for single-bin batch placement (`nest_sheet`) and binding proofs. Multi-bin orchestration (`nest_multi_bin`) uses libnest2d where applicable; obstacle-aware per-piece placement with margin/kerf remains in **`nest_placement.py`** (Shapely sweep) until libnest2d exposes equivalent obstacle semantics.
 
 ### Positive consequences
 
@@ -41,22 +38,24 @@ This spike is **not** the shipping nest algorithm. It validates geometry assumpt
 
 ### Negative consequences
 
-- **Build complexity:** `pynest2d`/libnest2d may require `cmake`, Boost, and system packages on deploy hosts — document in deploy notes (P4).
-- **Spike ≠ nest quality:** No multi-bin, kerf, margin, or time limit in `nest_spike`; P3 must implement `REQ-FIT-NEST-002`.
-- **Fallback:** If libnest2d integration fails in P3, open ADR-0002 for evaluated fallback (e.g. SVGnest CLI) before changing architecture.
+- **Build complexity:** Prebuilt `python-libnest2d` wheels on Linux x86_64; source builds may need `cmake`, Boost — see `docs/DEPLOY.md`.
+- **Hybrid placement:** Obstacle/margin edge cases still use Shapely sweep in `nest_placement.py`; full libnest2d obstacle parity is future work.
+- **Fallback:** If libnest2d regresses in production, open ADR-0002 before changing architecture.
 
-## Limits (v1 spike vs P3 production)
+## Limits (spike vs production — 2026-05-17)
 
-| Capability | P0 `nest_spike` | P3 `nest` (target) |
-|------------|-----------------|---------------------|
-| Holes | Yes (Shapely polygon) | Yes (libnest2d) |
-| Any-angle rotation | 15° step sweep | libnest2d + time cap |
-| Multi-bin / SheetStock order | No | Yes (REQ-FIT-NEST-002) |
-| Kerf / margin | No | Yes |
-| 600s best-so-far | No | Yes |
+| Capability | P0 spike / binding tests | P3 production (`nest_libnest2d` + CLI) |
+|------------|--------------------------|----------------------------------------|
+| Holes | Yes (`binding_spike_nest`) | Yes (libnest2d) |
+| Any-angle rotation | Yes (libnest2d NFP / BLP) | Yes |
+| Multi-bin / SheetStock order | No | Yes (`nest_multi_bin`, REQ-FIT-NEST-002) |
+| Kerf / margin | No | Yes (`nest_placement` + `nest_bin`) |
+| 600s best-so-far | No | Yes (`time_limit_sec`, REQ-FIT-NEST-003) |
+| Deploy / CI | — | `docs/DEPLOY.md`, `.github/workflows/ci.yml` `nesting_engine` job |
 
 ## More information
 
-- P0 tests: `nesting_engine/tests/test_nest_spike.py`
-- Extraction (separate): `nesting_engine/extract.py` — REQ-FIT-EXT-001
-- Session decisions: `.agenticguild/active_sessions/task_dxf-nesting.md` (D10, D13, D27)
+- Binding / production tests: `nesting_engine/tests/test_libnest2d_binding.py`, `nesting_engine/tests/test_nest_libnest2d.py`
+- ADR parity: `nesting_engine/tests/test_nest_spike.py`
+- Package pin: `python-libnest2d==0.1.3` in repo `requirements.txt`
+- Session: `.agenticguild/active_sessions/task_libnest2d-integration.md`
