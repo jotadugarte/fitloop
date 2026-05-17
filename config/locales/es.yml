@@ -120,6 +120,9 @@ es:
       sheet_summary: "%{width} × %{height} mm × %{quantity}"
       alert_dimensions: "Introduce un ancho y un alto válidos en milímetros."
       alert_quantity: "Introduce una cantidad de al menos 1, o deja el campo vacío para láminas ilimitadas."
+      dxf_upload_legend: "Archivos DXF"
+      dxf_upload_label: "Archivos DXF"
+      dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       save_project: "Guardar proyecto"
 
   nesting:
@@ -158,7 +161,7 @@ es:
       back: "Volver al proyecto"
       legend: "Incluir capas en el anidado"
       save: "Guardar selección de capas"
-      empty: "Sube archivos DXF para descubrir capas."
+      empty: "No se encontraron capas en los archivos DXF adjuntos."
       files_attached:
         one: "1 archivo DXF adjunto"
         other: "%{count} archivos DXF adjuntos"

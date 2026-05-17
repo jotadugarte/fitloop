@@ -31,7 +31,9 @@ class ProjectsController < ApplicationController
 
     if @project.save
       grant_project_access!(@project)
-      redirect_to @project, notice: t("projects.created")
+      attach_dxf_files!(@project)
+      Dxf::LayerSync.call(@project) if @project.input_dxf_attachments.any?
+      redirect_to project_layers_path(@project), notice: t("projects.created")
     else
       render(:new, status: :unprocessable_content)
     end
@@ -109,5 +111,13 @@ class ProjectsController < ApplicationController
     project.sheet_stocks.reject(&:marked_for_destruction?).each_with_index do |stock, index|
       stock.sort_order = index
     end
+  end
+
+  def attach_dxf_files!(project)
+    dxf_files_param.each { |file| project.input_dxf.attach(file) }
+  end
+
+  def dxf_files_param
+    Array(params[:files]).compact.reject { |file| file.respond_to?(:size) && file.size.zero? }
   end
 end

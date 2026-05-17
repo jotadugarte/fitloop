@@ -15,17 +15,6 @@
     </div>
   <% end %>
 
-  <%= form_with url: project_input_dxf_files_path(@project), method: :post, multipart: true, class: "dxf-upload-form panel" do %>
-    <fieldset>
-      <legend><%= t("project_layers.upload.legend") %></legend>
-      <p class="field">
-        <label for="files"><%= t("project_layers.upload.label") %></label>
-        <%= file_field_tag :files, multiple: true, accept: ".dxf,application/dxf", id: "files" %>
-      </p>
-      <p><%= submit_tag t("project_layers.upload.submit"), class: "btn btn-primary" %></p>
-    </fieldset>
-  <% end %>
-
   <% if @project.input_dxf_attachments.any? %>
     <p class="files-attached"><%= t("project_layers.index.files_attached", count: @project.input_dxf.count) %></p>
   <% end %>

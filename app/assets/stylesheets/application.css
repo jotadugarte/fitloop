@@ -745,10 +745,15 @@ h3 {
 }
 
 .sheet-inventory-table__action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.35rem;
+  min-width: 9rem;
+}
+
+.sheet-inventory-table__action-buttons .btn {
+  width: 100%;
+  text-align: center;
 }
 
 .btn--small {

@@ -149,6 +149,9 @@ en:
       sheet_summary: "%{width} × %{height} mm × %{quantity}"
       alert_dimensions: "Enter a valid width and height in millimeters."
       alert_quantity: "Enter a quantity of at least 1, or leave the field blank for unlimited sheets."
+      dxf_upload_legend: "DXF files"
+      dxf_upload_label: "DXF files"
+      dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
       save_project: "Save project"
 
   nesting:
@@ -187,7 +190,7 @@ en:
       back: "Back to project"
       legend: "Include layers in nesting"
       save: "Save layer selection"
-      empty: "Upload DXF files to discover layers."
+      empty: "No layers found in the attached DXF files."
       files_attached:
         one: "1 DXF file attached"
         other: "%{count} DXF files attached"

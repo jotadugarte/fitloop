@@ -1,4 +1,4 @@
-<%= form_with model: project, class: "project-form" do |f| %>
+<%= form_with model: project, class: "project-form", html: { multipart: true } do |f| %>
   <% if project.errors.any? %>
     <div class="form-errors" role="alert">
       <h2><%= t("projects.form.errors_heading", count: project.errors.count) %></h2>
@@ -21,6 +21,8 @@
   </div>
 
   <%= render "sheet_inventory", form: f, project: project %>
+
+  <%= render "dxf_upload_fields", project: project %>
 
   <div class="form-actions">
     <%= f.submit t("projects.form.save_project"), class: "btn btn-primary" %>
