@@ -1,28 +1,46 @@
 <%= turbo_stream_from @project %>
 
-<main class="page project-show" data-testid="project-show">
-  <header class="page-header">
-    <%= image_tag "/images/logo.png", alt: "Fitloop", class: "page-header__logo" %>
+<main class="page page--wide project-show" data-testid="project-show">
+  <header class="page-header page-header--compact">
     <h1><%= @project.title %></h1>
+    <span class="<%= project_status_badge_class(@project.status) %>"><%= project_status_label(@project.status) %></span>
   </header>
-  <p><%= link_to t("projects.show.edit"), edit_project_path(@project) %></p>
-  <p><%= link_to t("projects.show.layers"), project_layers_path(@project) %></p>
 
-  <% if @project.nested_dxf.attached? && (@project.completed? || @project.partial?) %>
-    <%= link_to t("projects.show.download_nested_dxf"), rails_blob_path(@project.nested_dxf, disposition: "attachment"), data: { testid: "download-nested-dxf" } %>
-    <%= button_to t("nesting.renest"), project_nesting_runs_path(@project), method: :post, data: { testid: "renest-nesting" } %>
-  <% elsif @project.draft? || @project.ready? || @project.failed? %>
-    <%= button_to t("nesting.start"), project_nesting_runs_path(@project), method: :post, data: { testid: "start-nesting" } %>
-  <% end %>
+  <section class="project-show__preview-zone">
+    <%= render "nesting_preview", preview: @nesting_preview %>
+  </section>
 
-  <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
-  <%= render "nesting_preview", preview: @nesting_preview %>
-  <%= render "nesting_run_history", nesting_runs: @nesting_runs %>
+  <section class="project-show__actions panel">
+    <h2 class="panel__title"><%= t("projects.show.actions_title") %></h2>
+    <div class="action-bar">
+      <% if @project.nested_dxf.attached? && (@project.completed? || @project.partial?) %>
+        <%= link_to t("projects.show.download_nested_dxf"), rails_blob_path(@project.nested_dxf, disposition: "attachment"), class: "btn btn-primary", data: { testid: "download-nested-dxf" } %>
+        <%= button_to t("nesting.renest"), project_nesting_runs_path(@project), method: :post, class: "btn btn-secondary", data: { testid: "renest-nesting" } %>
+      <% elsif @project.draft? || @project.ready? || @project.failed? %>
+        <%= button_to t("nesting.start"), project_nesting_runs_path(@project), method: :post, class: "btn btn-primary", data: { testid: "start-nesting" } %>
+      <% end %>
 
-  <% active_run = @project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
-  <% if active_run %>
-    <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(@project, active_run), method: :post, data: { testid: "cancel-nesting" } %>
-  <% end %>
+      <% active_run = @project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
+      <% if active_run %>
+        <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(@project, active_run), method: :post, class: "btn btn-secondary", data: { testid: "cancel-nesting" } %>
+      <% end %>
+    </div>
+  </section>
 
-  <p><%= link_to t("projects.show.back"), projects_path %></p>
+  <section class="project-show__progress">
+    <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
+  </section>
+
+  <section class="project-show__history">
+    <%= render "nesting_run_history", nesting_runs: @nesting_runs %>
+  </section>
+
+  <section class="project-show__links panel panel--subtle">
+    <h2 class="panel__title"><%= t("projects.show.manage_title") %></h2>
+    <ul class="link-list">
+      <li><%= link_to t("projects.show.layers"), project_layers_path(@project) %></li>
+      <li><%= link_to t("projects.show.edit"), edit_project_path(@project) %></li>
+      <li><%= link_to t("projects.show.back"), projects_path %></li>
+    </ul>
+  </section>
 </main>

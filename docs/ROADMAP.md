@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Last audit:** 2026-05-16 — compared repo (`main` + `finish`) against SPEC, tests, and app code.
 
-**Next action:** Architecture-studio UI (`REQ-FIT-UI-004`); enrich core docs (`DATA_FLOW_MAP`, `TESTING_STRATEGY_MATRIX`, `SCHEMA_REFERENCE`).
+**Next action:** Enrich core docs (`DATA_FLOW_MAP`, `TESTING_STRATEGY_MATRIX`, `SCHEMA_REFERENCE`).
 
 ---
 
@@ -18,7 +18,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 | P1 | Domain & access | **Complete** |
 | P2 | DXF inputs & validation | **Complete** |
 | P3 | Nesting pipeline | **Complete** |
-| P4 | UX completion & ship | **Mostly complete** — architecture-studio UI pending |
+| P4 | UX completion & ship | **Complete** |
 | Docs | Core reference docs | **Templates only** — enrichment pending |
 | P5 / Backlog | v1.1+ | **Not started** |
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** architecture-studio visual design (`REQ-FIT-UI-004`); enriched `DATA_FLOW_MAP.md` / `TESTING_STRATEGY_MATRIX.md`; `SCHEMA_REFERENCE.md`; v1.1 auto-split.
+**Not implemented:** enriched `DATA_FLOW_MAP.md` / `TESTING_STRATEGY_MATRIX.md`; `SCHEMA_REFERENCE.md`; v1.1 auto-split.
 
 ---
 
@@ -74,6 +74,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 19. [x] Download nested DXF; project list without login; PIN gate on show; functional UI + `en`/`es` locale files (REQ-FIT-UI-003) — 2026-05-16
 21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
 18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
+20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
 
 ---
 
@@ -87,7 +88,7 @@ _(none)_
 
 ### P4 — Post-MVP UI polish
 
-20. [ ] **Architecture-studio web design** (REQ-FIT-UI-004) — functional CSS only (`application.css`); no architecture-studio identity system
+_(complete)_
 
 ### Documentation (parallel)
 

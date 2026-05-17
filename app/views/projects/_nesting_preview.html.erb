@@ -1,41 +1,15 @@
-<% if preview.available? %>
-  <section class="nesting-preview" data-testid="nesting-preview">
-    <h2><%= t("projects.preview.title") %></h2>
-    <p data-testid="preview-sheet-count"><%= t("projects.preview.sheet_count", count: preview.sheet_count) %></p>
+<section class="nesting-preview-panel" data-testid="nesting-preview-panel">
+  <h2><%= t("projects.preview.title") %></h2>
 
-    <svg
-      class="nesting-preview__svg"
-      data-testid="nesting-preview-svg"
-      viewBox="<%= preview.view_box %>"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="<%= t("projects.preview.title") %>"
-    >
-      <% preview.sheets.each do |sheet| %>
-        <rect
-          data-testid="preview-sheet"
-          x="<%= sheet.offset_x_mm %>"
-          y="0"
-          width="<%= sheet.width_mm %>"
-          height="<%= sheet.height_mm %>"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1"
-        />
-        <% sheet.pieces.each do |piece| %>
-          <rect
-            data-testid="preview-piece"
-            x="<%= sheet.offset_x_mm + piece.x_mm %>"
-            y="<%= piece.y_mm %>"
-            width="<%= piece.width_mm %>"
-            height="<%= piece.height_mm %>"
-            fill="currentColor"
-            fill-opacity="0.2"
-            stroke="currentColor"
-            stroke-width="0.5"
-          />
-        <% end %>
-      <% end %>
-    </svg>
-  </section>
-<% end %>
+  <% if preview.available? %>
+    <p data-testid="preview-sheet-count"><%= t("projects.preview.sheet_count", count: preview.sheet_count) %></p>
+    <div class="nesting-preview nesting-preview--cad" data-testid="nesting-preview">
+      <%= nesting_preview_svg(preview, css_class: "nesting-preview__svg", testid: "nesting-preview-svg") %>
+    </div>
+  <% else %>
+    <div class="nesting-preview nesting-preview--empty" data-testid="nesting-preview-empty">
+      <div class="preview-placeholder preview-placeholder--cad" aria-hidden="true"></div>
+      <p><%= t("projects.preview.empty") %></p>
+    </div>
+  <% end %>
+</section>

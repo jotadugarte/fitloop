@@ -1,0 +1,7 @@
+<% if preview.available? %>
+  <div class="preview-thumbnail preview-thumbnail--cad" data-testid="project-card-preview">
+    <%= nesting_preview_svg(preview, css_class: "preview-thumbnail__svg", mini: true) %>
+  </div>
+<% else %>
+  <div class="preview-placeholder preview-thumbnail preview-thumbnail--empty" data-testid="project-card-preview-placeholder" aria-hidden="true"></div>
+<% end %>

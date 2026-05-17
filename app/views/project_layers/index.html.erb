@@ -1,9 +1,11 @@
-<main class="page">
-  <h1><%= t("project_layers.index.title", title: @project.title) %></h1>
-  <p><%= link_to t("project_layers.index.back"), @project %></p>
+<main class="page page--wide project-layers" data-testid="project-layers">
+  <header class="page-header page-header--compact">
+    <h1><%= t("project_layers.index.title", title: @project.title) %></h1>
+    <p><%= link_to t("project_layers.index.back"), @project, class: "text-link" %></p>
+  </header>
 
   <% unless @readiness.ok? %>
-    <div class="readiness-errors" data-testid="readiness-errors" role="alert">
+    <div class="readiness-errors panel panel--alert" data-testid="readiness-errors" role="alert">
       <h2><%= t("project_readiness.heading") %></h2>
       <ul>
         <% @readiness.errors.each do |error| %>
@@ -13,37 +15,38 @@
     </div>
   <% end %>
 
-  <%= form_with url: project_input_dxf_files_path(@project), method: :post, multipart: true, class: "dxf-upload-form" do %>
+  <%= form_with url: project_input_dxf_files_path(@project), method: :post, multipart: true, class: "dxf-upload-form panel" do %>
     <fieldset>
       <legend><%= t("project_layers.upload.legend") %></legend>
-      <p>
+      <p class="field">
         <label for="files"><%= t("project_layers.upload.label") %></label>
         <%= file_field_tag :files, multiple: true, accept: ".dxf,application/dxf", id: "files" %>
       </p>
-      <p><%= submit_tag t("project_layers.upload.submit") %></p>
+      <p><%= submit_tag t("project_layers.upload.submit"), class: "btn btn-primary" %></p>
     </fieldset>
   <% end %>
 
   <% if @project.input_dxf_attachments.any? %>
-    <p><%= t("project_layers.index.files_attached", count: @project.input_dxf.count) %></p>
+    <p class="files-attached"><%= t("project_layers.index.files_attached", count: @project.input_dxf.count) %></p>
   <% end %>
 
-  <%= form_with url: project_layers_path(@project), method: :patch, class: "layer-checklist-form" do %>
+  <%= form_with url: project_layers_path(@project), method: :patch, class: "layer-checklist-form panel" do %>
     <div data-testid="layer-checklist">
       <fieldset>
         <legend><%= t("project_layers.index.legend") %></legend>
         <% if @project_layers.any? %>
-          <ul class="layer-list">
+          <ul class="layer-list layer-list--visual">
             <% @project_layers.each do |layer| %>
-              <li>
-                <label>
+              <li class="layer-list__item">
+                <label class="layer-list__label">
                   <%= check_box_tag "project_layers[#{layer.id}][included]", "1", layer.included %>
-                  <%= layer.layer_name %>
+                  <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer.layer_name) %>"></span>
+                  <span class="layer-list__name"><%= layer.layer_name %></span>
                 </label>
               </li>
             <% end %>
           </ul>
-          <p><%= submit_tag t("project_layers.index.save") %></p>
+          <p class="form-actions"><%= submit_tag t("project_layers.index.save"), class: "btn btn-primary" %></p>
         <% else %>
           <p><%= t("project_layers.index.empty") %></p>
         <% end %>

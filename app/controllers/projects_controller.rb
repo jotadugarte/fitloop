@@ -2,11 +2,14 @@
 
 # [REQ-FIT-UI-001] Project CRUD with ordered sheet inventory.
 class ProjectsController < ApplicationController
+  layout :fitloop_layout
+
   before_action :set_project, only: %i[show edit update verify_pin]
   before_action :require_project_access!, only: %i[edit update]
 
   def index
     @projects = Project.order(created_at: :desc)
+    @project_cards = @projects.map { |project| [ project, Nesting::PreviewPresenter.for(project) ] }
   end
 
   def show
@@ -72,6 +75,17 @@ class ProjectsController < ApplicationController
   end
 
   private
+
+  def fitloop_layout
+    pin_gate_request? ? "minimal" : "application"
+  end
+
+  def pin_gate_request?
+    return true if action_name == "verify_pin"
+    return false unless action_name == "show" && @project
+
+    !project_access_granted?(@project)
+  end
 
   def require_project_access!
     super(@project)

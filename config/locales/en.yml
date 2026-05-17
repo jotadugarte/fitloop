@@ -31,17 +31,33 @@ en:
   locale:
     switcher_label: "Language"
 
+  nav:
+    primary: "Main navigation"
+    mobile: "Mobile navigation"
+    home: "Home"
+    projects: "Projects"
+
   home:
     index:
       tagline: "DXF sheet nesting"
+      subtitle: "Cut optimization for architecture"
+      cta_new: "New project"
 
   projects:
+    status:
+      draft: "Draft"
+      ready: "Ready"
+      processing: "Processing"
+      completed: "Completed"
+      partial: "Partial"
+      failed: "Failed"
     created: "Project created."
     updated: "Project updated."
     index:
       title: "Projects"
       tagline: "Open a project with your PIN to manage DXF nesting."
       new: "New project"
+      empty: "No projects yet. Create one to start nesting DXF sheets."
     access:
       prompt: "Enter the project PIN to continue."
       pin_label: "Project PIN"
@@ -58,11 +74,14 @@ en:
       layers: "DXF layers"
       download_nested_dxf: "Download nested DXF"
       back: "All projects"
+      actions_title: "Nesting actions"
+      manage_title: "Project settings"
     history:
       title: "Nesting history"
       finished: "finished %{time}"
     preview:
       title: "Nesting preview"
+      empty: "No nesting preview yet. Run nesting to see placements here."
       sheet_count:
         one: "1 sheet"
         other: "%{count} sheets"

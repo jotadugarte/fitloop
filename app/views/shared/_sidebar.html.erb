@@ -1,0 +1,46 @@
+<nav class="app-sidebar" aria-label="<%= t("nav.primary") %>">
+  <%= link_to root_path, class: "app-sidebar__logo", title: "Fitloop", aria: { label: "Fitloop" } do %>
+    <%= image_tag "/images/logo.png", alt: "" %>
+  <% end %>
+
+  <div class="app-sidebar__links">
+    <%= link_to root_path,
+          class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(root_path)}",
+          title: t("nav.home"),
+          aria: { label: t("nav.home") } do %>
+      <span class="app-sidebar__icon" aria-hidden="true">⌂</span>
+    <% end %>
+
+    <%= link_to projects_path,
+          class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(projects_path, new_project_path)}",
+          title: t("nav.projects"),
+          aria: { label: t("nav.projects") } do %>
+      <span class="app-sidebar__icon" aria-hidden="true">▦</span>
+    <% end %>
+
+    <% if defined?(@project) && @project.present? %>
+      <%= link_to @project,
+            class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(@project)}",
+            title: @project.title,
+            aria: { label: @project.title } do %>
+        <span class="app-sidebar__icon" aria-hidden="true">◫</span>
+      <% end %>
+
+      <%= link_to project_layers_path(@project),
+            class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(project_layers_path(@project))}",
+            title: t("projects.show.layers"),
+            aria: { label: t("projects.show.layers") } do %>
+        <span class="app-sidebar__icon" aria-hidden="true">☰</span>
+      <% end %>
+
+      <% if project_access_granted?(@project) %>
+        <%= link_to edit_project_path(@project),
+              class: "app-sidebar__link#{' app-sidebar__link--active' if fitloop_nav_active?(edit_project_path(@project))}",
+              title: t("projects.show.edit"),
+              aria: { label: t("projects.show.edit") } do %>
+          <span class="app-sidebar__icon" aria-hidden="true">✎</span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</nav>

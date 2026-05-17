@@ -2,17 +2,33 @@ es:
   locale:
     switcher_label: "Idioma"
 
+  nav:
+    primary: "Navegación principal"
+    mobile: "Navegación móvil"
+    home: "Inicio"
+    projects: "Proyectos"
+
   home:
     index:
       tagline: "Anidado de láminas DXF"
+      subtitle: "Optimización de cortes para arquitectura"
+      cta_new: "Nuevo proyecto"
 
   projects:
+    status:
+      draft: "Borrador"
+      ready: "Listo"
+      processing: "En curso"
+      completed: "Completado"
+      partial: "Parcial"
+      failed: "Fallido"
     created: "Proyecto creado."
     updated: "Proyecto actualizado."
     index:
       title: "Proyectos"
       tagline: "Abre un proyecto con tu PIN para gestionar el anidado DXF."
       new: "Nuevo proyecto"
+      empty: "Aún no hay proyectos. Crea uno para empezar a anidar láminas DXF."
     access:
       prompt: "Introduce el PIN del proyecto para continuar."
       pin_label: "PIN del proyecto"
@@ -29,11 +45,14 @@ es:
       layers: "Capas DXF"
       download_nested_dxf: "Descargar DXF anidado"
       back: "Todos los proyectos"
+      actions_title: "Acciones de anidado"
+      manage_title: "Ajustes del proyecto"
     history:
       title: "Historial de anidados"
       finished: "finalizado %{time}"
     preview:
       title: "Vista previa del anidado"
+      empty: "Aún no hay vista previa. Ejecuta un anidado para ver las colocaciones aquí."
       sheet_count:
         one: "1 lámina"
         other: "%{count} láminas"

@@ -1,7 +1,7 @@
 <% flash.each do |type, message| %>
   <% next if message.blank? %>
 
-  <div class="flash flash-<%= type %>" data-testid="flash-<%= type %>" role="status">
+  <div class="flash flash-<%= type %>" data-testid="flash-<%= type %>" role="<%= type.to_sym == :alert ? 'alert' : 'status' %>">
     <%= message %>
   </div>
 <% end %>

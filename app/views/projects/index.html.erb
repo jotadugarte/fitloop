@@ -1,15 +1,26 @@
-<main class="page projects-index" data-testid="projects-index">
+<main class="page page--wide projects-index" data-testid="projects-index">
   <header class="page-header">
-    <%= image_tag "/images/logo.png", alt: "Fitloop", class: "page-header__logo" %>
     <h1><%= t("projects.index.title") %></h1>
     <p class="page-header__tagline"><%= t("projects.index.tagline") %></p>
   </header>
 
-  <p><%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %></p>
+  <p class="page-actions">
+    <%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %>
+  </p>
 
-  <ul class="project-list">
-    <% @projects.each do |project| %>
-      <li data-testid="project-list-item"><%= link_to project.title, project %></li>
-    <% end %>
-  </ul>
+  <% if @project_cards.any? %>
+    <ul class="project-grid">
+      <% @project_cards.each do |project, preview| %>
+        <li data-testid="project-list-item">
+          <%= render "project_card", project: project, preview: preview %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="empty-state" data-testid="projects-empty">
+      <div class="preview-placeholder preview-placeholder--card" aria-hidden="true"></div>
+      <p><%= t("projects.index.empty") %></p>
+      <%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
 </main>
