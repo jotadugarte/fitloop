@@ -1,19 +1,100 @@
-# Testing Strategy Matrix
+# Testing Strategy Matrix — Fitloop
 
-**Purpose:** Defines the testing requirements and coverage rules. No feature may be merged without fulfilling these testing contracts.
+**Purpose:** Defines testing requirements and coverage rules. No feature may be merged without fulfilling these contracts.
+
+**Traceability source:** `docs/core/SPEC.md` (`REQ-FIT-*`).
+
+---
 
 ## 1. Traceability Requirement
-* **The [REQ-ID] Rule:** EVERY test block (e.g., `it(...)` or `test(...)`) must include the specific `[REQ-ID]` from `SPEC.md` that it is verifying. Untraced tests are considered invalid.
 
-## 2. The Testing Pyramid
-| Layer | Framework | Rule of Engagement | Target Coverage |
-|---|---|---|---|
-| **Domain / Services** | [e.g., RSpec / Jest] | 100% logic coverage. Mock all external I/O. | 100% |
-| **Controllers / APIs** | [e.g., RSpec Requests] | Test HTTP routing, status codes, and auth payload. | 90% |
-| **UI / Components** | [e.g., Vitest / RNTL] | Test accessibility (a11y) and user interactions. | 85% |
-| **E2E / System** | [e.g., Playwright / Maestro] | Test complete critical user flows. | Key Flows Only |
+- **The [REQ-ID] rule:** Every `it(...)` / `describe` block in RSpec and every test function docstring/comment in pytest MUST reference the `REQ-FIT-*` ID it verifies.
+- Untraced tests are invalid for merge.
+- Controllers/services/models SHOULD include a comment tag matching their primary REQ (e.g. `# [REQ-FIT-DOM-001]`).
 
-## 3. Mocking & Stubbing Rules
-* **External APIs:** MUST be mocked. Tests must never make live network calls.
-* **Time/Dates:** MUST be frozen (e.g., `travel_to` or `jest.useFakeTimers()`) to prevent intermittent failures.
-* **Randomness:** Seeds MUST be hardcoded during test runs to ensure deterministic output.
+---
+
+## 2. Testing Pyramid (this repo)
+
+| Layer | Framework | Location | Rule of engagement | Target |
+|-------|-----------|----------|-------------------|--------|
+| **Python engine** | pytest | `nesting_engine/tests/` | Unit/integration on extract, nest, CLI outputs; no network; fixture DXFs in `tests/fixtures/` | All engine modules covered |
+| **Domain / services** | RSpec | `spec/services/`, `spec/models/` | Mock external I/O; real DB for models | 100% service branches |
+| **Jobs** | RSpec | `spec/jobs/` | Mock CLI or use `cli_mock` / real `nest.py` in integration example | Happy + partial + failed paths |
+| **HTTP / requests** | RSpec | `spec/requests/` | Status codes, auth/PIN gate, i18n copy, attachment headers | All routes with business rules |
+| **System / E2E** | RSpec + Capybara | `spec/system/` | Golden DXF flow, CRUD, progress UI (`rack_test` driver) | Critical user flows only |
+| **Doc / scaffold guards** | Minitest | `test/app/`, `test/architecture/`, `test/spec/` | Verifiers for home, architecture doc, SPEC presence | CI gate on docs |
+
+---
+
+## 3. Commands
+
+```bash
+# Rails (from project root)
+bundle exec rspec
+
+# Python engine (venv active)
+python -m pytest nesting_engine/tests -q
+```
+
+**CI expectation:** Both suites green before merge (see `bin/ci` if configured).
+
+---
+
+## 4. REQ-ID → Test Map (representative)
+
+| REQ-ID | Primary specs |
+|--------|----------------|
+| REQ-FIT-APP-001 | `spec/requests/home_spec.rb`, `test/app/fitloop_home_test.rb` |
+| REQ-FIT-ARCH-001 | `test/architecture/system_architecture_doc_test.rb` |
+| REQ-FIT-SPEC-001 | `test/spec/spec_doc_test.rb` |
+| REQ-FIT-DOM-001 | `spec/models/project*_spec.rb`, `spec/models/sheet_stock_spec.rb` |
+| REQ-FIT-AUTH-001 | `spec/models/project_pin_spec.rb`, `spec/services/project_access_spec.rb` |
+| REQ-FIT-UI-001 | `spec/system/projects_spec.rb` |
+| REQ-FIT-UI-002 | `spec/requests/project_preview_spec.rb`, `spec/services/nesting/preview_presenter_spec.rb` |
+| REQ-FIT-UI-003 | `spec/requests/project_access_gate_spec.rb` |
+| REQ-FIT-UI-004 | `spec/requests/ui_design_spec.rb` |
+| REQ-FIT-UI-005 | `spec/requests/locale_spec.rb` |
+| REQ-FIT-DXF-001 | `spec/requests/project_layers_spec.rb` |
+| REQ-FIT-VAL-001 | `spec/services/project_readiness_validator_spec.rb`, `spec/requests/project_readiness_spec.rb` |
+| REQ-FIT-EXT-001 | `nesting_engine/tests/test_extract_contours.py` |
+| REQ-FIT-EXT-002 | `nesting_engine/tests/test_extract_insert_blocks.py` |
+| REQ-FIT-CLI-001 | `spec/services/nesting/cli_runner_spec.rb`, `spec/jobs/nesting_job_spec.rb` |
+| REQ-FIT-NEST-001 | `nesting_engine/tests/test_nest_spike.py` |
+| REQ-FIT-NEST-002 | `nesting_engine/tests/test_nest_pipeline.py` |
+| REQ-FIT-NEST-003 | `spec/services/nesting/status_mapper_spec.rb`, `spec/jobs/nesting_job_integration_spec.rb` |
+| REQ-FIT-JOB-001 | `spec/services/nesting/job_runner_spec.rb`, `spec/system/nesting_progress_spec.rb` |
+| REQ-FIT-NEST-004 | `spec/requests/nesting_renest_spec.rb`, `spec/jobs/nesting_renest_spec.rb` |
+| REQ-FIT-QA-001 | `spec/system/golden_nesting_e2e_spec.rb` |
+
+---
+
+## 5. Mocking & Stubbing Rules
+
+| Concern | Rule |
+|---------|------|
+| **External APIs** | No live HTTP in tests |
+| **Nesting CLI** | Use `nesting_engine/cli_mock.py` or stub `Nesting::CliRunner.call` unless explicitly integration (`nesting_job_integration_spec`) |
+| **Active Storage** | Use `attach` with `StringIO` / fixture files in request specs |
+| **PIN session** | `ProjectAccessHelper#unlock_project_for_spec!` in request/system specs |
+| **Time** | Prefer fixed timestamps in assertions; job timeout tests stub/limit duration where possible |
+| **Randomness** | RSpec `randomized with seed` logged; pytest deterministic fixtures |
+| **Database** | Default `use_transactional_fixtures = true`; opt out only when necessary (`home_spec`, `locale_spec`, `ui_design_spec` with explicit cleanup) |
+
+---
+
+## 6. System Test Conventions
+
+- Driver: `rack_test` (see `spec/rails_helper.rb`).
+- Use `data-testid` attributes — do not rely on CSS classes for assertions.
+- Golden DXF: `spec/fixtures/golden/sample_piece.dxf` — do not mutate.
+- After UI changes, run `spec/system` before merge.
+
+---
+
+## 7. Adding New Tests
+
+1. Locate REQ-ID in `SPEC.md`.
+2. Add smallest layer that proves the behavior (prefer service over system).
+3. Name example: `it "[REQ-FIT-XXX-NNN] ..."`.
+4. If no REQ exists, update `SPEC.md` first (or open ADR) — do not merge untraced behavior.

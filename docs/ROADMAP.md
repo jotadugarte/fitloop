@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Last audit:** 2026-05-16 — compared repo (`main` + `finish`) against SPEC, tests, and app code.
 
-**Next action:** Enrich core docs (`DATA_FLOW_MAP`, `TESTING_STRATEGY_MATRIX`, `SCHEMA_REFERENCE`).
+**Next action:** Backlog — v1.1 auto-split (`REQ-FIT-SPLIT-001`) or optional FastAPI wrapper.
 
 ---
 
@@ -19,14 +19,14 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 | P2 | DXF inputs & validation | **Complete** |
 | P3 | Nesting pipeline | **Complete** |
 | P4 | UX completion & ship | **Complete** |
-| Docs | Core reference docs | **Templates only** — enrichment pending |
+| Docs | Core reference docs | **Complete** |
 | P5 / Backlog | v1.1+ | **Not started** |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** enriched `DATA_FLOW_MAP.md` / `TESTING_STRATEGY_MATRIX.md`; `SCHEMA_REFERENCE.md`; v1.1 auto-split.
+**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -75,6 +75,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
 18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
 20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
+- [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
 
 ---
 
@@ -86,15 +87,9 @@ _(none)_
 
 ## Pending (by priority)
 
-### P4 — Post-MVP UI polish
+### Documentation
 
 _(complete)_
-
-### Documentation (parallel)
-
-- [ ] Enrich `docs/core/DATA_FLOW_MAP.md` with Fitloop entity flows (Project → NestingRun → CLI → Active Storage) — file is still template boilerplate
-- [ ] Enrich `docs/core/TESTING_STRATEGY_MATRIX.md` with actual pyramid (RSpec + pytest, REQ-ID rule in practice) — file is still template boilerplate
-- [ ] Add `docs/core/SCHEMA_REFERENCE.md` from `db/schema.rb` — migrations landed 2026-05-16; reference doc not created
 
 ---
 
