@@ -67,7 +67,7 @@ def test_multiple_pieces_pack_on_one_sheet() -> None:
 
 
 def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:  # [REQ-FIT-NEST-002]
-    from nesting_engine.nest_spike import placed_polygon
+    from nesting_engine.nest_placement import placed_polygon
 
     pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
     stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=0)]
@@ -95,7 +95,7 @@ def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:  # [REQ-FIT-
 
 
 def test_kerf_keeps_minimum_gap_between_pieces() -> None:  # [REQ-FIT-NEST-002]
-    from nesting_engine.nest_spike import placed_polygon
+    from nesting_engine.nest_placement import placed_polygon
 
     kerf = 4.0
     pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]

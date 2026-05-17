@@ -11,7 +11,7 @@ from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import capabilities, nest_multi_bin, nest_sheet
-from nesting_engine.nest_spike import Placement, placed_polygon
+from nesting_engine.nest_placement import Placement, placed_polygon
 
 _EPS_MM = 1e-6
 

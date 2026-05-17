@@ -18,7 +18,7 @@ from nesting_engine.nest_bin import (
     SheetStockSpec,
     _apply_kerf,
 )
-from nesting_engine.nest_spike import Placement, _place_with_rotation, placed_polygon
+from nesting_engine.nest_placement import Placement, place_with_rotation, placed_polygon
 
 _BINDING_NAME = "python-libnest2d 0.1.3 (pynest2d)"
 _MAX_PIECES = 64
@@ -290,7 +290,7 @@ def _place_piece_on_sheet(
     obstacles: list[Polygon],
 ) -> Placement | None:
     assert bin_width_mm >= _MIN_BIN_MM and bin_height_mm >= _MIN_BIN_MM, "bin must be positive"
-    return _place_with_rotation(
+    return place_with_rotation(
         fit_piece,
         bin_width_mm,
         bin_height_mm,

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from shapely.geometry import Polygon
 
-from nesting_engine.nest_spike import Placement
+from nesting_engine.nest_placement import Placement
 
 
 @dataclass(frozen=True)
