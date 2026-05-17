@@ -4,37 +4,38 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Next action:** Run `start-task` on **P1 — Domain & access** (step 6: models & migrations).
+**Next action:** Run `start-task` on **P2 — DXF inputs** (step 9: multi-DXF upload + layer checklist).
 
 ---
 
 ## Done
 
 - [x] agentic:guild OS bootstrap (skills, governance docs, PR template) — 2026-05-16
-- [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Branch: `exploring-task` — Session: `task_dxf-nesting.md`
-- [x] **P0 — Anchors & toolchain** (items 1–5 below) — 2026-05-16 — Session: `task_dxf-nesting.md`
+- [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Session: `task_dxf-nesting.md`
+- [x] **P0 — Anchors & toolchain** (items 1–5) — 2026-05-16
+- [x] **P1 — Domain & access** (items 6–8) — 2026-05-16
 
 ### P0 — Anchors & toolchain (complete)
 
-1. [x] Lock stack in `docs/core/SYSTEM_ARCHITECTURE.md` (Rails 8, Hotwire, PostgreSQL, Solid Queue, Active Storage; nesting math only in Python; kill list) (REQ-FIT-ARCH-001) — 2026-05-16
-2. [x] Populate `docs/core/SPEC.md` with domain glossary, entities, workflows, and REQ-FIT-* traceability (REQ-FIT-SPEC-001) — 2026-05-16
-3. [x] Scaffold Rails 8 app at repo root: PostgreSQL, Hotwire, Active Storage, Solid Queue, I18n (`en`, `es`); request spec for Fitloop home (REQ-FIT-APP-001) — 2026-05-16
-4. [x] Add `nesting_engine/` Python package + `requirements.txt` + pytest; extract ≥1 closed contour on selected layer (REQ-FIT-EXT-001) — 2026-05-16
-5. [x] Spike nesting library + ADR `docs/core/ADRs/0001-nesting-library.md` (libnest2d target) (REQ-FIT-NEST-001) — 2026-05-16
+1. [x] Lock stack in `docs/core/SYSTEM_ARCHITECTURE.md` (REQ-FIT-ARCH-001) — 2026-05-16
+2. [x] Populate `docs/core/SPEC.md` (REQ-FIT-SPEC-001) — 2026-05-16
+3. [x] Scaffold Rails 8 app + Fitloop home (REQ-FIT-APP-001) — 2026-05-16
+4. [x] `nesting_engine/` extract + pytest (REQ-FIT-EXT-001) — 2026-05-16
+5. [x] Nesting library spike + ADR-0001 (REQ-FIT-NEST-001) — 2026-05-16
+
+### P1 — Domain & access (complete)
+
+6. [x] Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (REQ-FIT-DOM-001) — 2026-05-16
+7. [x] PIN access + `ProjectAccess` (REQ-FIT-AUTH-001) — 2026-05-16
+8. [x] Project CRUD + ordered `SheetStock` UI (REQ-FIT-UI-001) — 2026-05-16
 
 ## In Progress
 
-- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P1 — Domain & access** (steps 6–8)
+- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P2 — DXF inputs & validation** (steps 9–11)
 
 ## Pending (by priority)
 
-### P1 — Domain & access *(start here)*
-
-6. [ ] Models & migrations: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (defaults: kerf 0, margin 5, curve tolerance 0.1, sheet gap 15, time limit 600s) (REQ-FIT-DOM-001) — Depends on: P0 complete
-7. [ ] PIN access: user 6-digit PIN at create (bcrypt); admin 10-digit master PIN from credentials; `ProjectAccess` service (REQ-FIT-AUTH-001) — Depends on: Models
-8. [ ] Project CRUD UI: create project, ordered `SheetStock` (finite + ∞) with Stimulus sortable (REQ-FIT-UI-001) — Depends on: PIN access
-
-### P2 — DXF inputs & validation
+### P2 — DXF inputs & validation *(start here)*
 
 9. [ ] Multi-DXF upload (Active Storage); union layer names; layer checklist UI (i18n) (REQ-FIT-DXF-001) — Depends on: Project CRUD
 10. [ ] Pre-flight: reject zero layers selected / zero extractable pieces (i18n) via `ProjectReadinessValidator` (REQ-FIT-VAL-001) — Depends on: DXF upload
@@ -43,7 +44,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 ### P3 — Nesting pipeline
 
 12. [ ] CLI contract JSON schema in `nesting_engine/README.md`; `NestingJob` + `Nesting::CliRunner` (mock → real) (REQ-FIT-CLI-001) — Depends on: Extractor
-13. [ ] Python nest: multi-bin ordered `SheetStock`, ∞ sheets, kerf/margin; outputs `placements.json` + `report.json` + nested DXF (sheets offset +X, gap 15mm) (REQ-FIT-NEST-002) — Depends on: CLI bridge
+13. [ ] Python nest: multi-bin ordered `SheetStock`, ∞ sheets, kerf/margin; outputs `placements.json` + `report.json` + nested DXF (REQ-FIT-NEST-002) — Depends on: CLI bridge
 14. [ ] Map job status `completed` | `partial` | `failed` from report; oversized pieces → orphans in v1 (REQ-FIT-NEST-003) — Depends on: Real CLI integration
 15. [ ] Job UX: Turbo Stream progress (%, message, ETA overrun text); 600s cap → partial + notice; cancel (REQ-FIT-JOB-001) — Depends on: Status mapping
 
@@ -51,10 +52,10 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 16. [ ] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — Depends on: Nesting pipeline
 17. [ ] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — Depends on: Preview
-18. [ ] **Locale switcher** — EN/ES toggle in app layout; `LocalesController`; `before_action :set_locale`; persist locale via cookie/session (REQ-FIT-UI-005) — Depends on: Rails scaffold
+18. [ ] **Locale switcher** (REQ-FIT-UI-005) — Depends on: Rails scaffold
 19. [ ] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — Depends on: Re-nest
-20. [ ] **Architecture-studio web design** — Fitloop identity (name + `images/logo.png`), visual language aligned with architecture study workflows (REQ-FIT-UI-004) — Depends on: Locale switcher
-21. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (Rails + Python venv on same host); run `sync-docs` + mark roadmap items done (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design
+20. [ ] **Architecture-studio web design** (REQ-FIT-UI-004) — Depends on: Locale switcher
+21. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design
 
 ### Documentation (parallel)
 

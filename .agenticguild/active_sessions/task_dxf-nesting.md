@@ -5,8 +5,8 @@
     <type>Feature (Greenfield)</type>
     <status>spec-locked</status>
     <classification>Feature (Greenfield)</classification>
-    <roadmap_item>P1 — Domain &amp; access</roadmap_item>
-    <scope_note>P0 complete 2026-05-16. Executing P1 steps 6–8 (models, PIN, project CRUD UI).</scope_note>
+    <roadmap_item>P2 — DXF inputs &amp; validation</roadmap_item>
+    <scope_note>P0–P1 complete 2026-05-16. Executing P2 steps 9–11 (DXF upload, pre-flight, extractor).</scope_note>
   </metadata>
 
   <vision>
