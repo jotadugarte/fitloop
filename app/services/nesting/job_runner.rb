@@ -72,7 +72,7 @@ module Nesting
         "status" => "partial",
         "warnings" => Array(report_warnings(work_dir)) + ["time_limit_reached"]
       )
-      terminal_status = StatusMapper.map(exit_status: 1, report: report, work_dir: work_dir)
+      terminal_status = "partial"
       attach_nested_if_present!(work_dir, terminal_status)
 
       @nesting_run.update!(status: terminal_status, report_json: report, finished_at: Time.current)
