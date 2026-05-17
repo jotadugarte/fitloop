@@ -89,7 +89,7 @@
   </open_questions>
 
   <implementation_plan status="locked">
-    <step id="1" status="pending">[REQ-FIT-NEST-001] Binding spike: install candidate (`python-libnest2d` first) on Linux with apt deps; write `nesting_engine/tests/test_libnest2d_binding.py` asserting import, hole polygon placement, and rotation — test fails until binding works; record chosen package + version in session notes and pin in `requirements.txt`.</step>
+    <step id="1" status="complete">[REQ-FIT-NEST-001] Binding spike: install candidate (`python-libnest2d` first) on Linux with apt deps; write `nesting_engine/tests/test_libnest2d_binding.py` asserting import, hole polygon placement, and rotation — test fails until binding works; record chosen package + version in session notes and pin in `requirements.txt`.</step>
     <step id="2" status="pending">[REQ-FIT-NEST-001] Write failing test `test_capabilities_reports_libnest2d_production` — expects `capabilities().spike_only is False` and library name contains `libnest2d`; implement `capabilities()` in new `nest_libnest2d.py` (stub OK until step 3).</step>
     <step id="3" status="pending">[REQ-FIT-NEST-002] Write failing tests in `test_nest_libnest2d.py` for `nest_sheet(pieces, bin_w, bin_h, margin_mm, kerf_mm) → list[Placement]` — single-bin cases mirroring spike: rectangle pack, 90° rotation fit, polygon with hole; then implement adapter Shapely ↔ libnest2d.</step>
     <step id="4" status="pending">[REQ-FIT-NEST-002] Write failing tests for `nest_multi_bin` via libnest2d path: multi-sheet order, infinite quantity, kerf gap invariant, margin-at-edge-only (reuse/adapt existing `test_nest_pipeline.py` cases); switch `nest_bin.py` to call `nest_libnest2d` instead of `nest_spike._place_with_rotation`.</step>
@@ -103,5 +103,6 @@
 
   <working_notes>
     2026-05-17: Spec locked — D1/D2/D4 user-confirmed; implementation_plan written for start-task handoff.
+    2026-05-17: Binding spike — chose `python-libnest2d==0.1.3` (imports `pynest2d`); prebuilt manylinux wheel, no apt build on dev. Adapter: `nesting_engine/nest_libnest2d.py` (`binding_spike_nest`). CW contour + reversed hole rings for libnest2d winding. Q1 resolved for pip path; apt/cmake deferred to CI step 8.
   </working_notes>
 </task_session>

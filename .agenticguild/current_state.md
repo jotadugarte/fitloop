@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
-    <current_step>3.1 — Failing test for plan step 1 (binding spike)</current_step>
+    <current_step>3.2 complete — plan step 1 done; next 3.1 for plan step 2 (capabilities test)</current_step>
   </execution_context>
 </agent_state>
