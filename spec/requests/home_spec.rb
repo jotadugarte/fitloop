@@ -4,6 +4,9 @@
 require "rails_helper"
 
 RSpec.describe "Home", type: :request do
+  # Home#index does not use Active Record; avoid opening a test DB transaction.
+  self.use_transactional_tests = false
+
   describe "GET /" do
     it "[REQ-FIT-APP-001] returns Fitloop home with 200" do
       get root_path

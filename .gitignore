@@ -1,4 +1,9 @@
+# agentic:guild Transient Memory
+.agenticguild/*
+!.agenticguild/.gitkeep
 
+.env
+.env.local
 
 /vendor/bundle/
 
