@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from shapely.geometry import Polygon
 
-from nesting_engine.nest_spike import Placement, run_spike_nest
+from nesting_engine.nest_spike import Placement, _place_with_rotation, placed_polygon, run_spike_nest
 
 
 @dataclass(frozen=True)
@@ -58,7 +58,7 @@ def nest_multi_bin(
     assert sheet_stocks, "at least one sheet stock required"
 
     warnings: list[str] = []
-    remaining_indices = list(range(len(pieces)))
+    remaining_indices = _indices_by_descending_area(pieces)
     sheets: list[NestedSheet] = []
     offset_x = 0.0
     stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
@@ -90,11 +90,18 @@ def nest_multi_bin(
             offset_x += stock.width_mm + sheet_gap_mm
             sheets_used += 1
 
-    orphans = [
-        OrphanPiece(piece_index=index, reason="oversized_for_sheet")
-        for index in remaining_indices
-    ]
+    orphans = _orphans_for_remaining(
+        pieces,
+        remaining_indices,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
     return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
+
+
+def _indices_by_descending_area(pieces: list[Polygon]) -> list[int]:
+    return sorted(range(len(pieces)), key=lambda index: pieces[index].area, reverse=True)
 
 
 def _can_open_sheet(stock: SheetStockSpec, sheets_used: int) -> bool:
@@ -112,19 +119,62 @@ def _place_on_one_sheet(
     margin_mm: float,
     kerf_mm: float,
 ) -> tuple[list[PlacedPiece], list[int]]:
-    # v1: one piece per sheet — spike has no collision packing yet (libnest2d in a later ADR).
-    still_unplaced = list(indices)
+    placed_pieces: list[PlacedPiece] = []
+    occupied: list[Polygon] = []
+    still_unplaced: list[int] = []
 
-    for offset, index in enumerate(indices):
+    for index in indices:
         piece = pieces[index]
         fit_piece = _apply_kerf(piece, kerf_mm)
-        result = run_spike_nest([fit_piece], bin_width, bin_height, margin=margin_mm)
-        if result.all_placed:
-            placed = [PlacedPiece(piece_index=index, polygon=piece, placement=result.placements[0])]
-            still_unplaced = indices[offset + 1 :]
-            return placed, still_unplaced
+        placement = _place_with_rotation(
+            fit_piece,
+            bin_width,
+            bin_height,
+            margin=margin_mm,
+            obstacles=occupied,
+        )
+        if placement is None:
+            still_unplaced.append(index)
+            continue
 
-    return [], still_unplaced
+        placed_pieces.append(PlacedPiece(piece_index=index, polygon=piece, placement=placement))
+        occupied.append(placed_polygon(fit_piece, placement))
+
+    return placed_pieces, still_unplaced
+
+
+def _orphans_for_remaining(
+    pieces: list[Polygon],
+    indices: list[int],
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[OrphanPiece]:
+    orphans: list[OrphanPiece] = []
+    for index in indices:
+        piece = pieces[index]
+        fit_piece = _apply_kerf(piece, kerf_mm)
+        reason = (
+            "oversized_for_sheet"
+            if not _fits_any_stock(fit_piece, stocks, margin_mm=margin_mm)
+            else "no_sheet_capacity"
+        )
+        orphans.append(OrphanPiece(piece_index=index, reason=reason))
+    return orphans
+
+
+def _fits_any_stock(
+    piece: Polygon,
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+) -> bool:
+    for stock in stocks:
+        result = run_spike_nest([piece], stock.width_mm, stock.height_mm, margin=margin_mm)
+        if result.all_placed:
+            return True
+    return False
 
 
 def _apply_kerf(piece: Polygon, kerf_mm: float) -> Polygon:

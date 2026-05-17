@@ -18,6 +18,7 @@ class ProjectsController < ApplicationController
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
+    @nesting_orphans = Nesting::OrphansPresenter.for(@project)
     @nesting_runs = @project.nesting_runs.order(created_at: :desc)
   end
 
@@ -27,6 +28,7 @@ class ProjectsController < ApplicationController
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
+    @nesting_orphans = Nesting::OrphansPresenter.for(@project)
 
     render turbo_stream: nesting_sync_streams, formats: :turbo_stream
   end
@@ -149,12 +151,12 @@ class ProjectsController < ApplicationController
   def nesting_sync_streams
     streams = [
       turbo_stream.replace(
-        dom_id(@project, :nesting_progress),
+        project_dom_id(:nesting_progress),
         partial: "projects/nesting_progress",
         locals: nesting_progress_locals
       ),
       turbo_stream.replace(
-        dom_id(@project, :status_badge),
+        project_dom_id(:status_badge),
         partial: "projects/status_badge",
         locals: { project: @project }
       )
@@ -162,12 +164,12 @@ class ProjectsController < ApplicationController
 
     unless @project.processing?
       streams << turbo_stream.replace(
-        dom_id(@project, :show_actions),
+        project_dom_id(:show_actions),
         partial: "projects/show_actions",
         locals: { project: @project }
       )
       streams << turbo_stream.replace(
-        dom_id(@project, :nesting_preview),
+        project_dom_id(:nesting_preview),
         partial: "projects/nesting_preview",
         locals: { project: @project, preview: @nesting_preview }
       )
@@ -176,9 +178,14 @@ class ProjectsController < ApplicationController
     streams
   end
 
+  def project_dom_id(*suffix)
+    ActionView::RecordIdentifier.dom_id(@project, *suffix)
+  end
+
   def nesting_progress_locals
     {
       project: @project,
+      orphans: @nesting_orphans,
       eta_overrun: @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at,
       time_limit_notice: @time_limit_notice
     }

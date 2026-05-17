@@ -42,6 +42,8 @@ example_id                                                  | status | run_time 
 ./spec/requests/project_layers_spec.rb[1:1:1]               | passed | 1.08 seconds    |
 ./spec/requests/project_layers_spec.rb[1:2:1]               | passed | 1.64 seconds    |
 ./spec/requests/project_layers_spec.rb[1:3:1]               | passed | 1.22 seconds    |
+./spec/requests/project_nesting_sync_spec.rb[1:1]           | passed | 0.47357 seconds |
+./spec/requests/project_nesting_sync_spec.rb[1:2]           | passed | 1.04 seconds    |
 ./spec/requests/project_preview_spec.rb[1:1:1]              | passed | 0.425 seconds   |
 ./spec/requests/project_readiness_spec.rb[1:1:1]            | passed | 1.03 seconds    |
 ./spec/requests/projects_crud_spec.rb[1:1:1]                | failed | 0.10292 seconds |

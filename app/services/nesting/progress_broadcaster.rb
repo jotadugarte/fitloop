@@ -30,6 +30,7 @@ module Nesting
         partial: "projects/nesting_progress",
         locals: {
           project: @project,
+          orphans: OrphansPresenter.for(@project),
           eta_overrun: @eta_overrun,
           time_limit_notice: @time_limit_notice
         }

@@ -13,7 +13,24 @@ from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample_piece.dxf"
 
 
-def test_unlimited_stock_opens_multiple_sheets() -> None:
+def test_multiple_pieces_pack_on_one_sheet() -> None:
+    pieces = [box(0, 0, 10, 10) for _ in range(3)]
+    stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=None, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=10.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert len(result.sheets[0].pieces) == 3
+    assert result.orphans == []
+
+
+def test_unlimited_stock_opens_extra_sheets_when_full() -> None:
     pieces = [box(0, 0, 15, 15) for _ in range(3)]
     stocks = [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)]
 

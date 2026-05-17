@@ -194,6 +194,11 @@ es:
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a anidar"
     renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
+    orphans_heading: "Piezas no colocadas"
+    orphan_reason:
+      oversized_for_sheet: "Pieza %{piece_number}: demasiado grande para cualquier lámina del inventario"
+      no_sheet_capacity: "Pieza %{piece_number}: cabe en una lámina pero no quedó espacio"
+      unknown: "Pieza %{piece_number}: no se pudo colocar"
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"

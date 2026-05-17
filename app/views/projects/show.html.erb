@@ -20,7 +20,7 @@
   <%= render "show_actions", project: @project %>
 
   <section class="project-show__progress">
-    <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
+    <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice, orphans: @nesting_orphans %>
   </section>
 
   <section class="project-show__history">

@@ -8,13 +8,15 @@ import ezdxf
 from ezdxf.entities import Circle, Insert, LWPolyline, Line, Polyline
 from ezdxf.math import Matrix44, Vec3
 from ezdxf.path import make_path
-from shapely.geometry import LineString, Polygon
-from shapely.ops import polygonize
+from shapely.geometry import LineString, MultiLineString, Polygon
+from shapely.ops import polygonize, snap, unary_union
 from shapely.validation import make_valid
 
 _MAX_ENTITIES = 100_000
 _DEFAULT_MAX_BLOCK_DEPTH = 8
 _MIN_COMPACTNESS = 0.08
+_MIN_CIRCLE_COMPACTNESS = 0.55
+_CircleSpec = tuple[float, float, float, Polygon]  # center_x, center_y, radius, polygon
 
 
 def extract_closed_contours(
@@ -36,6 +38,7 @@ def extract_closed_contours(
     report: list[str] = warnings if warnings is not None else []
     doc = ezdxf.readfile(path)
     polygons: list[Polygon] = []
+    circle_specs: list[_CircleSpec] = []
     line_segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
     scanned = 0
 
@@ -47,7 +50,7 @@ def extract_closed_contours(
             continue
 
         if isinstance(entity, Insert):
-            block_polys, block_segments = _geometry_from_block(
+            block_polys, block_circles, block_segments = _geometry_from_block(
                 doc,
                 entity.dxf.name,
                 entity.matrix44(),
@@ -57,20 +60,24 @@ def extract_closed_contours(
                 warnings=report,
             )
             polygons.extend(block_polys)
+            circle_specs.extend(block_circles)
             line_segments.extend(block_segments)
             continue
 
-        if isinstance(entity, Line):
-            line_segments.append(_line_segment(entity))
-            continue
+        _collect_entity_geometry(
+            entity,
+            polygons=polygons,
+            circle_specs=circle_specs,
+            line_segments=line_segments,
+            curve_tolerance_mm=curve_tolerance_mm,
+        )
 
-        polygon = _closed_contour_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
-        if polygon is not None:
-            polygons.append(polygon)
-
-    polygons.extend(_polygons_from_line_segments(line_segments))
+    polygons.extend(_polygons_from_line_segments(line_segments, curve_tolerance_mm=curve_tolerance_mm))
     polygons = _filter_meaningful_polygons(polygons, curve_tolerance_mm=curve_tolerance_mm)
-    return _associate_nested_contours(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    inferred_specs, polygons = _circle_specs_from_polygons(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    polygons = _merge_circle_specs(circle_specs + inferred_specs, curve_tolerance_mm=curve_tolerance_mm) + polygons
+    polygons = _associate_nested_contours(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    return _drop_redundant_hole_fillers(polygons, curve_tolerance_mm=curve_tolerance_mm)
 
 
 def _geometry_from_block(
@@ -82,24 +89,25 @@ def _geometry_from_block(
     curve_tolerance_mm: float,
     max_block_depth: int,
     warnings: list[str],
-) -> tuple[list[Polygon], list[tuple[tuple[float, float], tuple[float, float]]]]:
+) -> tuple[list[Polygon], list[_CircleSpec], list[tuple[tuple[float, float], tuple[float, float]]]]:
     if depth > max_block_depth:
         warnings.append(f"Block nesting depth exceeded limit ({max_block_depth})")
-        return [], []
+        return [], [], []
 
     block = doc.blocks.get(block_name)
     if block is None:
         warnings.append(f"Missing block definition: {block_name}")
-        return [], []
+        return [], [], []
 
     polygons: list[Polygon] = []
+    circle_specs: list[_CircleSpec] = []
     line_segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
 
     for entity in block:
         if isinstance(entity, Insert):
             nested = entity.matrix44()
             combined = transform @ nested
-            nested_polys, nested_segments = _geometry_from_block(
+            nested_polys, nested_circles, nested_segments = _geometry_from_block(
                 doc,
                 entity.dxf.name,
                 combined,
@@ -109,18 +117,225 @@ def _geometry_from_block(
                 warnings=warnings,
             )
             polygons.extend(nested_polys)
+            circle_specs.extend(nested_circles)
             line_segments.extend(nested_segments)
             continue
 
-        if isinstance(entity, Line):
-            line_segments.append(_transform_segment(_line_segment(entity), transform))
+        block_polygons: list[Polygon] = []
+        block_circles: list[_CircleSpec] = []
+        block_segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
+        _collect_entity_geometry(
+            entity,
+            polygons=block_polygons,
+            circle_specs=block_circles,
+            line_segments=block_segments,
+            curve_tolerance_mm=curve_tolerance_mm,
+        )
+        polygons.extend(_transform_polygon(polygon, transform) for polygon in block_polygons)
+        circle_specs.extend(_transform_circle_spec(spec, transform) for spec in block_circles)
+        line_segments.extend(_transform_segment(segment, transform) for segment in block_segments)
+
+    return polygons, circle_specs, line_segments
+
+
+def _collect_entity_geometry(
+    entity: object,
+    *,
+    polygons: list[Polygon],
+    circle_specs: list[_CircleSpec],
+    line_segments: list[tuple[tuple[float, float], tuple[float, float]]],
+    curve_tolerance_mm: float,
+) -> None:
+    if isinstance(entity, Line):
+        line_segments.append(_line_segment(entity))
+        return
+
+    if _is_full_circle_entity(entity):
+        spec = _circle_spec(entity, curve_tolerance_mm=curve_tolerance_mm)
+        if spec is not None:
+            circle_specs.append(spec)
+        return
+
+    polygon = _closed_contour_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+    if polygon is not None:
+        polygons.append(polygon)
+        return
+
+    line_segments.extend(_open_curve_segments(entity, curve_tolerance_mm=curve_tolerance_mm))
+
+
+def _is_full_circle_entity(entity: object) -> bool:
+    return hasattr(entity, "dxftype") and entity.dxftype() == "CIRCLE"
+
+
+def _circle_spec(entity: Circle, *, curve_tolerance_mm: float) -> _CircleSpec | None:
+    polygon = _circle_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+    if polygon is None:
+        return None
+
+    center = entity.dxf.center
+    return (float(center.x), float(center.y), float(entity.dxf.radius), polygon)
+
+
+def _transform_circle_spec(spec: _CircleSpec, matrix: Matrix44) -> _CircleSpec:
+    center_x, center_y, radius, polygon = spec
+    transformed = _transform_polygon(polygon, matrix)
+    point = matrix.transform(Vec3(center_x, center_y, 0))
+    return (float(point.x), float(point.y), radius, transformed)
+
+
+def _circle_specs_from_polygons(
+    polygons: list[Polygon],
+    *,
+    curve_tolerance_mm: float,
+) -> tuple[list[_CircleSpec], list[Polygon]]:
+    specs: list[_CircleSpec] = []
+    remaining: list[Polygon] = []
+
+    for polygon in polygons:
+        spec = _circle_spec_from_polygon(polygon, curve_tolerance_mm=curve_tolerance_mm)
+        if spec is None:
+            remaining.append(polygon)
+        else:
+            specs.append(spec)
+
+    return specs, remaining
+
+
+def _circle_spec_from_polygon(
+    polygon: Polygon,
+    *,
+    curve_tolerance_mm: float,
+) -> _CircleSpec | None:
+    if len(polygon.interiors) > 0:
+        return None
+    if _compactness(polygon) < _MIN_CIRCLE_COMPACTNESS:
+        return None
+
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    centroid = polygon.centroid
+    radius = math.sqrt(polygon.area / math.pi)
+    if radius <= tolerance:
+        return None
+
+    return (float(centroid.x), float(centroid.y), radius, polygon)
+
+
+def _drop_redundant_hole_fillers(
+    polygons: list[Polygon],
+    *,
+    curve_tolerance_mm: float,
+) -> list[Polygon]:
+    """Remove solid disks that duplicate an existing hole (common with arc-only circle outlines)."""
+    if len(polygons) <= 1:
+        return list(polygons)
+
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    drop: set[int] = set()
+
+    for outer_index, outer in enumerate(polygons):
+        if not outer.interiors:
+            continue
+        for inner_index, inner in enumerate(polygons):
+            if inner_index == outer_index or inner_index in drop:
+                continue
+            if _polygon_fills_existing_hole(inner, outer, tolerance=tolerance):
+                drop.add(inner_index)
+
+    return [polygon for index, polygon in enumerate(polygons) if index not in drop]
+
+
+def _polygon_fills_existing_hole(inner: Polygon, outer: Polygon, *, tolerance: float) -> bool:
+    for hole_coords in outer.interiors:
+        hole = Polygon(hole_coords)
+        padded = hole.buffer(tolerance)
+        if padded.covers(inner):
+            return True
+        if padded.covers(inner.representative_point()):
+            return True
+    return False
+
+
+def _merge_circle_specs(
+    circle_specs: list[_CircleSpec],
+    *,
+    curve_tolerance_mm: float,
+) -> list[Polygon]:
+    if not circle_specs:
+        return []
+
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
+    ordered = sorted(circle_specs, key=lambda spec: spec[2], reverse=True)
+    used: set[int] = set()
+    pieces: list[Polygon] = []
+
+    for outer_index, (outer_cx, outer_cy, outer_r, outer_poly) in enumerate(ordered):
+        if outer_index in used:
             continue
 
-        polygon = _closed_contour_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
-        if polygon is not None:
-            polygons.append(_transform_polygon(polygon, transform))
+        hole_rings: list[list[tuple[float, float]]] = []
+        for inner_index, (inner_cx, inner_cy, inner_r, inner_poly) in enumerate(ordered):
+            if inner_index == outer_index or inner_index in used:
+                continue
+            if inner_r >= outer_r:
+                continue
+            center_gap = math.hypot(outer_cx - inner_cx, outer_cy - inner_cy)
+            if center_gap > tolerance:
+                continue
+            if not _circle_fits_inside(outer_poly, inner_poly, tolerance=tolerance):
+                continue
 
-    return polygons, line_segments
+            hole_rings.append(_hole_ring_from_polygon(inner_poly))
+            used.add(inner_index)
+
+        if hole_rings:
+            piece = _polygon_from_points(list(outer_poly.exterior.coords), holes=hole_rings)
+            if piece is not None:
+                pieces.append(piece)
+                used.add(outer_index)
+                continue
+
+        if outer_index not in used:
+            pieces.append(outer_poly)
+            used.add(outer_index)
+
+    return pieces
+
+
+def _circle_fits_inside(outer: Polygon, inner: Polygon, *, tolerance: float) -> bool:
+    if outer.buffer(tolerance).covers(inner):
+        return True
+
+    return outer.buffer(tolerance).covers(inner.representative_point())
+
+
+def _open_curve_segments(
+    entity: object,
+    *,
+    curve_tolerance_mm: float,
+) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    if not hasattr(entity, "dxftype"):
+        return []
+
+    if entity.dxftype() not in {"ARC", "ELLIPSE", "SPLINE"}:
+        return []
+
+    path = make_path(entity)
+    points = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance_mm)]
+    if len(points) < 2:
+        return []
+
+    gap = _point_distance(points[0], points[-1])
+    if gap <= curve_tolerance_mm:
+        return []
+
+    segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
+    for index in range(len(points) - 1):
+        start = points[index]
+        end = points[index + 1]
+        if start != end:
+            segments.append((start, end))
+    return segments
 
 
 def _line_segment(entity: Line) -> tuple[tuple[float, float], tuple[float, float]]:
@@ -146,13 +361,22 @@ def _transform_segment(
 
 def _polygons_from_line_segments(
     segments: list[tuple[tuple[float, float], tuple[float, float]]],
+    *,
+    curve_tolerance_mm: float,
 ) -> list[Polygon]:
     if not segments:
         return []
 
     lines = [LineString(segment) for segment in segments if segment[0] != segment[1]]
+    if not lines:
+        return []
+
+    linework = MultiLineString(lines)
+    snap_tolerance = _linework_snap_tolerance(lines, curve_tolerance_mm=curve_tolerance_mm)
+    noded = snap(linework, linework, snap_tolerance)
+    merged = unary_union(noded)
     polygons: list[Polygon] = []
-    for geometry in polygonize(lines):
+    for geometry in polygonize(merged):
         if not isinstance(geometry, Polygon):
             continue
         if geometry.is_empty or geometry.area <= 0:
@@ -163,6 +387,21 @@ def _polygons_from_line_segments(
             continue
         polygons.append(geometry)
     return polygons
+
+
+def _linework_snap_tolerance(lines: list[LineString], *, curve_tolerance_mm: float) -> float:
+    xs: list[float] = []
+    ys: list[float] = []
+    for line in lines:
+        for x, y in line.coords:
+            xs.append(x)
+            ys.append(y)
+
+    if not xs:
+        return max(curve_tolerance_mm * 4.0, 1.0)
+
+    diagonal = math.hypot(max(xs) - min(xs), max(ys) - min(ys))
+    return max(curve_tolerance_mm * 4.0, diagonal * 0.02, 1.0)
 
 
 def _filter_meaningful_polygons(
@@ -282,12 +521,15 @@ def _is_polygon_contained(
     if not outer.envelope.covers(inner.envelope):
         return False
 
-    tolerance = max(curve_tolerance_mm * 2.0, 0.5)
+    tolerance = max(curve_tolerance_mm * 4.0, 1.0)
     padded = outer.buffer(tolerance)
     if padded.covers(inner):
         return True
 
-    return _are_coaxial_circles(inner, outer, tolerance)
+    if _are_coaxial_circles(inner, outer, tolerance):
+        return True
+
+    return inner.within(padded)
 
 
 def _are_coaxial_circles(inner: Polygon, outer: Polygon, tolerance: float) -> bool:
@@ -299,12 +541,12 @@ def _are_coaxial_circles(inner: Polygon, outer: Polygon, tolerance: float) -> bo
         return False
 
     center_gap = inner.centroid.distance(outer.centroid)
-    return center_gap + inner_radius <= outer_radius + tolerance
+    return center_gap + inner_radius <= outer_radius + tolerance * 2.0
 
 
 def _equivalent_circle_radius(polygon: Polygon) -> float | None:
     compactness = _compactness(polygon)
-    if compactness < 0.7:
+    if compactness < _MIN_CIRCLE_COMPACTNESS:
         return None
     return math.sqrt(polygon.area / math.pi)
 
@@ -326,12 +568,15 @@ def _signed_area(coords: list[tuple[float, float]]) -> float:
 
 
 def _closed_contour_polygon(entity: object, *, curve_tolerance_mm: float) -> Polygon | None:
+    if _is_full_circle_entity(entity):
+        return None
     if isinstance(entity, LWPolyline):
-        return _lwpolyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+        polygon = _lwpolyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+        if polygon is not None:
+            return polygon
+        return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
     if isinstance(entity, Polyline) and entity.is_closed:
         return _polyline_polygon(entity)
-    if isinstance(entity, Circle):
-        return _circle_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
     if hasattr(entity, "dxftype") and entity.dxftype() in {"ARC", "ELLIPSE", "SPLINE"}:
         return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
     return None

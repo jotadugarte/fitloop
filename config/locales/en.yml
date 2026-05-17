@@ -179,6 +179,11 @@ en:
     time_limit_notice: "Time limit reached. Showing the best result so far."
     renest: "Re-nest"
     renest_started: "Re-nesting started. Previous runs are kept in history."
+    orphans_heading: "Pieces not placed"
+    orphan_reason:
+      oversized_for_sheet: "Piece %{piece_number}: too large for any sheet in inventory"
+      no_sheet_capacity: "Piece %{piece_number}: fits a sheet size but no sheet was available"
+      unknown: "Piece %{piece_number}: could not be placed"
 
   project_readiness:
     heading: "Cannot start nesting yet"

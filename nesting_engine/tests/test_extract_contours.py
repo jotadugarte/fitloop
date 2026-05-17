@@ -2,6 +2,7 @@
 # Fixture must be ezdxf-valid; regenerate with: python scripts/generate_sample_dxf.py
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import ezdxf
@@ -66,6 +67,23 @@ def test_associate_nested_contours_builds_rect_with_hole() -> None:
     assert pieces[0].area == pytest.approx(outer.area - inner.area)
 
 
+def test_arc_entity_is_not_treated_as_full_circle(tmp_path: Path) -> None:
+    path = tmp_path / "single_arc.dxf"
+    doc = ezdxf.new("R2010")
+    doc.modelspace().add_arc(
+        center=(0, 0),
+        radius=40,
+        start_angle=0,
+        end_angle=180,
+        dxfattribs={"layer": LAYER},
+    )
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
+
+    assert contours == []
+
+
 def test_open_arc_is_not_extracted_as_phantom_piece(tmp_path: Path) -> None:
     path = tmp_path / "open_arc.dxf"
     doc = ezdxf.new("R2010")
@@ -97,6 +115,52 @@ def test_rectangle_from_four_lines_is_extracted(tmp_path: Path) -> None:
 
     assert len(contours) == 1
     assert contours[0].area == pytest.approx(200 * 80, rel=0.01)
+
+
+def test_slot_from_arcs_and_lines_is_extracted(tmp_path: Path) -> None:
+    path = tmp_path / "arc_slot.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_arc(center=(70, 0), radius=25, start_angle=90, end_angle=270, dxfattribs={"layer": LAYER})
+    msp.add_arc(center=(170, 0), radius=25, start_angle=270, end_angle=90, dxfattribs={"layer": LAYER})
+    msp.add_line((70, -25), (170, -25), dxfattribs={"layer": LAYER})
+    msp.add_line((170, 25), (70, 25), dxfattribs={"layer": LAYER})
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
+
+    assert len(contours) == 1
+    expected_area = 100 * 50 + math.pi * 25**2
+    assert contours[0].area == pytest.approx(expected_area, rel=0.05)
+
+
+def test_concentric_arc_outlines_merge_without_duplicate_inner_disk(tmp_path: Path) -> None:
+    path = tmp_path / "arc_washer.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    for radius in (50, 20):
+        for start, end in ((0, 90), (90, 180), (180, 270), (270, 360)):
+            msp.add_arc(center=(0, 0), radius=radius, start_angle=start, end_angle=end, dxfattribs={"layer": LAYER})
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
+
+    assert len(contours) == 1
+    assert len(contours[0].interiors) == 1
+
+
+def test_concentric_circles_with_offset_centers_merge(tmp_path: Path) -> None:
+    path = tmp_path / "offset_washer.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_circle(center=(0, 0), radius=50, dxfattribs={"layer": LAYER})
+    msp.add_circle(center=(0.3, 0.2), radius=20, dxfattribs={"layer": LAYER})
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
+
+    assert len(contours) == 1
+    assert len(contours[0].interiors) == 1
 
 
 def test_nearly_closed_lwpolyline_is_extracted(tmp_path: Path) -> None:
