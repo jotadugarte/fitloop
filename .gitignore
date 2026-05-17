@@ -1,3 +1,31 @@
 # agentic:guild Transient Memory
 .agenticguild/*
 !.agenticguild/.gitkeep
+
+.env
+.env.local
+
+/vendor/bundle/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
+/public/assets
+/spec/examples.txt

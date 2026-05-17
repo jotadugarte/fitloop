@@ -1,0 +1,18 @@
+<% if nesting_runs.any? %>
+  <section class="nesting-run-history" data-testid="nesting-run-history">
+    <h2><%= t("projects.history.title") %></h2>
+    <ol class="nesting-run-history__list">
+      <% nesting_runs.each do |run| %>
+        <li data-testid="nesting-run-row">
+          <span class="nesting-run-history__status"><%= run.status %></span>
+          <time datetime="<%= run.created_at.iso8601 %>"><%= l(run.created_at, format: :short) %></time>
+          <% if run.finished_at.present? %>
+            <span class="nesting-run-history__finished">
+              <%= t("projects.history.finished", time: l(run.finished_at, format: :short)) %>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  </section>
+<% end %>
