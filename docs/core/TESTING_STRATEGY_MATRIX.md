@@ -60,7 +60,7 @@ python -m pytest nesting_engine/tests -q
 | REQ-FIT-EXT-001 | `nesting_engine/tests/test_extract_contours.py` |
 | REQ-FIT-EXT-002 | `nesting_engine/tests/test_extract_insert_blocks.py` |
 | REQ-FIT-CLI-001 | `spec/services/nesting/cli_runner_spec.rb`, `spec/jobs/nesting_job_spec.rb` |
-| REQ-FIT-NEST-001 | `nesting_engine/tests/test_nest_spike.py` |
+| REQ-FIT-NEST-001 | `nesting_engine/tests/test_libnest2d_binding.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_spike.py` |
 | REQ-FIT-NEST-002 | `nesting_engine/tests/test_nest_pipeline.py` |
 | REQ-FIT-NEST-003 | `spec/services/nesting/status_mapper_spec.rb`, `spec/jobs/nesting_job_integration_spec.rb` |
 | REQ-FIT-JOB-001 | `spec/services/nesting/job_runner_spec.rb`, `spec/system/nesting_progress_spec.rb` |

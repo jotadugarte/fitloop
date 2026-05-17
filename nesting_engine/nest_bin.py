@@ -1,57 +1,29 @@
 # [REQ-FIT-NEST-002] Multi-bin nesting; placement via nest_libnest2d.
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from shapely.geometry import Polygon
 
-from nesting_engine.nest_placement import Placement
+from nesting_engine.nest_types import (
+    MultiBinResult,
+    NestedSheet,
+    OrphanPiece,
+    PlacedPiece,
+    SheetStockSpec,
+    apply_kerf,
+)
 
+_apply_kerf = apply_kerf
 
-@dataclass(frozen=True)
-class SheetStockSpec:
-    width_mm: float
-    height_mm: float
-    quantity: int | None
-    sort_order: int
-
-
-@dataclass(frozen=True)
-class PlacedPiece:
-    piece_index: int
-    polygon: Polygon
-    placement: Placement
-
-
-@dataclass(frozen=True)
-class NestedSheet:
-    stock_sort_order: int
-    sheet_index: int
-    width_mm: float
-    height_mm: float
-    offset_x_mm: float
-    pieces: list[PlacedPiece]
-
-
-@dataclass(frozen=True)
-class OrphanPiece:
-    piece_index: int
-    reason: str
-
-
-@dataclass(frozen=True)
-class MultiBinResult:
-    sheets: list[NestedSheet]
-    orphans: list[OrphanPiece]
-    warnings: list[str]
-
-
-def _apply_kerf(piece: Polygon, kerf_mm: float) -> Polygon:
-    if kerf_mm <= 0:
-        return piece
-    buffered = piece.buffer(kerf_mm / 2.0)
-    assert not buffered.is_empty, "kerf buffer must not empty the piece"
-    return buffered
+__all__ = [
+    "MultiBinResult",
+    "NestedSheet",
+    "OrphanPiece",
+    "PlacedPiece",
+    "SheetStockSpec",
+    "_apply_kerf",
+    "apply_kerf",
+    "nest_multi_bin",
+]
 
 
 def nest_multi_bin(

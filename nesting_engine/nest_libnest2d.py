@@ -10,27 +10,28 @@ from shapely.affinity import rotate, translate
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 
-from nesting_engine.nest_bin import (
-    MultiBinResult,
-    NestedSheet,
-    OrphanPiece,
-    PlacedPiece,
-    SheetStockSpec,
-    _apply_kerf,
-)
 from nesting_engine.nest_placement import (
     ROTATION_STEP_DEG,
     Placement,
     place_with_rotation,
     placed_polygon,
 )
+from nesting_engine.nest_types import (
+    MultiBinResult,
+    NestedSheet,
+    OrphanPiece,
+    PlacedPiece,
+    SheetStockSpec,
+    apply_kerf,
+)
 
 _BINDING_NAME = "python-libnest2d 0.1.3 (pynest2d)"
 _MAX_PIECES = 64
 _MIN_BIN_MM = 1.0
+_MIN_COORD_QUANTUM_MM = 1.0
 _ROTATION_STEPS_DEG = tuple(float(step) for step in range(0, 360, ROTATION_STEP_DEG))
+_MAX_PLACEMENT_ANGLE_STEPS = 360 // ROTATION_STEP_DEG
 _PLACEMENT_AREA_TOLERANCE_MM2 = 150.0
-_MAX_ANGLE_SEARCH_DEG = 360
 _DEFAULT_TIME_LIMIT_SEC = 600.0
 
 
@@ -76,7 +77,7 @@ def nest_sheet(
 
     usable_w = max(int(round(bin_width_mm - 2.0 * margin_mm)), 1)
     usable_h = max(int(round(bin_height_mm - 2.0 * margin_mm)), 1)
-    fit_pieces = [_apply_kerf(piece, kerf_mm) for piece in pieces]
+    fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
     items = [_shapely_to_item(piece) for piece in fit_pieces]
 
     bins_used = _run_sheet_nest(items, usable_w, usable_h)
@@ -108,12 +109,52 @@ def nest_multi_bin(
     if time_limit_sec is not None:
         assert time_limit_sec > 0.0, "time_limit_sec must be positive when set"
 
-    warnings: list[str] = []
     deadline = _time_limit_deadline(time_limit_sec)
     remaining_indices = _indices_by_descending_area(pieces)
+    stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
+
+    sheets, remaining_indices, warnings = _nest_across_stocks(
+        pieces,
+        remaining_indices,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+        time_limit_sec=time_limit_sec,
+        deadline=deadline,
+    )
+    sheets = _consolidate_sheets(
+        sheets,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+    )
+    orphans = _orphans_for_remaining(
+        pieces,
+        remaining_indices,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert len(sheets) >= 0
+    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
+
+
+def _nest_across_stocks(
+    pieces: list[Polygon],
+    remaining_indices: list[int],
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    sheet_gap_mm: float,
+    time_limit_sec: float | None,
+    deadline: float | None,
+) -> tuple[list[NestedSheet], list[int], list[str]]:
+    warnings: list[str] = []
     sheets: list[NestedSheet] = []
     offset_x = 0.0
-    stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
     timed_out = False
 
     for stock in stocks:
@@ -156,22 +197,7 @@ def nest_multi_bin(
             if not placed:
                 break
 
-    sheets = _consolidate_sheets(
-        sheets,
-        pieces,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-        sheet_gap_mm=sheet_gap_mm,
-    )
-    orphans = _orphans_for_remaining(
-        pieces,
-        remaining_indices,
-        stocks,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-    )
-    assert len(sheets) >= 0
-    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
+    return sheets, remaining_indices, warnings
 
 
 def capabilities() -> NestingCapabilities:
@@ -249,8 +275,8 @@ def _placement_from_world(piece: Polygon, world: Polygon) -> Placement:
     wminx, wminy, _, _ = world.bounds
     best_placement: Placement | None = None
     best_diff = float("inf")
-    for angle_index in range(_MAX_ANGLE_SEARCH_DEG):
-        angle = float(angle_index)
+    for step in range(_MAX_PLACEMENT_ANGLE_STEPS):
+        angle = float(step * ROTATION_STEP_DEG)
         rotated = rotate(piece, angle, origin="centroid")
         rminx, rminy, _, _ = rotated.bounds
         offset_x = wminx - rminx
@@ -278,6 +304,7 @@ def _shapely_to_item(polygon: Polygon) -> Item:
 
 
 def _ring_to_points(coords) -> list[Point]:
+    """Quantize vertices to integer mm for libnest2d; see _MIN_COORD_QUANTUM_MM."""
     ring = list(coords)
     if len(ring) > 1 and ring[0] == ring[-1]:
         ring = ring[:-1]
@@ -346,7 +373,7 @@ def _place_on_one_sheet(
                 next_pending.extend(pending[pending.index(index) :])
                 return placed_pieces, next_pending
 
-            fit_piece = _apply_kerf(pieces[index], kerf_mm)
+            fit_piece = apply_kerf(pieces[index], kerf_mm)
             placement = _place_piece_on_sheet(
                 fit_piece,
                 bin_width,
@@ -453,7 +480,7 @@ def _move_pieces_into_sheet(
     remaining: list[PlacedPiece] = []
 
     for placed in donor_pieces:
-        fit_piece = _apply_kerf(pieces[placed.piece_index], kerf_mm)
+        fit_piece = apply_kerf(pieces[placed.piece_index], kerf_mm)
         placement = _place_piece_on_sheet(
             fit_piece,
             bin_width,
@@ -482,7 +509,7 @@ def _occupied_polygons(
 ) -> list[Polygon]:
     occupied: list[Polygon] = []
     for placed in placed_pieces:
-        fit_piece = _apply_kerf(pieces[placed.piece_index], kerf_mm)
+        fit_piece = apply_kerf(pieces[placed.piece_index], kerf_mm)
         occupied.append(placed_polygon(fit_piece, placed.placement))
     return occupied
 
@@ -515,7 +542,7 @@ def _orphans_for_remaining(
 ) -> list[OrphanPiece]:
     orphans: list[OrphanPiece] = []
     for index in indices:
-        fit_piece = _apply_kerf(pieces[index], kerf_mm)
+        fit_piece = apply_kerf(pieces[index], kerf_mm)
         reason = (
             "oversized_for_sheet"
             if not _fits_any_stock(fit_piece, stocks, margin_mm=margin_mm)

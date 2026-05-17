@@ -34,7 +34,7 @@ Browser (project#show)
 
 **No nesting math in Ruby:** geometry and placement live only in `nesting_engine/`.
 
-**Margin vs kerf in the engine:** `config.json` passes `margin_mm` and `kerf_mm` from the project snapshot. `nest_bin.nest_multi_bin` buffers each piece for **kerf** (piece-to-piece gap), then calls `nest_spike` placement with **margin** enforced only against the sheet edges. See `REQ-FIT-NEST-002` in `SPEC.md`.
+**Margin vs kerf in the engine:** `config.json` passes `margin_mm` and `kerf_mm` from the project snapshot. `nest_bin.nest_multi_bin` delegates to `nest_libnest2d`, which buffers each piece for **kerf** via `nest_types.apply_kerf`, then places with **margin** enforced only against sheet edges in `nest_placement`. Single-bin batch paths use libnest2d (`nest_sheet`). See `REQ-FIT-NEST-002` in `SPEC.md`.
 
 ---
 

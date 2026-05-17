@@ -7,7 +7,7 @@ from pathlib import Path
 import ezdxf
 from shapely.affinity import rotate, translate
 
-from nesting_engine.nest_bin import NestedSheet, PlacedPiece
+from nesting_engine.nest_types import NestedSheet, PlacedPiece
 
 
 def write_piece_dxf(
@@ -70,7 +70,7 @@ def _add_sheet_outline(msp, sheet: NestedSheet) -> None:
 
 def _add_piece(msp, placed: PlacedPiece, *, sheet_offset_x: float) -> None:
     rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
-    # placement.x/y are translation offsets from nest_spike (margin - bounds.min), not absolute coords.
+    # placement.x/y are translation offsets from nest_placement (margin - bounds.min), not absolute coords.
     world = translate(
         rotated,
         xoff=placed.placement.x + sheet_offset_x,

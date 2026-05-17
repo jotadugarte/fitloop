@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-17 — libnest2d integration complete; roadmap item closed.
+**Last audit:** 2026-05-17 — libnest2d integration complete; placement scoring prioritizes largest continuous free area (`nest_placement.py`).
 
-**Next action:** Backlog — v1.1 auto-split (`REQ-FIT-SPLIT-001`) or optional FastAPI wrapper.
+**Next action:** Backlog — full-sheet libnest2d with kerf/obstacles, v1.1 auto-split (`REQ-FIT-SPLIT-001`), or optional FastAPI wrapper.
 
 ---
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery; full libnest2d obstacle placement (margin/kerf still uses `nest_placement` sweep).
+**Not implemented:** full-sheet libnest2d per bin with kerf + obstacles (multi-bin still places piece-by-piece via Shapely); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -99,6 +99,16 @@ _(complete)_
 ---
 
 ## Backlog
+
+### Nesting engine (v1.1+)
+
+- [ ] **Full-sheet libnest2d placement (kerf + obstacles)** (REQ-FIT-NEST-002, ADR-0001) — Use libnest2d (`nest_sheet` / NFP–BLP) to pack **all pieces on one bin** with production `margin_mm` and `kerf_mm`, replacing the per-piece Shapely loop in `nest_multi_bin` for the fill phase. **Goal:** fewer sheets and tighter irregular layouts (e.g. jobs that today use four sheets with a nearly empty last sheet). Exhaustive enumeration of every piece order, angle, position, and sheet assignment is **not viable** (NP-hard; combinatorial explosion); stay within `nesting_time_limit_sec` via heuristics and best-so-far. **To move from four sheets to three in practice, combine:**
+  - **Reorder / move pieces between sheets** after an initial layout (local search under time cap).
+  - **Repack** nearly full sheets (merge donors into targets; extend today’s `_consolidate_sheets`).
+  - **Full-sheet nest** per bin with libnest2d once kerf and obstacles are modeled (this item’s core deliverable).
+  **Done prerequisite:** `python-libnest2d` integration + free-area-first scoring in `nest_placement.py` (2026-05-17). **Still open:** obstacle-aware libnest2d path, regression fixtures (sheet count / largest free region), update `DATA_FLOW_MAP.md` when wired. — Depends on: libnest2d integration (item 79, complete)
+
+### Product & platform
 
 - [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)

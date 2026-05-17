@@ -55,6 +55,16 @@ def test_nest_sheet_uses_non_zero_rotation_when_required() -> None:
     _assert_all_fit_bin([piece], placements, bin_width_mm=50.0, bin_height_mm=100.0, margin_mm=0.0, kerf_mm=0.0)
 
 
+def test_nest_sheet_places_two_mm_square_after_integer_quantization() -> None:
+    # libnest2d Item uses integer mm vertices; 2 mm features remain stable above 1 mm quantum.
+    piece = box(0, 0, 2, 2)
+
+    placements = nest_sheet([piece], bin_width_mm=50.0, bin_height_mm=50.0, margin_mm=0.0, kerf_mm=0.0)
+
+    assert len(placements) == 1
+    _assert_all_fit_bin([piece], placements, bin_width_mm=50.0, bin_height_mm=50.0, margin_mm=0.0, kerf_mm=0.0)
+
+
 def _assert_all_fit_bin(
     pieces: list[Polygon],
     placements: list[Placement],
