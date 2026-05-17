@@ -84,25 +84,24 @@ class ProjectsController < ApplicationController
     params.require(:project).permit(
       :title,
       :pin,
-      sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order limited_quantity _destroy]
+      sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]
     )
   end
 
   def normalized_project_attributes
     attributes = project_params.to_h
-    normalize_limited_quantities!(attributes["sheet_stocks_attributes"])
+    normalize_sheet_quantities!(attributes["sheet_stocks_attributes"])
     attributes
   end
 
-  def normalize_limited_quantities!(sheet_stocks_attributes)
+  def normalize_sheet_quantities!(sheet_stocks_attributes)
     return if sheet_stocks_attributes.blank?
 
     sheet_stocks_attributes.each_value do |attrs|
       next unless attrs.is_a?(Hash)
 
-      limited = attrs.delete(:limited_quantity) || attrs.delete("limited_quantity")
-      attrs[:quantity] = nil unless limited == "1"
-      attrs[:quantity] = nil if attrs[:quantity].blank?
+      quantity = attrs[:quantity].presence || attrs["quantity"].presence
+      attrs[:quantity] = quantity.present? ? quantity : nil
     end
   end
 

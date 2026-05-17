@@ -656,6 +656,15 @@ h3 {
   color: var(--fit-text-muted);
 }
 
+.field__hint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--fit-text-muted);
+}
+
 .field input[type="text"],
 .field input[type="password"],
 .field input[type="number"],
@@ -688,10 +697,6 @@ h3 {
   display: grid;
   gap: 0.75rem;
   margin-bottom: 1rem;
-}
-
-.sheet-inventory__composer .field--checkbox {
-  order: 0;
 }
 
 .sheet-inventory__list {

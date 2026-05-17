@@ -5,8 +5,7 @@ module ProjectSpecFactory
     width_mm: 1000,
     height_mm: 2000,
     quantity: 1,
-    sort_order: 0,
-    limited_quantity: "1"
+    sort_order: 0
   }.freeze
 
   module_function

@@ -16,11 +16,11 @@
   }
 
   function readComposer(root) {
+    const quantityInput = root.querySelector("[data-sheet-inventory-composer-quantity]");
     return {
       width: root.querySelector("[data-sheet-inventory-composer-width]").value,
       height: root.querySelector("[data-sheet-inventory-composer-height]").value,
-      quantity: root.querySelector("[data-sheet-inventory-composer-quantity]").value,
-      limited: root.querySelector("[data-sheet-inventory-composer-limited]").checked
+      quantity: quantityInput.value.trim()
     };
   }
 
@@ -28,13 +28,12 @@
     root.querySelector("[data-sheet-inventory-composer-width]").value = "";
     root.querySelector("[data-sheet-inventory-composer-height]").value = "";
     root.querySelector("[data-sheet-inventory-composer-quantity]").value = "";
-    root.querySelector("[data-sheet-inventory-composer-limited]").checked = false;
     root.dataset.editingIndex = "";
   }
 
-  function summaryText(root, width, height, quantity, limited) {
+  function summaryText(root, width, height, quantity) {
     const unlimited = root.dataset.summaryUnlimited;
-    const qtyLabel = limited && quantity !== "" ? quantity : unlimited;
+    const qtyLabel = quantity !== "" ? quantity : unlimited;
     return `${width} × ${height} mm × ${qtyLabel}`;
   }
 
@@ -45,9 +44,9 @@
       window.alert(root.dataset.alertDimensions);
       return false;
     }
-    if (data.limited) {
+    if (data.quantity !== "") {
       const qty = parseInt(data.quantity, 10);
-      if (!data.quantity || Number.isNaN(qty) || qty < 1) {
+      if (Number.isNaN(qty) || qty < 1) {
         window.alert(root.dataset.alertQuantity);
         return false;
       }
@@ -66,8 +65,7 @@
       root,
       data.width,
       data.height,
-      data.quantity,
-      data.limited
+      data.quantity
     );
 
     const setField = (name, value) => {
@@ -79,8 +77,7 @@
     setField("width_mm", data.width);
     setField("height_mm", data.height);
     setField("sort_order", index);
-    setField("quantity", data.limited ? data.quantity : "");
-    setField("limited_quantity", data.limited ? "1" : "0");
+    setField("quantity", data.quantity);
     setField("_destroy", "0");
 
     list.appendChild(fragment);
@@ -92,13 +89,11 @@
       root,
       data.width,
       data.height,
-      data.quantity,
-      data.limited
+      data.quantity
     );
     row.querySelector("[data-sheet-inventory-field='width_mm']").value = data.width;
     row.querySelector("[data-sheet-inventory-field='height_mm']").value = data.height;
-    row.querySelector("[data-sheet-inventory-field='quantity']").value = data.limited ? data.quantity : "";
-    row.querySelector("[data-sheet-inventory-field='limited_quantity']").value = data.limited ? "1" : "0";
+    row.querySelector("[data-sheet-inventory-field='quantity']").value = data.quantity;
   }
 
   function fillComposerFromRow(root, row) {
@@ -106,8 +101,6 @@
       row.querySelector("[data-sheet-inventory-field='width_mm']").value;
     root.querySelector("[data-sheet-inventory-composer-height]").value =
       row.querySelector("[data-sheet-inventory-field='height_mm']").value;
-    const limited = row.querySelector("[data-sheet-inventory-field='limited_quantity']").value === "1";
-    root.querySelector("[data-sheet-inventory-composer-limited]").checked = limited;
     root.querySelector("[data-sheet-inventory-composer-quantity]").value =
       row.querySelector("[data-sheet-inventory-field='quantity']").value;
     root.dataset.editingIndex = row.dataset.sheetInventoryIndex;

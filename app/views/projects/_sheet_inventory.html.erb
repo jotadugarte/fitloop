@@ -33,13 +33,11 @@
           >
         </div>
 
-        <div class="field field--checkbox">
-          <input type="checkbox" id="sheet_composer_limited" data-sheet-inventory-composer-limited>
-          <label for="sheet_composer_limited"><%= SheetStock.human_attribute_name(:limited_quantity) %></label>
-        </div>
-
         <div class="field">
-          <label for="sheet_composer_quantity"><%= SheetStock.human_attribute_name(:quantity) %></label>
+          <label for="sheet_composer_quantity">
+            <%= SheetStock.human_attribute_name(:quantity) %>
+            <span class="field__hint"><%= t("projects.form.quantity_hint") %></span>
+          </label>
           <input
             type="number"
             id="sheet_composer_quantity"
@@ -78,7 +76,6 @@
       <input type="hidden" data-sheet-inventory-field="width_mm">
       <input type="hidden" data-sheet-inventory-field="height_mm">
       <input type="hidden" data-sheet-inventory-field="quantity">
-      <input type="hidden" data-sheet-inventory-field="limited_quantity" value="0">
       <input type="hidden" data-sheet-inventory-field="_destroy" value="0">
     </div>
   </template>

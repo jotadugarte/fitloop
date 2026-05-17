@@ -28,7 +28,6 @@ es:
         width_mm: "Ancho (mm)"
         height_mm: "Alto (mm)"
         quantity: "Cantidad"
-        limited_quantity: "Cantidad limitada"
         sort_order: "Orden"
     errors:
       models:
@@ -116,9 +115,10 @@ es:
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"
       quantity_unlimited: "Ilimitada"
+      quantity_hint: "Deja en blanco para láminas ilimitadas, o escribe un número para una cantidad fija."
       sheet_summary: "%{width} × %{height} mm × %{quantity}"
       alert_dimensions: "Introduce un ancho y un alto válidos en milímetros."
-      alert_quantity: "Introduce una cantidad de al menos 1, o desmarca cantidad limitada para láminas ilimitadas."
+      alert_quantity: "Introduce una cantidad de al menos 1, o deja el campo vacío para láminas ilimitadas."
       save_project: "Guardar proyecto"
 
   nesting:

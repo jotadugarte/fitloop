@@ -10,8 +10,8 @@ RSpec.describe "Project CRUD", type: :request do
           title: "Bench project",
           pin: "778899",
           sheet_stocks_attributes: {
-            "0" => { width_mm: 1000, height_mm: 2000, quantity: 5, sort_order: 0, limited_quantity: "1" },
-            "1" => { width_mm: 500, height_mm: 300, quantity: "", sort_order: 1, limited_quantity: "0" }
+            "0" => { width_mm: 1000, height_mm: 2000, quantity: 5, sort_order: 0 },
+            "1" => { width_mm: 500, height_mm: 300, quantity: "", sort_order: 1 }
           }
         }
       }

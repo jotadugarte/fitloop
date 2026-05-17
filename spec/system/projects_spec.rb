@@ -8,7 +8,7 @@ RSpec.describe "Project sheet inventory UI", type: :system do
       title: "Sort test",
       pin: "111222",
       sheet_stocks_attributes: {
-        "0" => { width_mm: 100, height_mm: 200, quantity: 1, sort_order: 0, limited_quantity: "1" }
+        "0" => { width_mm: 100, height_mm: 200, quantity: 1, sort_order: 0 }
       }
     )
 
