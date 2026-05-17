@@ -13,15 +13,23 @@ Rails.application.routes.draw do
 
   resource :locale, only: :update, controller: "locales"
 
+  get "empezar", to: "projects#start", as: :start_project
+
   resources :projects, except: :destroy do
     member do
       post :verify_pin
+      patch :nesting_parameters
+      patch :workspace
       get :nesting_sync
+      get :nested_dxf
+      get "orphans/:piece_index/dxf",
+          to: "project_orphan_dxf_downloads#show",
+          as: :orphan_dxf
     end
     resources :layers, only: :index, controller: "project_layers" do
       patch "", on: :collection, action: :update
     end
-    resources :input_dxf_files, only: :create, controller: "project_input_dxf_files"
+    resources :input_dxf_files, only: %i[create destroy], controller: "project_input_dxf_files"
     resources :nesting_runs, only: :create do
       member do
         post :cancel

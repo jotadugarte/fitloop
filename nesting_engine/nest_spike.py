@@ -77,12 +77,10 @@ def _place_with_rotation(
     obstacles: list[Polygon] | None = None,
 ) -> Placement | None:
     occupied = obstacles or []
-    x_candidates = {margin}
-    y_candidates = {margin}
-    for obstacle in occupied:
-        minx, miny, maxx, maxy = obstacle.bounds
-        x_candidates.add(maxx + margin)
-        y_candidates.add(miny)
+    base_x_candidates, base_y_candidates = _anchor_candidates(occupied, margin)
+
+    best: Placement | None = None
+    best_score: tuple[float, float, float] | None = None
 
     for step in range(_MAX_ROTATION_STEPS):
         angle = float(step * _ROTATION_STEP_DEG)
@@ -94,6 +92,17 @@ def _place_with_rotation(
         if width + 2 * margin > bin_width or height + 2 * margin > bin_height:
             continue
 
+        x_candidates = set(base_x_candidates)
+        y_candidates = set(base_y_candidates)
+        x_candidates.add(bin_width - width - margin)
+        y_candidates.add(bin_height - height - margin)
+
+        for obstacle in occupied:
+            o_minx, o_miny, o_maxx, o_maxy = obstacle.bounds
+            if o_minx - width - margin >= margin:
+                x_candidates.add(o_minx - width - margin)
+            y_candidates.add(o_maxy + margin)
+
         for y_anchor in sorted(y_candidates):
             for x_anchor in sorted(x_candidates):
                 dx = x_anchor - minx
@@ -103,9 +112,30 @@ def _place_with_rotation(
                     continue
                 if _overlaps_any(placed, occupied):
                     continue
-                return Placement(dx, dy, angle)
 
-    return None
+                score = _placement_score(placed)
+                if best_score is None or score < best_score:
+                    best = Placement(dx, dy, angle)
+                    best_score = score
+
+    return best
+
+
+def _anchor_candidates(occupied: list[Polygon], margin: float) -> tuple[set[float], set[float]]:
+    x_candidates = {margin}
+    y_candidates = {margin}
+    for obstacle in occupied:
+        minx, miny, maxx, maxy = obstacle.bounds
+        x_candidates.add(maxx + margin)
+        y_candidates.add(miny)
+        y_candidates.add(maxy + margin)
+    return x_candidates, y_candidates
+
+
+def _placement_score(placed: Polygon) -> tuple[float, float, float]:
+    """Prefer right and low placements to leave room for additional pieces."""
+    minx, _miny, maxx, maxy = placed.bounds
+    return (-minx, maxy, maxx)
 
 
 def _fits_bin(placed: Polygon, bin_width: float, bin_height: float, *, margin: float) -> bool:

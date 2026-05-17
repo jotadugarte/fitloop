@@ -1,6 +1,7 @@
 <%= turbo_frame_tag dom_id(project, :nesting_preview) do %>
+<% heading_tag = local_assigns.fetch(:heading_level, 2) == 3 ? :h3 : :h2 %>
 <section class="nesting-preview-panel" data-testid="nesting-preview-panel">
-  <h2><%= t("projects.preview.title") %></h2>
+  <%= content_tag heading_tag, t("projects.preview.title"), class: "nesting-preview-panel__title" %>
 
   <% if preview.available? %>
     <p data-testid="preview-sheet-count"><%= t("projects.preview.sheet_count", count: preview.sheet_count) %></p>

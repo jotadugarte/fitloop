@@ -4,7 +4,7 @@
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
   <div class="sheet-inventory">
-    <div class="sheet-inventory__composer panel panel--subtle">
+    <div class="sheet-inventory__composer panel panel--inset">
       <div class="sheet-inventory__composer-fields">
         <div class="field">
           <label for="sheet_composer_width"><%= SheetStock.human_attribute_name(:width_mm) %></label>
@@ -59,7 +59,7 @@
       </button>
     </div>
 
-    <div class="sheet-inventory__table panel">
+    <div class="sheet-inventory__table panel panel--inset">
       <table class="sheet-inventory-table">
         <thead>
           <tr>

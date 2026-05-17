@@ -18,6 +18,7 @@ module ProjectAccessGate
   end
 
   def require_project_access!(project)
+    grant_project_access!(project) if project.ephemeral?
     return if project_access_granted?(project)
 
     @project = project

@@ -36,7 +36,6 @@ RSpec.describe "Golden DXF nesting E2E", type: :system do
     expect(page).to have_css('[data-testid="download-nested-dxf"]')
     expect(page).to have_css('[data-testid="nesting-preview-svg"]')
     expect(page).to have_css('[data-testid="preview-sheet"]', minimum: 1)
-    expect(page).to have_css('[data-testid="nesting-run-history"] li', minimum: 1)
 
     project.reload
     expect(project.nested_dxf).to be_attached

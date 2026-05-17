@@ -5,7 +5,7 @@
   </header>
 
   <p class="page-actions">
-    <%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %>
+    <%= link_to t("projects.index.new"), start_project_path, class: "btn btn-primary" %>
   </p>
 
   <% if @project_cards.any? %>
@@ -20,7 +20,7 @@
     <div class="empty-state" data-testid="projects-empty">
       <div class="preview-placeholder preview-placeholder--card" aria-hidden="true"></div>
       <p><%= t("projects.index.empty") %></p>
-      <%= link_to t("projects.index.new"), new_project_path, class: "btn btn-primary" %>
+      <%= link_to t("projects.index.new"), start_project_path, class: "btn btn-primary" %>
     </div>
   <% end %>
 </main>

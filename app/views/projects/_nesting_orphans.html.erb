@@ -1,16 +1,46 @@
 <% if orphans.any? %>
   <section class="nesting-orphans" data-testid="nesting-orphans">
     <h3 class="nesting-orphans__title"><%= t("nesting.orphans_heading") %></h3>
-    <ul class="nesting-orphans__list">
-      <% orphans.entries.each do |entry| %>
-        <li>
-          <%= t(
-                "nesting.orphan_reason.#{entry.fetch('reason')}",
-                piece_number: entry.fetch("piece_index").to_i + 1,
-                default: t("nesting.orphan_reason.unknown", piece_number: entry.fetch("piece_index").to_i + 1)
-              ) %>
-        </li>
+
+    <div class="nesting-orphans__grid">
+      <% orphans.items.each do |orphan| %>
+        <article class="orphan-card" data-testid="orphan-card" data-piece-index="<%= orphan.piece_index %>">
+          <header class="orphan-card__header">
+            <h4 class="orphan-card__title">
+              <%= t("nesting.orphan_preview.piece_title", piece_number: orphan.display_number) %>
+            </h4>
+            <p class="orphan-card__reason">
+              <%= t(
+                    "nesting.orphan_reason.#{orphan.reason}",
+                    piece_number: orphan.display_number,
+                    default: t("nesting.orphan_reason.unknown", piece_number: orphan.display_number)
+                  ) %>
+            </p>
+          </header>
+
+          <% if orphan.preview_available? %>
+            <div class="orphan-preview orphan-preview--cad" data-testid="orphan-preview">
+              <%= orphan_preview_svg(orphan, css_class: "orphan-preview__svg") %>
+            </div>
+            <p class="orphan-card__dimensions" data-testid="orphan-dimensions">
+              <%= orphan_preview_dimensions(orphan) %>
+            </p>
+            <p class="orphan-card__actions">
+              <%= link_to t("nesting.orphan_preview.download_dxf"),
+                          orphan_dxf_project_path(project, piece_index: orphan.piece_index),
+                          class: "btn btn-secondary btn--small",
+                          data: { turbo: false, turbo_frame: "_top", testid: "download-orphan-dxf" } %>
+            </p>
+          <% end %>
+
+          <p class="orphan-card__hint">
+            <%= t(
+                  "nesting.orphan_hint.#{orphan.reason}",
+                  default: t("nesting.orphan_hint.unknown")
+                ) %>
+          </p>
+        </article>
       <% end %>
-    </ul>
+    </div>
   </section>
 <% end %>

@@ -15,7 +15,7 @@ RSpec.describe "Project source DXF preview", type: :request do
         filename: "piece.dxf",
         content_type: "application/dxf"
       )
-      Dxf::LayerSync.call(project)
+      Dxf::LayerSyncPerFile.call(project)
       project.project_layers.find_by!(layer_name: "PIECES").update!(included: true)
 
       get project_path(project)
@@ -25,7 +25,7 @@ RSpec.describe "Project source DXF preview", type: :request do
       expect(response.body).to include('data-testid="source-dxf-preview-svg"')
       expect(response.body).to include('data-layer="PIECES"')
       expect(response.body).to include("<path")
-      expect(response.body).to include(I18n.t("projects.source_preview.title"))
+      expect(response.body).to include(I18n.t("projects.show.source_dxf_detail_summary"))
     end
 
     it "shows empty state when no layers are selected for nesting" do
@@ -36,12 +36,13 @@ RSpec.describe "Project source DXF preview", type: :request do
         filename: "piece.dxf",
         content_type: "application/dxf"
       )
-      Dxf::LayerSync.call(project)
+      Dxf::LayerSyncPerFile.call(project)
 
       get project_path(project)
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="source-dxf-preview-empty"')
+      expect(response.body).to include(I18n.t("projects.show.source_dxf_detail_summary"))
     end
   end
 end

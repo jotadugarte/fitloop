@@ -67,10 +67,8 @@ RSpec.describe "Project PIN access", type: :request do
       )
       unlock_project_for_spec!(project, pin: "556688")
 
-      get rails_blob_path(project.nested_dxf, disposition: "attachment", only_path: true)
+      get nested_dxf_project_path(project)
 
-      expect(response).to have_http_status(:redirect)
-      follow_redirect!
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("NESTED DXF CONTENT")
       expect(response.headers["Content-Disposition"]).to include("attachment")

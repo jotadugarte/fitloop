@@ -1,0 +1,64 @@
+<%# locals: (project:, attachment:, context: "setup", layers_form: false, expand_layers: false, expanded_attachment_ids: []) %>
+<% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
+<% included_count = layers.count(&:included) %>
+<% file_preview = context == "show" ? Dxf::SourcePreviewPresenter.for(project, attachment: attachment) : nil %>
+<% expand_layers = local_assigns.fetch(:expand_layers, false) %>
+<% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+<% entry_open = expand_layers && expanded_attachment_ids.include?(attachment.id) %>
+<details class="dxf-file-entry collapsible-panel collapsible-panel--nested"
+         data-testid="dxf-file-entry"
+         data-attachment-id="<%= attachment.id %>"
+         <%= "open" if entry_open %>>
+  <summary class="collapsible-panel__summary dxf-file-entry__summary">
+    <span class="collapsible-panel__leading">
+      <span class="collapsible-panel__chevron" aria-hidden="true"></span>
+      <span class="collapsible-panel__title"><%= attachment.filename %></span>
+    </span>
+    <span class="collapsible-panel__trailing">
+      <span class="collapsible-panel__meta">
+        <%= t("projects.show.dxf_file_layers_meta",
+              selected: included_count,
+              total: layers.size) %>
+      </span>
+      <%= link_to t("projects.show.remove_dxf"),
+                  project_input_dxf_file_path(project, attachment),
+                  class: "btn btn-secondary btn--compact dxf-file-entry__remove",
+                  data: {
+                    turbo_method: :delete,
+                    turbo_confirm: t("projects.show.remove_dxf_confirm", filename: attachment.filename),
+                    testid: "remove-dxf-file"
+                  } %>
+    </span>
+  </summary>
+
+  <div class="collapsible-panel__body dxf-file-entry__body">
+    <% if layers.any? %>
+      <ul class="layer-list layer-list--visual">
+        <% layers.each do |layer| %>
+          <li class="layer-list__item">
+            <label class="layer-list__label">
+              <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][included]", "1", layer.included %>
+              <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer) %>"></span>
+              <span class="layer-list__name"><%= layer.layer_name %></span>
+            </label>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="dxf-file-card__empty"><%= t("projects.form.dxf_layers_empty") %></p>
+    <% end %>
+
+    <% if file_preview&.available? %>
+      <p class="dxf-file-entry__preview-meta" data-testid="source-dxf-layer-count">
+        <%= t("projects.source_preview.layer_count", count: file_preview.layers.count) %>
+      </p>
+      <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview">
+        <%= source_dxf_preview_svg(file_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg") %>
+      </div>
+    <% elsif context == "show" %>
+      <div class="source-dxf-preview source-dxf-preview--empty" data-testid="source-dxf-preview-empty">
+        <p><%= t("projects.source_preview.empty") %></p>
+      </div>
+    <% end %>
+  </div>
+</details>

@@ -1,0 +1,7 @@
+<%= turbo_frame_tag dom_id(project, :dxf_files_layers) do %>
+  <%= render "projects/dxf_layers_checklist",
+             project: project,
+             context: local_assigns.fetch(:context, "setup"),
+             expand_layers: local_assigns.fetch(:expand_layers, false),
+             expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+<% end %>

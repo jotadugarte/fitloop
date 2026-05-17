@@ -1,0 +1,18 @@
+<%# Layer checkboxes grouped by input DXF (no outer turbo frame). %>
+<% context = local_assigns.fetch(:context, "setup") %>
+<% if project.input_dxf_attachments.any? %>
+  <div class="dxf-files-layers" data-testid="dxf-files-layers">
+    <% project.input_dxf_attachments.each do |attachment| %>
+      <div class="panel panel--inset dxf-file-entry-wrap">
+        <%= render "projects/dxf_file_entry",
+                   project: project,
+                   attachment: attachment,
+                   context: context,
+                   expand_layers: local_assigns.fetch(:expand_layers, false),
+                   expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="dxf-files-layers__empty panel panel--inset"><%= t("projects.form.dxf_layers_prompt") %></p>
+<% end %>

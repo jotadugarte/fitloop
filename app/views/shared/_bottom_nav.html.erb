@@ -4,15 +4,10 @@
     <span class="bottom-nav__label"><%= t("nav.home") %></span>
   <% end %>
 
-  <%= link_to projects_path, class: "bottom-nav__item#{' bottom-nav__item--active' if fitloop_nav_active?(projects_path, new_project_path)}", aria: { label: t("nav.projects") } do %>
-    <span class="bottom-nav__icon" aria-hidden="true">▦</span>
-    <span class="bottom-nav__label"><%= t("nav.projects") %></span>
-  <% end %>
-
   <% if defined?(@project) && @project&.persisted? %>
-    <%= link_to @project, class: "bottom-nav__item#{' bottom-nav__item--active' if fitloop_nav_active?(@project, project_layers_path(@project), edit_project_path(@project))}", aria: { label: @project.title } do %>
+    <%= link_to @project, class: "bottom-nav__item#{' bottom-nav__item--active' if fitloop_nav_active?(@project)}", aria: { label: t("projects.show.session_title") } do %>
       <span class="bottom-nav__icon" aria-hidden="true">◫</span>
-      <span class="bottom-nav__label"><%= truncate(@project.title, length: 12) %></span>
+      <span class="bottom-nav__label"><%= truncate(t("projects.show.session_title"), length: 12) %></span>
     <% end %>
   <% end %>
 </nav>

@@ -33,6 +33,8 @@
 
   <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {} %>
 
+  <%= render "nesting_settings", form: f %>
+
   <%= render "dxf_upload_fields", project: project %>
 
   <div class="form-actions">

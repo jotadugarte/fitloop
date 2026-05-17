@@ -102,11 +102,15 @@ es:
     home: "Inicio"
     projects: "Proyectos"
 
+  workspace:
+    default_title: "Sesión de anidado"
+    expired: "Esta sesión ya no está disponible. Vuelve a empezar."
+
   home:
     index:
       tagline: "Anidado de láminas DXF"
       subtitle: "Optimización de cortes para arquitectura"
-      cta_new: "Nuevo proyecto"
+      cta_start: "Empezar"
 
   projects:
     status:
@@ -118,11 +122,14 @@ es:
       failed: "Fallido"
     created: "Proyecto creado."
     updated: "Proyecto actualizado."
+    nesting_parameters_updated: "Parámetros de anidado actualizados."
     index:
       title: "Proyectos"
-      tagline: "Abre un proyecto con tu PIN para gestionar el anidado DXF."
-      new: "Nuevo proyecto"
-      empty: "Aún no hay proyectos. Crea uno para empezar a anidar láminas DXF."
+      tagline: "Los trabajos de anidado son temporales: al salir de la app se descartan."
+      new: "Empezar"
+      empty: "No hay proyectos guardados. Pulsa Empezar en la página de inicio."
+    setup:
+      missing_dxf: "Sube al menos un archivo DXF antes de continuar."
     access:
       prompt: "Introduce el PIN del proyecto para continuar."
       pin_label: "PIN del proyecto"
@@ -132,15 +139,43 @@ es:
       back_to_list: "Volver a todos los proyectos"
     new:
       title: "Nuevo proyecto"
+      setup_title: "Parámetros iniciales"
     edit:
       title: "Editar %{title}"
     show:
+      session_title: "Tu anidado"
+      nesting_parameters_title: "Parámetros de anidado"
+      nesting_parameters_hint: "Ajusta la separación entre piezas y el margen del borde de la lámina."
+      apply_nesting_parameters: "Aplicar"
+      save_sheets: "Guardar láminas"
+      sheet_inventory_meta:
+        one: "1 lámina"
+        other: "%{count} láminas"
+      collapsible_hint: "Pulsa para desplegar"
+      preview_zone_title: "Vistas previas y piezas no colocadas"
+      nesting_parameters_meta: "Kerf %{kerf} mm · Margen %{margin} mm"
+      dxf_files_meta:
+        zero: "Sin archivos"
+        one: "1 archivo"
+        other: "%{count} archivos"
+      dxf_files_title: "Archivos DXF"
+      add_dxf_label: "Agregar archivos DXF"
+      add_dxf_hint: "Puedes subir más archivos en cualquier momento."
+      source_dxf_detail_summary: "Detalle DXF"
+      source_dxf_detail_meta: "%{files} archivos · %{selected} de %{total} capas"
+      source_dxf_detail_empty: "Sube un archivo DXF para ver capas y vista previa."
+      dxf_file_layers_meta: "%{selected} de %{total} capas"
+      remove_dxf: "Eliminar"
+      remove_dxf_confirm: "¿Eliminar %{filename}?"
+      apply_layers: "Aplicar capas"
+      nesting_value_mm: "%{value} mm"
       edit: "Editar"
+      adjust_setup: "Ajustar parámetros"
       layers: "Capas DXF"
       download_nested_dxf: "Descargar DXF anidado"
-      back: "Todos los proyectos"
+      back: "Inicio"
       actions_title: "Acciones de anidado"
-      manage_title: "Ajustes del proyecto"
+      manage_title: "Ajustes"
     history:
       title: "Historial de anidados"
       finished: "finalizado %{time}"
@@ -174,8 +209,18 @@ es:
       dxf_upload_legend: "Archivos DXF"
       dxf_upload_label: "Archivos DXF"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
+      dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
+      dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
+      dxf_layers_prompt: "Aún no hay archivos DXF. Elige uno o más arriba."
+      dxf_layers_empty: "No se encontraron capas en este archivo."
       dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
+      nesting_settings_legend: "Parámetros de anidado"
+      kerf_mm: "Separación máxima entre piezas (mm)"
+      kerf_mm_hint: "Holgura mínima entre contornos de piezas en la misma lámina. Por defecto 0 mm."
+      margin_mm: "Margen del borde de la lámina (mm)"
+      margin_mm_hint: "Distancia mínima entre el contorno exterior de las piezas y el borde de la lámina. Por defecto 5 mm."
       save_project: "Guardar proyecto"
+      continue: "Continuar"
 
   nesting_run:
     status:
@@ -203,9 +248,18 @@ es:
     renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
     orphans_heading: "Piezas no colocadas"
     orphan_reason:
-      oversized_for_sheet: "Pieza %{piece_number}: demasiado grande para cualquier lámina del inventario"
-      no_sheet_capacity: "Pieza %{piece_number}: cabe en una lámina pero no quedó espacio"
-      unknown: "Pieza %{piece_number}: no se pudo colocar"
+      oversized_for_sheet: "Demasiado grande para cualquier lámina del inventario"
+      no_sheet_capacity: "Cabe en una lámina pero no quedó espacio"
+      unknown: "No se pudo colocar"
+    orphan_preview:
+      piece_title: "Pieza %{piece_number}"
+      label: "Pieza %{piece_number} sin colocar"
+      dimensions: "%{width} × %{height} mm"
+      download_dxf: "Descargar DXF"
+    orphan_hint:
+      oversized_for_sheet: "Prueba una lámina más grande o divide la pieza en el DXF."
+      no_sheet_capacity: "Añade más láminas al inventario o vuelve a anidar."
+      unknown: "Revisa el DXF y el inventario de láminas, luego vuelve a anidar."
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"
@@ -216,6 +270,7 @@ es:
     updated: "Selección de capas guardada."
     upload:
       created: "Archivos DXF subidos."
+      removed: "Archivo DXF eliminado."
       missing: "Elige al menos un archivo DXF."
       legend: "Subir archivos DXF"
       label: "Archivos DXF"

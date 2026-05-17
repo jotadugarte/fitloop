@@ -1,0 +1,19 @@
+<%= turbo_frame_tag dom_id(project, :preview_zone) do %>
+  <section class="project-show__preview-zone panel panel--chrome fit-section" data-testid="show-preview-zone">
+    <h2 class="fit-section__legend"><%= t("projects.show.preview_zone_title") %></h2>
+
+    <div class="fit-section__content">
+      <div class="panel panel--inset nesting-preview-panel">
+        <%= render "projects/nesting_preview", project: project, preview: preview, heading_level: 3 %>
+      </div>
+
+      <%= turbo_frame_tag dom_id(project, :nesting_orphans) do %>
+        <% if orphans&.any? %>
+          <div class="panel panel--inset">
+            <%= render "projects/nesting_orphans", project: project, orphans: orphans %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </section>
+<% end %>

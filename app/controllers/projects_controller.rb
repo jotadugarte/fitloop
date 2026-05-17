@@ -1,69 +1,85 @@
 # frozen_string_literal: true
 
-# [REQ-FIT-UI-001] Project CRUD with ordered sheet inventory.
+# [REQ-FIT-UI-001] Ephemeral workspace setup and project show.
 class ProjectsController < ApplicationController
+  include SetsWorkspaceProject
+
   layout :fitloop_layout
 
-  before_action :set_project, only: %i[show edit update verify_pin nesting_sync]
+  before_action :set_workspace_project, only: %i[
+    show edit update verify_pin nesting_sync nesting_parameters workspace nested_dxf
+  ]
   before_action :require_project_access!, only: %i[edit update]
-
   def index
-    @projects = Project.order(created_at: :desc)
+    @projects = Project.saved.order(created_at: :desc)
     @project_cards = @projects.map { |project| [ project, Nesting::PreviewPresenter.for(project) ] }
   end
 
   def show
+    grant_project_access!(@project) if @project.ephemeral?
     return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
 
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
-    @source_dxf_preview = Dxf::SourcePreviewPresenter.for(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
-    @nesting_runs = @project.nesting_runs.order(created_at: :desc)
+  end
+
+  def nested_dxf
+    grant_project_access!(@project) if @project.ephemeral?
+    return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
+
+    attachment = @project.nested_dxf
+    return head(:not_found) unless attachment.attached?
+
+    send_data(
+      attachment.download,
+      filename: attachment.filename.to_s,
+      type: attachment.content_type,
+      disposition: "attachment"
+    )
   end
 
   def nesting_sync
+    grant_project_access!(@project) if @project.ephemeral?
     return head(:forbidden) unless project_access_granted?(@project)
 
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
-    @source_dxf_preview = Dxf::SourcePreviewPresenter.for(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
 
     render turbo_stream: nesting_sync_streams, formats: :turbo_stream
   end
 
+  def start
+    Workspace.discard!(session)
+    redirect_to new_project_path
+  end
+
   def new
-    @project = Project.new
+    @project = Workspace.find_or_create!(session)
+    grant_project_access!(@project)
     @composer_draft = {}
   end
 
   def create
-    @project = Project.new(normalized_project_attributes)
-    @project.pin = project_params[:pin] if project_params[:pin].present?
+    redirect_to new_project_path
+  end
 
-    assign_sheet_stock_sort_orders!(@project)
-
-    if @project.save
-      grant_project_access!(@project)
-      attach_dxf_files!(@project)
-      Dxf::LayerSync.call(@project) if @project.input_dxf_attachments.any?
-      redirect_to project_layers_path(@project), notice: t("projects.created")
-    else
-      @composer_draft = composer_draft_params
-      render(:new, status: :unprocessable_content)
-    end
+  def edit
+    grant_project_access!(@project) if @project.ephemeral?
+    @composer_draft = {}
+    render(:new) if @project.ephemeral?
   end
 
   def update
     @project.assign_attributes(normalized_project_attributes)
-    @project.pin = project_params[:pin] if project_params[:pin].present?
-
     assign_sheet_stock_sort_orders!(@project)
 
-    if @project.save
+    if @project.ephemeral?
+      finish_ephemeral_setup
+    elsif @project.save
       redirect_to @project, notice: t("projects.updated")
     else
       @composer_draft = composer_draft_params
@@ -81,7 +97,128 @@ class ProjectsController < ApplicationController
     end
   end
 
+  def nesting_parameters
+    grant_project_access!(@project) if @project.ephemeral?
+    return head(:forbidden) unless project_access_granted?(@project)
+
+    if @project.update(nesting_parameters_params)
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            project_dom_id(:nesting_parameters),
+            partial: "projects/nesting_parameters",
+            locals: { project: @project }
+          )
+        end
+        format.html { redirect_to @project, notice: t("projects.nesting_parameters_updated") }
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            project_dom_id(:nesting_parameters),
+            partial: "projects/nesting_parameters",
+            locals: { project: @project }
+          ), status: :unprocessable_content
+        end
+        format.html { redirect_to @project, alert: @project.errors.full_messages.to_sentence }
+      end
+    end
+  end
+
+  def workspace
+    grant_project_access!(@project) if @project.ephemeral?
+    return head(:forbidden) unless project_access_granted?(@project)
+
+    case params[:section]
+    when "sheets"
+      update_workspace_sheets!
+    when "layers"
+      update_workspace_layers!
+    else
+      head :unprocessable_entity
+    end
+  end
+
   private
+
+  def update_workspace_sheets!
+    @project.assign_attributes(workspace_sheet_params)
+    assign_sheet_stock_sort_orders!(@project)
+
+    if @project.save
+      render_workspace_turbo_stream(:sheets)
+    else
+      render_workspace_turbo_stream(:sheets, status: :unprocessable_content)
+    end
+  end
+
+  def update_workspace_layers!
+    ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
+    render_workspace_turbo_stream(:layers)
+  end
+
+  def render_workspace_turbo_stream(section, status: :ok)
+    streams = case section
+              when :sheets
+                [
+                  turbo_stream.replace(
+                    project_dom_id(:sheet_inventory),
+                    partial: "projects/show_sheet_inventory",
+                    locals: { project: @project }
+                  )
+                ]
+              when :layers
+                [
+                  turbo_stream.replace(
+                    project_dom_id(:source_dxf_detail),
+                    partial: "projects/show_source_dxf_detail",
+                    locals: { project: @project }
+                  )
+                ]
+              else
+                []
+              end
+
+    render turbo_stream: streams, status: status
+  end
+
+  def workspace_sheet_params
+    attributes = params.require(:project).permit(
+      sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]
+    ).to_h
+    normalize_sheet_quantities!(attributes["sheet_stocks_attributes"])
+    attributes
+  end
+
+  def finish_ephemeral_setup
+    unless @project.save
+      @composer_draft = composer_draft_params
+      render(:new, status: :unprocessable_content)
+      return
+    end
+
+    ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
+
+    if @project.input_dxf_attachments.blank?
+      flash.now[:alert] = t("projects.setup.missing_dxf")
+      @composer_draft = composer_draft_params
+      render(:new, status: :unprocessable_content)
+      return
+    end
+
+    readiness = ProjectReadinessValidator.validate(@project)
+    unless readiness.ok?
+      flash.now[:alert] = readiness.errors.join(" ")
+      @composer_draft = composer_draft_params
+      render(:new, status: :unprocessable_content)
+      return
+    end
+
+    Workspace.bind!(session, @project)
+    @project.update!(status: :ready)
+    redirect_to @project
+  end
 
   def fitloop_layout
     pin_gate_request? ? "minimal" : "application"
@@ -90,22 +227,27 @@ class ProjectsController < ApplicationController
   def pin_gate_request?
     return true if action_name == "verify_pin"
     return false unless action_name == "show" && @project
+    return false if @project.ephemeral?
 
     !project_access_granted?(@project)
   end
 
   def require_project_access!
+    return if @project.ephemeral?
+
     super(@project)
   end
 
-  def set_project
-    @project = Project.find(params[:id])
+  def nesting_parameters_params
+    params.require(:project).permit(:kerf_mm, :margin_mm)
   end
 
   def project_params
     params.require(:project).permit(
       :title,
       :pin,
+      :kerf_mm,
+      :margin_mm,
       sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]
     )
   end
@@ -131,14 +273,6 @@ class ProjectsController < ApplicationController
     project.sheet_stocks.reject(&:marked_for_destruction?).each_with_index do |stock, index|
       stock.sort_order = index
     end
-  end
-
-  def attach_dxf_files!(project)
-    dxf_files_param.each { |file| project.input_dxf.attach(file) }
-  end
-
-  def dxf_files_param
-    Array(params[:files]).compact.reject { |file| file.respond_to?(:size) && file.size.zero? }
   end
 
   def composer_draft_params
@@ -171,9 +305,13 @@ class ProjectsController < ApplicationController
         locals: { project: @project }
       )
       streams << turbo_stream.replace(
-        project_dom_id(:nesting_preview),
-        partial: "projects/nesting_preview",
-        locals: { project: @project, preview: @nesting_preview }
+        project_dom_id(:preview_zone),
+        partial: "projects/show_preview_zone",
+        locals: {
+          project: @project,
+          preview: @nesting_preview,
+          orphans: @nesting_orphans
+        }
       )
     end
 
@@ -187,7 +325,6 @@ class ProjectsController < ApplicationController
   def nesting_progress_locals
     {
       project: @project,
-      orphans: @nesting_orphans,
       eta_overrun: @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at,
       time_limit_notice: @time_limit_notice
     }

@@ -216,6 +216,23 @@ def _flatten_entity_points(
         point = transform.transform(Vec3(float(vertex.x), float(vertex.y), 0.0))
         points.append([float(point.x), float(point.y)])
 
+    return _pin_curve_path_endpoints(entity, points, transform)
+
+
+def _pin_curve_path_endpoints(
+    entity: object,
+    points: list[list[float]],
+    transform: Matrix44,
+) -> list[list[float]]:
+    if len(points) < 2 or not hasattr(entity, "dxftype"):
+        return points
+
+    if entity.dxftype() == "ARC":
+        start = transform.transform(Vec3(float(entity.start_point.x), float(entity.start_point.y), 0.0))
+        end = transform.transform(Vec3(float(entity.end_point.x), float(entity.end_point.y), 0.0))
+        points[0] = [float(start.x), float(start.y)]
+        points[-1] = [float(end.x), float(end.y)]
+
     return points
 
 

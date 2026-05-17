@@ -9,7 +9,7 @@ from ezdxf.entities import Circle, Insert, LWPolyline, Line, Polyline
 from ezdxf.math import Matrix44, Vec3
 from ezdxf.path import make_path
 from shapely.geometry import LineString, MultiLineString, Polygon
-from shapely.ops import polygonize, snap, unary_union
+from shapely.ops import polygonize
 from shapely.validation import make_valid
 
 _MAX_ENTITIES = 100_000
@@ -78,6 +78,7 @@ def extract_closed_contours(
     polygons = _merge_circle_specs(circle_specs + inferred_specs, curve_tolerance_mm=curve_tolerance_mm) + polygons
     polygons = _associate_nested_contours(polygons, curve_tolerance_mm=curve_tolerance_mm)
     polygons = _drop_redundant_hole_fillers(polygons, curve_tolerance_mm=curve_tolerance_mm)
+    polygons = _absorb_touching_fragments(polygons, curve_tolerance_mm=curve_tolerance_mm)
     return _drop_micro_fragments(polygons, curve_tolerance_mm=curve_tolerance_mm)
 
 
@@ -163,6 +164,7 @@ def _collect_entity_geometry(
         return
 
     line_segments.extend(_open_curve_segments(entity, curve_tolerance_mm=curve_tolerance_mm))
+    line_segments.extend(_open_polyline_segments(entity, curve_tolerance_mm=curve_tolerance_mm))
 
 
 def _is_full_circle_entity(entity: object) -> bool:
@@ -359,6 +361,7 @@ def _open_curve_segments(
 
     path = make_path(entity)
     points = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance_mm)]
+    points = _pin_curve_path_endpoints(entity, points)
     if len(points) < 2:
         return []
 
@@ -366,6 +369,55 @@ def _open_curve_segments(
     if gap <= curve_tolerance_mm:
         return []
 
+    return _chain_segments(points)
+
+
+def _open_polyline_segments(
+    entity: object,
+    *,
+    curve_tolerance_mm: float,
+) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    if isinstance(entity, LWPolyline) and entity.closed:
+        return []
+    if isinstance(entity, Polyline) and entity.is_closed:
+        return []
+
+    if not isinstance(entity, (LWPolyline, Polyline)):
+        return []
+
+    try:
+        path = make_path(entity)
+    except (TypeError, ValueError):
+        return []
+
+    points = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance_mm)]
+    if len(points) < 2:
+        return []
+
+    gap = _point_distance(points[0], points[-1])
+    if gap <= curve_tolerance_mm:
+        return []
+
+    return _chain_segments(points)
+
+
+def _pin_curve_path_endpoints(
+    entity: object,
+    points: list[tuple[float, float]],
+) -> list[tuple[float, float]]:
+    if len(points) < 2 or not hasattr(entity, "dxftype"):
+        return points
+
+    if entity.dxftype() == "ARC":
+        start = entity.start_point
+        end = entity.end_point
+        points[0] = (float(start.x), float(start.y))
+        points[-1] = (float(end.x), float(end.y))
+
+    return points
+
+
+def _chain_segments(points: list[tuple[float, float]]) -> list[tuple[tuple[float, float], tuple[float, float]]]:
     segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
     for index in range(len(points) - 1):
         start = points[index]
@@ -404,16 +456,17 @@ def _polygons_from_line_segments(
     if not segments:
         return []
 
+    grid_mm = max(curve_tolerance_mm, 0.05)
+    segments = _normalize_segment_endpoints(segments, grid_mm=grid_mm)
     lines = [LineString(segment) for segment in segments if segment[0] != segment[1]]
     if not lines:
         return []
 
+    # Large self-snap tolerances collapse fine arc tessellation and drop straight edges
+    # (e.g. slot sides at curve_tolerance_mm=0.1). Polygonize the linework directly.
     linework = MultiLineString(lines)
-    snap_tolerance = _linework_snap_tolerance(lines, curve_tolerance_mm=curve_tolerance_mm)
-    noded = snap(linework, linework, snap_tolerance)
-    merged = unary_union(noded)
     polygons: list[Polygon] = []
-    for geometry in polygonize(merged):
+    for geometry in polygonize(linework):
         if not isinstance(geometry, Polygon):
             continue
         if geometry.is_empty or geometry.area <= 0:
@@ -439,19 +492,45 @@ def _filter_polygon_slivers(
     return [polygon for polygon in polygons if polygon.area >= min_area]
 
 
-def _linework_snap_tolerance(lines: list[LineString], *, curve_tolerance_mm: float) -> float:
-    xs: list[float] = []
-    ys: list[float] = []
-    for line in lines:
-        for x, y in line.coords:
-            xs.append(x)
-            ys.append(y)
+def _normalize_segment_endpoints(
+    segments: list[tuple[tuple[float, float], tuple[float, float]]],
+    *,
+    grid_mm: float,
+) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    def snap_point(point: tuple[float, float]) -> tuple[float, float]:
+        return (round(point[0] / grid_mm) * grid_mm, round(point[1] / grid_mm) * grid_mm)
 
-    if not xs:
-        return max(curve_tolerance_mm * 4.0, 1.0)
+    return [(snap_point(start), snap_point(end)) for start, end in segments]
 
-    diagonal = math.hypot(max(xs) - min(xs), max(ys) - min(ys))
-    return max(curve_tolerance_mm * 4.0, diagonal * 0.02, 1.0)
+
+def _absorb_touching_fragments(
+    polygons: list[Polygon],
+    *,
+    curve_tolerance_mm: float,
+) -> list[Polygon]:
+    """Merge small caps/tips that touch a larger piece (e.g. slot end features)."""
+    if len(polygons) <= 1:
+        return list(polygons)
+
+    tolerance = max(curve_tolerance_mm * 4.0, 0.5)
+    result = sorted(polygons, key=lambda polygon: polygon.area, reverse=True)
+    changed = True
+    while changed and len(result) > 1:
+        changed = False
+        largest = result[0]
+        rest: list[Polygon] = []
+        for fragment in result[1:]:
+            if fragment.area >= largest.area * 0.05:
+                rest.append(fragment)
+                continue
+            if largest.buffer(tolerance).intersects(fragment):
+                largest = largest.union(fragment)
+                changed = True
+            else:
+                rest.append(fragment)
+        result = [largest, *rest]
+
+    return result
 
 
 def _filter_meaningful_polygons(

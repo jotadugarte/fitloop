@@ -3,8 +3,9 @@
 # [REQ-FIT-JOB-001] Start and cancel nesting jobs for a project.
 class NestingRunsController < ApplicationController
   include StartsNesting
+  include SetsWorkspaceProject
 
-  before_action :set_project
+  before_action :set_workspace_project
   before_action -> { require_project_access!(@project) }
 
   def create
@@ -24,12 +25,6 @@ class NestingRunsController < ApplicationController
     nesting_run = @project.nesting_runs.order(created_at: :desc).find(params[:id])
     nesting_run.update!(cancel_requested_at: Time.current)
     redirect_to @project, notice: I18n.t("nesting.cancelling")
-  end
-
-  private
-
-  def set_project
-    @project = Project.find(params[:project_id])
   end
 
 end

@@ -117,6 +117,24 @@ def test_rectangle_from_four_lines_is_extracted(tmp_path: Path) -> None:
     assert contours[0].area == pytest.approx(200 * 80, rel=0.01)
 
 
+def test_slot_from_arcs_and_lines_at_low_curve_tolerance(tmp_path: Path) -> None:
+    path = tmp_path / "arc_slot_low_tol.dxf"
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_arc(center=(70, 0), radius=25, start_angle=90, end_angle=270, dxfattribs={"layer": LAYER})
+    msp.add_arc(center=(170, 0), radius=25, start_angle=270, end_angle=90, dxfattribs={"layer": LAYER})
+    msp.add_line((70, -25), (170, -25), dxfattribs={"layer": LAYER})
+    msp.add_line((170, 25), (70, 25), dxfattribs={"layer": LAYER})
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.1)
+
+    assert len(contours) == 1
+    expected_area = 100 * 50 + math.pi * 25**2
+    assert contours[0].area == pytest.approx(expected_area, rel=0.05)
+    assert contours[0].bounds[2] == pytest.approx(195.0, abs=0.5)
+
+
 def test_slot_from_arcs_and_lines_is_extracted(tmp_path: Path) -> None:
     path = tmp_path / "arc_slot.dxf"
     doc = ezdxf.new("R2010")
@@ -134,7 +152,7 @@ def test_slot_from_arcs_and_lines_is_extracted(tmp_path: Path) -> None:
     assert contours[0].area == pytest.approx(expected_area, rel=0.05)
 
 
-def test_micro_fragment_near_slot_is_not_extracted(tmp_path: Path) -> None:
+def test_slot_tip_cap_is_merged_into_main_contour(tmp_path: Path) -> None:
     path = tmp_path / "slot_with_tip.dxf"
     doc = ezdxf.new("R2010")
     msp = doc.modelspace()
@@ -148,7 +166,9 @@ def test_micro_fragment_near_slot_is_not_extracted(tmp_path: Path) -> None:
     contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.25)
 
     assert len(contours) == 1
-    assert contours[0].area == pytest.approx(100 * 50 + math.pi * 25**2, rel=0.05)
+    base_area = 100 * 50 + math.pi * 25**2
+    assert contours[0].area > base_area
+    assert contours[0].bounds[2] == pytest.approx(200.0, abs=0.5)
 
 
 def test_concentric_arc_outlines_merge_without_duplicate_inner_disk(tmp_path: Path) -> None:

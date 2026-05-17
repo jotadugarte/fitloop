@@ -87,11 +87,15 @@ en:
     home: "Home"
     projects: "Projects"
 
+  workspace:
+    default_title: "Nesting session"
+    expired: "This session is no longer available. Please start again."
+
   home:
     index:
       tagline: "DXF sheet nesting"
       subtitle: "Cut optimization for architecture"
-      cta_new: "New project"
+      cta_start: "Start"
 
   projects:
     status:
@@ -103,11 +107,14 @@ en:
       failed: "Failed"
     created: "Project created."
     updated: "Project updated."
+    nesting_parameters_updated: "Nesting parameters updated."
     index:
       title: "Projects"
-      tagline: "Open a project with your PIN to manage DXF nesting."
-      new: "New project"
-      empty: "No projects yet. Create one to start nesting DXF sheets."
+      tagline: "Nesting jobs are temporary and discarded when you leave the app."
+      new: "Start"
+      empty: "No saved projects. Use Start on the home page."
+    setup:
+      missing_dxf: "Upload at least one DXF file before continuing."
     access:
       prompt: "Enter the project PIN to continue."
       pin_label: "Project PIN"
@@ -117,15 +124,43 @@ en:
       back_to_list: "Back to all projects"
     new:
       title: "New project"
+      setup_title: "Initial parameters"
     edit:
       title: "Edit %{title}"
     show:
+      session_title: "Your nesting"
+      nesting_parameters_title: "Nesting parameters"
+      nesting_parameters_hint: "Adjust piece spacing and sheet edge margin."
+      apply_nesting_parameters: "Apply"
+      save_sheets: "Save sheets"
+      sheet_inventory_meta:
+        one: "1 sheet"
+        other: "%{count} sheets"
+      collapsible_hint: "Click to expand"
+      preview_zone_title: "Previews and unplaced pieces"
+      nesting_parameters_meta: "Kerf %{kerf} mm · Margin %{margin} mm"
+      dxf_files_meta:
+        zero: "No files"
+        one: "1 file"
+        other: "%{count} files"
+      dxf_files_title: "DXF files"
+      add_dxf_label: "Add DXF files"
+      add_dxf_hint: "You can upload more files at any time."
+      source_dxf_detail_summary: "DXF detail"
+      source_dxf_detail_meta: "%{files} files · %{selected} of %{total} layers"
+      source_dxf_detail_empty: "Upload a DXF file to see layers and preview."
+      dxf_file_layers_meta: "%{selected} of %{total} layers"
+      remove_dxf: "Remove"
+      remove_dxf_confirm: "Remove %{filename}?"
+      apply_layers: "Apply layers"
+      nesting_value_mm: "%{value} mm"
       edit: "Edit"
+      adjust_setup: "Adjust parameters"
       layers: "DXF layers"
       download_nested_dxf: "Download nested DXF"
-      back: "All projects"
+      back: "Home"
       actions_title: "Nesting actions"
-      manage_title: "Project settings"
+      manage_title: "Settings"
     history:
       title: "Nesting history"
       finished: "finished %{time}"
@@ -159,8 +194,18 @@ en:
       dxf_upload_legend: "DXF files"
       dxf_upload_label: "DXF files"
       dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
+      dxf_upload_setup_hint: "When you choose files they appear here with layers to select."
+      dxf_upload_failed: "Could not upload DXF files. Try again."
+      dxf_layers_prompt: "No DXF files yet. Choose one or more above."
+      dxf_layers_empty: "No layers found in this file."
       dxf_upload_resubmit_hint: "If you had selected DXF files, choose them again before saving."
+      nesting_settings_legend: "Nesting parameters"
+      kerf_mm: "Maximum spacing between pieces (mm)"
+      kerf_mm_hint: "Minimum clearance between piece outlines on the same sheet. Default 0 mm."
+      margin_mm: "Sheet edge margin (mm)"
+      margin_mm_hint: "Minimum distance from piece outlines to the sheet edge. Default 5 mm."
       save_project: "Save project"
+      continue: "Continue"
 
   nesting_run:
     status:
@@ -188,9 +233,18 @@ en:
     renest_started: "Re-nesting started. Previous runs are kept in history."
     orphans_heading: "Pieces not placed"
     orphan_reason:
-      oversized_for_sheet: "Piece %{piece_number}: too large for any sheet in inventory"
-      no_sheet_capacity: "Piece %{piece_number}: fits a sheet size but no sheet was available"
-      unknown: "Piece %{piece_number}: could not be placed"
+      oversized_for_sheet: "Too large for any sheet in inventory"
+      no_sheet_capacity: "Fits a sheet size but no sheet was available"
+      unknown: "Could not be placed"
+    orphan_preview:
+      piece_title: "Piece %{piece_number}"
+      label: "Unplaced piece %{piece_number}"
+      dimensions: "%{width} × %{height} mm"
+      download_dxf: "Download DXF"
+    orphan_hint:
+      oversized_for_sheet: "Try a larger sheet or split the piece in the DXF."
+      no_sheet_capacity: "Add more sheets to inventory or re-nest."
+      unknown: "Review the DXF and sheet inventory, then re-nest."
 
   project_readiness:
     heading: "Cannot start nesting yet"
@@ -201,6 +255,7 @@ en:
     updated: "Layer selection saved."
     upload:
       created: "DXF files uploaded."
+      removed: "DXF file removed."
       missing: "Choose at least one DXF file."
       legend: "Upload DXF files"
       label: "DXF files"

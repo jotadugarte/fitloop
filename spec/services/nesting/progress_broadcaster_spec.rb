@@ -10,7 +10,9 @@ RSpec.describe Nesting::ProgressBroadcaster do
       allow(project).to receive(:processing?).and_return(false)
       allow(project).to receive(:broadcast_replace_to)
       preview = instance_double(Nesting::PreviewPresenter)
+      orphans = instance_double(Nesting::OrphansPresenter)
       allow(Nesting::PreviewPresenter).to receive(:for).with(project).and_return(preview)
+      allow(Nesting::OrphansPresenter).to receive(:for).with(project).and_return(orphans)
 
       described_class.call(project: project, eta_overrun: true, time_limit_notice: false)
 
@@ -20,7 +22,6 @@ RSpec.describe Nesting::ProgressBroadcaster do
         partial: "projects/nesting_progress",
         locals: hash_including(
           project: project,
-          orphans: an_instance_of(Nesting::OrphansPresenter),
           eta_overrun: true,
           time_limit_notice: false
         )
@@ -33,27 +34,52 @@ RSpec.describe Nesting::ProgressBroadcaster do
       )
       expect(project).to have_received(:broadcast_replace_to).with(
         project,
-        target: ActionView::RecordIdentifier.dom_id(project, :nesting_preview),
-        partial: "projects/nesting_preview",
-        locals: { project: project, preview: preview }
+        target: ActionView::RecordIdentifier.dom_id(project, :preview_zone),
+        partial: "projects/show_preview_zone",
+        locals: { project: project, preview: preview, orphans: orphans }
       )
     end
 
-    it "renders nesting progress with orphans when project is partial" do
+    it "renders preview zone with orphans when project is partial" do
       project.update!(status: :partial, progress_percent: 100, progress_message: "done")
       project.nesting_runs.create!(
         status: "partial",
         report_json: { "orphans" => [{ "piece_index" => 0, "reason" => "oversized_for_sheet" }] },
         finished_at: Time.current
       )
+      project.placements_json.attach(
+        io: StringIO.new(
+          {
+            sheets: [],
+            orphans: [
+              {
+                piece_index: 0,
+                reason: "oversized_for_sheet",
+                width_mm: 200.0,
+                height_mm: 100.0,
+                offset_x_mm: 0.0,
+                offset_y_mm: 0.0,
+                rings: [ [ [ 0.0, 0.0 ], [ 200.0, 0.0 ], [ 200.0, 100.0 ], [ 0.0, 100.0 ] ] ]
+              }
+            ]
+          }.to_json
+        ),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
       orphans = Nesting::OrphansPresenter.for(project)
 
+      preview = Nesting::PreviewPresenter.for(project)
+
       html = ApplicationController.render(
-        partial: "projects/nesting_progress",
-        locals: { project: project, orphans: orphans, eta_overrun: false, time_limit_notice: false }
+        partial: "projects/show_preview_zone",
+        locals: { project: project, preview: preview, orphans: orphans }
       )
 
       expect(html).to include('data-testid="nesting-orphans"')
+      expect(html).to include('data-testid="orphan-card"')
+      expect(html).to include('data-testid="orphan-preview-svg"')
+      expect(html).to include('data-testid="download-orphan-dxf"')
       expect(html).to match(/Pieza 1|Piece 1/)
     end
 

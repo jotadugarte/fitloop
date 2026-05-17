@@ -1,0 +1,79 @@
+<%= form_with model: project,
+              class: "project-form",
+              html: {
+                multipart: true,
+                data: {
+                  controller: "sheet-inventory",
+                  action: "submit->sheet-inventory#flushOnSubmit",
+                  sheet_inventory_summary_unlimited_value: t("projects.form.quantity_unlimited"),
+                  sheet_inventory_alert_dimensions_value: t("projects.form.alert_dimensions"),
+                  sheet_inventory_alert_quantity_value: t("projects.form.alert_quantity")
+                }
+              } do |f| %>
+  <% if project.errors.any? %>
+    <div class="form-errors" role="alert">
+      <h2><%= t("projects.form.errors_heading", count: project.errors.count) %></h2>
+      <ul>
+        <% project.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <% if flash[:alert].present? %>
+    <div class="form-errors" role="alert">
+      <p><%= flash[:alert] %></p>
+    </div>
+  <% end %>
+
+  <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {} %>
+
+  <details class="collapsible-panel panel panel--chrome fit-section project-setup__section">
+    <%= render "projects/fit_section_summary",
+               title: t("projects.form.nesting_settings_legend"),
+               meta: t("projects.show.nesting_parameters_meta",
+                       kerf: project.kerf_mm,
+                       margin: project.margin_mm) %>
+    <div class="collapsible-panel__body fit-section__content">
+      <div class="panel panel--inset">
+        <%= render "nesting_settings", form: f %>
+      </div>
+    </div>
+  </details>
+
+  <details class="collapsible-panel panel panel--chrome fit-section project-setup__section"
+           data-testid="setup-dxf-upload"
+           open>
+    <%= render "projects/fit_section_summary",
+               title: t("projects.form.dxf_upload_legend"),
+               meta: t("projects.show.dxf_files_meta", count: project.input_dxf_attachments.size) %>
+    <div class="collapsible-panel__body fit-section__content">
+      <div class="panel panel--inset project-dxf-upload"
+           data-controller="dxf-upload"
+           data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: "setup") %>"
+           data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
+        <div class="field">
+          <label for="setup_dxf_files">
+            <%= t("projects.form.dxf_upload_label") %>
+            <span class="field__hint"><%= t("projects.form.dxf_upload_setup_hint") %></span>
+          </label>
+          <%= file_field_tag "files[]",
+                multiple: true,
+                accept: ".dxf,application/dxf",
+                id: "setup_dxf_files",
+                data: {
+                  dxf_upload_target: "input",
+                  action: "change->dxf-upload#upload",
+                  testid: "project-dxf-files"
+                } %>
+        </div>
+        <%= render "dxf_files_layers", project: project, context: "setup" %>
+      </div>
+    </div>
+  </details>
+
+  <div class="form-actions">
+    <%= f.submit t("projects.form.continue"), class: "btn btn-primary", data: { testid: "setup-continue" } %>
+  </div>
+<% end %>

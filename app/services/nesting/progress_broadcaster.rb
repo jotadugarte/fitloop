@@ -18,7 +18,7 @@ module Nesting
       return if @project.processing?
 
       broadcast_show_actions!
-      broadcast_nesting_preview!
+      broadcast_preview_zone!
     end
 
     private
@@ -30,7 +30,6 @@ module Nesting
         partial: "projects/nesting_progress",
         locals: {
           project: @project,
-          orphans: OrphansPresenter.for(@project),
           eta_overrun: @eta_overrun,
           time_limit_notice: @time_limit_notice
         }
@@ -46,13 +45,14 @@ module Nesting
       )
     end
 
-    def broadcast_nesting_preview!
+    def broadcast_preview_zone!
       preview = PreviewPresenter.for(@project)
+      orphans = OrphansPresenter.for(@project)
       @project.broadcast_replace_to(
         @project,
-        target: ActionView::RecordIdentifier.dom_id(@project, :nesting_preview),
-        partial: "projects/nesting_preview",
-        locals: { project: @project, preview: preview }
+        target: ActionView::RecordIdentifier.dom_id(@project, :preview_zone),
+        partial: "projects/show_preview_zone",
+        locals: { project: @project, preview: preview, orphans: orphans }
       )
     end
   end

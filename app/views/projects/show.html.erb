@@ -8,31 +8,27 @@
   data-project-status="<%= @project.status %>"
 >
   <header class="page-header page-header--compact">
-    <h1><%= @project.title %></h1>
+    <h1><%= @project.ephemeral? ? t("projects.show.session_title") : @project.title %></h1>
     <%= render "status_badge", project: @project %>
   </header>
 
-  <section class="project-show__preview-zone">
-    <%= render "source_dxf_preview", project: @project, source_preview: @source_dxf_preview %>
-    <%= render "nesting_preview", project: @project, preview: @nesting_preview %>
-  </section>
+  <%= render "show_sheet_inventory", project: @project %>
+
+  <%= render "show_source_dxf_detail", project: @project %>
+
+  <%= render "show_preview_zone",
+             project: @project,
+             preview: @nesting_preview,
+             orphans: @nesting_orphans %>
 
   <%= render "show_actions", project: @project %>
 
   <section class="project-show__progress">
-    <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice, orphans: @nesting_orphans %>
+    <%= render "nesting_progress",
+               project: @project,
+               eta_overrun: false,
+               time_limit_notice: @time_limit_notice %>
   </section>
 
-  <section class="project-show__history">
-    <%= render "nesting_run_history", nesting_runs: @nesting_runs %>
-  </section>
-
-  <section class="project-show__links panel panel--subtle">
-    <h2 class="panel__title"><%= t("projects.show.manage_title") %></h2>
-    <ul class="link-list">
-      <li><%= link_to t("projects.show.layers"), project_layers_path(@project) %></li>
-      <li><%= link_to t("projects.show.edit"), edit_project_path(@project) %></li>
-      <li><%= link_to t("projects.show.back"), projects_path %></li>
-    </ul>
-  </section>
+  <%= render "nesting_parameters", project: @project %>
 </main>

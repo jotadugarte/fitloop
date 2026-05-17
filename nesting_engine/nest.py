@@ -14,7 +14,22 @@ from shapely.geometry import Polygon  # noqa: E402
 
 from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, SheetStockSpec, nest_multi_bin  # noqa: E402
-from nesting_engine.piece_loader import load_pieces  # noqa: E402
+from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
+
+
+def _piece_bounds_dict(polygon: Polygon, *, piece_index: int, extra: dict | None = None) -> dict:
+    minx, miny, maxx, maxy = polygon.bounds
+    payload = {
+        "piece_index": piece_index,
+        "width_mm": float(maxx - minx),
+        "height_mm": float(maxy - miny),
+        "offset_x_mm": float(minx),
+        "offset_y_mm": float(miny),
+        "rings": _polygon_rings(polygon),
+    }
+    if extra:
+        payload.update(extra)
+    return payload
 
 
 def _piece_placement_dict(placed: PlacedPiece) -> dict:
@@ -29,6 +44,14 @@ def _piece_placement_dict(placed: PlacedPiece) -> dict:
         "height_mm": float(maxy - miny),
         "rings": _polygon_rings(world),
     }
+
+
+def _orphan_piece_dict(orphan, polygon: Polygon) -> dict:
+    return _piece_bounds_dict(
+        polygon,
+        piece_index=orphan.piece_index,
+        extra={"reason": orphan.reason},
+    )
 
 
 def _placed_world_polygon(placed: PlacedPiece) -> Polygon:
@@ -60,12 +83,7 @@ def run_from_config(config: dict) -> MultiBinResult:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     warnings: list[str] = list(config.get("warnings") or [])
-    pieces = load_pieces(
-        config.get("input_dxf_paths", []),
-        config.get("included_layers", []),
-        curve_tolerance_mm=float(config.get("curve_tolerance_mm", 0.1)),
-        warnings=warnings,
-    )
+    pieces = load_pieces_from_config(config, warnings=warnings)
 
     stocks = [
         SheetStockSpec(
@@ -79,7 +97,12 @@ def run_from_config(config: dict) -> MultiBinResult:
 
     if not pieces:
         report = {"status": "failed", "orphans": [], "warnings": warnings + ["no_extractable_pieces"]}
-        _write_outputs(output_dir, MultiBinResult(sheets=[], orphans=[], warnings=warnings), report)
+        _write_outputs(
+            output_dir,
+            MultiBinResult(sheets=[], orphans=[], warnings=warnings),
+            report,
+            pieces=[],
+        )
         return MultiBinResult(sheets=[], orphans=[], warnings=warnings)
 
     result = nest_multi_bin(
@@ -102,11 +125,17 @@ def run_from_config(config: dict) -> MultiBinResult:
         "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
         "warnings": merged_warnings,
     }
-    _write_outputs(output_dir, result, report)
+    _write_outputs(output_dir, result, report, pieces=pieces)
     return result
 
 
-def _write_outputs(output_dir: Path, result: MultiBinResult, report: dict) -> None:
+def _write_outputs(
+    output_dir: Path,
+    result: MultiBinResult,
+    report: dict,
+    *,
+    pieces: list,
+) -> None:
     write_nested_dxf(output_dir / "nested.dxf", result.sheets)
     placements = {
         "sheets": [
@@ -120,7 +149,7 @@ def _write_outputs(output_dir: Path, result: MultiBinResult, report: dict) -> No
             }
             for sheet in result.sheets
         ],
-        "orphans": report.get("orphans", []),
+        "orphans": [_orphan_piece_dict(orphan, pieces[orphan.piece_index]) for orphan in result.orphans],
     }
     (output_dir / "placements.json").write_text(json.dumps(placements, indent=2), encoding="utf-8")
     (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

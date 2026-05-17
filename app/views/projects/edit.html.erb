@@ -1,4 +1,9 @@
-<main class="page page--wide">
-  <h1><%= t("projects.edit.title", title: @project.title) %></h1>
-  <%= render "form", project: @project %>
+<main class="page page--wide" data-testid="project-setup">
+  <% if @project.ephemeral? %>
+    <h1><%= t("projects.new.setup_title") %></h1>
+    <%= render "setup_form", project: @project %>
+  <% else %>
+    <h1><%= t("projects.edit.title", title: @project.title) %></h1>
+    <%= render "form", project: @project %>
+  <% end %>
 </main>

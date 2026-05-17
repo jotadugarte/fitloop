@@ -1,0 +1,17 @@
+<%# locals: (title:, meta: nil, hint: true) %>
+<summary class="collapsible-panel__summary fit-section__summary">
+  <span class="fit-section__legend">
+    <span class="collapsible-panel__chevron" aria-hidden="true"></span>
+    <span class="collapsible-panel__title"><%= title %></span>
+  </span>
+  <% if meta.present? || hint %>
+    <span class="collapsible-panel__trailing fit-section__summary-meta">
+      <% if meta.present? %>
+        <span class="collapsible-panel__meta"><%= meta %></span>
+      <% end %>
+      <% if hint %>
+        <span class="collapsible-panel__hint"><%= t("projects.show.collapsible_hint") %></span>
+      <% end %>
+    </span>
+  <% end %>
+</summary>

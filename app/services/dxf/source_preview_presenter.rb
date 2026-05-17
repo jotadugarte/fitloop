@@ -5,12 +5,13 @@ module Dxf
   class SourcePreviewPresenter
     Layer = Struct.new(:name, :color, :polylines, keyword_init: true)
 
-    def self.for(project)
-      new(project: project)
+    def self.for(project, attachment: nil)
+      new(project: project, attachment: attachment)
     end
 
-    def initialize(project:)
+    def initialize(project:, attachment: nil)
       @project = project
+      @attachment = attachment
       @data = load_data
     end
 
@@ -43,7 +44,11 @@ module Dxf
     end
 
     def included_layer_names
-      @included_layer_names ||= @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)
+      @included_layer_names ||= begin
+        scope = @project.project_layers.where(included: true)
+        scope = scope.where(active_storage_attachment_id: @attachment.id) if @attachment
+        scope.order(:layer_name).pluck(:layer_name)
+      end
     end
 
     private
@@ -81,7 +86,8 @@ module Dxf
 
     def with_downloaded_dxf_paths
       tempfiles = []
-      paths = @project.input_dxf_attachments.map do |attachment|
+      attachments = @attachment ? [ @attachment ] : @project.input_dxf_attachments.to_a
+      paths = attachments.map do |attachment|
         tempfile = Tempfile.new([ "fitloop_dxf_preview", ".dxf" ], Dir.tmpdir)
         tempfiles << tempfile
         tempfile.binmode

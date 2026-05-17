@@ -6,6 +6,11 @@ module ApplicationHelper
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)
   end
 
+  def nesting_mm_value(value)
+    formatted = number_with_precision(value, precision: 2, strip_insignificant_zeros: true)
+    t("projects.show.nesting_value_mm", value: formatted)
+  end
+
   def sheet_stock_quantity_label(stock)
     stock.quantity.present? ? stock.quantity.to_s : t("projects.form.quantity_unlimited")
   end
