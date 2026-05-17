@@ -26,7 +26,8 @@ RSpec.describe "I18n view copy", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("activerecord.attributes.project.title", locale: :es))
       expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.width_mm", locale: :es))
-      expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.unlimited_quantity", locale: :es))
+      expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.limited_quantity", locale: :es))
+      expect(response.body).to include(I18n.t("activerecord.attributes.project.pin", locale: :es))
       expect(response.body).not_to include(">Title<")
       expect(response.body).not_to include("Unlimited quantity")
     end

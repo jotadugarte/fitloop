@@ -2,7 +2,7 @@
 
 # [REQ-FIT-DOM-001] Ordered sheet type in project inventory (quantity nil = infinite).
 class SheetStock < ApplicationRecord
-  attr_accessor :unlimited_quantity
+  attr_accessor :limited_quantity
 
   belongs_to :project, inverse_of: :sheet_stocks
 

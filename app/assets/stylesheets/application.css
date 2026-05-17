@@ -677,16 +677,61 @@ h3 {
   border-color: var(--fit-alert-border);
 }
 
-.sheet-stock-card {
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  background: var(--fit-surface);
+.sheet-inventory {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.sheet-inventory__composer-fields {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sheet-inventory__composer .field--checkbox {
+  order: 0;
+}
+
+.sheet-inventory__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 12rem;
+}
+
+.sheet-stock-list-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  background: var(--fit-bg);
   border: 1px solid var(--fit-border);
 }
 
-.sheet-stock-row__fields {
-  display: grid;
-  gap: 0.75rem;
+.sheet-stock-list-item__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.sheet-stock-list-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.btn--small {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .sheet-inventory {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-actions {

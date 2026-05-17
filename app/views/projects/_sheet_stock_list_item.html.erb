@@ -1,0 +1,35 @@
+<%# Row in the sheet inventory list (right column); fields submitted via nested attributes. %>
+<% limited = sheet_form.object.quantity.present? %>
+<div
+  class="sheet-stock-list-item"
+  data-sheet-inventory-row
+  data-sheet-inventory-index="<%= sheet_form.index %>"
+  data-testid="sheet-stock-row"
+>
+  <p class="sheet-stock-list-item__summary" data-sheet-inventory-summary>
+    <%= sheet_stock_summary(sheet_form.object) %>
+  </p>
+  <div class="sheet-stock-list-item__actions">
+    <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-edit>
+      <%= t("projects.form.edit_sheet") %>
+    </button>
+    <button type="button" class="btn btn-secondary btn--small" data-sheet-inventory-remove>
+      <%= t("projects.form.delete_sheet") %>
+    </button>
+  </div>
+
+  <% if sheet_form.object.persisted? %>
+    <%= sheet_form.hidden_field :id, data: { sheet_inventory_field: "id" } %>
+  <% end %>
+  <%= sheet_form.hidden_field :sort_order, value: sheet_form.object.sort_order || sheet_form.index, data: { sheet_inventory_field: "sort_order" } %>
+  <%= sheet_form.hidden_field :width_mm, data: { sheet_inventory_field: "width_mm" } %>
+  <%= sheet_form.hidden_field :height_mm, data: { sheet_inventory_field: "height_mm" } %>
+  <%= sheet_form.hidden_field :quantity, data: { sheet_inventory_field: "quantity" } %>
+  <input
+    type="hidden"
+    name="project[sheet_stocks_attributes][<%= sheet_form.index %>][limited_quantity]"
+    value="<%= limited ? "1" : "0" %>"
+    data-sheet-inventory-field="limited_quantity"
+  >
+  <%= sheet_form.hidden_field :_destroy, value: "0", data: { sheet_inventory_field: "_destroy" } %>
+</div>

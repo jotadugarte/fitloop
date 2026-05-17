@@ -23,12 +23,12 @@ es:
     attributes:
       project:
         title: "Título"
-        pin: "PIN"
+        pin: "PIN (6 dígitos)"
       sheet_stock:
         width_mm: "Ancho (mm)"
         height_mm: "Alto (mm)"
         quantity: "Cantidad"
-        unlimited_quantity: "Cantidad ilimitada"
+        limited_quantity: "Cantidad limitada"
         sort_order: "Orden"
     errors:
       models:
@@ -38,6 +38,8 @@ es:
               invalid_format: "debe tener exactamente 6 dígitos"
             title:
               blank: "no puede estar en blanco"
+          base:
+            no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
         sheet_stock:
           attributes:
             width_mm:
@@ -108,7 +110,13 @@ es:
         one: "1 error impidió guardar"
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
-      add_sheet_type: "Añadir tipo de lámina"
+      add_sheet: "Agregar"
+      edit_sheet: "Editar"
+      delete_sheet: "Eliminar"
+      quantity_unlimited: "Ilimitada"
+      sheet_summary: "%{width} × %{height} mm × %{quantity}"
+      alert_dimensions: "Introduce un ancho y un alto válidos en milímetros."
+      alert_quantity: "Introduce una cantidad de al menos 1, o desmarca cantidad limitada para láminas ilimitadas."
       save_project: "Guardar proyecto"
 
   nesting:

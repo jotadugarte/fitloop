@@ -25,6 +25,7 @@ class Project < ApplicationRecord
 
   validates :title, presence: true
   validate :validate_pin_assignment
+  validate :must_have_sheet_stocks
 
   before_validation :digest_pin, if: :digestible_pin?
 
@@ -46,6 +47,12 @@ class Project < ApplicationRecord
 
   def digestible_pin?
     @pin.present? && self.class.valid_pin_format?(@pin)
+  end
+
+  def must_have_sheet_stocks
+    return if sheet_stocks.reject(&:marked_for_destruction?).any?
+
+    errors.add(:base, :no_sheet_stocks)
   end
 
   def validate_pin_assignment

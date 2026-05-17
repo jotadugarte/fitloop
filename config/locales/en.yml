@@ -52,12 +52,12 @@ en:
     attributes:
       project:
         title: "Title"
-        pin: "PIN"
+        pin: "PIN (6 digits)"
       sheet_stock:
         width_mm: "Width (mm)"
         height_mm: "Height (mm)"
         quantity: "Quantity"
-        unlimited_quantity: "Unlimited quantity"
+        limited_quantity: "Limited quantity"
         sort_order: "Order"
     errors:
       models:
@@ -67,6 +67,8 @@ en:
               invalid_format: "must be exactly 6 digits"
             title:
               blank: "can't be blank"
+          base:
+            no_sheet_stocks: "add at least one sheet type to the inventory"
         sheet_stock:
           attributes:
             width_mm:
@@ -137,7 +139,13 @@ en:
         one: "1 error prevented saving"
         other: "%{count} errors prevented saving"
       sheet_stocks_legend: "Sheet inventory"
-      add_sheet_type: "Add sheet type"
+      add_sheet: "Add"
+      edit_sheet: "Edit"
+      delete_sheet: "Delete"
+      quantity_unlimited: "Unlimited"
+      sheet_summary: "%{width} × %{height} mm × %{quantity}"
+      alert_dimensions: "Enter a valid width and height in millimeters."
+      alert_quantity: "Enter a quantity of at least 1, or uncheck limited quantity for unlimited sheets."
       save_project: "Save project"
 
   nesting:

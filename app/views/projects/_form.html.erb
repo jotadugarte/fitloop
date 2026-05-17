@@ -17,26 +17,14 @@
 
   <div class="field">
     <%= f.label :pin %>
-    <%= f.password_field :pin, required: true, maxlength: 6, autocomplete: "off" %>
+    <%= f.password_field :pin, required: project.new_record?, maxlength: 6, autocomplete: "off" %>
   </div>
 
-  <fieldset class="sheet-stocks">
-    <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
-
-    <div
-      class="sheet-stocks__list"
-      data-controller="sortable"
-      data-sortable-resource="sheet-stock"
-    >
-      <%= f.fields_for :sheet_stocks do |sheet_form| %>
-        <%= render "sheet_stock_fields", form: sheet_form %>
-      <% end %>
-    </div>
-
-    <%= f.button t("projects.form.add_sheet_type"), name: "add_sheet", value: "1", type: "submit", class: "btn btn-secondary" %>
-  </fieldset>
+  <%= render "sheet_inventory", form: f, project: project %>
 
   <div class="form-actions">
     <%= f.submit t("projects.form.save_project"), class: "btn btn-primary" %>
   </div>
 <% end %>
+
+<%= javascript_include_tag "sheet_inventory", defer: true, "data-turbo-track": "reload" %>
