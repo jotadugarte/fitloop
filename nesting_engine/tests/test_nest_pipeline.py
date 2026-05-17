@@ -285,3 +285,61 @@ def test_run_from_config_writes_outputs(tmp_path: Path) -> None:
     layers = {layer.dxf.name for layer in doc.layers}
     assert "SHEETS" in layers
     assert "PIECES" in layers
+
+
+def test_run_from_config_cli_json_contract_keys(tmp_path: Path) -> None:
+    # [REQ-FIT-NEST-002] Contract regression: stable JSON keys; invariants only (no golden x/y).
+    output_dir = tmp_path / "output"
+    config = {
+        "project_id": "99",
+        "input_dxf_paths": [str(FIXTURE)],
+        "included_layers": ["PIECES"],
+        "sheet_stocks": [
+            {"width_mm": 1000.0, "height_mm": 2000.0, "quantity": 1, "sort_order": 0}
+        ],
+        "kerf_mm": 0.0,
+        "margin_mm": 5.0,
+        "curve_tolerance_mm": 0.1,
+        "sheet_gap_mm": 15.0,
+        "time_limit_sec": 600,
+        "output_dir": str(output_dir),
+    }
+
+    run_from_config(config)
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert set(report.keys()) >= {"status", "orphans", "warnings"}
+    assert report["status"] in {"completed", "partial", "failed"}
+    assert isinstance(report["orphans"], list)
+    assert isinstance(report["warnings"], list)
+
+    assert set(placements.keys()) == {"sheets", "orphans"}
+    assert isinstance(placements["sheets"], list)
+    assert isinstance(placements["orphans"], list)
+
+    sheet = placements["sheets"][0]
+    assert set(sheet.keys()) >= {
+        "stock_sort_order",
+        "sheet_index",
+        "width_mm",
+        "height_mm",
+        "offset_x_mm",
+        "pieces",
+    }
+    assert sheet["pieces"], "expected at least one placed piece in contract fixture"
+    piece = sheet["pieces"][0]
+    assert set(piece.keys()) >= {
+        "piece_index",
+        "x_mm",
+        "y_mm",
+        "rotation_deg",
+        "width_mm",
+        "height_mm",
+        "rings",
+    }
+    assert isinstance(piece["rings"], list) and piece["rings"]
+    assert piece["width_mm"] > 0.0
+    assert piece["height_mm"] > 0.0
+    assert 0.0 <= piece["rotation_deg"] < 360.0
