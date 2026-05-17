@@ -26,7 +26,7 @@ from nesting_engine.nest_types import (
 )
 
 _BINDING_NAME = "python-libnest2d 0.1.3 (pynest2d)"
-_MAX_PIECES = 64
+_MAX_PIECES = 128
 _MIN_BIN_MM = 1.0
 _MIN_COORD_QUANTUM_MM = 1.0
 _ROTATION_STEPS_DEG = tuple(float(step) for step in range(0, 360, ROTATION_STEP_DEG))

@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
-    <current_step>3.1 — Failing test written (plan step 1); await approval to implement</current_step>
+    <current_step>3.1 — Failing obstacles tests written (plan step 3); await approval to implement</current_step>
   </execution_context>
 </agent_state>
