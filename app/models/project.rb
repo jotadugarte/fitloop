@@ -10,6 +10,7 @@ class Project < ApplicationRecord
   has_many :nesting_runs, dependent: :destroy, inverse_of: :project
   has_many_attached :input_dxf
   has_one_attached :nested_dxf
+  has_one_attached :placements_json
 
   enum :status, {
     draft: "draft",

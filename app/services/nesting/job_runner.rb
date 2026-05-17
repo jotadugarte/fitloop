@@ -73,7 +73,7 @@ module Nesting
         "warnings" => Array(report_warnings(work_dir)) + ["time_limit_reached"]
       )
       terminal_status = "partial"
-      attach_nested_if_present!(work_dir, terminal_status)
+      attach_outputs_if_present!(work_dir, terminal_status)
 
       @nesting_run.update!(status: terminal_status, report_json: report, finished_at: Time.current)
       @project.update!(
@@ -88,14 +88,25 @@ module Nesting
       )
     end
 
-    def attach_nested_if_present!(work_dir, terminal_status)
-      return unless StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
+    def attach_outputs_if_present!(work_dir, terminal_status)
+      return unless %w[completed partial].include?(terminal_status)
 
       nested_path = Pathname(work_dir).join("output", "nested.dxf")
-      @project.nested_dxf.attach(
-        io: File.open(nested_path),
-        filename: "nested.dxf",
-        content_type: "application/dxf"
+      if nested_path.file? && StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
+        @project.nested_dxf.attach(
+          io: File.open(nested_path),
+          filename: "nested.dxf",
+          content_type: "application/dxf"
+        )
+      end
+
+      placements_path = Pathname(work_dir).join("output", "placements.json")
+      return unless placements_path.file?
+
+      @project.placements_json.attach(
+        io: File.open(placements_path),
+        filename: "placements.json",
+        content_type: "application/json"
       )
     end
 

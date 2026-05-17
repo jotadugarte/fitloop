@@ -139,7 +139,7 @@
       <step id="15" status="complete">Write failing system spec: Turbo Stream progress updates (percent, message, ETA overrun text); 600s cap returns partial + notice; cancel job → implement broadcast + cancel.</step>
     </phase>
     <phase name="P4 — UX completion" goal="Preview, re-nest, polish">
-      <step id="16" status="pending">Write failing spec: SVG/canvas preview from placements.json matches sheet count → implement preview partial.</step>
+      <step id="16" status="complete">Write failing spec: SVG/canvas preview from placements.json matches sheet count → implement preview partial.</step>
       <step id="17" status="pending">Write failing spec: "Re-nest" creates new NestingRun, replaces downloadable result → implement button + history list.</step>
       <step id="18" status="pending">Write failing spec: download nested DXF; project list/history without login; PIN gate on show → polish Fitloop UI (en/es).</step>
       <step id="19" status="pending">End-to-end test with golden sample DXF + manual QA checklist; update ROADMAP; document deploy (Rails + Python venv on same host).</step>

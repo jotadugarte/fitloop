@@ -10,6 +10,7 @@
   <% end %>
 
   <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
+  <%= render "nesting_preview", preview: @nesting_preview %>
 
   <% active_run = @project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
   <% if active_run %>

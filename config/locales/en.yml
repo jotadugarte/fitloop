@@ -46,6 +46,11 @@ en:
       edit: "Edit"
       layers: "DXF layers"
       back: "All projects"
+    preview:
+      title: "Nesting preview"
+      sheet_count:
+        one: "1 sheet"
+        other: "%{count} sheets"
     form:
       errors_heading:
         one: "1 error prevented saving"

@@ -17,6 +17,11 @@ es:
       edit: "Editar"
       layers: "Capas DXF"
       back: "Todos los proyectos"
+    preview:
+      title: "Vista previa del anidado"
+      sheet_count:
+        one: "1 lámina"
+        other: "%{count} láminas"
     form:
       errors_heading:
         one: "1 error impidió guardar"

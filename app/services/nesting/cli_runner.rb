@@ -30,7 +30,7 @@ module Nesting
       exit_status = run_cli!(work_dir)
       report = load_report(work_dir)
       terminal_status = StatusMapper.map(exit_status: exit_status, report: report, work_dir: work_dir)
-      attach_nested_dxf!(work_dir) if StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
+      attach_outputs!(work_dir, terminal_status: terminal_status)
       finalize_run!(terminal_status: terminal_status, report: report)
 
       Result.new(exit_status: exit_status, work_dir: work_dir)
@@ -97,6 +97,17 @@ module Nesting
       exit_status
     end
 
+    def attach_outputs!(work_dir, terminal_status:)
+      attach_nested_dxf!(work_dir) if StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
+      attach_placements_json!(work_dir) if attach_placements?(terminal_status: terminal_status, work_dir: work_dir)
+    end
+
+    def attach_placements?(terminal_status:, work_dir:)
+      return false unless %w[completed partial].include?(terminal_status)
+
+      work_dir.join("output", "placements.json").file?
+    end
+
     def attach_nested_dxf!(work_dir)
       nested_path = work_dir.join("output", "nested.dxf")
       raise MissingOutputError, "nested.dxf not found" unless nested_path.file?
@@ -105,6 +116,17 @@ module Nesting
         io: File.open(nested_path),
         filename: "nested.dxf",
         content_type: "application/dxf"
+      )
+    end
+
+    def attach_placements_json!(work_dir)
+      placements_path = work_dir.join("output", "placements.json")
+      return unless placements_path.file?
+
+      @project.placements_json.attach(
+        io: File.open(placements_path),
+        filename: "placements.json",
+        content_type: "application/json"
       )
     end
 

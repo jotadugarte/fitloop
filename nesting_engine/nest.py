@@ -9,9 +9,24 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+from shapely.affinity import rotate  # noqa: E402
+
 from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
-from nesting_engine.nest_bin import MultiBinResult, SheetStockSpec, nest_multi_bin  # noqa: E402
+from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, SheetStockSpec, nest_multi_bin  # noqa: E402
 from nesting_engine.piece_loader import load_pieces  # noqa: E402
+
+
+def _piece_placement_dict(placed: PlacedPiece) -> dict:
+    rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
+    minx, miny, maxx, maxy = rotated.bounds
+    return {
+        "piece_index": placed.piece_index,
+        "x_mm": placed.placement.x,
+        "y_mm": placed.placement.y,
+        "rotation_deg": placed.placement.rotation_deg,
+        "width_mm": float(maxx - minx),
+        "height_mm": float(maxy - miny),
+    }
 
 
 def run_from_config(config: dict) -> MultiBinResult:
@@ -75,15 +90,7 @@ def _write_outputs(output_dir: Path, result: MultiBinResult, report: dict) -> No
                 "width_mm": sheet.width_mm,
                 "height_mm": sheet.height_mm,
                 "offset_x_mm": sheet.offset_x_mm,
-                "pieces": [
-                    {
-                        "piece_index": placed.piece_index,
-                        "x_mm": placed.placement.x,
-                        "y_mm": placed.placement.y,
-                        "rotation_deg": placed.placement.rotation_deg,
-                    }
-                    for placed in sheet.pieces
-                ],
+                "pieces": [_piece_placement_dict(placed) for placed in sheet.pieces],
             }
             for sheet in result.sheets
         ],
