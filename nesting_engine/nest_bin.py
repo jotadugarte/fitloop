@@ -91,7 +91,7 @@ def nest_multi_bin(
             sheets_used += 1
 
     orphans = [
-        OrphanPiece(piece_index=index, reason="no_fit")
+        OrphanPiece(piece_index=index, reason="oversized_for_sheet")
         for index in remaining_indices
     ]
     return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)

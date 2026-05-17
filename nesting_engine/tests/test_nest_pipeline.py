@@ -65,7 +65,7 @@ def test_oversized_piece_becomes_orphan() -> None:
 
     assert result.sheets == []
     assert len(result.orphans) == 1
-    assert result.orphans[0].reason == "no_fit"
+    assert result.orphans[0].reason == "oversized_for_sheet"
 
 
 def test_large_margin_prevents_placement() -> None:

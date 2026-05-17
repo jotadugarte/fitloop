@@ -27,9 +27,10 @@ module Nesting
       write_config!(work_dir, input_paths)
 
       exit_status = run_cli!(work_dir)
-      attach_nested_dxf!(work_dir) if exit_status.zero?
       report = load_report(work_dir)
-      finalize_run!(exit_status: exit_status, report: report)
+      terminal_status = StatusMapper.map(exit_status: exit_status, report: report, work_dir: work_dir)
+      attach_nested_dxf!(work_dir) if StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
+      finalize_run!(terminal_status: terminal_status, report: report)
 
       Result.new(exit_status: exit_status, work_dir: work_dir)
     end
@@ -98,23 +99,13 @@ module Nesting
       JSON.parse(report_path.read)
     end
 
-    def finalize_run!(exit_status:, report:)
-      terminal_status = map_terminal_status(exit_status: exit_status, report: report)
+    def finalize_run!(terminal_status:, report:)
       @nesting_run.update!(
         status: terminal_status,
         report_json: report,
         finished_at: Time.current
       )
       @project.update!(status: terminal_status)
-    end
-
-    def map_terminal_status(exit_status:, report:)
-      return "failed" unless exit_status.zero?
-
-      report_status = report["status"].to_s
-      return report_status if %w[completed partial failed].include?(report_status)
-
-      "failed"
     end
 
     class MissingOutputError < StandardError; end

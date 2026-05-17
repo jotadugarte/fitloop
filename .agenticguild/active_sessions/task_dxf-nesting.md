@@ -135,7 +135,7 @@
     <phase name="P3 — Nesting pipeline" goal="CLI bridge, job, outputs">
       <step id="12" status="complete">Define CLI contract JSON schema in `nesting_engine/README.md`. Write failing job spec: `NestingJob` writes config + invokes CLI mock → attaches `nested.dxf` → implement job + `Nesting::CliRunner`.</step>
       <step id="13" status="complete">Write failing Python tests: multi-bin nest (ordered SheetStock, ∞ creates new sheets), kerf/margin, outputs placements.json + report.json (orphans, warnings) → implement nest + DXF writer (sheet rectangles offset on X, gap 15mm).</step>
-      <step id="14" status="pending">Write failing spec: status completed vs partial vs failed from report; oversized piece → orphan in v1 → integrate real CLI.</step>
+      <step id="14" status="complete">Write failing spec: status completed vs partial vs failed from report; oversized piece → orphan in v1 → integrate real CLI.</step>
       <step id="15" status="pending">Write failing system spec: Turbo Stream progress updates (percent, message, ETA overrun text); 600s cap returns partial + notice; cancel job → implement broadcast + cancel.</step>
     </phase>
     <phase name="P4 — UX completion" goal="Preview, re-nest, polish">

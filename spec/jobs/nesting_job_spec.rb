@@ -25,7 +25,7 @@ RSpec.describe NestingJob, type: :job do
   end
 
   describe "#perform [REQ-FIT-CLI-001]" do
-    it "writes config.json, invokes the mock CLI, and attaches nested.dxf" do
+    it "writes config.json, invokes nest.py, and attaches nested.dxf" do
       described_class.perform_now(nesting_run.id)
 
       nesting_run.reload
