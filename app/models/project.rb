@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # [REQ-FIT-DOM-001] Nesting project with sheet inventory, layers, and job parameters.
+# [REQ-FIT-AUTH-001] User-chosen 6-digit PIN stored as bcrypt digest.
 class Project < ApplicationRecord
   has_many :sheet_stocks, -> { order(:sort_order) }, dependent: :destroy, inverse_of: :project
   has_many :project_layers, dependent: :destroy, inverse_of: :project
@@ -15,5 +16,39 @@ class Project < ApplicationRecord
     failed: "failed"
   }, default: :draft, validate: true
 
+  attr_reader :pin
+
   validates :title, presence: true
+  validate :validate_pin_assignment
+
+  before_validation :digest_pin, if: -> { @pin.present? }
+
+  def pin=(value)
+    @pin = value.to_s.presence
+  end
+
+  def authenticate_pin(candidate)
+    return false if pin_digest.blank? || candidate.blank?
+
+    BCrypt::Password.new(pin_digest) == candidate.to_s
+  end
+
+  def self.valid_pin_format?(value)
+    value.to_s.match?(/\A\d{6}\z/)
+  end
+
+  private
+
+  def validate_pin_assignment
+    return if @pin.blank?
+
+    return if self.class.valid_pin_format?(@pin)
+
+    errors.add(:pin, "must be exactly 6 digits")
+  end
+
+  def digest_pin
+    self.pin_digest = BCrypt::Password.create(@pin)
+    @pin = nil
+  end
 end
