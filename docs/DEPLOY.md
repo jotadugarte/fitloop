@@ -20,6 +20,53 @@ Rails and Python share the same filesystem so Active Storage blobs and temp work
 - PostgreSQL 14+
 - Python 3.10+ with `pip install -r requirements.txt` inside `.venv` at repo root
 
+## Native nesting dependencies (libnest2d)
+
+Production nesting uses **`python-libnest2d`** (imports `pynest2d`) per [ADR-0001](core/ADRs/0001-nesting-library.md). On **Linux x86_64**, pip installs a prebuilt wheel — no compiler required for the default path.
+
+### Ubuntu / Debian (apt)
+
+For **pip wheel install** (recommended):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y python3 python3-venv python3-pip
+```
+
+If you must **build from source** (no matching wheel), also install:
+
+```bash
+sudo apt-get install -y cmake build-essential libboost-dev
+```
+
+### Python venv (repo root)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+`requirements.txt` pins `python-libnest2d==0.1.3`.
+
+### Smoke check (host / CI parity)
+
+```bash
+.venv/bin/python -c "from pynest2d import Box, nest; print('pynest2d OK')"
+.venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; c = capabilities(); assert c.spike_only is False; print(c.library)"
+.venv/bin/pytest nesting_engine/ -q
+```
+
+Expected: `pynest2d OK`, library name containing `libnest2d`, and all `nesting_engine` tests passing.
+
+### Troubleshooting
+
+| Symptom | Check |
+|---------|--------|
+| `ModuleNotFoundError: pynest2d` | Re-run `pip install -r requirements.txt` inside `.venv` |
+| pip builds from source and fails | Install `cmake`, `build-essential`, `libboost-dev`; use Python 3.10–3.12 on x86_64 |
+| Nesting works locally but not in CI | Match Python version; run the smoke check and `pytest nesting_engine/` on the host |
+
 ## Environment
 
 Copy `.env.example` to `.env` and set:
@@ -76,10 +123,11 @@ If `bin/dev` says a server is already running, stop the old process (`Ctrl+C` or
 2. `bin/rails assets:precompile` (if using the asset pipeline).
 3. `bin/rails db:migrate` on the production database.
 4. Run **Solid Queue** alongside the web process (`bin/jobs` or your process manager).
-5. Confirm nesting from the host shell:
+5. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)):
 
    ```bash
-   .venv/bin/python nesting_engine/nest_bin.py --help
+   .venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; print(capabilities())"
+   .venv/bin/python nesting_engine/nest.py 2>&1 | head -1   # usage: nest.py CONFIG_JSON_PATH
    ```
 
 6. Active Storage: configure `config/storage.yml` for disk or cloud per environment.
