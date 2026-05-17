@@ -16,7 +16,11 @@ es:
     show:
       edit: "Editar"
       layers: "Capas DXF"
+      download_nested_dxf: "Descargar DXF anidado"
       back: "Todos los proyectos"
+    history:
+      title: "Historial de anidados"
+      finished: "finalizado %{time}"
     preview:
       title: "Vista previa del anidado"
       sheet_count:
@@ -45,6 +49,8 @@ es:
     progress_heading: "Progreso del anidado"
     eta_overrun: "Sigue en curso — está tardando más de lo estimado."
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
+    renest: "Volver a anidar"
+    renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"

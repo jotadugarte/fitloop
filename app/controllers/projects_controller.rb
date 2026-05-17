@@ -11,6 +11,7 @@ class ProjectsController < ApplicationController
   def show
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
+    @nesting_runs = @project.nesting_runs.order(created_at: :desc)
   end
 
   def new

@@ -51,7 +51,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 ### P4 — UX completion & ship
 
 16. [x] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — 2026-05-16
-17. [ ] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — Depends on: Preview
+17. [x] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — 2026-05-16
 18. [ ] **Locale switcher** (REQ-FIT-UI-005) — Depends on: Rails scaffold
 19. [ ] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — Depends on: Re-nest
 20. [ ] **Architecture-studio web design** (REQ-FIT-UI-004) — Depends on: Locale switcher

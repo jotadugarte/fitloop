@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 - Execution (Iterative TDD)</current_phase>
-    <current_step>3.2 — P4 step 16 (REQ-FIT-UI-002); verify preview specs green</current_step>
+    <current_step>3.2 — P4 step 17 (REQ-FIT-NEST-004); verify re-nest specs green</current_step>
   </execution_context>
 </agent_state>

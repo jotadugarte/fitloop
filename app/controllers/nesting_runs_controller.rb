@@ -19,7 +19,8 @@ class NestingRunsController < ApplicationController
       estimated_finished_at: Time.current + 30.seconds
     )
     NestingJob.perform_later(nesting_run.id)
-    redirect_to @project, notice: I18n.t("nesting.started")
+    notice = renest? ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
+    redirect_to @project, notice: notice
   end
 
   def cancel
@@ -32,5 +33,9 @@ class NestingRunsController < ApplicationController
 
   def set_project
     @project = Project.find(params[:project_id])
+  end
+
+  def renest?
+    @project.nested_dxf.attached? && (@project.completed? || @project.partial?)
   end
 end
