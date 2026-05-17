@@ -21,7 +21,7 @@ class Project < ApplicationRecord
   validates :title, presence: true
   validate :validate_pin_assignment
 
-  before_validation :digest_pin, if: -> { @pin.present? }
+  before_validation :digest_pin, if: :digestible_pin?
 
   def pin=(value)
     @pin = value.to_s.presence
@@ -38,6 +38,10 @@ class Project < ApplicationRecord
   end
 
   private
+
+  def digestible_pin?
+    @pin.present? && self.class.valid_pin_format?(@pin)
+  end
 
   def validate_pin_assignment
     return if @pin.blank?
