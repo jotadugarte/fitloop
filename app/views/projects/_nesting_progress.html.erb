@@ -1,0 +1,22 @@
+<%= turbo_frame_tag dom_id(project, :nesting_progress) do %>
+  <% if project.processing? %>
+    <section class="nesting-progress" data-testid="nesting-progress">
+      <h2><%= t("nesting.progress_heading") %></h2>
+      <progress value="<%= project.progress_percent.to_i %>" max="100"></progress>
+      <p data-testid="progress-message"><%= project.progress_message %></p>
+      <% if eta_overrun %>
+        <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
+      <% end %>
+      <% if time_limit_notice %>
+        <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
+      <% end %>
+    </section>
+  <% elsif project.completed? || project.partial? %>
+    <section class="nesting-result" data-testid="nesting-result">
+      <p data-testid="progress-message"><%= project.progress_message %></p>
+      <% if time_limit_notice %>
+        <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
+      <% end %>
+    </section>
+  <% end %>
+<% end %>

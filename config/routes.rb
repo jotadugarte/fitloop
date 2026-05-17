@@ -14,5 +14,10 @@ Rails.application.routes.draw do
   resources :projects, except: :destroy do
     resources :layers, only: %i[index update], controller: "project_layers"
     resources :input_dxf_files, only: :create, controller: "project_input_dxf_files"
+    resources :nesting_runs, only: :create do
+      member do
+        post :cancel
+      end
+    end
   end
 end

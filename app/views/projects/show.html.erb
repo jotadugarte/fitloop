@@ -1,6 +1,20 @@
+<%= turbo_stream_from @project %>
+
 <main class="page">
   <h1><%= @project.title %></h1>
   <p><%= link_to t("projects.show.edit"), edit_project_path(@project) %></p>
   <p><%= link_to t("projects.show.layers"), project_layers_path(@project) %></p>
+
+  <% if @project.draft? || @project.ready? || @project.completed? || @project.partial? || @project.failed? %>
+    <%= button_to t("nesting.start"), project_nesting_runs_path(@project), method: :post, data: { testid: "start-nesting" } %>
+  <% end %>
+
+  <%= render "nesting_progress", project: @project, eta_overrun: false, time_limit_notice: @time_limit_notice %>
+
+  <% active_run = @project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
+  <% if active_run %>
+    <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(@project, active_run), method: :post, data: { testid: "cancel-nesting" } %>
+  <% end %>
+
   <p><%= link_to t("projects.show.back"), projects_path %></p>
 </main>

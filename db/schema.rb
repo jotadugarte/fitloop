@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_024303) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -43,6 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_024303) do
   end
 
   create_table "nesting_runs", force: :cascade do |t|
+    t.datetime "cancel_requested_at"
     t.datetime "created_at", null: false
     t.datetime "finished_at"
     t.jsonb "params_snapshot", default: {}, null: false
@@ -67,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_024303) do
   create_table "projects", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.float "curve_tolerance_mm", default: 0.1, null: false
+    t.datetime "estimated_finished_at"
     t.float "kerf_mm", default: 0.0, null: false
     t.float "margin_mm", default: 5.0, null: false
     t.integer "nesting_time_limit_sec", default: 600, null: false

@@ -54,6 +54,22 @@ en:
       add_sheet_type: "Add sheet type"
       save_project: "Save project"
 
+  nesting:
+    start: "Start nesting"
+    cancel: "Cancel job"
+    started: "Nesting job started."
+    cancelling: "Cancellation requested."
+    cancelled: "Nesting cancelled."
+    queued: "Queued…"
+    preparing: "Preparing files…"
+    running: "Running nesting engine…"
+    completed: "Nesting completed."
+    partial: "Nesting finished with orphans."
+    failed: "Nesting failed."
+    progress_heading: "Nesting progress"
+    eta_overrun: "Still working — this is taking longer than estimated."
+    time_limit_notice: "Time limit reached. Showing the best result so far."
+
   project_readiness:
     heading: "Cannot start nesting yet"
     no_layers_selected: "Select at least one layer to include in nesting."

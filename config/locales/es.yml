@@ -25,6 +25,22 @@ es:
       add_sheet_type: "Añadir tipo de lámina"
       save_project: "Guardar proyecto"
 
+  nesting:
+    start: "Iniciar anidado"
+    cancel: "Cancelar trabajo"
+    started: "Trabajo de anidado iniciado."
+    cancelling: "Cancelación solicitada."
+    cancelled: "Anidado cancelado."
+    queued: "En cola…"
+    preparing: "Preparando archivos…"
+    running: "Ejecutando motor de anidado…"
+    completed: "Anidado completado."
+    partial: "Anidado terminado con huérfanos."
+    failed: "Anidado fallido."
+    progress_heading: "Progreso del anidado"
+    eta_overrun: "Sigue en curso — está tardando más de lo estimado."
+    time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
+
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"
     no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."

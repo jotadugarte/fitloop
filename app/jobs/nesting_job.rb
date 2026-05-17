@@ -6,9 +6,8 @@ class NestingJob < ApplicationJob
 
   def perform(nesting_run_id)
     nesting_run = NestingRun.find(nesting_run_id)
-    nesting_run.project.update!(status: :processing)
     nesting_run.update!(status: "processing", started_at: Time.current)
 
-    Nesting::CliRunner.call(nesting_run: nesting_run)
+    Nesting::JobRunner.call(nesting_run: nesting_run)
   end
 end

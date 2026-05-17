@@ -11,14 +11,15 @@ module Nesting
 
     Result = Struct.new(:exit_status, :work_dir, keyword_init: true)
 
-    def self.call(nesting_run:, invoke: nil)
-      new(nesting_run: nesting_run, invoke: invoke).call
+    def self.call(nesting_run:, invoke: nil, cancel_check: nil)
+      new(nesting_run: nesting_run, invoke: invoke, cancel_check: cancel_check).call
     end
 
-    def initialize(nesting_run:, invoke: nil)
+    def initialize(nesting_run:, invoke: nil, cancel_check: nil)
       @nesting_run = nesting_run
       @project = nesting_run.project
       @invoke = invoke
+      @cancel_check = cancel_check
     end
 
     def call
@@ -68,17 +69,32 @@ module Nesting
 
     def run_cli!(work_dir)
       config_path = work_dir.join("config.json")
-      if @invoke
-        return @invoke.call(work_dir, config_path)
+      raise CancelledError if @cancel_check&.call
+
+      return @invoke.call(work_dir, config_path) if @invoke
+
+      env = Dxf::Python.subprocess_env
+      command = [Dxf::Python.executable, DEFAULT_SCRIPT.to_s, config_path.to_s]
+      exit_status = nil
+
+      Open3.popen3(env, *command) do |_stdin, _stdout, _stderr, wait_thr|
+        pid = wait_thr.pid
+        loop do
+          raise CancelledError if @cancel_check&.call
+
+          if wait_thr.join(0.2)
+            exit_status = wait_thr.value.exitstatus
+            break
+          end
+
+          next unless @cancel_check&.call
+
+          Process.kill("TERM", pid)
+          raise CancelledError
+        end
       end
 
-      _stdout, _stderr, status = Open3.capture3(
-        Dxf::Python.subprocess_env,
-        Dxf::Python.executable,
-        DEFAULT_SCRIPT.to_s,
-        config_path.to_s
-      )
-      status.exitstatus
+      exit_status
     end
 
     def attach_nested_dxf!(work_dir)
