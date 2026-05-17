@@ -130,7 +130,7 @@
     <phase name="P2 — Inputs" goal="DXF upload &amp; layer discovery">
       <step id="9" status="complete">Write failing spec: attach multiple DXF via Active Storage; union layer names endpoint/view → implement direct upload + layer checklist (i18n).</step>
       <step id="10" status="complete">Write failing spec: pre-flight rejects zero layers selected / zero pieces (i18n errors) → implement `ProjectReadinessValidator` calling Python extract dry-run or Ruby layer scan.</step>
-      <step id="11" status="pending">Write failing Python tests: INSERT on selected layer (no explode), nested blocks depth≤8, missing block → report warning; tessellation tolerance 0.1mm → implement extractor.</step>
+      <step id="11" status="complete">Write failing Python tests: INSERT on selected layer (no explode), nested blocks depth≤8, missing block → report warning; tessellation tolerance 0.1mm → implement extractor.</step>
     </phase>
     <phase name="P3 — Nesting pipeline" goal="CLI bridge, job, outputs">
       <step id="12" status="pending">Define CLI contract JSON schema in `nesting_engine/README.md`. Write failing job spec: `NestingJob` writes config + invokes CLI mock → attaches `nested.dxf` → implement job + `Nesting::CliRunner`.</step>
