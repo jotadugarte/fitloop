@@ -21,9 +21,10 @@
   --fit-alert-border: #c45c5c;
   --fit-alert-text: #8b2e2e;
   --fit-cad-bg: #1a2332;
-  --fit-cad-sheet: #4a5568;
-  --fit-cad-piece-fill: #7eb8da;
-  --fit-cad-piece-stroke: #a8c5e2;
+  --fit-cad-sheet-fill: #f4f7fb;
+  --fit-cad-sheet-border: #1e3a5f;
+  --fit-cad-piece-fill: #9ec5e8;
+  --fit-cad-piece-stroke: #2a4d7a;
   --fit-sidebar-w: 4rem;
   --fit-bottom-nav-h: 3.75rem;
   --fit-content-max: 72rem;
@@ -541,25 +542,75 @@ h3 {
   height: 100%;
 }
 
-.preview-thumbnail--cad .nesting-preview__sheet {
-  fill: none;
-  stroke: var(--fit-cad-sheet);
-  stroke-width: 1;
+.preview-thumbnail--cad .nesting-preview__sheet-fill {
+  fill: var(--fit-cad-sheet-fill);
+}
+
+.preview-thumbnail--cad .nesting-preview__sheet-border {
+  stroke: var(--fit-cad-sheet-border);
+  stroke-width: 1.5px;
 }
 
 .preview-thumbnail--cad .nesting-preview__piece {
   fill: var(--fit-cad-piece-fill);
-  fill-opacity: 0.35;
+  fill-opacity: 0.45;
   stroke: var(--fit-cad-piece-stroke);
-  stroke-width: 0.5;
+  stroke-width: 1px;
 }
 
-.nesting-preview-panel h2 {
+.nesting-preview-panel h2,
+.source-dxf-preview-panel h2 {
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fit-text-muted);
+}
+
+.source-dxf-preview-panel {
+  margin-bottom: 1rem;
+}
+
+.source-dxf-preview-panel p {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--fit-text-muted);
+}
+
+.source-dxf-preview--cad {
+  padding: 0.75rem;
+  background: #000000;
+  border: 1px solid #1a1a1a;
+}
+
+.source-dxf-preview__svg {
+  display: block;
+  width: 100%;
+  max-height: 22rem;
+}
+
+.source-dxf-preview--cad .source-dxf-preview__path {
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.source-dxf-preview--empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  background: var(--fit-surface);
+  border: 1px solid var(--fit-border);
+}
+
+.source-dxf-preview--empty .preview-placeholder--cad {
+  max-width: 16rem;
+  margin: 0 auto 0.75rem;
+}
+
+.source-dxf-preview--empty p {
+  margin: 0;
+  color: var(--fit-text-muted);
+  font-size: 0.875rem;
 }
 
 .nesting-preview--cad {
@@ -574,17 +625,28 @@ h3 {
   max-height: 28rem;
 }
 
-.nesting-preview--cad .nesting-preview__sheet {
-  fill: none;
-  stroke: var(--fit-cad-sheet);
-  stroke-width: 1;
+.nesting-preview--cad .nesting-preview__sheet-fill {
+  fill: var(--fit-cad-sheet-fill);
+}
+
+.nesting-preview--cad .nesting-preview__sheet-border {
+  stroke: var(--fit-cad-sheet-border);
+  paint-order: stroke fill;
 }
 
 .nesting-preview--cad .nesting-preview__piece {
   fill: var(--fit-cad-piece-fill);
-  fill-opacity: 0.4;
+  fill-opacity: 0.5;
   stroke: var(--fit-cad-piece-stroke);
-  stroke-width: 0.5;
+  stroke-width: 1.25px;
+}
+
+.nesting-preview--cad .nesting-preview__sheet-size {
+  fill: #b8c9dc;
+  font-family: var(--fit-font);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .nesting-preview--empty {

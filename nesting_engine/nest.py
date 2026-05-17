@@ -9,7 +9,8 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from shapely.affinity import rotate  # noqa: E402
+from shapely.affinity import rotate, translate  # noqa: E402
+from shapely.geometry import Polygon  # noqa: E402
 
 from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, SheetStockSpec, nest_multi_bin  # noqa: E402
@@ -17,16 +18,41 @@ from nesting_engine.piece_loader import load_pieces  # noqa: E402
 
 
 def _piece_placement_dict(placed: PlacedPiece) -> dict:
-    rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
-    minx, miny, maxx, maxy = rotated.bounds
+    world = _placed_world_polygon(placed)
+    minx, miny, maxx, maxy = world.bounds
     return {
         "piece_index": placed.piece_index,
-        "x_mm": float(minx + placed.placement.x),
-        "y_mm": float(miny + placed.placement.y),
+        "x_mm": float(minx),
+        "y_mm": float(miny),
         "rotation_deg": placed.placement.rotation_deg,
         "width_mm": float(maxx - minx),
         "height_mm": float(maxy - miny),
+        "rings": _polygon_rings(world),
     }
+
+
+def _placed_world_polygon(placed: PlacedPiece) -> Polygon:
+    rotated = rotate(placed.polygon, placed.placement.rotation_deg, origin="centroid")
+    return translate(rotated, xoff=placed.placement.x, yoff=placed.placement.y)
+
+
+def _polygon_rings(polygon: Polygon, *, simplify_tolerance_mm: float = 0.5) -> list[list[list[float]]]:
+    geometry = polygon
+    if simplify_tolerance_mm > 0 and len(polygon.exterior.coords) > 120:
+        simplified = polygon.simplify(simplify_tolerance_mm, preserve_topology=True)
+        if isinstance(simplified, Polygon) and not simplified.is_empty:
+            geometry = simplified
+
+    rings: list[list[list[float]]] = [_ring_coords(geometry.exterior)]
+    rings.extend(_ring_coords(interior) for interior in geometry.interiors)
+    return rings
+
+
+def _ring_coords(linear_ring) -> list[list[float]]:
+    return [
+        [round(float(x), 3), round(float(y), 3)]
+        for x, y in linear_ring.coords[:-1]
+    ]
 
 
 def run_from_config(config: dict) -> MultiBinResult:

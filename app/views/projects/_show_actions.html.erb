@@ -7,14 +7,14 @@
                     rails_blob_path(project.nested_dxf, disposition: "attachment"),
                     class: "btn btn-primary",
                     data: { turbo: false, testid: "download-nested-dxf" } %>
-        <%= button_to t("nesting.renest"), project_nesting_runs_path(project), method: :post, class: "btn btn-secondary", data: { testid: "renest-nesting" } %>
+        <%= button_to t("nesting.renest"), project_nesting_runs_path(project), method: :post, class: "btn btn-secondary", data: { turbo: false, testid: "renest-nesting" } %>
       <% elsif project.draft? || project.ready? || project.failed? %>
-        <%= button_to t("nesting.start"), project_nesting_runs_path(project), method: :post, class: "btn btn-primary", data: { testid: "start-nesting" } %>
+        <%= button_to t("nesting.start"), project_nesting_runs_path(project), method: :post, class: "btn btn-primary", data: { turbo: false, testid: "start-nesting" } %>
       <% end %>
 
       <% active_run = project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
       <% if active_run %>
-        <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(project, active_run), method: :post, class: "btn btn-secondary", data: { testid: "cancel-nesting" } %>
+        <%= button_to t("nesting.cancel"), cancel_project_nesting_run_path(project, active_run), method: :post, class: "btn btn-secondary", data: { turbo: false, testid: "cancel-nesting" } %>
       <% end %>
     </div>
   </section>

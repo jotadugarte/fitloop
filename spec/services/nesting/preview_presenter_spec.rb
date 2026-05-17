@@ -17,6 +17,7 @@ RSpec.describe Nesting::PreviewPresenter do
 
       expect(presenter.available?).to be(true)
       expect(presenter.sheet_count).to eq(2)
+      expect(presenter.view_height).to eq(50 + described_class::SHEET_LABEL_BAND_MM)
     end
   end
 end

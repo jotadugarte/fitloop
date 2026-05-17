@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 import ezdxf
-from shapely.geometry import box
+from shapely.geometry import Polygon, box
 
 from nesting_engine.nest import _piece_placement_dict, run_from_config
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
@@ -103,6 +103,7 @@ def test_placements_json_uses_sheet_local_bounds() -> None:
 
     assert placement["x_mm"] >= margin - 0.01
     assert placement["y_mm"] >= margin - 0.01
+    assert len(placement["rings"]) >= 1
     assert placement["x_mm"] <= margin + 50.0
     assert placement["y_mm"] <= margin + 50.0
 
@@ -116,6 +117,18 @@ def test_large_margin_prevents_placement() -> None:
 
     assert fits.orphans == []
     assert len(tight.orphans) == 1
+
+
+def test_placement_dict_includes_hole_rings_for_washer() -> None:
+    outer = box(0, 0, 100, 100)
+    inner = box(30, 30, 70, 70)
+    washer = Polygon(outer.exterior.coords, [list(inner.exterior.coords)])
+    stocks = [SheetStockSpec(width_mm=200.0, height_mm=200.0, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin([washer], stocks, margin_mm=0.0, kerf_mm=0.0, sheet_gap_mm=0.0)
+    placement = _piece_placement_dict(result.sheets[0].pieces[0])
+
+    assert len(placement["rings"]) == 2
 
 
 def test_run_from_config_writes_outputs(tmp_path: Path) -> None:

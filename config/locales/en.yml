@@ -129,12 +129,19 @@ en:
     history:
       title: "Nesting history"
       finished: "finished %{time}"
+    source_preview:
+      title: "Original DXF (selected layers)"
+      empty: "Select layers for nesting and upload a DXF to see the original drawing here."
+      layer_count:
+        one: "1 visible layer"
+        other: "%{count} visible layers"
     preview:
       title: "Nesting preview"
       empty: "No nesting preview yet. Run nesting to see placements here."
       sheet_count:
         one: "1 sheet"
         other: "%{count} sheets"
+      sheet_dimensions: "Sheet %{index}: %{width} × %{height} mm"
     form:
       errors_heading:
         one: "1 error prevented saving"

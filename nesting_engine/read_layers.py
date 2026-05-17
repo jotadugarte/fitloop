@@ -28,7 +28,7 @@ def layer_catalog_from_file(path: Path) -> dict[str, str]:
             name = entity.dxf.layer
             if name in catalog:
                 continue
-            layer = doc.layers.get(name)
+            layer = doc.layers.get(name) if name in doc.layers else None
             catalog[name] = layer_color_hex(layer) if layer is not None else "#808080"
     return catalog
 

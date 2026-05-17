@@ -3,10 +3,9 @@
 <main
   class="page page--wide project-show"
   data-testid="project-show"
-  <% if @project.processing? %>
-    data-controller="nesting-progress-sync"
-    data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
-  <% end %>
+  data-controller="nesting-progress-sync"
+  data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
+  data-project-status="<%= @project.status %>"
 >
   <header class="page-header page-header--compact">
     <h1><%= @project.title %></h1>
@@ -14,6 +13,7 @@
   </header>
 
   <section class="project-show__preview-zone">
+    <%= render "source_dxf_preview", project: @project, source_preview: @source_dxf_preview %>
     <%= render "nesting_preview", project: @project, preview: @nesting_preview %>
   </section>
 

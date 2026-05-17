@@ -144,12 +144,19 @@ es:
     history:
       title: "Historial de anidados"
       finished: "finalizado %{time}"
+    source_preview:
+      title: "DXF original (capas seleccionadas)"
+      empty: "Selecciona capas para anidar y sube un DXF para ver el archivo original aquí."
+      layer_count:
+        one: "1 capa visible"
+        other: "%{count} capas visibles"
     preview:
       title: "Vista previa del anidado"
       empty: "Aún no hay vista previa. Ejecuta un anidado para ver las colocaciones aquí."
       sheet_count:
         one: "1 lámina"
         other: "%{count} láminas"
+      sheet_dimensions: "Lámina %{index}: %{width} × %{height} mm"
     form:
       errors_heading:
         one: "1 error impidió guardar"

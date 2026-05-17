@@ -1,18 +1,42 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Polls nesting UI when the job finished before the Turbo stream subscription connected.
+// Keeps nesting UI in sync when Turbo Streams are missed (fast jobs, late WebSocket connect).
 export default class extends Controller {
   static values = {
     url: String
   }
 
   connect() {
-    this.poll()
-    this.timer = window.setInterval(() => this.poll(), 2000)
+    this.runSyncLoop()
   }
 
   disconnect() {
-    if (this.timer) window.clearInterval(this.timer)
+    this.clearTimers()
+  }
+
+  runSyncLoop() {
+    this.poll()
+    if (!this.shouldKeepPolling()) return
+
+    this.intervalId = window.setInterval(() => this.poll(), 1500)
+    this.burstIds = [400, 900, 2000, 3500].map((delay) =>
+      window.setTimeout(() => this.poll(), delay)
+    )
+  }
+
+  shouldKeepPolling() {
+    return document.querySelector('[data-testid="nesting-progress"]') !== null
+  }
+
+  clearTimers() {
+    if (this.intervalId) {
+      window.clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+    if (this.burstIds) {
+      this.burstIds.forEach((id) => window.clearTimeout(id))
+      this.burstIds = null
+    }
   }
 
   async poll() {
@@ -26,8 +50,6 @@ export default class extends Controller {
     const message = await response.text()
     if (message.trim()) window.Turbo.renderStreamMessage(message)
 
-    if (document.querySelector('[data-testid="nesting-result"]')) {
-      window.clearInterval(this.timer)
-    }
+    if (!this.shouldKeepPolling()) this.clearTimers()
   }
 }
