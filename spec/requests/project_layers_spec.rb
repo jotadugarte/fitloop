@@ -8,7 +8,7 @@ RSpec.describe "Project layers", type: :request do
 
   describe "GET /projects/:project_id/layers [REQ-FIT-DXF-001]" do
     it "shows a layer checklist built from union of uploaded DXF layer names" do
-      grant_project_access!(project, pin: "445566")
+      unlock_project_for_spec!(project, pin: "445566")
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -26,7 +26,7 @@ RSpec.describe "Project layers", type: :request do
 
   describe "POST /projects/:project_id/input_dxf_files [REQ-FIT-DXF-001]" do
     it "accepts multiple DXF uploads in one request" do
-      grant_project_access!(project, pin: "445566")
+      unlock_project_for_spec!(project, pin: "445566")
 
       post project_input_dxf_files_path(project), params: {
         files: [

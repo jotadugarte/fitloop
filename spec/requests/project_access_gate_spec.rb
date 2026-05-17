@@ -50,7 +50,7 @@ RSpec.describe "Project PIN access", type: :request do
         filename: "nested.dxf",
         content_type: "application/dxf"
       )
-      grant_project_access!(project, pin: "556688")
+      unlock_project_for_spec!(project, pin: "556688")
 
       get project_path(project)
 

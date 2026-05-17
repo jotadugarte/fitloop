@@ -15,6 +15,8 @@ Dir[Rails.root.join("spec/support/**/*.rb")].sort.each { |f| require f }
 
 RSpec.configure do |config|
   config.include ActionDispatch::TestProcess::FixtureFile
+  config.include ProjectAccessHelper, type: :request
+  config.include ProjectAccessHelper, type: :system
 
   config.use_transactional_fixtures = true
   config.infer_spec_type_from_file_location!
