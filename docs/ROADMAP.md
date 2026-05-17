@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** libnest2d production nest (ADR-0001); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -87,6 +87,10 @@ _(none)_
 
 ## Pending (by priority)
 
+### Nesting engine
+
+- [ ] **libnest2d integration** — Replace Shapely rotation-sweep in `nesting_engine/nest.py` with libnest2d/pynest2d per ADR-0001 (REQ-FIT-NEST-001); document cmake/Boost/native deps in `docs/DEPLOY.md`
+
 ### Documentation
 
 _(complete)_
@@ -97,8 +101,6 @@ _(complete)_
 
 - [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
-- [ ] Additional locales beyond `en` / `es`
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
-- [ ] PIN recovery flow for users (out of scope v1)
 
 <!-- Reference: full decision log and step-level TDD plan in .agenticguild/active_sessions/task_dxf-nesting.md -->

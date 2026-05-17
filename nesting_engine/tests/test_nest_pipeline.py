@@ -66,6 +66,58 @@ def test_multiple_pieces_pack_on_one_sheet() -> None:
     assert result.orphans == []
 
 
+def test_margin_applies_at_sheet_edge_not_between_pieces() -> None:
+    from nesting_engine.nest_spike import placed_polygon
+
+    pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
+    stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=0)]
+    margin = 5.0
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert result.orphans == []
+    placed = sorted(
+        result.sheets[0].pieces,
+        key=lambda row: row.placement.x + row.placement.y,
+    )
+    first = placed_polygon(pieces[placed[0].piece_index], placed[0].placement)
+    second = placed_polygon(pieces[placed[1].piece_index], placed[1].placement)
+
+    assert first.bounds[0] == pytest.approx(margin, abs=0.05)
+    assert first.bounds[1] == pytest.approx(margin, abs=0.05)
+    assert second.bounds[0] == pytest.approx(margin + 10.0, abs=0.05)
+
+
+def test_kerf_keeps_minimum_gap_between_pieces() -> None:
+    from nesting_engine.nest_spike import placed_polygon
+
+    kerf = 4.0
+    pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
+    stocks = [SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=kerf,
+        sheet_gap_mm=0.0,
+    )
+
+    assert result.orphans == []
+    polys = [
+        placed_polygon(pieces[row.piece_index], row.placement)
+        for row in result.sheets[0].pieces
+    ]
+    gap = polys[0].distance(polys[1])
+    assert gap == pytest.approx(kerf, abs=0.2)
+
+
 def test_unlimited_stock_opens_extra_sheets_when_full() -> None:
     pieces = [box(0, 0, 15, 15) for _ in range(3)]
     stocks = [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)]
