@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 - Execution (Iterative TDD)</current_phase>
-    <current_step>3.2 — P2 step 11 (REQ-FIT-EXT-002); verify Python specs green</current_step>
+    <current_step>3.2 — P3 step 12 (REQ-FIT-CLI-001); verify job specs green</current_step>
   </execution_context>
 </agent_state>

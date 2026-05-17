@@ -9,6 +9,7 @@ class Project < ApplicationRecord
   has_many :project_layers, dependent: :destroy, inverse_of: :project
   has_many :nesting_runs, dependent: :destroy, inverse_of: :project
   has_many_attached :input_dxf
+  has_one_attached :nested_dxf
 
   enum :status, {
     draft: "draft",
