@@ -119,7 +119,7 @@
       <step id="1" status="complete">Write failing spec: `docs/core/SYSTEM_ARCHITECTURE.md` lists Rails 8 + Hotwire + PostgreSQL + Solid Queue and forbids nesting math in Ruby (test via audit script or docs lint if present; else checklist in session).</step>
       <step id="2" status="complete">Populate `docs/core/SPEC.md` with REQ-FIT-001..00N covering project PIN, sheet inventory, layer filter, nesting statuses (completed|partial|failed), CLI contract.</step>
       <step id="3" status="complete">Scaffold Rails 8 app in repo root: PostgreSQL, Hotwire, Active Storage, Solid Queue, i18n (en, es). Write failing request spec for Fitloop home → make pass.</step>
-      <step id="4" status="pending">Add `nesting_engine/` Python package + `requirements.txt` + pytest. Write failing test: read sample DXF fixture → extract ≥1 closed contour on selected layer → make pass (ezdxf + Shapely).</step>
+      <step id="4" status="complete">Add `nesting_engine/` Python package + `requirements.txt` + pytest. Write failing test: read sample DXF fixture → extract ≥1 closed contour on selected layer → make pass (ezdxf + Shapely).</step>
       <step id="5" status="pending">Spike: libnest2d (or fallback) with hole + rotation; record ADR `docs/core/ADRs/0001-nesting-library.md` with chosen lib and limits.</step>
     </phase>
     <phase name="P1 — Domain &amp; access" goal="Projects, stocks, PIN">

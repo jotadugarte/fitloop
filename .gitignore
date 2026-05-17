@@ -6,6 +6,11 @@
 .env.local
 
 /vendor/bundle/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
