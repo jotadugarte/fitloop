@@ -1,0 +1,113 @@
+# Files in the config/locales directory are used for internationalization and
+# are automatically loaded by Rails. If you want to use locales other than
+# English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t "hello"
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t("hello") %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more about the API, please read the Rails Internationalization guide
+# at https://guides.rubyonrails.org/i18n.html.
+#
+# Be aware that YAML interprets the following case-insensitive strings as
+# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
+# must be quoted to be interpreted as strings. For example:
+#
+#     en:
+#       "yes": yup
+#       enabled: "ON"
+
+en:
+  home:
+    index:
+      tagline: "DXF sheet nesting"
+
+  projects:
+    created: "Project created."
+    updated: "Project updated."
+    index:
+      title: "Projects"
+      tagline: "Open a project with your PIN to manage DXF nesting."
+      new: "New project"
+    access:
+      prompt: "Enter the project PIN to continue."
+      pin_label: "Project PIN"
+      unlock: "Unlock project"
+      granted: "Access granted."
+      denied: "Incorrect PIN. Try again."
+      back_to_list: "Back to all projects"
+    new:
+      title: "New project"
+    edit:
+      title: "Edit %{title}"
+    show:
+      edit: "Edit"
+      layers: "DXF layers"
+      download_nested_dxf: "Download nested DXF"
+      back: "All projects"
+    history:
+      title: "Nesting history"
+      finished: "finished %{time}"
+    preview:
+      title: "Nesting preview"
+      sheet_count:
+        one: "1 sheet"
+        other: "%{count} sheets"
+    form:
+      errors_heading:
+        one: "1 error prevented saving"
+        other: "%{count} errors prevented saving"
+      sheet_stocks_legend: "Sheet inventory"
+      add_sheet_type: "Add sheet type"
+      save_project: "Save project"
+
+  nesting:
+    start: "Start nesting"
+    cancel: "Cancel job"
+    started: "Nesting job started."
+    cancelling: "Cancellation requested."
+    cancelled: "Nesting cancelled."
+    queued: "Queued…"
+    preparing: "Preparing files…"
+    running: "Running nesting engine…"
+    completed: "Nesting completed."
+    partial: "Nesting finished with orphans."
+    failed: "Nesting failed."
+    progress_heading: "Nesting progress"
+    eta_overrun: "Still working — this is taking longer than estimated."
+    time_limit_notice: "Time limit reached. Showing the best result so far."
+    renest: "Re-nest"
+    renest_started: "Re-nesting started. Previous runs are kept in history."
+
+  project_readiness:
+    heading: "Cannot start nesting yet"
+    no_layers_selected: "Select at least one layer to include in nesting."
+    no_extractable_pieces: "No closed contours were found on the selected layers."
+
+  project_layers:
+    updated: "Layer selection saved."
+    upload:
+      created: "DXF files uploaded."
+      missing: "Choose at least one DXF file."
+      legend: "Upload DXF files"
+      label: "DXF files"
+      submit: "Upload"
+    index:
+      title: "Layers — %{title}"
+      back: "Back to project"
+      legend: "Include layers in nesting"
+      save: "Save layer selection"
+      empty: "Upload DXF files to discover layers."
+      files_attached:
+        one: "1 DXF file attached"
+        other: "%{count} DXF files attached"

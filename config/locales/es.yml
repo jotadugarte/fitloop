@@ -1,0 +1,84 @@
+es:
+  home:
+    index:
+      tagline: "Anidado de láminas DXF"
+
+  projects:
+    created: "Proyecto creado."
+    updated: "Proyecto actualizado."
+    index:
+      title: "Proyectos"
+      tagline: "Abre un proyecto con tu PIN para gestionar el anidado DXF."
+      new: "Nuevo proyecto"
+    access:
+      prompt: "Introduce el PIN del proyecto para continuar."
+      pin_label: "PIN del proyecto"
+      unlock: "Desbloquear proyecto"
+      granted: "Acceso concedido."
+      denied: "PIN incorrecto. Inténtalo de nuevo."
+      back_to_list: "Volver a todos los proyectos"
+    new:
+      title: "Nuevo proyecto"
+    edit:
+      title: "Editar %{title}"
+    show:
+      edit: "Editar"
+      layers: "Capas DXF"
+      download_nested_dxf: "Descargar DXF anidado"
+      back: "Todos los proyectos"
+    history:
+      title: "Historial de anidados"
+      finished: "finalizado %{time}"
+    preview:
+      title: "Vista previa del anidado"
+      sheet_count:
+        one: "1 lámina"
+        other: "%{count} láminas"
+    form:
+      errors_heading:
+        one: "1 error impidió guardar"
+        other: "%{count} errores impidieron guardar"
+      sheet_stocks_legend: "Inventario de láminas"
+      add_sheet_type: "Añadir tipo de lámina"
+      save_project: "Guardar proyecto"
+
+  nesting:
+    start: "Iniciar anidado"
+    cancel: "Cancelar trabajo"
+    started: "Trabajo de anidado iniciado."
+    cancelling: "Cancelación solicitada."
+    cancelled: "Anidado cancelado."
+    queued: "En cola…"
+    preparing: "Preparando archivos…"
+    running: "Ejecutando motor de anidado…"
+    completed: "Anidado completado."
+    partial: "Anidado terminado con huérfanos."
+    failed: "Anidado fallido."
+    progress_heading: "Progreso del anidado"
+    eta_overrun: "Sigue en curso — está tardando más de lo estimado."
+    time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
+    renest: "Volver a anidar"
+    renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
+
+  project_readiness:
+    heading: "Aún no se puede iniciar el anidado"
+    no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."
+    no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
+
+  project_layers:
+    updated: "Selección de capas guardada."
+    upload:
+      created: "Archivos DXF subidos."
+      missing: "Elige al menos un archivo DXF."
+      legend: "Subir archivos DXF"
+      label: "Archivos DXF"
+      submit: "Subir"
+    index:
+      title: "Capas — %{title}"
+      back: "Volver al proyecto"
+      legend: "Incluir capas en el anidado"
+      save: "Guardar selección de capas"
+      empty: "Sube archivos DXF para descubrir capas."
+      files_attached:
+        one: "1 archivo DXF adjunto"
+        other: "%{count} archivos DXF adjuntos"

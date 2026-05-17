@@ -1,24 +1,72 @@
-# System Architecture & Boundaries
+# System Architecture & Boundaries — Fitloop
 
-**Purpose:** This document defines the unchangeable technical laws of the project. AI agents are strictly forbidden from proposing or implementing solutions that violate these boundaries unless an explicit Architectural Decision Record (ADR) is approved.
+**Purpose:** Unchangeable technical laws for the Fitloop DXF sheet-nesting web app. AI agents must not violate these boundaries without an approved ADR in `docs/core/ADRs/`.
 
-## 1. The Technology Stack
-* **Language/Runtime:** [e.g., TypeScript 5.x / Ruby 3.x]
-* **Core Framework:** [e.g., Expo React Native / Ruby on Rails 8]
-* **Primary Database:** [e.g., SQLite via Drizzle ORM / PostgreSQL]
-* **Styling/UI Engine:** [e.g., Tamagui / CSS Variables & BEM]
+**Product:** Fitloop — multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, PIN access, Python nesting engine, live job progress, nested DXF download + browser preview. Brand assets live under `images/` (app logo).
+
+---
+
+## 1. Technology Stack
+
+| Layer | Choice | Notes |
+|-------|--------|--------|
+| **Language / runtime** | Ruby 3.x (Rails), Python 3.x (nesting) | Units: millimeters everywhere |
+| **Core framework** | **Rails 8** | Monolith at repo root |
+| **UI / realtime** | **Hotwire** (Turbo Drive/Frames/Streams + Stimulus) | Progress via Turbo Streams during nesting jobs |
+| **Primary database** | **PostgreSQL** | Project persistence, job metadata |
+| **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
+| **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
+| **i18n** | Rails I18n | `en`, `es` in v1 |
+| **Nesting engine** | Python package `nesting_engine/` | ezdxf, Shapely; libnest2d (or ADR fallback) after spike |
+| **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
+
+Rails owns HTTP, auth (PIN), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
+
+---
 
 ## 2. Architectural Paradigm
-* **Design Pattern:** [e.g., Local-First Offline Sync / Service-Object Backend]
-* **State Management:** [e.g., React Query for Server State, Zustand for UI State]
-* **API Paradigm:** [e.g., RESTful JSON / GraphQL]
 
-## 3. The "Kill List" (Forbidden Patterns)
-*AI Agents MUST NOT use or suggest the following under any circumstances:*
-* 🚫 **[Forbidden Tech 1]:** [e.g., Tailwind CSS - Use Tamagui tokens instead]
-* 🚫 **[Forbidden Tech 2]:** [e.g., Redux - Use React Query]
-* 🚫 **[Forbidden Pattern]:** [e.g., Fat Controllers - All business logic must be in Service Objects]
+* **Design pattern:** Rails MVC + **service objects** for domain workflows (`ProjectAccess`, `ProjectReadinessValidator`, `Nesting::CliRunner`). No fat controllers.
+* **State:** Server-rendered HTML; Turbo for partial updates and job progress. No separate SPA framework in v1.
+* **API:** Server-rendered routes + Turbo Streams; no public REST API in v1.
+* **Nesting integration:** ActiveJob → Solid Queue → subprocess/CLI to `nesting_engine` → attach results + broadcast status (`completed` | `partial` | `failed`).
+
+---
+
+## 3. Kill List (Forbidden Patterns)
+
+AI agents **must not** introduce the following without an ADR:
+
+* 🚫 **Nesting math in Ruby:** polygon clipping, placement, rotation search, or libnest2d bindings in Rails. **Rails does not perform nesting math** — only orchestration and I/O.
+* 🚫 **Sidekiq / Redis job backend in v1:** use **Solid Queue** only unless ADR changes queue adapter.
+* 🚫 **JavaScript SPA frameworks** (React/Vue/Angular app shell) for core UI in v1.
+* 🚫 **Exploding INSERT entities to loose geometry** for piece count (v1): one INSERT on selected layer = one piece; nested blocks resolved to depth 8 in Python.
+* 🚫 **Python owning persistence:** no SQLAlchemy/ORM project DB in the engine; Rails is system of record.
+* 🚫 **Tailwind / CSS-in-JS** unless explicitly adopted later via ADR (default: Rails/CSS following app conventions).
+
+---
 
 ## 4. Environment & Infrastructure
-* **Deployment Target:** [e.g., iOS/Android App Stores / Kamal to Bare Metal]
-* **Secrets Management:** [e.g., Expo SecureStore / Rails Credentials]
+
+* **Deployment target:** Single host (or container) with Rails + PostgreSQL + Python venv for `nesting_engine` on the same machine (v1).
+* **Secrets:** Rails encrypted credentials — e.g. admin master PIN (10 digits); user project PINs stored as bcrypt digests on `Project`.
+* **Storage:** Active Storage (disk or cloud per env) for DXF inputs and nested output.
+
+---
+
+## 5. Repository Layout (normative)
+
+```
+fitloop/                 # Rails 8 app (root)
+  app/                   # MVC, jobs, services
+  nesting_engine/        # Python package (extract, nest, CLI)
+  docs/core/             # SPEC, ADRs, this file
+  images/                # Fitloop logo and static brand assets
+  test/                  # Minitest/RSpec (see TESTING_STRATEGY_MATRIX.md)
+```
+
+---
+
+## 6. Traceability
+
+Stack and boundary requirements are tracked in `docs/core/SPEC.md` as `REQ-FIT-ARCH-*` and verified by `test/architecture/system_architecture_doc_test.rb` (`[REQ-FIT-ARCH-001]`).

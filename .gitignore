@@ -1,5 +1,5 @@
 # agentic:guild Transient Memory
-
+.agenticguild/*
 !.agenticguild/.gitkeep
 
 # Python virtual environments
@@ -7,16 +7,18 @@
 venv/
 env/
 
-# Python bytecode
+# Python bytecode & test cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+.pytest_cache/
 
 # Environment variables
 .env
 .env.*
+.env.local
 
 # Rails
 /log/*
@@ -26,15 +28,25 @@ __pycache__/
 /tmp/pids/*
 !/tmp/pids/
 !/tmp/pids/.keep
+/tmp/storage/*
+!/tmp/storage/
+!/tmp/storage/.keep
 /storage/*
 !/storage/.keep
 /public/assets
 .byebug_history
+
+# Credentials & keys
 /config/master.key
 /config/credentials/*.key
+/config/*.key
 
 # Bundler
 /vendor/bundle
+/vendor/bundle/
+
+# RSpec
+/spec/examples.txt
 
 # OS / editor
 .DS_Store
