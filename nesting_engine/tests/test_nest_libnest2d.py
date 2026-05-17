@@ -55,6 +55,29 @@ def test_nest_sheet_uses_non_zero_rotation_when_required() -> None:
     _assert_all_fit_bin([piece], placements, bin_width_mm=50.0, bin_height_mm=100.0, margin_mm=0.0, kerf_mm=0.0)
 
 
+def test_nest_sheet_accepts_up_to_128_pieces() -> None:
+    # [REQ-FIT-NEST-002] Full-sheet epic: batch up to 128 polygons per nest_sheet call.
+    pieces = [box(0, 0, 5, 5) for _ in range(128)]
+
+    placements = nest_sheet(
+        pieces,
+        bin_width_mm=2000.0,
+        bin_height_mm=2000.0,
+        margin_mm=1.0,
+        kerf_mm=0.0,
+    )
+
+    assert len(placements) == 128
+    _assert_all_fit_bin(
+        pieces,
+        placements,
+        bin_width_mm=2000.0,
+        bin_height_mm=2000.0,
+        margin_mm=1.0,
+        kerf_mm=0.0,
+    )
+
+
 def test_nest_sheet_places_two_mm_square_after_integer_quantization() -> None:
     # libnest2d Item uses integer mm vertices; 2 mm features remain stable above 1 mm quantum.
     piece = box(0, 0, 2, 2)
