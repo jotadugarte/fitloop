@@ -39,7 +39,7 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 ### Negative consequences
 
 - **Build complexity:** Prebuilt `python-libnest2d` wheels on Linux x86_64; source builds may need `cmake`, Boost — see `docs/DEPLOY.md`.
-- **Hybrid placement:** Obstacle/margin edge cases still use Shapely sweep in `nest_placement.py`; full libnest2d obstacle parity is future work.
+- **Hybrid placement:** Obstacle/margin edge cases still use Shapely sweep in `nest_placement.py` (scores placements by **largest continuous free area** first, layout footprint second — see SPEC REQ-FIT-NEST-002); full libnest2d obstacle parity is future work.
 - **Fallback:** If libnest2d regresses in production, open ADR-0002 before changing architecture.
 
 ## Limits (spike vs production — 2026-05-17)

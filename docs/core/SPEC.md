@@ -141,7 +141,8 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **`margin_mm` (sheet edge):** Applied only as inset from the usable bin rectangle (`nest_spike._fits_bin`, anchor candidates). Does **not** add extra gap between adjacent pieces on the same sheet.
 - **`kerf_mm` (piece-to-piece):** Applied in `nest_bin._apply_kerf` as a symmetric buffer on each piece polygon before placement; obstacle geometry uses the buffered shape so placed pieces maintain at least `kerf_mm` clearance.
 - **Outputs:** `nested.dxf`, `placements.json`, `report.json` per CLI contract; `sheet_gap_mm` offsets sheet rectangles in the combined output DXF (orthogonal to margin/kerf).
-- **v1 engine:** P0 spike uses Shapely rotation sweep in `nest_spike.py` (footprint + free-area scoring, compaction toward origin). Production libnest2d integration is tracked separately (ADR-0001, roadmap).
+- **Placement scoring (`nest_placement.py`):** Among valid placements, the engine **maximizes the largest continuous free area** (mm²) inside the usable sheet (`sheet.difference(occupied ∪ placed)`); **layout footprint** (bounding box of all pieces on the sheet) is the **secondary** tie-breaker, then bottom-left preference. Rotation candidates use `ROTATION_STEP_DEG` (default 5°). Compaction slides pieces toward the origin without overlaps.
+- **v1 engine:** Per-piece placement uses Shapely (`nest_placement.py`); single-bin batch path uses libnest2d (`nest_libnest2d.nest_sheet`). Full-sheet libnest2d with kerf/obstacles is future work (ADR-0001).
 
 ### REQ-FIT-NEST-003 (detail)
 

@@ -12,7 +12,6 @@ ROTATION_STEP_DEG = 5
 _MAX_ROTATION_STEPS = 360 // ROTATION_STEP_DEG
 _COMPACT_STEP_MM = 2.0
 _MAX_COMPACT_STEPS = 200
-_FREE_AREA_POLYGON_LIMIT = 10
 _EPS_MM = 1e-6
 
 
@@ -44,7 +43,6 @@ def place_with_rotation(
 
     best: Placement | None = None
     best_score: tuple[float, float, float, float, float] | None = None
-    best_footprint = float("inf")
 
     for step in range(_MAX_ROTATION_STEPS):
         angle = float(step * ROTATION_STEP_DEG)
@@ -58,13 +56,11 @@ def place_with_rotation(
             base_x_candidates=base_x_candidates,
             base_y_candidates=base_y_candidates,
             occupied_union=occupied_union,
-            best_footprint=best_footprint,
         )
         if candidate is None:
             continue
-        placement, score, footprint = candidate
+        placement, score, _footprint = candidate
         if best_score is None or score < best_score:
-            best_footprint = footprint
             best = placement
             best_score = score
 
@@ -82,7 +78,6 @@ def _best_placement_for_angle(
     base_x_candidates: set[float],
     base_y_candidates: set[float],
     occupied_union: Polygon | None,
-    best_footprint: float,
 ) -> tuple[Placement, tuple[float, float, float, float, float], float] | None:
     rotated = rotate(piece, angle, origin="centroid")
     minx, miny, maxx, maxy = rotated.bounds
@@ -97,7 +92,7 @@ def _best_placement_for_angle(
 
     best: Placement | None = None
     best_score: tuple[float, float, float, float, float] | None = None
-    angle_best_footprint = best_footprint
+    best_footprint = 0.0
 
     for y_anchor in sorted(y_candidates):
         for x_anchor in sorted(x_candidates):
@@ -113,19 +108,18 @@ def _best_placement_for_angle(
                 margin=margin,
                 occupied=occupied,
                 occupied_union=occupied_union,
-                footprint_cap=angle_best_footprint,
             )
             if trial is None:
                 continue
             placement, score, footprint = trial
             if best_score is None or score < best_score:
-                angle_best_footprint = footprint
                 best = placement
                 best_score = score
+                best_footprint = footprint
 
     if best is None or best_score is None:
         return None
-    return best, best_score, angle_best_footprint
+    return best, best_score, best_footprint
 
 
 def _try_anchor_placement(
@@ -141,7 +135,6 @@ def _try_anchor_placement(
     margin: float,
     occupied: list[Polygon],
     occupied_union: Polygon | None,
-    footprint_cap: float,
 ) -> tuple[Placement, tuple[float, float, float, float, float], float] | None:
     dx = x_anchor - minx
     dy = y_anchor - miny
@@ -161,8 +154,6 @@ def _try_anchor_placement(
 
     _lminx, _lminy, layout_maxx, layout_maxy = _layout_bounds(compacted, occupied)
     footprint = (layout_maxx - margin) * (layout_maxy - margin)
-    if footprint > footprint_cap + _EPS_MM:
-        return None
 
     score = _placement_score(
         compacted,
@@ -173,7 +164,6 @@ def _try_anchor_placement(
         layout_maxx=layout_maxx,
         layout_maxy=layout_maxy,
         occupied_union=occupied_union,
-        obstacle_count=len(occupied) + 1,
     )
     cminx, cminy, _, _ = compacted.bounds
     placement = Placement(cminx - minx, cminy - miny, angle)
@@ -237,7 +227,6 @@ def _placement_score(
     layout_maxx: float,
     layout_maxy: float,
     occupied_union: Polygon | None,
-    obstacle_count: int,
 ) -> tuple[float, float, float, float, float]:
     free_area = _largest_continuous_free_area(
         bin_width,
@@ -247,10 +236,9 @@ def _placement_score(
         layout_maxy,
         placed,
         occupied_union,
-        obstacle_count,
     )
     minx, miny, _, _ = placed.bounds
-    return (footprint, -free_area, layout_maxy, miny, minx)
+    return (-free_area, footprint, layout_maxy, miny, minx)
 
 
 def _layout_bounds(placed: Polygon, occupied: list[Polygon]) -> tuple[float, float, float, float]:
@@ -272,10 +260,9 @@ def _largest_continuous_free_area(
     layout_maxy: float,
     placed: Polygon,
     occupied_union: Polygon | None,
-    obstacle_count: int,
 ) -> float:
     strip_free = _free_strip_area_estimate(bin_width, bin_height, margin, layout_maxx, layout_maxy)
-    if obstacle_count > _FREE_AREA_POLYGON_LIMIT or occupied_union is None:
+    if occupied_union is None:
         return strip_free
 
     sheet = box(margin, margin, bin_width - margin, bin_height - margin)
