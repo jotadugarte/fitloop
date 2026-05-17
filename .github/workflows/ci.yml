@@ -65,3 +65,29 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+  nesting_engine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install nesting engine dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Smoke check pynest2d / libnest2d
+        run: |
+          python -c "from pynest2d import Box, nest; print('pynest2d OK')"
+          python -c "from nesting_engine.nest_libnest2d import capabilities; c = capabilities(); assert c.spike_only is False; assert 'libnest2d' in c.library.lower()"
+
+      - name: Run nesting_engine pytest suite
+        run: pytest nesting_engine/ -q
+
