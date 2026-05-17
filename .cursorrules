@@ -71,6 +71,10 @@
       1. When editing `nesting_engine/`, tag new pytest cases with the appropriate `[REQ-FIT-NEST-*]` (or related REQ) from `docs/core/SPEC.md`.
       2. Do not conflate `margin_mm` and `kerf_mm`: margin is sheet-edge inset only (`nest_placement`); kerf is piece-to-piece gap via `nest_types.apply_kerf`. See `docs/core/SYSTEM_ARCHITECTURE.md` §7 and `REQ-FIT-NEST-002`.
       3. Nesting placement logic stays in Python; Rails orchestrates CLI only (`docs/core/SYSTEM_ARCHITECTURE.md` kill list).
+      4. Shared multi-bin types (`SheetStockSpec`, `MultiBinResult`, etc.) and `apply_kerf` live in `nest_types.py`. Do not create import cycles between `nest_bin` and `nest_libnest2d`; `nest_bin` delegates via a lazy import inside `nest_multi_bin` only.
+      5. Hybrid nesting engine: obstacle-aware per-piece placement belongs in `nest_placement.py`; single-bin libnest2d batch placement belongs in `nest_libnest2d.nest_sheet`. Do not reintroduce placement sweeps in `nest_spike.py` (compat re-exports only).
+      6. Nesting tests assert invariants (fit inside bin, kerf clearance, JSON/report keys, orphan reasons)—not golden x/y coordinates.
+      7. `pynest2d` receives integer-mm vertices; geometry with features smaller than ~1 mm may collapse after quantization—add a regression test when supporting very small pieces.
     </rules>
   </project_rules>
 </agentic_guild_os>
