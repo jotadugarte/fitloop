@@ -11,6 +11,8 @@ class NestingRunsController < ApplicationController
       return
     end
 
+    renesting = renest?
+
     nesting_run = @project.nesting_runs.create!(status: "processing", params_snapshot: {})
     @project.update!(
       status: :processing,
@@ -19,7 +21,7 @@ class NestingRunsController < ApplicationController
       estimated_finished_at: Time.current + 30.seconds
     )
     NestingJob.perform_later(nesting_run.id)
-    notice = renest? ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
+    notice = renesting ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
     redirect_to @project, notice: notice
   end
 
