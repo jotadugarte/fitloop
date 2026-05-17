@@ -14,6 +14,7 @@ module Dxf
       return 0 if paths.blank? || layer_names.blank?
 
       output, status = Open3.capture2(
+        Python.subprocess_env,
         Python.executable,
         SCRIPT.to_s,
         layer_names.to_json,

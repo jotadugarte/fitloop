@@ -9,5 +9,9 @@ module Dxf
 
       "python3"
     end
+
+    def self.subprocess_env
+      { "PYTHONPATH" => Rails.root.to_s }
+    end
   end
 end

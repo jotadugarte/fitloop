@@ -6,7 +6,11 @@ import json
 import sys
 from pathlib import Path
 
-from nesting_engine.extract import extract_closed_contours
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from nesting_engine.extract import extract_closed_contours  # noqa: E402
 
 
 def count_extractable_pieces(dxf_paths: list[Path], layer_names: list[str]) -> int:
