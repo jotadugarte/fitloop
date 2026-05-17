@@ -142,7 +142,7 @@
       <step id="16" status="complete">Write failing spec: SVG/canvas preview from placements.json matches sheet count → implement preview partial.</step>
       <step id="17" status="complete">Write failing spec: "Re-nest" creates new NestingRun, replaces downloadable result → implement button + history list.</step>
       <step id="18" status="complete">Write failing spec: download nested DXF; project list/history without login; PIN gate on show → polish Fitloop UI (en/es).</step>
-      <step id="19" status="pending">End-to-end test with golden sample DXF + manual QA checklist; update ROADMAP; document deploy (Rails + Python venv on same host).</step>
+      <step id="19" status="complete">End-to-end test with golden sample DXF + manual QA checklist; update ROADMAP; document deploy (Rails + Python venv on same host).</step>
     </phase>
     <phase name="P5 — v1.1 (deferred)" goal="Auto-split">
       <step id="20" status="pending">ADR + failing tests for curved polygon split planner; preview UI; apply splits then nest — out of v1 scope until v1 ships.</step>

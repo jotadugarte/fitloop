@@ -4,7 +4,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Next action:** Run `start-task` on **P2 — DXF inputs** (step 9: multi-DXF upload + layer checklist).
+**Next action:** Run `finish-branch` to open a PR for MVP v1, or pick backlog (locale switcher, architecture-studio design).
 
 ---
 
@@ -31,7 +31,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 ## In Progress
 
-- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P3 — Nesting pipeline** (steps 12–15)
+- [ ] **Fitloop MVP v1 — DXF sheet nesting** — Branch: `exploring-task` — Session: `task_dxf-nesting.md` — **P4 — UX completion** (ship checklist)
 
 ## Pending (by priority)
 
@@ -55,7 +55,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 18. [ ] **Locale switcher** (REQ-FIT-UI-005) — Depends on: Rails scaffold
 19. [x] Download nested DXF; project list without login; PIN gate on show; Fitloop UI polish (`en`/`es`) (REQ-FIT-UI-003) — 2026-05-16
 20. [ ] **Architecture-studio web design** (REQ-FIT-UI-004) — Depends on: Locale switcher
-21. [ ] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — Depends on: UI polish + architecture-studio design
+21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
 
 ### Documentation (parallel)
 
