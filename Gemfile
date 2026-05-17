@@ -40,6 +40,7 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  gem "capybara"
   gem "dotenv-rails", "~> 3.1"
   gem "minitest", "~> 5.25"
   gem "rspec-rails", "~> 7.1"
