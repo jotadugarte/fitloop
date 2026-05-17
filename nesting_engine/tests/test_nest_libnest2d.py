@@ -1,8 +1,13 @@
 # [REQ-FIT-NEST-001] Production capabilities; [REQ-FIT-NEST-002] nest_sheet + nest_multi_bin.
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from shapely.geometry import Polygon, box
+
+from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import capabilities, nest_multi_bin, nest_sheet
@@ -175,3 +180,41 @@ def test_libnest2d_finite_stock_then_next_sort_order() -> None:
     assert len(result.sheets) == 1
     assert result.sheets[0].stock_sort_order == 1
     assert result.orphans == []
+
+
+def test_run_from_config_honors_time_limit_sec_with_partial_and_warning(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # [REQ-FIT-NEST-003] Cooperative cap: best-so-far placements + warning before hard stop.
+    pieces = [box(0, 0, 12, 12) for _ in range(6)]
+
+    monkeypatch.setattr(
+        "nesting_engine.nest.load_pieces_from_config",
+        lambda _config, warnings: pieces,
+    )
+
+    output_dir = tmp_path / "nest_out"
+    config = {
+        "output_dir": str(output_dir),
+        "input_dxf_paths": [],
+        "included_layers": ["PIECES"],
+        "sheet_stocks": [
+            {"width_mm": 25.0, "height_mm": 25.0, "quantity": None, "sort_order": 0},
+        ],
+        "kerf_mm": 0.0,
+        "margin_mm": 0.0,
+        "sheet_gap_mm": 0.0,
+        "time_limit_sec": 0.1,
+    }
+
+    run_from_config(config)
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "partial"
+    assert any("time_limit" in warning.lower() for warning in report["warnings"])
+    placed_count = sum(len(sheet["pieces"]) for sheet in placements["sheets"])
+    assert placed_count >= 1
+    assert len(placements["orphans"]) >= 1

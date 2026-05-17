@@ -9,8 +9,15 @@ from shapely.affinity import rotate, translate
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 
-from nesting_engine.nest_bin import _apply_kerf
-from nesting_engine.nest_spike import Placement
+from nesting_engine.nest_bin import (
+    MultiBinResult,
+    NestedSheet,
+    OrphanPiece,
+    PlacedPiece,
+    SheetStockSpec,
+    _apply_kerf,
+)
+from nesting_engine.nest_spike import Placement, _place_with_rotation, placed_polygon
 
 _BINDING_NAME = "python-libnest2d 0.1.3 (pynest2d)"
 _MAX_PIECES = 64
@@ -78,6 +85,68 @@ def nest_sheet(
     ]
     assert len(placements) == len(pieces)
     return placements
+
+
+def nest_multi_bin(
+    pieces: list[Polygon],
+    sheet_stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    sheet_gap_mm: float,
+) -> MultiBinResult:
+    assert margin_mm >= 0 and kerf_mm >= 0 and sheet_gap_mm >= 0, "non-negative job parameters"
+    assert sheet_stocks, "at least one sheet stock required"
+
+    warnings: list[str] = []
+    remaining_indices = _indices_by_descending_area(pieces)
+    sheets: list[NestedSheet] = []
+    offset_x = 0.0
+    stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
+
+    for stock in stocks:
+        sheets_used = 0
+        while remaining_indices and _can_open_sheet(stock, sheets_used):
+            placed, remaining_indices = _place_on_one_sheet(
+                pieces,
+                remaining_indices,
+                stock.width_mm,
+                stock.height_mm,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+            )
+            if not placed:
+                break
+
+            sheets.append(
+                NestedSheet(
+                    stock_sort_order=stock.sort_order,
+                    sheet_index=sheets_used,
+                    width_mm=stock.width_mm,
+                    height_mm=stock.height_mm,
+                    offset_x_mm=offset_x,
+                    pieces=placed,
+                )
+            )
+            offset_x += stock.width_mm + sheet_gap_mm
+            sheets_used += 1
+
+    sheets = _consolidate_sheets(
+        sheets,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+    )
+    orphans = _orphans_for_remaining(
+        pieces,
+        remaining_indices,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert len(sheets) >= 0
+    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
 
 
 def capabilities() -> NestingCapabilities:
@@ -190,6 +259,239 @@ def _ring_to_points(coords) -> list[Point]:
     points = [Point(int(round(x)), int(round(y))) for x, y in ring]
     assert len(points) >= 3, "polygon ring needs at least three vertices"
     return points
+
+
+def _place_piece_on_sheet(
+    fit_piece: Polygon,
+    bin_width_mm: float,
+    bin_height_mm: float,
+    *,
+    margin_mm: float,
+    obstacles: list[Polygon],
+) -> Placement | None:
+    assert bin_width_mm >= _MIN_BIN_MM and bin_height_mm >= _MIN_BIN_MM, "bin must be positive"
+    return _place_with_rotation(
+        fit_piece,
+        bin_width_mm,
+        bin_height_mm,
+        margin=margin_mm,
+        obstacles=obstacles,
+    )
+
+
+def _place_on_one_sheet(
+    pieces: list[Polygon],
+    indices: list[int],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> tuple[list[PlacedPiece], list[int]]:
+    placed_pieces: list[PlacedPiece] = []
+    occupied: list[Polygon] = []
+    pending = list(indices)
+
+    while pending:
+        progress = False
+        next_pending: list[int] = []
+        for index in pending:
+            fit_piece = _apply_kerf(pieces[index], kerf_mm)
+            placement = _place_piece_on_sheet(
+                fit_piece,
+                bin_width,
+                bin_height,
+                margin_mm=margin_mm,
+                obstacles=occupied,
+            )
+            if placement is None:
+                next_pending.append(index)
+                continue
+
+            placed_pieces.append(PlacedPiece(piece_index=index, polygon=pieces[index], placement=placement))
+            occupied.append(placed_polygon(fit_piece, placement))
+            progress = True
+
+        pending = next_pending
+        if not progress:
+            return placed_pieces, pending
+
+    return placed_pieces, []
+
+
+def _indices_by_descending_area(pieces: list[Polygon]) -> list[int]:
+    return sorted(range(len(pieces)), key=lambda index: pieces[index].area, reverse=True)
+
+
+def _can_open_sheet(stock: SheetStockSpec, sheets_used: int) -> bool:
+    if stock.quantity is None:
+        return True
+    return sheets_used < stock.quantity
+
+
+def _consolidate_sheets(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    sheet_gap_mm: float,
+) -> list[NestedSheet]:
+    if len(sheets) <= 1:
+        return _reindex_sheet_offsets(sheets, sheet_gap_mm)
+
+    work = list(sheets)
+    merged = True
+    while merged:
+        merged = False
+        for target_idx in range(len(work)):
+            for donor_idx in range(len(work) - 1, target_idx, -1):
+                target = work[target_idx]
+                donor = work[donor_idx]
+                if target.width_mm != donor.width_mm or target.height_mm != donor.height_mm:
+                    continue
+
+                target_pieces = list(target.pieces)
+                donor_pieces = list(donor.pieces)
+                if not donor_pieces:
+                    continue
+
+                if _move_pieces_into_sheet(
+                    target_pieces,
+                    donor_pieces,
+                    pieces,
+                    target.width_mm,
+                    target.height_mm,
+                    margin_mm=margin_mm,
+                    kerf_mm=kerf_mm,
+                ):
+                    work[target_idx] = NestedSheet(
+                        stock_sort_order=target.stock_sort_order,
+                        sheet_index=target.sheet_index,
+                        width_mm=target.width_mm,
+                        height_mm=target.height_mm,
+                        offset_x_mm=target.offset_x_mm,
+                        pieces=target_pieces,
+                    )
+                    work[donor_idx] = NestedSheet(
+                        stock_sort_order=donor.stock_sort_order,
+                        sheet_index=donor.sheet_index,
+                        width_mm=donor.width_mm,
+                        height_mm=donor.height_mm,
+                        offset_x_mm=donor.offset_x_mm,
+                        pieces=donor_pieces,
+                    )
+                    merged = True
+
+        work = [sheet for sheet in work if sheet.pieces]
+
+    return _reindex_sheet_offsets(work, sheet_gap_mm)
+
+
+def _move_pieces_into_sheet(
+    target_pieces: list[PlacedPiece],
+    donor_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> bool:
+    occupied = _occupied_polygons(target_pieces, pieces, kerf_mm)
+    moved = False
+    remaining: list[PlacedPiece] = []
+
+    for placed in donor_pieces:
+        fit_piece = _apply_kerf(pieces[placed.piece_index], kerf_mm)
+        placement = _place_piece_on_sheet(
+            fit_piece,
+            bin_width,
+            bin_height,
+            margin_mm=margin_mm,
+            obstacles=occupied,
+        )
+        if placement is None:
+            remaining.append(placed)
+            continue
+
+        target_pieces.append(
+            PlacedPiece(piece_index=placed.piece_index, polygon=placed.polygon, placement=placement)
+        )
+        occupied.append(placed_polygon(fit_piece, placement))
+        moved = True
+
+    donor_pieces[:] = remaining
+    return moved
+
+
+def _occupied_polygons(
+    placed_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    kerf_mm: float,
+) -> list[Polygon]:
+    occupied: list[Polygon] = []
+    for placed in placed_pieces:
+        fit_piece = _apply_kerf(pieces[placed.piece_index], kerf_mm)
+        occupied.append(placed_polygon(fit_piece, placed.placement))
+    return occupied
+
+
+def _reindex_sheet_offsets(sheets: list[NestedSheet], sheet_gap_mm: float) -> list[NestedSheet]:
+    offset_x = 0.0
+    reindexed: list[NestedSheet] = []
+    for sheet_index, sheet in enumerate(sheets):
+        reindexed.append(
+            NestedSheet(
+                stock_sort_order=sheet.stock_sort_order,
+                sheet_index=sheet_index,
+                width_mm=sheet.width_mm,
+                height_mm=sheet.height_mm,
+                offset_x_mm=offset_x,
+                pieces=sheet.pieces,
+            )
+        )
+        offset_x += sheet.width_mm + sheet_gap_mm
+    return reindexed
+
+
+def _orphans_for_remaining(
+    pieces: list[Polygon],
+    indices: list[int],
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[OrphanPiece]:
+    orphans: list[OrphanPiece] = []
+    for index in indices:
+        fit_piece = _apply_kerf(pieces[index], kerf_mm)
+        reason = (
+            "oversized_for_sheet"
+            if not _fits_any_stock(fit_piece, stocks, margin_mm=margin_mm)
+            else "no_sheet_capacity"
+        )
+        orphans.append(OrphanPiece(piece_index=index, reason=reason))
+    return orphans
+
+
+def _fits_any_stock(
+    piece: Polygon,
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+) -> bool:
+    for stock in stocks:
+        placement = _place_piece_on_sheet(
+            piece,
+            stock.width_mm,
+            stock.height_mm,
+            margin_mm=margin_mm,
+            obstacles=[],
+        )
+        if placement is not None:
+            return True
+    return False
 
 
 def _placements_from_items(items: list[Item], *, margin_mm: float) -> list[BindingPlacement]:
