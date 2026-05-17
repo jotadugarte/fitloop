@@ -53,7 +53,7 @@ class Project < ApplicationRecord
 
     return if self.class.valid_pin_format?(@pin)
 
-    errors.add(:pin, "must be exactly 6 digits")
+    errors.add(:pin, :invalid_format)
   end
 
   def digest_pin

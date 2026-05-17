@@ -18,7 +18,7 @@ Rails and Python share the same filesystem so Active Storage blobs and temp work
 
 - Ruby 3.x + Bundler (see `Gemfile`)
 - PostgreSQL 14+
-- Python 3.10+ with `pip install -r nesting_engine/requirements.txt` inside `.venv` at repo root
+- Python 3.10+ with `pip install -r requirements.txt` inside `.venv` at repo root
 
 ## Environment
 
@@ -37,7 +37,7 @@ Copy `.env.example` to `.env` and set:
 bundle install
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r nesting_engine/requirements.txt
+pip install -r requirements.txt
 cp .env.example .env
 bin/rails db:create db:migrate
 bin/rails db:seed   # if seeds exist

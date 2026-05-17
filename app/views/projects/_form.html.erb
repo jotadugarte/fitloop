@@ -11,12 +11,12 @@
   <% end %>
 
   <div class="field">
-    <%= f.label :title, "Title" %>
+    <%= f.label :title %>
     <%= f.text_field :title, required: true %>
   </div>
 
   <div class="field">
-    <%= f.label :pin, "PIN" %>
+    <%= f.label :pin %>
     <%= f.password_field :pin, required: true, maxlength: 6, autocomplete: "off" %>
   </div>
 

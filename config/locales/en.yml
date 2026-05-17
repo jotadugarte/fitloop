@@ -28,8 +28,55 @@
 #       enabled: "ON"
 
 en:
+  application:
+    name: "Fitloop"
+
   locale:
     switcher_label: "Language"
+
+  date:
+    formats:
+      short: "%b %-d, %Y"
+  time:
+    formats:
+      short: "%b %-d, %Y %H:%M"
+
+  activerecord:
+    models:
+      project:
+        one: "Project"
+        other: "Projects"
+      sheet_stock:
+        one: "Sheet type"
+        other: "Sheet types"
+    attributes:
+      project:
+        title: "Title"
+        pin: "PIN"
+      sheet_stock:
+        width_mm: "Width (mm)"
+        height_mm: "Height (mm)"
+        quantity: "Quantity"
+        unlimited_quantity: "Unlimited quantity"
+        sort_order: "Order"
+    errors:
+      models:
+        project:
+          attributes:
+            pin:
+              invalid_format: "must be exactly 6 digits"
+            title:
+              blank: "can't be blank"
+        sheet_stock:
+          attributes:
+            width_mm:
+              blank: "can't be blank"
+              not_a_number: "is not a number"
+              greater_than: "must be greater than %{count}"
+            height_mm:
+              blank: "can't be blank"
+              not_a_number: "is not a number"
+              greater_than: "must be greater than %{count}"
 
   nav:
     primary: "Main navigation"

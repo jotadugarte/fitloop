@@ -6,24 +6,24 @@ RSpec.describe "Project CRUD", type: :system do
   it "[REQ-FIT-UI-001] creates a project with ordered finite and infinite sheet stocks" do
     visit new_project_path
 
-    fill_in "Title", with: "Bench project"
-    fill_in "PIN", with: "778899"
+    fill_in Project.human_attribute_name(:title), with: "Bench project"
+    fill_in Project.human_attribute_name(:pin), with: "778899"
 
     within(first("[data-testid='sheet-stock-row']")) do
-      fill_in "Width (mm)", with: "1000"
-      fill_in "Height (mm)", with: "2000"
-      fill_in "Quantity", with: "5"
+      fill_in SheetStock.human_attribute_name(:width_mm), with: "1000"
+      fill_in SheetStock.human_attribute_name(:height_mm), with: "2000"
+      fill_in SheetStock.human_attribute_name(:quantity), with: "5"
     end
 
-    click_button "Add sheet type"
+    click_button I18n.t("projects.form.add_sheet_type")
 
     within(all("[data-testid='sheet-stock-row']").last) do
-      fill_in "Width (mm)", with: "500"
-      fill_in "Height (mm)", with: "300"
-      check "Unlimited quantity"
+      fill_in SheetStock.human_attribute_name(:width_mm), with: "500"
+      fill_in SheetStock.human_attribute_name(:height_mm), with: "300"
+      check SheetStock.human_attribute_name(:unlimited_quantity)
     end
 
-    click_button "Save project"
+    click_button I18n.t("projects.form.save_project")
 
     expect(page).to have_content("Bench project")
 
