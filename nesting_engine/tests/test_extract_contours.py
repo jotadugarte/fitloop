@@ -1,4 +1,5 @@
 # [REQ-FIT-EXT-001] Sample DXF yields at least one closed contour on selected layer.
+# Fixture must be ezdxf-valid; regenerate with: python scripts/generate_sample_dxf.py
 from __future__ import annotations
 
 from pathlib import Path
