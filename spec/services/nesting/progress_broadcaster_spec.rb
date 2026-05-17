@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Nesting::ProgressBroadcaster do
-  let(:project) { Project.create!(title: "Broadcast bench", pin: "998877") }
+  let(:project) { create_project_for_spec!(title: "Broadcast bench", pin: "998877") }
 
   describe ".call [REQ-FIT-JOB-001]" do
     it "broadcasts a turbo stream replace for nesting progress" do

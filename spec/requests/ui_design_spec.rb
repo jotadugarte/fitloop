@@ -17,10 +17,10 @@ RSpec.describe "Architecture-studio UI", type: :request do
   end
 
   describe "GET /projects [REQ-FIT-UI-004]" do
-    before { Project.delete_all }
+    before { Project.destroy_all }
 
     it "renders project grid when projects exist" do
-      Project.create!(title: "UI grid test", pin: "112233")
+      create_project_for_spec!(title: "UI grid test", pin: "112233")
 
       get projects_path
 

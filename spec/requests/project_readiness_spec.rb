@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Project pre-flight", type: :request do
-  let(:project) { Project.create!(title: "Pre-flight UI", pin: "778899") }
+  let(:project) { create_project_for_spec!(title: "Pre-flight UI", pin: "778899") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:project_id/layers [REQ-FIT-VAL-001]" do

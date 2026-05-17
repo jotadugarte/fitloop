@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Project layers", type: :request do
-  let(:project) { Project.create!(title: "DXF upload bench", pin: "445566") }
+  let(:project) { create_project_for_spec!(title: "DXF upload bench", pin: "445566") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:project_id/layers [REQ-FIT-DXF-001]" do

@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Project nesting preview", type: :request do
-  let(:project) { Project.create!(title: "Preview bench", pin: "334422") }
+  let(:project) { create_project_for_spec!(title: "Preview bench", pin: "334422") }
   let(:placements_payload) do
     {
       sheets: [

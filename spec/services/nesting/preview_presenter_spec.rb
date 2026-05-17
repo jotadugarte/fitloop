@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Nesting::PreviewPresenter do
-  let(:project) { Project.create!(title: "Presenter bench", pin: "112244") }
+  let(:project) { create_project_for_spec!(title: "Presenter bench", pin: "112244") }
 
   describe ".for [REQ-FIT-UI-002]" do
     it "reports sheet count from placements.json" do

@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ProjectReadinessValidator do
-  let(:project) { Project.create!(title: "Pre-flight bench", pin: "112233") }
+  let(:project) { create_project_for_spec!(title: "Pre-flight bench", pin: "112233") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   def attach_sample_dxf!
