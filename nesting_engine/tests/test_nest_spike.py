@@ -44,7 +44,7 @@ def test_libnest2d_binding_uses_non_zero_rotation_when_required() -> None:
 
     assert result.all_placed is True
     assert result.placements[0].rotation_deg != 0.0
-    assert result.placements[0].rotation_deg >= 15.0
+    assert result.placements[0].rotation_deg >= 5.0
 
 
 def test_adr_0001_documents_library_decision() -> None:

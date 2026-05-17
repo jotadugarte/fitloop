@@ -11,7 +11,7 @@ from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import capabilities, nest_multi_bin, nest_sheet
-from nesting_engine.nest_placement import Placement, placed_polygon
+from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon
 
 _EPS_MM = 1e-6
 
@@ -51,7 +51,7 @@ def test_nest_sheet_uses_non_zero_rotation_when_required() -> None:
 
     assert len(placements) == 1
     assert placements[0].rotation_deg != 0.0
-    assert placements[0].rotation_deg >= 15.0
+    assert placements[0].rotation_deg >= ROTATION_STEP_DEG
     _assert_all_fit_bin([piece], placements, bin_width_mm=50.0, bin_height_mm=100.0, margin_mm=0.0, kerf_mm=0.0)
 
 

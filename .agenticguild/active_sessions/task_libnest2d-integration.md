@@ -98,12 +98,13 @@
     <step id="7" status="complete">Remove Shapely placement from `nest_spike.py` (`run_spike_nest`, `_place_with_rotation`, rotation sweep); migrate `test_nest_spike.py` to libnest2d or fold into `test_libnest2d_binding.py`; keep Shapely only where used for affinity/simplify in `nest.py` / `dxf_output`.</step>
     <step id="8" status="complete">[REQ-FIT-QA-001] Document in `docs/DEPLOY.md`: apt packages, venv install, `python -c "import …"` smoke check, CI parity note; extend `.github/workflows/ci.yml` with `nesting_engine` job (apt + pip + pytest).</step>
     <step id="9" status="complete">Update `docs/core/ADRs/0001-nesting-library.md` limits table (P3 = libnest2d active); mark roadmap item done in `docs/ROADMAP.md`.</step>
-    <step id="10" status="pending">Run full suite: `.venv/bin/pytest nesting_engine/`, `bundle exec rspec spec/system/golden_nesting_e2e_spec.rb` (contract/status only).</step>
+    <step id="10" status="complete">Run full suite: `.venv/bin/pytest nesting_engine/`, `bundle exec rspec spec/system/golden_nesting_e2e_spec.rb` (contract/status only).</step>
   </implementation_plan>
 
   <working_notes>
     2026-05-17: Spec locked — D1/D2/D4 user-confirmed; implementation_plan written for start-task handoff.
     2026-05-17: Binding spike — chose `python-libnest2d==0.1.3` (imports `pynest2d`); prebuilt manylinux wheel, no apt build on dev. Adapter: `nesting_engine/nest_libnest2d.py` (`binding_spike_nest`). CW contour + reversed hole rings for libnest2d winding. Q1 resolved for pip path; apt/cmake deferred to CI step 8.
     2026-05-17: `nest_multi_bin` lives in `nest_libnest2d`; `nest_bin` delegates via lazy import. Per-piece placement uses `_place_piece_on_sheet` → `_place_with_rotation` (margin/kerf/obstacles); `nest_sheet` is libnest2d batch path for single-bin. Step 7 will drop spike placement.
+    2026-05-17: Full suite green — pytest nesting_engine 59 passed; golden_nesting_e2e_spec 1 passed. Phase 3 complete; ready for finish-branch.
   </working_notes>
 </task_session>

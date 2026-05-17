@@ -18,12 +18,17 @@ from nesting_engine.nest_bin import (
     SheetStockSpec,
     _apply_kerf,
 )
-from nesting_engine.nest_placement import Placement, place_with_rotation, placed_polygon
+from nesting_engine.nest_placement import (
+    ROTATION_STEP_DEG,
+    Placement,
+    place_with_rotation,
+    placed_polygon,
+)
 
 _BINDING_NAME = "python-libnest2d 0.1.3 (pynest2d)"
 _MAX_PIECES = 64
 _MIN_BIN_MM = 1.0
-_ROTATION_STEPS_DEG = tuple(float(step) for step in range(0, 360, 15))
+_ROTATION_STEPS_DEG = tuple(float(step) for step in range(0, 360, ROTATION_STEP_DEG))
 _PLACEMENT_AREA_TOLERANCE_MM2 = 150.0
 _MAX_ANGLE_SEARCH_DEG = 360
 _DEFAULT_TIME_LIMIT_SEC = 600.0

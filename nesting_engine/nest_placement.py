@@ -8,8 +8,8 @@ from shapely.affinity import rotate, translate
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
-_ROTATION_STEP_DEG = 15
-_MAX_ROTATION_STEPS = 24
+ROTATION_STEP_DEG = 5
+_MAX_ROTATION_STEPS = 360 // ROTATION_STEP_DEG
 _COMPACT_STEP_MM = 2.0
 _MAX_COMPACT_STEPS = 200
 _FREE_AREA_POLYGON_LIMIT = 10
@@ -47,7 +47,7 @@ def place_with_rotation(
     best_footprint = float("inf")
 
     for step in range(_MAX_ROTATION_STEPS):
-        angle = float(step * _ROTATION_STEP_DEG)
+        angle = float(step * ROTATION_STEP_DEG)
         candidate = _best_placement_for_angle(
             piece,
             angle,
