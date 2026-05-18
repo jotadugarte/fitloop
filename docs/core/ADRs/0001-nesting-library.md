@@ -30,6 +30,8 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 
 **P3 integration (2026-05-17):** **`nesting_engine/nest_libnest2d.py`** uses **`python-libnest2d`** (`pynest2d`) for single-bin batch placement (`nest_sheet`) and binding proofs. Multi-bin orchestration (`nest_multi_bin`) uses libnest2d where applicable; obstacle-aware per-piece placement with margin/kerf remains in **`nest_placement.py`** (Shapely sweep) until libnest2d exposes equivalent obstacle semantics.
 
+**Obstacle-aware full-sheet addendum (2026-05-17):** `nest_sheet_with_obstacles` models kerf-buffered footprints as **fixed `Item`s** via `markAsFixedInBin(0)` with vertices pre-positioned in the libnest2d frame (`translate(world, -frame_origin)`). Nestable pieces batch through `nest_blp` alongside fixed items. A piece is **unplaced** when `binId() < 0`, `isInsideBox` fails, or post-check shows margin violation / overlap with obstacles or prior placements — no kerf/margin downgrade.
+
 ### Positive consequences
 
 - Production path aligns with industry tooling (Cura/Prusa ecosystem)

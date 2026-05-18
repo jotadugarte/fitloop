@@ -40,9 +40,15 @@ def _assert_placed_fit_bin(
 
 
 def _assert_kerf_clearance(poly_a: object, poly_b: object, kerf_mm: float) -> None:
+    """Minimum gap between raw piece outlines (obstacles are kerf-buffered footprints)."""
     gap = poly_a.distance(poly_b)
     assert gap >= kerf_mm - 0.2
     assert not (poly_a.intersects(poly_b) and not poly_a.touches(poly_b))
+
+
+def _assert_fit_clear_of_obstacles(fit_placed: object, obstacles: list[object]) -> None:
+    for obstacle in obstacles:
+        assert not (fit_placed.intersects(obstacle) and not fit_placed.touches(obstacle))
 
 
 def test_nest_sheet_with_obstacles_places_fit_pieces_and_reports_unplaced() -> None:
@@ -77,9 +83,9 @@ def test_nest_sheet_with_obstacles_places_fit_pieces_and_reports_unplaced() -> N
     assert result.unplaced_indices == [2]
     assert set(result.placements.keys()) == {0, 1}
 
-    placed_polys: list[object] = []
+    raw_placed: list[object] = []
     for piece_index, placement in result.placements.items():
-        placed = _assert_placed_fit_bin(
+        fit_placed = _assert_placed_fit_bin(
             pieces[piece_index],
             placement,
             bin_width_mm=bin_w,
@@ -87,11 +93,10 @@ def test_nest_sheet_with_obstacles_places_fit_pieces_and_reports_unplaced() -> N
             margin_mm=margin_mm,
             kerf_mm=kerf_mm,
         )
-        for obstacle in obstacles:
-            _assert_kerf_clearance(placed, obstacle, kerf_mm)
-        placed_polys.append(placed)
+        _assert_fit_clear_of_obstacles(fit_placed, obstacles)
+        raw_placed.append(placed_polygon(pieces[piece_index], placement))
 
-    _assert_kerf_clearance(placed_polys[0], placed_polys[1], kerf_mm)
+    _assert_kerf_clearance(raw_placed[0], raw_placed[1], kerf_mm)
 
 
 def test_nest_sheet_with_obstacles_returns_all_unplaced_when_no_room() -> None:
