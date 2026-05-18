@@ -131,7 +131,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Wire normalizer on save; ensure nested attributes order does not bypass ∞-last rule.
 </step>
 
-<step id="4" status="pending">
+<step id="4" status="complete">
 **Test:** Add `nesting_engine/tests/test_cli_sheet_stocks.py` (or extend existing CLI schema test) — `config.json` with two `quantity: null` entries fails fast with clear error. Tag `[REQ-FIT-NEST-002]`, `[REQ-FIT-CLI-001]`.
 **Implement:** Validate `sheet_stocks` in CLI entry (`nest.py` / loader) — max one unlimited; if multiple stocks and one unlimited, assert its `sort_order` equals `max(sort_order)`.
 </step>
