@@ -95,12 +95,7 @@ _(none)_
 - [ ] **Sheet stock consumption priority** — user can set which `SheetStock` rows the engine consumes first (`sort_order`); default policy: **finite quantities first**, then unlimited (∞) stocks (REQ-FIT-UI-001, REQ-FIT-DOM-001)
 
 ### Nesting engine
-
-_(complete)_
-
-### Documentation
-
-_(complete)_
+- [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
 
 ---
 
@@ -108,11 +103,10 @@ _(complete)_
 
 ### Nesting engine (v1.1+)
 
-_(complete)_
 
 ### Product & platform
 
-- [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
+
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 
