@@ -183,6 +183,15 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
+    sheets = _inter_sheet_local_search(
+        sheets,
+        pieces,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+        deadline=deadline,
+    )
     orphans = _orphans_for_remaining(
         pieces,
         remaining_indices,
