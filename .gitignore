@@ -52,7 +52,9 @@ Thumbs.db
 *.swp
 *~
 
-# Agentic guild local session state (not product code)
-.agenticguild/active_sessions/
-.agenticguild/completed_sessions/
-.agenticguild/current_state.md
+# Local DXF scratch (fixtures live under nesting_engine/tests/fixtures/)
+xf-test-temp/
+
+
+
+

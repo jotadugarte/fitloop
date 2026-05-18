@@ -5,6 +5,9 @@ require "timeout"
 module Nesting
   # [REQ-FIT-JOB-001] Orchestrates nesting with progress, cancel, and time limit.
   class JobRunner
+    # Throttle cancel DB polls during CLI nesting; cancel may take up to this long to observe.
+    CANCEL_CACHE_TTL_SEC = 0.5
+
     def self.call(nesting_run:)
       new(nesting_run: nesting_run).call
     end
@@ -12,6 +15,8 @@ module Nesting
     def initialize(nesting_run:)
       @nesting_run = nesting_run
       @project = nesting_run.project
+      @cancel_requested_at = nesting_run.cancel_requested_at
+      @cancel_cache_checked_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def call
@@ -22,11 +27,11 @@ module Nesting
 
       begin
         Timeout.timeout(@project.nesting_time_limit_sec) do
-          raise CancelledError if cancelled?
+          raise CancelledError if cancel_requested?
 
           Nesting::CliRunner.call(
             nesting_run: @nesting_run,
-            cancel_check: -> { cancelled? }
+            cancel_check: -> { cancel_requested? }
           )
         end
       rescue Timeout::Error
@@ -45,12 +50,13 @@ module Nesting
 
     private
 
-    def cancelled?
-      @nesting_run.reload.cancel_requested_at.present?
+    def cancel_requested?
+      refresh_cancel_cache_if_stale!
+      @cancel_requested_at.present?
     end
 
     def handle_cancelled!
-      return false unless cancelled?
+      return false unless cancel_requested?
 
       @nesting_run.update!(
         status: "failed",
@@ -134,6 +140,14 @@ module Nesting
 
     def eta_overrun?
       @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at
+    end
+
+    def refresh_cancel_cache_if_stale!
+      now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      return if now - @cancel_cache_checked_at < CANCEL_CACHE_TTL_SEC
+
+      @cancel_requested_at = NestingRun.where(id: @nesting_run.id).pick(:cancel_requested_at)
+      @cancel_cache_checked_at = now
     end
 
     def terminal_progress_message

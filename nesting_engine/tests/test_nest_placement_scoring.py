@@ -8,12 +8,90 @@ from shapely.ops import unary_union
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 from nesting_engine.nest_placement import (
     _largest_continuous_free_area,
+    _layout_better_than,
     _placement_score,
     place_with_rotation,
     placed_polygon,
+    score_sheet_layout,
 )
 
 _EPS_MM = 1e-6
+
+
+def test_score_sheet_layout_largest_continuous_free_area() -> None:
+    """[REQ-FIT-NEST-002] Whole-sheet score matches incremental free-area metric on union layout."""
+    bin_w, bin_h, margin = 400.0, 400.0, 0.0
+    placed = [box(10, 10, 140, 180), box(220, 10, 350, 180), box(10, 220, 120, 350)]
+    occupied_union = unary_union(placed)
+    _, _, layout_maxx, layout_maxy = _layout_bounds_public(placed[0], placed[1:])
+    sentinel = box(margin, margin, margin, margin)
+
+    expected_free = _largest_continuous_free_area(
+        bin_w,
+        bin_h,
+        margin,
+        layout_maxx,
+        layout_maxy,
+        sentinel,
+        occupied_union,
+    )
+    expected_footprint = (layout_maxx - margin) * (layout_maxy - margin)
+
+    free_area, footprint = score_sheet_layout(bin_w, bin_h, margin, placed)
+
+    assert free_area == expected_free
+    assert footprint == expected_footprint
+
+
+def test_score_sheet_layout_empty_layout_is_full_usable_area() -> None:
+    """[REQ-FIT-NEST-002] No pieces on sheet → largest continuous free area equals usable rectangle."""
+    bin_w, bin_h, margin = 300.0, 200.0, 5.0
+    usable_w = bin_w - 2 * margin
+    usable_h = bin_h - 2 * margin
+
+    free_area, footprint = score_sheet_layout(bin_w, bin_h, margin, [])
+
+    assert free_area == usable_w * usable_h
+    assert footprint == 0.0
+
+
+def test_layout_better_than_prefers_larger_free_area() -> None:
+    """[REQ-FIT-NEST-002] Repack accepts when largest continuous free area strictly increases."""
+    baseline = (100.0, 80.0, 200.0, 10.0, 20.0)
+    candidate = (150.0, 120.0, 200.0, 10.0, 20.0)
+
+    assert _layout_better_than(baseline, candidate)
+
+
+def test_layout_better_than_tiebreaks_smaller_footprint() -> None:
+    """[REQ-FIT-NEST-002] Equal free area → smaller layout footprint wins."""
+    baseline = (100.0, 80.0, 200.0, 10.0, 20.0)
+    candidate = (100.0, 50.0, 200.0, 10.0, 20.0)
+
+    assert _layout_better_than(baseline, candidate)
+
+
+def test_layout_better_than_tiebreaks_bottom_left() -> None:
+    """[REQ-FIT-NEST-002] Equal free area and footprint → lower min-y, then min-x wins."""
+    baseline = (100.0, 50.0, 200.0, 20.0, 30.0)
+    candidate_lower_y = (100.0, 50.0, 200.0, 10.0, 30.0)
+    candidate_lower_x = (100.0, 50.0, 200.0, 20.0, 10.0)
+
+    assert _layout_better_than(baseline, candidate_lower_y)
+    assert _layout_better_than(baseline, candidate_lower_x)
+    assert not _layout_better_than(candidate_lower_y, candidate_lower_x)
+    assert _layout_better_than(candidate_lower_x, candidate_lower_y)
+
+
+def test_layout_better_than_rejects_regression_and_equal() -> None:
+    """[REQ-FIT-NEST-002] Lower free area or identical score tuple is not an improvement."""
+    baseline = (100.0, 50.0, 200.0, 10.0, 20.0)
+    worse_free = (90.0, 40.0, 200.0, 10.0, 20.0)
+    worse_footprint = (100.0, 60.0, 200.0, 10.0, 20.0)
+
+    assert not _layout_better_than(baseline, worse_free)
+    assert not _layout_better_than(baseline, worse_footprint)
+    assert not _layout_better_than(baseline, baseline)
 
 
 def test_placement_score_prefers_larger_continuous_free_area_over_smaller_footprint() -> None:
