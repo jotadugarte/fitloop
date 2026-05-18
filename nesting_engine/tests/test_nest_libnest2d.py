@@ -229,6 +229,28 @@ def test_libnest2d_unlimited_stock_opens_extra_sheets_when_full() -> None:
     assert result.sheets[2].offset_x_mm == pytest.approx(60.0, abs=0.05)
 
 
+def test_multi_bin_consumes_finite_stocks_before_unlimited() -> None:
+    # [REQ-FIT-NEST-002] Mis-ordered unlimited sort_order must not open the first sheet.
+    pieces = [box(0, 0, 30, 30)]
+    stocks = [
+        SheetStockSpec(width_mm=500, height_mm=500, quantity=None, sort_order=0),
+        SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=1),
+        SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=2),
+    ]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=10.0,
+    )
+
+    assert result.orphans == []
+    assert len(result.sheets) == 1
+    assert result.sheets[0].stock_sort_order == 1
+
+
 def test_libnest2d_finite_stock_then_next_sort_order() -> None:
     pieces = [box(0, 0, 30, 30)]
     stocks = [
