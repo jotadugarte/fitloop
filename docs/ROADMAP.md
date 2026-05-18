@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-18 — full-sheet libnest2d epic shipped (`nest_multi_bin` fill + consolidate repack + inter-sheet search).
+**Last audit:** 2026-05-17 — full-sheet libnest2d epic + intra-sheet repack (`nest_multi_bin` five-phase pipeline, `score_sheet_layout`).
 
-**Next action:** Backlog — v1.1 auto-split (`REQ-FIT-SPLIT-001`) or optional FastAPI wrapper.
+**Next action:** Backlog — sheet-stock consumption priority UX, v1.1 auto-split (`REQ-FIT-SPLIT-001`), or optional FastAPI wrapper.
 
 ---
 
@@ -78,6 +78,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 - [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
 - [x] **libnest2d integration** — `nest_libnest2d` + `python-libnest2d==0.1.3`; DEPLOY native deps; CI `nesting_engine` job (REQ-FIT-NEST-001, REQ-FIT-NEST-002, REQ-FIT-QA-001) — 2026-05-17 — Session: `task_libnest2d-integration.md`
 - [x] **Full-sheet libnest2d placement (kerf + obstacles)** — `nest_sheet_with_obstacles`, batch fill in `_place_on_one_sheet`, `_consolidate_sheets` repack, `_inter_sheet_local_search`; invariant tests (REQ-FIT-NEST-002, ADR-0001) — 2026-05-18 — Session: `task_full-sheet-libnest2d-epic.md`
+- [x] **Intra-sheet repack (void closure)** — `_intra_sheet_repack_search` (×2 post-fill/post-consolidate), `score_sheet_layout` / `_layout_better_than`, opportunistic pull from later sheets; peluo DXF fixture + `@pytest.mark.slow` (REQ-FIT-NEST-002, ADR-0001) — 2026-05-17 — Session: `task_intra-sheet-repack.md`
 
 ---
 
