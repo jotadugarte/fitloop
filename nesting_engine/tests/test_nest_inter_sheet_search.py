@@ -57,7 +57,7 @@ def _fixture_sparse_last_sheet(
 
 
 def test_inter_sheet_local_search_merges_sparse_last_sheet() -> None:
-    """Five 80×30 mm strips on 250×250 mm stock: move last-sheet piece onto the first sheet."""
+    """[REQ-FIT-NEST-002] Five 80×30 mm strips on 250×250 mm stock: move last-sheet piece onto the first sheet."""
     margin_mm = 0.0
     kerf_mm = 0.0
     bin_w, bin_h = 250.0, 250.0

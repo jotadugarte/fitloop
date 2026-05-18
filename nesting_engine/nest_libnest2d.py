@@ -194,6 +194,37 @@ def nest_multi_bin(
         time_limit_sec=time_limit_sec,
         deadline=deadline,
     )
+    sheets = _run_post_fill_phases(
+        sheets,
+        pieces,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+        deadline=deadline,
+    )
+    orphans = _orphans_for_remaining(
+        pieces,
+        remaining_indices,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert len(sheets) >= 0
+    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
+
+
+def _run_post_fill_phases(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    sheet_gap_mm: float,
+    deadline: float | None,
+) -> list[NestedSheet]:
+    """[REQ-FIT-NEST-002] Intra repack (×2), consolidate, then inter-sheet search under one deadline."""
     sheets = _intra_sheet_repack_search(
         sheets,
         pieces,
@@ -220,7 +251,7 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
-    sheets = _inter_sheet_local_search(
+    return _inter_sheet_local_search(
         sheets,
         pieces,
         stocks,
@@ -229,15 +260,6 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
-    orphans = _orphans_for_remaining(
-        pieces,
-        remaining_indices,
-        stocks,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-    )
-    assert len(sheets) >= 0
-    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
 
 
 def _nest_across_stocks(
@@ -695,23 +717,72 @@ def _try_full_sheet_batch(
     batch_indices = pending[:max_batch]
     batch_pieces = [pieces[index] for index in batch_indices]
     if occupied:
-        batch_result = nest_sheet_with_obstacles(
-            batch_pieces,
-            bin_width,
-            bin_height,
-            obstacles=occupied,
-            margin_mm=margin_mm,
-            kerf_mm=kerf_mm,
-        )
-        return _placed_from_batch_result(
+        return _try_full_sheet_batch_with_obstacles(
             pieces,
             batch_indices,
-            batch_result,
+            batch_pieces,
             pending,
+            bin_width,
+            bin_height,
+            margin_mm=margin_mm,
             kerf_mm=kerf_mm,
             occupied=occupied,
         )
+    return _try_full_sheet_batch_clean(
+        pieces,
+        batch_indices,
+        batch_pieces,
+        pending,
+        bin_width,
+        bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        occupied=occupied,
+    )
 
+
+def _try_full_sheet_batch_with_obstacles(
+    pieces: list[Polygon],
+    batch_indices: list[int],
+    batch_pieces: list[Polygon],
+    pending: list[int],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    occupied: list[Polygon],
+) -> tuple[list[PlacedPiece], list[int], list[Polygon]]:
+    batch_result = nest_sheet_with_obstacles(
+        batch_pieces,
+        bin_width,
+        bin_height,
+        obstacles=occupied,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    return _placed_from_batch_result(
+        pieces,
+        batch_indices,
+        batch_result,
+        pending,
+        kerf_mm=kerf_mm,
+        occupied=occupied,
+    )
+
+
+def _try_full_sheet_batch_clean(
+    pieces: list[Polygon],
+    batch_indices: list[int],
+    batch_pieces: list[Polygon],
+    pending: list[int],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    occupied: list[Polygon],
+) -> tuple[list[PlacedPiece], list[int], list[Polygon]]:
     try:
         batch_placements = nest_sheet(
             batch_pieces,
@@ -838,9 +909,9 @@ def _greedy_place_pending(
     next_pending: list[int] = []
     progressed = False
 
-    for index in pending:
+    for offset, index in enumerate(pending):
         if _time_limit_exceeded(deadline):
-            next_pending.extend(pending[pending.index(index) :])
+            next_pending.extend(pending[offset:])
             return placed_pieces, next_pending, occupied, progressed
 
         fit_piece = apply_kerf(pieces[index], kerf_mm)
@@ -890,65 +961,104 @@ def _consolidate_sheets(
     while merged:
         if _time_limit_exceeded(deadline):
             break
-        merged = False
-        for target_idx in range(len(work)):
-            for donor_idx in range(len(work) - 1, target_idx, -1):
-                if _time_limit_exceeded(deadline):
-                    break
-                target = work[target_idx]
-                donor = work[donor_idx]
-                if target.width_mm != donor.width_mm or target.height_mm != donor.height_mm:
-                    continue
-
-                target_pieces = list(target.pieces)
-                donor_pieces = list(donor.pieces)
-                if not donor_pieces:
-                    continue
-
-                moved = _move_pieces_into_sheet(
-                    target_pieces,
-                    donor_pieces,
-                    pieces,
-                    target.width_mm,
-                    target.height_mm,
-                    margin_mm=margin_mm,
-                    kerf_mm=kerf_mm,
-                )
-                repacked = False
-                if donor_pieces and not _time_limit_exceeded(deadline):
-                    repacked = _try_repack_merge_sheets(
-                        target_pieces,
-                        donor_pieces,
-                        pieces,
-                        target.width_mm,
-                        target.height_mm,
-                        margin_mm=margin_mm,
-                        kerf_mm=kerf_mm,
-                    )
-                if not moved and not repacked:
-                    continue
-
-                work[target_idx] = NestedSheet(
-                    stock_sort_order=target.stock_sort_order,
-                    sheet_index=target.sheet_index,
-                    width_mm=target.width_mm,
-                    height_mm=target.height_mm,
-                    offset_x_mm=target.offset_x_mm,
-                    pieces=target_pieces,
-                )
-                work[donor_idx] = NestedSheet(
-                    stock_sort_order=donor.stock_sort_order,
-                    sheet_index=donor.sheet_index,
-                    width_mm=donor.width_mm,
-                    height_mm=donor.height_mm,
-                    offset_x_mm=donor.offset_x_mm,
-                    pieces=donor_pieces,
-                )
-                merged = True
-
+        merged, work = _consolidate_one_pass(
+            work,
+            pieces,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+            deadline=deadline,
+        )
         work = [sheet for sheet in work if sheet.pieces]
 
     return _reindex_sheet_offsets(work, sheet_gap_mm)
+
+
+def _consolidate_one_pass(
+    work: list[NestedSheet],
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> tuple[bool, list[NestedSheet]]:
+    merged = False
+    for target_idx in range(len(work)):
+        for donor_idx in range(len(work) - 1, target_idx, -1):
+            if _time_limit_exceeded(deadline):
+                return merged, work
+            if _try_consolidate_pair(
+                work,
+                target_idx,
+                donor_idx,
+                pieces,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+                deadline=deadline,
+            ):
+                merged = True
+    return merged, work
+
+
+def _try_consolidate_pair(
+    work: list[NestedSheet],
+    target_idx: int,
+    donor_idx: int,
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> bool:
+    target = work[target_idx]
+    donor = work[donor_idx]
+    if target.width_mm != donor.width_mm or target.height_mm != donor.height_mm:
+        return False
+
+    target_pieces = list(target.pieces)
+    donor_pieces = list(donor.pieces)
+    if not donor_pieces:
+        return False
+
+    moved = _move_pieces_into_sheet(
+        target_pieces,
+        donor_pieces,
+        pieces,
+        target.width_mm,
+        target.height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    repacked = False
+    if donor_pieces and not _time_limit_exceeded(deadline):
+        repacked = _try_repack_merge_sheets(
+            target_pieces,
+            donor_pieces,
+            pieces,
+            target.width_mm,
+            target.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+    if not moved and not repacked:
+        return False
+
+    work[target_idx] = NestedSheet(
+        stock_sort_order=target.stock_sort_order,
+        sheet_index=target.sheet_index,
+        width_mm=target.width_mm,
+        height_mm=target.height_mm,
+        offset_x_mm=target.offset_x_mm,
+        pieces=target_pieces,
+    )
+    work[donor_idx] = NestedSheet(
+        stock_sort_order=donor.stock_sort_order,
+        sheet_index=donor.sheet_index,
+        width_mm=donor.width_mm,
+        height_mm=donor.height_mm,
+        offset_x_mm=donor.offset_x_mm,
+        pieces=donor_pieces,
+    )
+    return True
 
 
 def _try_repack_merge_sheets(
@@ -1018,65 +1128,92 @@ def _intra_sheet_repack_search(
     for sheet_idx, sheet in enumerate(work):
         if _time_limit_exceeded(deadline):
             break
-        if len(sheet.pieces) < 2:
-            continue
-
-        baseline_score = _layout_score_for_sheet(sheet, pieces, margin_mm=margin_mm, kerf_mm=kerf_mm)
-        baseline_count = len(sheet.pieces)
-        best = _best_intra_repack_candidate(
-            sheet,
+        work = _apply_intra_repack_to_sheet(
             work,
             sheet_idx,
+            sheet,
             pieces,
             sheet_stocks,
-            baseline_score=baseline_score,
-            baseline_count=baseline_count,
             margin_mm=margin_mm,
             kerf_mm=kerf_mm,
             deadline=deadline,
         )
-        if best is None or _time_limit_exceeded(deadline):
-            continue
-
-        repacked_pieces, pulled_indices = best
-        work[sheet_idx] = NestedSheet(
-            stock_sort_order=sheet.stock_sort_order,
-            sheet_index=sheet.sheet_index,
-            width_mm=sheet.width_mm,
-            height_mm=sheet.height_mm,
-            offset_x_mm=sheet.offset_x_mm,
-            pieces=repacked_pieces,
-        )
-        if pulled_indices:
-            for donor_idx in range(sheet_idx + 1, len(work)):
-                donor = work[donor_idx]
-                remaining = [row for row in donor.pieces if row.piece_index not in pulled_indices]
-                work[donor_idx] = NestedSheet(
-                    stock_sort_order=donor.stock_sort_order,
-                    sheet_index=donor.sheet_index,
-                    width_mm=donor.width_mm,
-                    height_mm=donor.height_mm,
-                    offset_x_mm=donor.offset_x_mm,
-                    pieces=remaining,
-                )
 
     work = [sheet for sheet in work if sheet.pieces]
     return _reindex_sheet_offsets(work, sheet_gap_mm)
 
 
-def _best_intra_repack_candidate(
-    sheet: NestedSheet,
+def _apply_intra_repack_to_sheet(
     work: list[NestedSheet],
     sheet_idx: int,
+    sheet: NestedSheet,
     pieces: list[Polygon],
     sheet_stocks: list[SheetStockSpec],
     *,
-    baseline_score: tuple[float, float, float, float, float],
-    baseline_count: int,
     margin_mm: float,
     kerf_mm: float,
     deadline: float | None,
-) -> tuple[list[PlacedPiece], set[int]] | None:
+) -> list[NestedSheet]:
+    if len(sheet.pieces) < 2:
+        return work
+
+    baseline_score = _layout_score_for_sheet(sheet, pieces, margin_mm=margin_mm, kerf_mm=kerf_mm)
+    baseline_count = len(sheet.pieces)
+    best = _best_intra_repack_candidate(
+        sheet,
+        work,
+        sheet_idx,
+        pieces,
+        sheet_stocks,
+        baseline_score=baseline_score,
+        baseline_count=baseline_count,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        deadline=deadline,
+    )
+    if best is None or _time_limit_exceeded(deadline):
+        return work
+
+    repacked_pieces, pulled_indices = best
+    work[sheet_idx] = NestedSheet(
+        stock_sort_order=sheet.stock_sort_order,
+        sheet_index=sheet.sheet_index,
+        width_mm=sheet.width_mm,
+        height_mm=sheet.height_mm,
+        offset_x_mm=sheet.offset_x_mm,
+        pieces=repacked_pieces,
+    )
+    if pulled_indices:
+        work = _strip_pulled_pieces_from_donors(work, sheet_idx, pulled_indices)
+    return work
+
+
+def _strip_pulled_pieces_from_donors(
+    work: list[NestedSheet],
+    sheet_idx: int,
+    pulled_indices: set[int],
+) -> list[NestedSheet]:
+    for donor_idx in range(sheet_idx + 1, len(work)):
+        donor = work[donor_idx]
+        remaining = [row for row in donor.pieces if row.piece_index not in pulled_indices]
+        work[donor_idx] = NestedSheet(
+            stock_sort_order=donor.stock_sort_order,
+            sheet_index=donor.sheet_index,
+            width_mm=donor.width_mm,
+            height_mm=donor.height_mm,
+            offset_x_mm=donor.offset_x_mm,
+            pieces=remaining,
+        )
+    return work
+
+
+def _intra_repack_trials_for_sheet(
+    sheet: NestedSheet,
+    work: list[NestedSheet],
+    sheet_idx: int,
+    sheet_stocks: list[SheetStockSpec],
+    deadline: float | None,
+) -> list[list[PlacedPiece]]:
     trials: list[list[PlacedPiece]] = [list(sheet.pieces)]
     for donor_idx in range(sheet_idx + 1, len(work)):
         if _time_limit_exceeded(deadline):
@@ -1086,7 +1223,20 @@ def _best_intra_repack_candidate(
             continue
         for donor_piece in donor.pieces:
             trials.append(list(sheet.pieces) + [donor_piece])
+    return trials
 
+
+def _pick_best_intra_repack_trial(
+    trials: list[list[PlacedPiece]],
+    sheet: NestedSheet,
+    pieces: list[Polygon],
+    *,
+    baseline_score: tuple[float, float, float, float, float],
+    baseline_count: int,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> tuple[list[PlacedPiece], tuple[float, float, float, float, float]] | None:
     best_pieces: list[PlacedPiece] | None = None
     best_score: tuple[float, float, float, float, float] | None = None
     best_key: tuple[int, tuple[float, float, float, float, float], int] | None = None
@@ -1134,7 +1284,36 @@ def _best_intra_repack_candidate(
         return None
     if best_score == baseline_score and len(best_pieces) == baseline_count:
         return None
+    return best_pieces, best_score
 
+
+def _best_intra_repack_candidate(
+    sheet: NestedSheet,
+    work: list[NestedSheet],
+    sheet_idx: int,
+    pieces: list[Polygon],
+    sheet_stocks: list[SheetStockSpec],
+    *,
+    baseline_score: tuple[float, float, float, float, float],
+    baseline_count: int,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> tuple[list[PlacedPiece], set[int]] | None:
+    trials = _intra_repack_trials_for_sheet(sheet, work, sheet_idx, sheet_stocks, deadline)
+    picked = _pick_best_intra_repack_trial(
+        trials,
+        sheet,
+        pieces,
+        baseline_score=baseline_score,
+        baseline_count=baseline_count,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        deadline=deadline,
+    )
+    if picked is None:
+        return None
+    best_pieces, _best_score = picked
     pulled = {row.piece_index for row in best_pieces} - {row.piece_index for row in sheet.pieces}
     return best_pieces, pulled
 
@@ -1267,48 +1446,72 @@ def _inter_sheet_local_search(
             progress = True
             continue
 
-        for target_idx in range(donor_idx):
-            if _time_limit_exceeded(deadline):
-                break
-            target = work[target_idx]
-            if not _sheets_allow_piece_transfer(target, donor, sheet_stocks):
-                continue
-
-            target_pieces = list(target.pieces)
-            donor_pieces = list(donor.pieces)
-            if not _try_repack_merge_sheets(
-                target_pieces,
-                donor_pieces,
-                pieces,
-                target.width_mm,
-                target.height_mm,
-                margin_mm=margin_mm,
-                kerf_mm=kerf_mm,
-            ):
-                continue
-
-            work[target_idx] = NestedSheet(
-                stock_sort_order=target.stock_sort_order,
-                sheet_index=target.sheet_index,
-                width_mm=target.width_mm,
-                height_mm=target.height_mm,
-                offset_x_mm=target.offset_x_mm,
-                pieces=target_pieces,
-            )
-            work[donor_idx] = NestedSheet(
-                stock_sort_order=donor.stock_sort_order,
-                sheet_index=donor.sheet_index,
-                width_mm=donor.width_mm,
-                height_mm=donor.height_mm,
-                offset_x_mm=donor.offset_x_mm,
-                pieces=donor_pieces,
-            )
+        merged, work = _inter_sheet_try_merge_donor(
+            work,
+            donor_idx,
+            pieces,
+            sheet_stocks,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+            deadline=deadline,
+        )
+        if merged:
             progress = True
-            break
 
         work = [sheet for sheet in work if sheet.pieces]
 
     return _reindex_sheet_offsets(work, sheet_gap_mm)
+
+
+def _inter_sheet_try_merge_donor(
+    work: list[NestedSheet],
+    donor_idx: int,
+    pieces: list[Polygon],
+    sheet_stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> tuple[bool, list[NestedSheet]]:
+    donor = work[donor_idx]
+    for target_idx in range(donor_idx):
+        if _time_limit_exceeded(deadline):
+            return False, work
+        target = work[target_idx]
+        if not _sheets_allow_piece_transfer(target, donor, sheet_stocks):
+            continue
+
+        target_pieces = list(target.pieces)
+        donor_pieces = list(donor.pieces)
+        if not _try_repack_merge_sheets(
+            target_pieces,
+            donor_pieces,
+            pieces,
+            target.width_mm,
+            target.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        ):
+            continue
+
+        work[target_idx] = NestedSheet(
+            stock_sort_order=target.stock_sort_order,
+            sheet_index=target.sheet_index,
+            width_mm=target.width_mm,
+            height_mm=target.height_mm,
+            offset_x_mm=target.offset_x_mm,
+            pieces=target_pieces,
+        )
+        work[donor_idx] = NestedSheet(
+            stock_sort_order=donor.stock_sort_order,
+            sheet_index=donor.sheet_index,
+            width_mm=donor.width_mm,
+            height_mm=donor.height_mm,
+            offset_x_mm=donor.offset_x_mm,
+            pieces=donor_pieces,
+        )
+        return True, work
+    return False, work
 
 
 def _sheets_allow_piece_transfer(

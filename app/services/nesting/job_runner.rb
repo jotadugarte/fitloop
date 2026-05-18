@@ -5,6 +5,7 @@ require "timeout"
 module Nesting
   # [REQ-FIT-JOB-001] Orchestrates nesting with progress, cancel, and time limit.
   class JobRunner
+    # Throttle cancel DB polls during CLI nesting; cancel may take up to this long to observe.
     CANCEL_CACHE_TTL_SEC = 0.5
 
     def self.call(nesting_run:)

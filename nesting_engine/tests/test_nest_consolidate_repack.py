@@ -60,7 +60,7 @@ def _fixture_four_plus_one_strips(
 def test_consolidate_sheets_repack_merges_sparse_donor_when_per_piece_blocked(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Five 80×30 mm strips on 250×250 mm: batch repack fits one bin; per-piece path disabled.
+    """[REQ-FIT-NEST-002] Five 80×30 mm strips on 250×250 mm: batch repack fits one bin; per-piece path disabled.
 
     Fixture: four strips on target sheet, one on nearly empty donor (same stock size).
     Baseline `_consolidate_sheets` keeps two sheets when `_move_pieces_into_sheet` cannot move.

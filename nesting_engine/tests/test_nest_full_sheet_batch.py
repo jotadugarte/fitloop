@@ -15,7 +15,7 @@ from nesting_engine.tests.test_nest_libnest2d import _assert_all_fit_bin
 
 
 def test_place_on_one_sheet_batch_packs_five_strips_without_greedy() -> None:
-    """Five 80×30 mm strips on 250×250 mm: libnest2d batch is valid; fills in one batch pass."""
+    """[REQ-FIT-NEST-002] Five 80×30 mm strips on 250×250 mm: libnest2d batch is valid; fills in one batch pass."""
     pieces = [box(0, 0, 80, 30) for _ in range(5)]
 
     placed, remaining = _place_on_one_sheet(
@@ -32,7 +32,7 @@ def test_place_on_one_sheet_batch_packs_five_strips_without_greedy() -> None:
 
 
 def test_nest_multi_bin_batch_packs_five_strips_on_one_sheet() -> None:
-    """Same strip fixture: `nest_multi_bin` should stay on one sheet via full-sheet fill."""
+    """[REQ-FIT-NEST-002] Same strip fixture: `nest_multi_bin` should stay on one sheet via full-sheet fill."""
     margin_mm = 0.0
     kerf_mm = 0.0
     bin_w, bin_h = 250.0, 250.0
