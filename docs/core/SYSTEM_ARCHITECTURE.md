@@ -17,7 +17,7 @@
 | **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
 | **i18n** | Rails I18n | `en`, `es` in v1 |
-| **Nesting engine** | Python package `nesting_engine/` | **v1 production:** libnest2d batch (`nest_libnest2d.nest_sheet`) + Shapely per-piece placement (`nest_placement.py`, `nest_bin` multi-bin). ezdxf + Shapely. See ADR-0001. |
+| **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
 Rails owns HTTP, auth (PIN), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
@@ -83,4 +83,11 @@ Stack and boundary requirements are tracked in `docs/core/SPEC.md` as `REQ-FIT-A
 
 **Requirement detail:** `REQ-FIT-NEST-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §1 (W3).
 
-**v1 placement library:** Per-piece Shapely sweep in `nest_placement.py`; single-bin batch via libnest2d in `nest_libnest2d.py` (ADR-0001). Full-sheet libnest2d with kerf/obstacles is backlog; check `capabilities()` and roadmap.
+**v1 placement library (ADR-0001):** Multi-bin orchestration in `nest_libnest2d.nest_multi_bin` under one `time_limit_sec` deadline:
+
+1. **Fill** — `_place_on_one_sheet`: full-sheet `nest_sheet` / `nest_sheet_with_obstacles` (kerf via `apply_kerf`; fixed obstacle `Item`s); Shapely per-piece fallback when batch places zero.
+2. **Intra-sheet repack** (×2, post-fill and post-consolidate) — `_intra_sheet_repack_search`: full re-nest per bin with ≥2 pieces; accept on `score_sheet_layout` / layout-score improvement or pull from a later same-stock sheet; rollback on regression.
+3. **Consolidate** — `_consolidate_sheets`: pairwise per-piece merge + `_try_repack_merge_sheets` for sparse donors.
+4. **Inter-sheet search** — `_inter_sheet_local_search`: repack from sparse later sheets onto earlier same-size sheets.
+
+Shapely in `nest_placement.py` is used for per-piece fallback, whole-sheet scoring (`score_sheet_layout`, `_layout_better_than`), and largest-free-area tie-breaks—not for the primary multi-bin fill path.

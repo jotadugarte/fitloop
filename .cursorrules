@@ -72,9 +72,13 @@
       2. Do not conflate `margin_mm` and `kerf_mm`: margin is sheet-edge inset only (`nest_placement`); kerf is piece-to-piece gap via `nest_types.apply_kerf`. See `docs/core/SYSTEM_ARCHITECTURE.md` §7 and `REQ-FIT-NEST-002`.
       3. Nesting placement logic stays in Python; Rails orchestrates CLI only (`docs/core/SYSTEM_ARCHITECTURE.md` kill list).
       4. Shared multi-bin types (`SheetStockSpec`, `MultiBinResult`, etc.) and `apply_kerf` live in `nest_types.py`. Do not create import cycles between `nest_bin` and `nest_libnest2d`; `nest_bin` delegates via a lazy import inside `nest_multi_bin` only.
-      5. Hybrid nesting engine: obstacle-aware per-piece placement belongs in `nest_placement.py`; single-bin libnest2d batch placement belongs in `nest_libnest2d.nest_sheet`. Do not reintroduce placement sweeps in `nest_spike.py` (compat re-exports only).
-      6. Nesting tests assert invariants (fit inside bin, kerf clearance, JSON/report keys, orphan reasons)—not golden x/y coordinates.
-      7. `pynest2d` receives integer-mm vertices; geometry with features smaller than ~1 mm may collapse after quantization—add a regression test when supporting very small pieces.
+      5. Hybrid nesting engine: per-piece Shapely placement and whole-sheet scoring (`score_sheet_layout`, `_layout_better_than`) belong in `nest_placement.py`; full-sheet libnest2d batch (`nest_sheet`, `nest_sheet_with_obstacles`) and multi-bin phases (`_intra_sheet_repack_search`, `_consolidate_sheets`, `_inter_sheet_local_search`) belong in `nest_libnest2d.py`. Do not reintroduce placement sweeps in `nest_spike.py` (compat re-exports only).
+      6. `nest_multi_bin` pipeline order is fixed: fill → intra_sheet_repack → consolidate → intra_sheet_repack → inter_sheet_local_search (one global deadline). Do not reorder phases without ADR + SPEC update.
+      7. Nesting tests assert invariants (fit inside bin, kerf clearance, JSON/report keys, orphan reasons)—not golden x/y coordinates.
+      8. `pynest2d` receives integer-mm vertices; geometry with features smaller than ~1 mm may collapse after quantization—add a regression test when supporting very small pieces.
+      9. Commit acceptance/integration DXFs under `nesting_engine/tests/fixtures/` (kebab-case filenames). Mark `@pytest.mark.slow` when loading real DXF fixtures. Do not commit `xf-test-temp/` (local scratch only; see `.gitignore`).
+      10. Intra-sheet repack (`_intra_sheet_repack_search`): skip sheets with fewer than 2 pieces; accept only on layout-score improvement (`score_sheet_layout` / `_layout_better_than`) or successful pull from a later same-stock sheet; rollback when re-nest places fewer pieces or regresses the score.
+      11. `_MAX_PIECES` (128) in `nest_sheet_with_obstacles` counts fixed obstacle items plus nestable pieces together—batch size is `_MAX_PIECES - len(occupied)` when obstacles already occupy the sheet.
     </rules>
   </project_rules>
 </agentic_guild_os>

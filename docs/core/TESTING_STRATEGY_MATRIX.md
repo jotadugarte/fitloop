@@ -35,9 +35,12 @@ bundle exec rspec
 
 # Python engine (venv active)
 python -m pytest nesting_engine/tests -q
+
+# Fast engine CI (skip real-DXF integration tests)
+python -m pytest nesting_engine/tests -q -m "not slow"
 ```
 
-**CI expectation:** Both suites green before merge (see `bin/ci` if configured).
+**CI expectation:** Both suites green before merge (see `bin/ci` if configured). Engine jobs may use `-m "not slow"`; run full suite including `@pytest.mark.slow` before release or when changing DXF fixtures.
 
 ---
 
@@ -61,7 +64,7 @@ python -m pytest nesting_engine/tests -q
 | REQ-FIT-EXT-002 | `nesting_engine/tests/test_extract_insert_blocks.py` |
 | REQ-FIT-CLI-001 | `spec/services/nesting/cli_runner_spec.rb`, `spec/jobs/nesting_job_spec.rb` |
 | REQ-FIT-NEST-001 | `nesting_engine/tests/test_libnest2d_binding.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_spike.py` |
-| REQ-FIT-NEST-002 | `nesting_engine/tests/test_nest_pipeline.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_placement_scoring.py` |
+| REQ-FIT-NEST-002 | `nesting_engine/tests/test_nest_pipeline.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_placement_scoring.py`, `nesting_engine/tests/test_nest_full_sheet_batch.py`, `nesting_engine/tests/test_nest_full_sheet_obstacles.py`, `nesting_engine/tests/test_nest_consolidate_repack.py`, `nesting_engine/tests/test_nest_inter_sheet_search.py`, `nesting_engine/tests/test_nest_intra_sheet_repack.py`, `nesting_engine/tests/test_nest_intra_sheet_peluo_integration.py` (`@pytest.mark.slow`), `nesting_engine/tests/test_nest_multi_bin_epic_integration.py` |
 | REQ-FIT-NEST-003 | `spec/services/nesting/status_mapper_spec.rb`, `spec/jobs/nesting_job_integration_spec.rb` |
 | REQ-FIT-JOB-001 | `spec/services/nesting/job_runner_spec.rb`, `spec/system/nesting_progress_spec.rb` |
 | REQ-FIT-NEST-004 | `spec/requests/nesting_renest_spec.rb`, `spec/jobs/nesting_renest_spec.rb` |
