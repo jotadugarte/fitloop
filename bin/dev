@@ -1,6 +1,21 @@
-#!/usr/bin/env ruby
-# frozen_string_literal: true
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Development server. Nesting jobs run via the :async adapter (in-process thread).
-# For Solid Queue instead: ACTIVE_JOB_QUEUE_ADAPTER=solid_queue SOLID_QUEUE_IN_PUMA=1 bin/dev
-exec "./bin/rails", "server", *ARGV
+cd "$(dirname "$0")/.."
+ROOT="$(pwd)"
+PORT="${PORT:-3001}"
+
+if [[ ! -x "${ROOT}/.venv/bin/python" ]]; then
+  echo "Missing Python venv. From repo root:" >&2
+  echo "  python3 -m venv .venv && .venv/bin/pip install -r requirements.txt" >&2
+  exit 1
+fi
+
+export PORT
+export ACTIVE_JOB_QUEUE_ADAPTER=solid_queue
+export SOLID_QUEUE_IN_PUMA=1
+
+echo "Fitloop development -> http://localhost:${PORT} (Solid Queue in Puma)"
+echo "Demo runs on port 3000: ../fitloop-demo/bin/demo"
+echo "WSL: keep this terminal open; use localhost in your Windows browser."
+exec bin/rails server -b 0.0.0.0 -p "${PORT}"
