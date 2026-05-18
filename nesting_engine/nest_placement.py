@@ -252,6 +252,59 @@ def _layout_bounds(placed: Polygon, occupied: list[Polygon]) -> tuple[float, flo
     return minx, miny, maxx, maxy
 
 
+def score_sheet_layout(
+    bin_width: float,
+    bin_height: float,
+    margin: float,
+    placed_polygons: list[Polygon],
+) -> tuple[float, float]:
+    """[REQ-FIT-NEST-002] Largest continuous free area (mm²) and layout footprint for a full sheet."""
+    assert bin_width > 0 and bin_height > 0, "positive bin dimensions"
+    assert margin >= 0, "non-negative margin"
+    assert 2 * margin < bin_width and 2 * margin < bin_height, "margin fits inside bin"
+
+    usable_w = bin_width - 2 * margin
+    usable_h = bin_height - 2 * margin
+    if not placed_polygons:
+        assert usable_w > 0 and usable_h > 0, "positive usable area"
+        return usable_w * usable_h, 0.0
+
+    occupied_union = unary_union(placed_polygons)
+    _lminx, _lminy, layout_maxx, layout_maxy = _layout_bounds(placed_polygons[0], placed_polygons[1:])
+    sentinel = box(margin, margin, margin, margin)
+    free_area = _largest_continuous_free_area(
+        bin_width,
+        bin_height,
+        margin,
+        layout_maxx,
+        layout_maxy,
+        sentinel,
+        occupied_union,
+    )
+    footprint = (layout_maxx - margin) * (layout_maxy - margin)
+    assert free_area >= 0.0 and footprint >= 0.0, "non-negative layout score"
+    return free_area, footprint
+
+
+def _layout_better_than(
+    baseline: tuple[float, float, float, float, float],
+    candidate: tuple[float, float, float, float, float],
+) -> bool:
+    """[REQ-FIT-NEST-002] True when candidate strictly improves free area, then footprint, then bottom-left."""
+    assert len(baseline) == 5 and len(candidate) == 5, "layout score tuples require five fields"
+    baseline_key = _layout_rank_key(baseline)
+    candidate_key = _layout_rank_key(candidate)
+    improved = candidate_key > baseline_key
+    assert not improved or candidate_key != baseline_key, "improvement requires strict dominance"
+    return improved
+
+
+def _layout_rank_key(score: tuple[float, float, float, float, float]) -> tuple[float, float, float, float, float]:
+    free_area, footprint, layout_maxy, min_y, min_x = score
+    assert free_area >= 0.0 and footprint >= 0.0, "non-negative free area and footprint"
+    return (free_area, -footprint, -layout_maxy, -min_y, -min_x)
+
+
 def _largest_continuous_free_area(
     bin_width: float,
     bin_height: float,

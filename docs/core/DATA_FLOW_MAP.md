@@ -34,7 +34,7 @@ Browser (project#show)
 
 **No nesting math in Ruby:** geometry and placement live only in `nesting_engine/`.
 
-**Margin vs kerf in the engine:** `config.json` passes `margin_mm` and `kerf_mm` from the project snapshot. `nest_libnest2d.nest_multi_bin` buffers pieces via `nest_types.apply_kerf`, then runs **fill → consolidate → inter-sheet search** (libnest2d full-sheet batch with Shapely fallback; `_consolidate_sheets` repack; `_inter_sheet_local_search`) under one `time_limit_sec`. Margin is sheet-edge inset only; kerf is piece-to-piece clearance. See `REQ-FIT-NEST-002` in `SPEC.md`.
+**Margin vs kerf in the engine:** `config.json` passes `margin_mm` and `kerf_mm` from the project snapshot. `nest_libnest2d.nest_multi_bin` buffers pieces via `nest_types.apply_kerf`, then runs **fill → intra-sheet repack → consolidate → intra-sheet repack → inter-sheet search** (libnest2d full-sheet batch with Shapely fallback; `_intra_sheet_repack_search`; `_consolidate_sheets` repack; `_inter_sheet_local_search`) under one `time_limit_sec`. Margin is sheet-edge inset only; kerf is piece-to-piece clearance. See `REQ-FIT-NEST-002` in `SPEC.md`.
 
 ---
 

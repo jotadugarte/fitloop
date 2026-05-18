@@ -32,7 +32,7 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 
 **Obstacle-aware full-sheet addendum (2026-05-17):** `nest_sheet_with_obstacles` models kerf-buffered footprints as **fixed `Item`s** via `markAsFixedInBin(0)` with vertices pre-positioned in the libnest2d frame (`translate(world, -frame_origin)`). Nestable pieces batch through `nest_blp` alongside fixed items. A piece is **unplaced** when `binId() < 0` or post-check shows margin violation / overlap with obstacles or prior placements — no kerf/margin downgrade.
 
-**Full-sheet multi-bin epic (2026-05-18):** `nest_multi_bin` runs three phases under one `time_limit_sec` deadline: (1) **fill** — `_place_on_one_sheet` uses full-sheet `nest_sheet` / `nest_sheet_with_obstacles` (batch ≤128 pieces) with Shapely per-piece fallback when batch places zero; (2) **consolidate** — pairwise merge plus `_try_repack_merge_sheets` for sparse donors; (3) **inter-sheet local search** — repack from last sparse sheet onto earlier same-size sheets. Shapely in `nest_placement.py` remains for fallback placement and largest-free-area scoring tie-breaks only.
+**Full-sheet multi-bin epic (2026-05-18):** `nest_multi_bin` runs under one `time_limit_sec` deadline: (1) **fill** — `_place_on_one_sheet` uses full-sheet `nest_sheet` / `nest_sheet_with_obstacles` (batch ≤128 pieces) with Shapely per-piece fallback when batch places zero; (2) **intra-sheet repack** (×2, post-fill and post-consolidate) — `_intra_sheet_repack_search` full re-nests each bin with ≥2 pieces, accepts on `score_sheet_layout` / layout-score improvement or pull from a later same-stock sheet; (3) **consolidate** — pairwise merge plus `_try_repack_merge_sheets` for sparse donors; (4) **inter-sheet local search** — repack from last sparse sheet onto earlier same-size sheets. Shapely in `nest_placement.py` remains for fallback placement, whole-sheet scoring, and largest-free-area tie-breaks.
 
 ### Positive consequences
 
@@ -56,6 +56,7 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 | Kerf / margin | No | Yes (`nest_types.apply_kerf`; full-sheet fill + obstacle `Item`s in `nest_libnest2d`) |
 | Obstacle-aware full-sheet | No | Yes (`nest_sheet_with_obstacles`, `_MAX_PIECES` 128) |
 | Multi-bin consolidate / inter-sheet | No | Yes (`_consolidate_sheets` repack + `_inter_sheet_local_search`) |
+| Intra-sheet repack (void closure) | No | Yes (`_intra_sheet_repack_search`, post-fill and post-consolidate) |
 | 600s best-so-far | No | Yes (`time_limit_sec`, REQ-FIT-NEST-003) |
 | Deploy / CI | — | `docs/DEPLOY.md`, `.github/workflows/ci.yml` `nesting_engine` job |
 

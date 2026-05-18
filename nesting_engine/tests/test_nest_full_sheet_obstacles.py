@@ -84,7 +84,8 @@ def test_nest_sheet_with_obstacles_places_fit_pieces_and_reports_unplaced() -> N
     assert set(result.placements.keys()) == {0, 1}
 
     raw_placed: list[object] = []
-    for piece_index, placement in result.placements.items():
+    for piece_index, resolved in result.placements.items():
+        placement = resolved.placement
         fit_placed = _assert_placed_fit_bin(
             pieces[piece_index],
             placement,

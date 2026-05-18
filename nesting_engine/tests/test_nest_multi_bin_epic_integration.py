@@ -1,4 +1,4 @@
-# [REQ-FIT-NEST-002] End-to-end epic pipeline: fill → consolidate → inter-sheet search.
+# [REQ-FIT-NEST-002] End-to-end epic pipeline: fill → intra repack → consolidate → intra → inter-sheet.
 from __future__ import annotations
 
 import nesting_engine.nest_libnest2d as nest_libnest2d
@@ -10,15 +10,20 @@ from nesting_engine.nest_libnest2d import nest_multi_bin
 
 
 def test_nest_multi_bin_runs_epic_phases_in_locked_order(monkeypatch: pytest.MonkeyPatch) -> None:
-    """[REQ-FIT-NEST-002] `nest_multi_bin` must run fill, consolidate, then inter-sheet local search."""
+    """[REQ-FIT-NEST-002] `nest_multi_bin` runs fill, intra repack (×2), consolidate, then inter-sheet search."""
     phase_calls: list[str] = []
     original_fill = nest_libnest2d._nest_across_stocks
+    original_intra = nest_libnest2d._intra_sheet_repack_search
     original_consolidate = nest_libnest2d._consolidate_sheets
     original_search = nest_libnest2d._inter_sheet_local_search
 
     def tracked_fill(*args, **kwargs):
         phase_calls.append("fill")
         return original_fill(*args, **kwargs)
+
+    def tracked_intra(*args, **kwargs):
+        phase_calls.append("intra_sheet_repack")
+        return original_intra(*args, **kwargs)
 
     def tracked_consolidate(*args, **kwargs):
         phase_calls.append("consolidate")
@@ -29,6 +34,7 @@ def test_nest_multi_bin_runs_epic_phases_in_locked_order(monkeypatch: pytest.Mon
         return original_search(*args, **kwargs)
 
     monkeypatch.setattr(nest_libnest2d, "_nest_across_stocks", tracked_fill)
+    monkeypatch.setattr(nest_libnest2d, "_intra_sheet_repack_search", tracked_intra)
     monkeypatch.setattr(nest_libnest2d, "_consolidate_sheets", tracked_consolidate)
     monkeypatch.setattr(nest_libnest2d, "_inter_sheet_local_search", tracked_search)
 
@@ -44,7 +50,13 @@ def test_nest_multi_bin_runs_epic_phases_in_locked_order(monkeypatch: pytest.Mon
         time_limit_sec=30.0,
     )
 
-    assert phase_calls == ["fill", "consolidate", "inter_sheet"]
+    assert phase_calls == [
+        "fill",
+        "intra_sheet_repack",
+        "consolidate",
+        "intra_sheet_repack",
+        "inter_sheet",
+    ]
 
 
 def test_nest_multi_bin_respects_time_limit_sec_with_best_so_far(monkeypatch: pytest.MonkeyPatch) -> None:

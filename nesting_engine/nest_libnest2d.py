@@ -13,8 +13,13 @@ from shapely.geometry.polygon import orient
 from nesting_engine.nest_placement import (
     ROTATION_STEP_DEG,
     Placement,
+    _EPS_MM,
+    _layout_better_than,
+    _layout_bounds,
+    _layout_rank_key,
     place_with_rotation,
     placed_polygon,
+    score_sheet_layout,
 )
 from nesting_engine.nest_types import (
     MultiBinResult,
@@ -59,10 +64,18 @@ class BindingSpikeResult:
 
 
 @dataclass(frozen=True)
+class SheetPiecePlacement:
+    """Placement plus the geometry it applies to (quantized source or absolute world polygon)."""
+
+    placement: Placement
+    geometry: Polygon
+
+
+@dataclass(frozen=True)
 class ObstacleAwareSheetResult:
     """[REQ-FIT-NEST-002] Placements for nestable pieces; explicit unplaced piece indices."""
 
-    placements: dict[int, Placement]
+    placements: dict[int, SheetPiecePlacement]
     unplaced_indices: list[int]
 
 
@@ -83,8 +96,7 @@ def nest_sheet(
     assert pieces, "at least one piece required"
     assert len(pieces) <= _MAX_PIECES, "piece count exceeds sheet limit"
 
-    usable_w = max(int(round(bin_width_mm - 2.0 * margin_mm)), 1)
-    usable_h = max(int(round(bin_height_mm - 2.0 * margin_mm)), 1)
+    usable_w, usable_h, frame_ox, frame_oy = _usable_frame(bin_width_mm, bin_height_mm, margin_mm)
     fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
     items = [_shapely_to_item(piece) for piece in fit_pieces]
 
@@ -93,10 +105,15 @@ def nest_sheet(
     assert all(item.binId() >= 0 for item in items), "every piece must fit on the sheet"
 
     placements = [
-        _placement_from_world(
-            fit_piece,
-            _world_polygon_from_item(item, margin_mm=margin_mm, usable_w=usable_w, usable_h=usable_h),
-        )
+        _resolve_libnest2d_placement(
+            _quantize_polygon(fit_piece),
+            item,
+            margin_mm=margin_mm,
+            usable_w=usable_w,
+            usable_h=usable_h,
+            frame_ox=frame_ox,
+            frame_oy=frame_oy,
+        ).placement
         for fit_piece, item in zip(fit_pieces, items, strict=True)
     ]
     assert len(placements) == len(pieces)
@@ -142,6 +159,8 @@ def nest_sheet_with_obstacles(
         margin_mm=margin_mm,
         usable_w=usable_w,
         usable_h=usable_h,
+        frame_ox=frame_ox,
+        frame_oy=frame_oy,
     )
     assert len(placements) + len(unplaced) == len(pieces)
     return ObstacleAwareSheetResult(placements=placements, unplaced_indices=unplaced)
@@ -175,9 +194,27 @@ def nest_multi_bin(
         time_limit_sec=time_limit_sec,
         deadline=deadline,
     )
+    sheets = _intra_sheet_repack_search(
+        sheets,
+        pieces,
+        stocks,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+        deadline=deadline,
+    )
     sheets = _consolidate_sheets(
         sheets,
         pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+        sheet_gap_mm=sheet_gap_mm,
+        deadline=deadline,
+    )
+    sheets = _intra_sheet_repack_search(
+        sheets,
+        pieces,
+        stocks,
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
@@ -341,6 +378,8 @@ def _collect_obstacle_aware_placements(
     margin_mm: float,
     usable_w: int,
     usable_h: int,
+    frame_ox: float,
+    frame_oy: float,
 ) -> tuple[dict[int, Placement], list[int]]:
     placements: dict[int, Placement] = {}
     unplaced: list[int] = []
@@ -366,8 +405,18 @@ def _collect_obstacle_aware_placements(
         ):
             unplaced.append(index)
             continue
-        placements[index] = _placement_from_world(fit_piece, world)
-        placed_world.append(world)
+        nest_geom = _quantize_polygon(fit_piece)
+        resolved = _resolve_libnest2d_placement(
+            nest_geom,
+            item,
+            margin_mm=margin_mm,
+            usable_w=usable_w,
+            usable_h=usable_h,
+            frame_ox=frame_ox,
+            frame_oy=frame_oy,
+        )
+        placements[index] = resolved
+        placed_world.append(_sheet_piece_world_polygon(resolved))
 
     assert len(placements) + len(unplaced) == len(fit_pieces)
     return placements, unplaced
@@ -424,7 +473,42 @@ def _world_polygon_from_item(
     return Polygon(exterior)
 
 
+def _raw_polygon_from_item(item: Item) -> Polygon:
+    outer = [(point.x(), point.y()) for point in item.rawContour()]
+    holes = [[(point.x(), point.y()) for point in ring] for ring in item.rawHoles()]
+    if holes:
+        return Polygon(outer, holes)
+    return Polygon(outer)
+
+
+def _quantize_polygon(polygon: Polygon) -> Polygon:
+    """Round-trip through libnest2d integer-mm vertices (same geometry the solver sees)."""
+    return _raw_polygon_from_item(_shapely_to_item(polygon))
+
+
+def _sheet_piece_world_polygon(resolved: SheetPiecePlacement) -> Polygon:
+    return placed_polygon(resolved.geometry, resolved.placement)
+
+
+def _placement_matches_world(
+    fit_piece: Polygon,
+    placement: Placement,
+    world: Polygon,
+    *,
+    tolerance_mm2: float = _PLACEMENT_AREA_TOLERANCE_MM2,
+) -> bool:
+    diff = placed_polygon(fit_piece, placement).symmetric_difference(world).area
+    return diff <= tolerance_mm2
+
+
 def _placement_from_world(piece: Polygon, world: Polygon) -> Placement:
+    """Discrete-angle inverse map; asserts when no centroid+translate model fits within tolerance."""
+    placement, best_diff = _placement_from_world_best_effort(piece, world)
+    assert best_diff <= _PLACEMENT_AREA_TOLERANCE_MM2, "libnest2d placement must map to Shapely transform"
+    return placement
+
+
+def _placement_from_world_best_effort(piece: Polygon, world: Polygon) -> tuple[Placement, float]:
     wminx, wminy, _, _ = world.bounds
     best_placement: Placement | None = None
     best_diff = float("inf")
@@ -440,8 +524,52 @@ def _placement_from_world(piece: Polygon, world: Polygon) -> Placement:
             best_diff = diff
             best_placement = Placement(offset_x, offset_y, angle)
     assert best_placement is not None, "placement search must find a candidate"
-    assert best_diff <= _PLACEMENT_AREA_TOLERANCE_MM2, "libnest2d placement must map to Shapely transform"
-    return best_placement
+    return best_placement, best_diff
+
+
+def _resolve_libnest2d_placement(
+    nest_geometry: Polygon,
+    item: Item,
+    *,
+    margin_mm: float,
+    usable_w: int,
+    usable_h: int,
+    frame_ox: float,
+    frame_oy: float,
+) -> SheetPiecePlacement:
+    """Map pynest2d item pose to Placement; use transformed contour when inverse fit fails."""
+    world = _world_polygon_from_item(
+        item,
+        margin_mm=margin_mm,
+        usable_w=usable_w,
+        usable_h=usable_h,
+    )
+    angle = math.degrees(item.rotation())
+    candidates: list[Placement] = []
+
+    rotated = rotate(nest_geometry, angle, origin="centroid")
+    wminx, wminy, _, _ = world.bounds
+    rminx, rminy, _, _ = rotated.bounds
+    candidates.append(Placement(wminx - rminx, wminy - rminy, angle))
+
+    translation = item.translation()
+    candidates.append(
+        Placement(
+            float(translation.x()) + frame_ox,
+            float(translation.y()) + frame_oy,
+            angle,
+        )
+    )
+
+    for placement in candidates:
+        if _placement_matches_world(nest_geometry, placement, world):
+            return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
+
+    placement, best_diff = _placement_from_world_best_effort(nest_geometry, world)
+    if best_diff <= _PLACEMENT_AREA_TOLERANCE_MM2:
+        return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
+
+    return SheetPiecePlacement(placement=Placement(0.0, 0.0, 0.0), geometry=world)
 
 
 def _shapely_to_item(polygon: Polygon) -> Item:
@@ -629,15 +757,42 @@ def _placed_from_batch_result(
         return [], pending, occupied
 
     placed: list[PlacedPiece] = []
-    for local_idx, placement in batch_result.placements.items():
+    for local_idx, resolved in batch_result.placements.items():
         piece_index = batch_indices[local_idx]
-        fit_piece = apply_kerf(pieces[piece_index], kerf_mm)
-        placed.append(PlacedPiece(piece_index=piece_index, polygon=pieces[piece_index], placement=placement))
-        occupied.append(placed_polygon(fit_piece, placement))
+        placed.append(
+            PlacedPiece(
+                piece_index=piece_index,
+                polygon=resolved.geometry,
+                placement=resolved.placement,
+            )
+        )
+        occupied.append(_sheet_piece_world_polygon(resolved))
 
     still_pending = [batch_indices[local_idx] for local_idx in batch_result.unplaced_indices]
     still_pending.extend(pending[len(batch_indices) :])
     return placed, still_pending, occupied
+
+
+def _batch_resolved_placements_are_valid(
+    resolved_placements: list[SheetPiecePlacement],
+    *,
+    bin_width_mm: float,
+    bin_height_mm: float,
+    margin_mm: float,
+) -> bool:
+    occupied: list[Polygon] = []
+    for resolved in resolved_placements:
+        placed = _sheet_piece_world_polygon(resolved)
+        minx, miny, maxx, maxy = placed.bounds
+        if minx < margin_mm - _EPS_MM or miny < margin_mm - _EPS_MM:
+            return False
+        if maxx > bin_width_mm - margin_mm + _EPS_MM or maxy > bin_height_mm - margin_mm + _EPS_MM:
+            return False
+        for obstacle in occupied:
+            if placed.intersects(obstacle) and not placed.touches(obstacle):
+                return False
+        occupied.append(placed)
+    return True
 
 
 def _batch_placements_are_valid(
@@ -826,22 +981,259 @@ def _try_repack_merge_sheets(
         return False
 
     ordered = [result.placements[local_idx] for local_idx in range(len(indices))]
-    if not _batch_placements_are_valid(
-        batch_pieces,
+    if not _batch_resolved_placements_are_valid(
         ordered,
         bin_width_mm=bin_width,
         bin_height_mm=bin_height,
         margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
     ):
         return False
 
     target_pieces[:] = [
-        PlacedPiece(piece_index=indices[local_idx], polygon=pieces[indices[local_idx]], placement=ordered[local_idx])
+        PlacedPiece(
+            piece_index=indices[local_idx],
+            polygon=ordered[local_idx].geometry,
+            placement=ordered[local_idx].placement,
+        )
         for local_idx in range(len(indices))
     ]
     donor_pieces.clear()
     return True
+
+
+def _intra_sheet_repack_search(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    sheet_stocks: list[SheetStockSpec],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+    sheet_gap_mm: float,
+    deadline: float | None = None,
+) -> list[NestedSheet]:
+    """[REQ-FIT-NEST-002] Full-sheet re-nest per bin to maximize largest continuous free area."""
+    assert sheet_stocks, "sheet stocks required for intra-sheet repack"
+    work = list(sheets)
+
+    for sheet_idx, sheet in enumerate(work):
+        if _time_limit_exceeded(deadline):
+            break
+        if len(sheet.pieces) < 2:
+            continue
+
+        baseline_score = _layout_score_for_sheet(sheet, pieces, margin_mm=margin_mm, kerf_mm=kerf_mm)
+        baseline_count = len(sheet.pieces)
+        best = _best_intra_repack_candidate(
+            sheet,
+            work,
+            sheet_idx,
+            pieces,
+            sheet_stocks,
+            baseline_score=baseline_score,
+            baseline_count=baseline_count,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+            deadline=deadline,
+        )
+        if best is None or _time_limit_exceeded(deadline):
+            continue
+
+        repacked_pieces, pulled_indices = best
+        work[sheet_idx] = NestedSheet(
+            stock_sort_order=sheet.stock_sort_order,
+            sheet_index=sheet.sheet_index,
+            width_mm=sheet.width_mm,
+            height_mm=sheet.height_mm,
+            offset_x_mm=sheet.offset_x_mm,
+            pieces=repacked_pieces,
+        )
+        if pulled_indices:
+            for donor_idx in range(sheet_idx + 1, len(work)):
+                donor = work[donor_idx]
+                remaining = [row for row in donor.pieces if row.piece_index not in pulled_indices]
+                work[donor_idx] = NestedSheet(
+                    stock_sort_order=donor.stock_sort_order,
+                    sheet_index=donor.sheet_index,
+                    width_mm=donor.width_mm,
+                    height_mm=donor.height_mm,
+                    offset_x_mm=donor.offset_x_mm,
+                    pieces=remaining,
+                )
+
+    work = [sheet for sheet in work if sheet.pieces]
+    return _reindex_sheet_offsets(work, sheet_gap_mm)
+
+
+def _best_intra_repack_candidate(
+    sheet: NestedSheet,
+    work: list[NestedSheet],
+    sheet_idx: int,
+    pieces: list[Polygon],
+    sheet_stocks: list[SheetStockSpec],
+    *,
+    baseline_score: tuple[float, float, float, float, float],
+    baseline_count: int,
+    margin_mm: float,
+    kerf_mm: float,
+    deadline: float | None,
+) -> tuple[list[PlacedPiece], set[int]] | None:
+    trials: list[list[PlacedPiece]] = [list(sheet.pieces)]
+    for donor_idx in range(sheet_idx + 1, len(work)):
+        if _time_limit_exceeded(deadline):
+            break
+        donor = work[donor_idx]
+        if not _sheets_allow_piece_transfer(sheet, donor, sheet_stocks):
+            continue
+        for donor_piece in donor.pieces:
+            trials.append(list(sheet.pieces) + [donor_piece])
+
+    best_pieces: list[PlacedPiece] | None = None
+    best_score: tuple[float, float, float, float, float] | None = None
+    best_key: tuple[int, tuple[float, float, float, float, float], int] | None = None
+
+    for trial_pieces in trials:
+        if _time_limit_exceeded(deadline):
+            return None
+        if len(trial_pieces) < 2:
+            continue
+        repacked = _try_repack_intra_sheet(
+            trial_pieces,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        if repacked is None:
+            continue
+        candidate_score = _layout_score_for_pieces(
+            repacked,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        pulled_trial = len(trial_pieces) > baseline_count
+        if not _intra_repack_acceptable(
+            baseline_score,
+            candidate_score,
+            baseline_count,
+            len(repacked),
+            pulled_extra=pulled_trial,
+        ):
+            continue
+        merged_pull = pulled_trial and len(repacked) > baseline_count
+        candidate_key = (1 if merged_pull else 0, _layout_rank_key(candidate_score), len(repacked))
+        if best_key is None or candidate_key > best_key:
+            best_pieces = repacked
+            best_score = candidate_score
+            best_key = candidate_key
+
+    if best_pieces is None or best_score is None:
+        return None
+    if best_score == baseline_score and len(best_pieces) == baseline_count:
+        return None
+
+    pulled = {row.piece_index for row in best_pieces} - {row.piece_index for row in sheet.pieces}
+    return best_pieces, pulled
+
+
+def _intra_repack_acceptable(
+    baseline_score: tuple[float, float, float, float, float],
+    candidate_score: tuple[float, float, float, float, float],
+    baseline_count: int,
+    candidate_count: int,
+    *,
+    pulled_extra: bool = False,
+) -> bool:
+    if _layout_better_than(baseline_score, candidate_score):
+        return True
+    if pulled_extra and candidate_count > baseline_count:
+        return True
+    return candidate_count > baseline_count and candidate_score[0] >= baseline_score[0] - _EPS_MM
+
+
+def _layout_score_for_sheet(
+    sheet: NestedSheet,
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> tuple[float, float, float, float, float]:
+    placed = _occupied_polygons(sheet.pieces, pieces, kerf_mm)
+    return _layout_score_from_polygons(sheet.width_mm, sheet.height_mm, margin_mm, placed)
+
+
+def _layout_score_for_pieces(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> tuple[float, float, float, float, float]:
+    placed = _occupied_polygons(sheet_pieces, pieces, kerf_mm)
+    return _layout_score_from_polygons(bin_width, bin_height, margin_mm, placed)
+
+
+def _layout_score_from_polygons(
+    bin_width: float,
+    bin_height: float,
+    margin_mm: float,
+    placed_polygons: list[Polygon],
+) -> tuple[float, float, float, float, float]:
+    free_area, footprint = score_sheet_layout(bin_width, bin_height, margin_mm, placed_polygons)
+    if not placed_polygons:
+        return (free_area, footprint, margin_mm, margin_mm, margin_mm)
+    minx, miny, _maxx, layout_maxy = _layout_bounds(placed_polygons[0], placed_polygons[1:])
+    return (free_area, footprint, layout_maxy, miny, minx)
+
+
+def _try_repack_intra_sheet(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece] | None:
+    assert len(sheet_pieces) >= 2, "intra-sheet repack requires at least two pieces"
+    indices = [placed.piece_index for placed in sheet_pieces]
+    if len(indices) > _MAX_PIECES:
+        return None
+
+    batch_pieces = [pieces[index] for index in indices]
+    result = nest_sheet_with_obstacles(
+        batch_pieces,
+        bin_width,
+        bin_height,
+        obstacles=[],
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if len(result.placements) != len(indices):
+        return None
+
+    ordered = [result.placements[local_idx] for local_idx in range(len(indices))]
+    if not _batch_resolved_placements_are_valid(
+        ordered,
+        bin_width_mm=bin_width,
+        bin_height_mm=bin_height,
+        margin_mm=margin_mm,
+    ):
+        return None
+
+    return [
+        PlacedPiece(
+            piece_index=indices[local_idx],
+            polygon=ordered[local_idx].geometry,
+            placement=ordered[local_idx].placement,
+        )
+        for local_idx in range(len(indices))
+    ]
 
 
 def _inter_sheet_local_search(

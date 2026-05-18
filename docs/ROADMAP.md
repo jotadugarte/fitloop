@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** sheet-stock consumption priority UX (finite → ∞ default); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -88,6 +88,10 @@ _(none)_
 ---
 
 ## Pending (by priority)
+
+### Product / UX
+
+- [ ] **Sheet stock consumption priority** — user can set which `SheetStock` rows the engine consumes first (`sort_order`); default policy: **finite quantities first**, then unlimited (∞) stocks (REQ-FIT-UI-001, REQ-FIT-DOM-001)
 
 ### Nesting engine
 

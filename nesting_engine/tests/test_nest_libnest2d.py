@@ -10,7 +10,13 @@ from shapely.geometry import Polygon, box
 from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
-from nesting_engine.nest_libnest2d import capabilities, nest_multi_bin, nest_sheet
+from nesting_engine.nest_libnest2d import (
+    _sheet_piece_world_polygon,
+    capabilities,
+    nest_multi_bin,
+    nest_sheet,
+    nest_sheet_with_obstacles,
+)
 from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon
 
 _EPS_MM = 1e-6
@@ -76,6 +82,32 @@ def test_nest_sheet_accepts_up_to_128_pieces() -> None:
         margin_mm=1.0,
         kerf_mm=0.0,
     )
+
+
+def test_nest_sheet_with_obstacles_uses_native_item_pose_for_continuous_rotation() -> None:
+    # nest_blp allows any angle; placement must preserve libnest2d rotation (not snap to 5°).
+    piece = box(0, 0, 90, 20)
+    margin_mm = 0.0
+    kerf_mm = 0.0
+
+    result = nest_sheet_with_obstacles(
+        [piece],
+        bin_width_mm=50.0,
+        bin_height_mm=100.0,
+        obstacles=[],
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert result.unplaced_indices == []
+    resolved = result.placements[0]
+    assert resolved.placement.rotation_deg % ROTATION_STEP_DEG != 0.0
+    world = _sheet_piece_world_polygon(resolved)
+    minx, miny, maxx, maxy = world.bounds
+    assert minx >= margin_mm - _EPS_MM
+    assert miny >= margin_mm - _EPS_MM
+    assert maxx <= 50.0 - margin_mm + _EPS_MM
+    assert maxy <= 100.0 - margin_mm + _EPS_MM
 
 
 def test_nest_sheet_places_two_mm_square_after_integer_quantization() -> None:

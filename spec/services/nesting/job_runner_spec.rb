@@ -53,5 +53,25 @@ RSpec.describe Nesting::JobRunner do
         hash_including(project: project, eta_overrun: true)
       ).at_least(:once)
     end
+
+    it "does not reload nesting_run on each cancel poll during CLI execution" do
+      allow(Nesting::CliRunner).to receive(:call) do |cancel_check:, **|
+        20.times { cancel_check.call }
+      end
+
+      expect(nesting_run).not_to receive(:reload)
+
+      described_class.call(nesting_run: nesting_run)
+    end
+
+    it "throttles cancel_requested_at DB reads during CLI polling" do
+      allow(Nesting::CliRunner).to receive(:call) do |cancel_check:, **|
+        20.times { cancel_check.call }
+      end
+
+      expect(NestingRun).to receive(:where).with(id: nesting_run.id).at_most(:once).and_call_original
+
+      described_class.call(nesting_run: nesting_run)
+    end
   end
 end
