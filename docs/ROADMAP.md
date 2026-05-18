@@ -92,7 +92,7 @@ _(none)_
 
 ### Product / UX
 
-- [ ] **Sheet stock consumption priority** — user can set which `SheetStock` rows the engine consumes first (`sort_order`); default policy: **finite quantities first**, then unlimited (∞) stocks (REQ-FIT-UI-001, REQ-FIT-DOM-001)
+- [x] **Sheet stock consumption priority** — Priority column, drag reorder, finite-first button, ∞ auto-last, max one ∞ per project; server + CLI + engine alignment (REQ-FIT-UI-001, REQ-FIT-DOM-001, REQ-FIT-NEST-002) — 2026-05-17
 
 ### Nesting engine
 - [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped

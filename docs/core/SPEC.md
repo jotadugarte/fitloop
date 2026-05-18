@@ -41,8 +41,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### SheetStock
 
-- `width_mm`, `height_mm`, `quantity` (nullable = **infinite**), `sort_order` (user-defined consumption priority)
-- Engine consumes stocks in `sort_order`; finite quantities decrement per sheet used; ∞ creates additional sheets as needed
+- `width_mm`, `height_mm`, `quantity` (nullable = **infinite**), `sort_order` (user-defined consumption priority, dense `0..n-1` per project)
+- **At most one** stock per project with `quantity: nil` (∞)
+- When an unlimited stock exists, its `sort_order` is **greater than every finite** stock (consumed last)
+- Engine consumes stocks in ascending `sort_order`; finite quantities decrement per sheet used; ∞ runs only after finite stocks are exhausted or cannot place more pieces
 
 ### ProjectLayer
 
@@ -62,9 +64,12 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W1 — Create project and sheet inventory
 
-1. User enters title and chooses a **6-digit PIN**.
-2. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞).
-3. User orders stocks (Stimulus sortable); `sort_order` persisted.
+1. User enters title and chooses a **6-digit PIN** (saved projects) or uses the ephemeral setup flow.
+2. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
+3. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
+4. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
+5. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
+6. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
 
 ### W2 — Upload DXFs and select layers
 

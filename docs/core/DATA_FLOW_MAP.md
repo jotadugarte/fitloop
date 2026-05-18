@@ -52,9 +52,13 @@ Browser (project#show)
 
 ### SheetStock (`sheet_stocks`)
 
-- Created/updated via nested attributes on project form.
-- `sort_order` reassigned on save (`assign_sheet_stock_sort_orders!`).
+- Created/updated via nested attributes on project form or workspace sheets PATCH.
+- On save/update: `SheetStocks::NormalizeConsumptionOrder` assigns dense `sort_order` `0..n-1` with **all finite stocks first** (stable prior relative order), then the single unlimited stock (if any).
+- `Project` validation: at most one row with `quantity: nil` per project.
+- UI (Stimulus + SortableJS): drag reorder updates `sort_order`; composer blocks a second unlimited row; finite rows insert before ∞.
 - `quantity: nil` means **infinite** sheets for the engine.
+- CLI `config.json`: `sheet_stocks_config` rejects more than one `quantity: null` and requires unlimited `sort_order` = max when multiple stocks exist.
+- Python `nest_multi_bin`: `stocks_in_consumption_order` consumes finite stocks before unlimited regardless of raw `sort_order` values.
 - Destroyed with project (`dependent: :destroy`).
 
 ### ProjectLayer (`project_layers`)

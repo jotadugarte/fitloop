@@ -161,7 +161,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Complete `es`/`en` strings for priority column, legend, finite-first button, single-unlimited cap error.
 </step>
 
-<step id="10" status="pending">
+<step id="10" status="complete">
 **Test:** Run `bundle exec rspec` (targeted then full) and `python -m pytest nesting_engine/tests -q -m "not slow"`.
 **Implement:** Update `docs/core/SPEC.md` W1 (drag + auto ∞-last + max one ∞), `docs/core/DATA_FLOW_MAP.md` (`sort_order` semantics), `docs/core/SCHEMA_REFERENCE.md` (business rule note on `quantity` NULL cap), `docs/ROADMAP.md` mark item done when merged.
 </step>
