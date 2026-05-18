@@ -75,7 +75,7 @@ class ProjectsController < ApplicationController
 
   def update
     @project.assign_attributes(normalized_project_attributes)
-    assign_sheet_stock_sort_orders!(@project)
+    normalize_sheet_stock_consumption_order!(@project)
 
     if @project.ephemeral?
       finish_ephemeral_setup
@@ -144,7 +144,7 @@ class ProjectsController < ApplicationController
 
   def update_workspace_sheets!
     @project.assign_attributes(workspace_sheet_params)
-    assign_sheet_stock_sort_orders!(@project)
+    normalize_sheet_stock_consumption_order!(@project)
 
     if @project.save
       render_workspace_turbo_stream(:sheets)
@@ -269,10 +269,8 @@ class ProjectsController < ApplicationController
     end
   end
 
-  def assign_sheet_stock_sort_orders!(project)
-    project.sheet_stocks.reject(&:marked_for_destruction?).each_with_index do |stock, index|
-      stock.sort_order = index
-    end
+  def normalize_sheet_stock_consumption_order!(project)
+    SheetStocks::NormalizeConsumptionOrder.call(project)
   end
 
   def composer_draft_params

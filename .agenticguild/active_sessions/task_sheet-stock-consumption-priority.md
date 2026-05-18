@@ -126,7 +126,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** `app/services/sheet_stocks/normalize_consumption_order.rb` — dense ranks 0..n-1; all finites first ascending prior relative order; single ∞ last if present. Call from `ProjectsController` on create/update instead of blind `assign_sheet_stock_sort_orders!` index-only pass.
 </step>
 
-<step id="3" status="pending">
+<step id="3" status="complete">
 **Test:** Add `spec/requests/projects_sheet_inventory_spec.rb` — POST/PATCH project with attrs order `[∞, finite]`; assert persisted `sheet_stocks.order(:sort_order)` is `[finite, ∞]`. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Wire normalizer on save; ensure nested attributes order does not bypass ∞-last rule.
 </step>
