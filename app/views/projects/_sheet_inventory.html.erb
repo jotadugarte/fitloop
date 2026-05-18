@@ -1,5 +1,6 @@
 <%# [REQ-FIT-UI-001] Two-column sheet inventory: composer (left) + list (right). %>
 <% composer_draft = local_assigns.fetch(:composer_draft, {}) %>
+<% block_unlimited_quantity = form.object.sheet_stocks.reject(&:marked_for_destruction?).any? { |stock| stock.quantity.nil? } %>
 <fieldset class="sheet-inventory-fieldset">
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
@@ -45,6 +46,7 @@
             step="1"
             value="<%= composer_draft["quantity"] || composer_draft[:quantity] %>"
             data-sheet-inventory-target="quantity"
+            <%= "disabled" if block_unlimited_quantity %>
           >
         </div>
       </div>
@@ -60,6 +62,17 @@
     </div>
 
     <p class="sheet-inventory__legend"><%= t("projects.form.consumption_order_legend") %></p>
+
+    <div class="sheet-inventory__toolbar">
+      <button
+        type="button"
+        class="btn btn-secondary btn--small"
+        data-action="sheet-inventory#sortFiniteFirst"
+        data-testid="sheet-inventory-sort-finite-first"
+      >
+        <%= t("projects.form.sort_finite_first") %>
+      </button>
+    </div>
 
     <div class="sheet-inventory__table panel panel--inset">
       <table class="sheet-inventory-table">

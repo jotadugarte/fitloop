@@ -151,7 +151,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Pin SortableJS via `config/importmap.rb` (+ vendor or jspm pin per project convention); Stimulus `sheet_inventory_controller` — Sortable on `<tbody>`; `reindexSortOrders()` on `onEnd`; **insert finite before ∞** in `buildRow`; on add unlimited append last; on drag end call `pinUnlimitedLast()`.
 </step>
 
-<step id="8" status="pending">
+<step id="8" status="complete">
 **Test:** System or request spec — click “Ordenar: finitos primero” reorders finite rows stable relative order and leaves ∞ last. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Toolbar button + `sortFiniteFirst` action (stable partition finites, ∞ unchanged at bottom); disable second unlimited in composer when one exists (alert/i18n).
 </step>

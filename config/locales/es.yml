@@ -201,6 +201,8 @@ es:
       consumption_priority: "Prioridad"
       consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
       reorder_sheet: "Arrastrar para reordenar"
+      sort_finite_first: "Ordenar: finitos primero"
+      alert_single_unlimited: "Solo se permite un tipo de lámina ilimitado por proyecto."
       add_sheet: "Agregar"
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"

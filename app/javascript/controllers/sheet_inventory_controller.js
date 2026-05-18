@@ -8,7 +8,9 @@ export default class extends Controller {
   static values = {
     summaryUnlimited: String,
     alertDimensions: String,
-    alertQuantity: String
+    alertQuantity: String,
+    alertSingleUnlimited: String,
+    hasUnlimited: Boolean
   }
 
   connect() {
@@ -22,7 +24,7 @@ export default class extends Controller {
         this.reindexSortOrders()
       }
     })
-    this.reindexSortOrders()
+    this.syncInventoryState()
   }
 
   disconnect() {
@@ -39,11 +41,24 @@ export default class extends Controller {
     if (!this.flushComposerIfNeeded()) event.preventDefault()
   }
 
+  sortFiniteFirst(event) {
+    event.preventDefault()
+
+    const finiteRows = this.visibleRows().filter((row) => !this.isUnlimitedRow(row))
+    const unlimitedRow = this.unlimitedRow()
+
+    finiteRows.forEach((row) => this.listTarget.appendChild(row))
+    if (unlimitedRow) this.listTarget.appendChild(unlimitedRow)
+
+    this.reindexSortOrders()
+  }
+
   edit(event) {
     event.preventDefault()
     const row = event.target.closest("[data-sheet-inventory-row]")
     if (!row) return
     this.fillComposerFromRow(row)
+    this.syncInventoryState()
   }
 
   remove(event) {
@@ -63,6 +78,7 @@ export default class extends Controller {
     this.pinUnlimitedLast()
     this.reindexSortOrders()
     this.clearComposer()
+    this.syncInventoryState()
   }
 
   addComposerToList() {
@@ -81,6 +97,7 @@ export default class extends Controller {
       this.buildRow(this.nextIndex(), data)
     }
     this.clearComposer()
+    this.syncInventoryState()
   }
 
   flushComposerIfNeeded() {
@@ -126,6 +143,10 @@ export default class extends Controller {
         return false
       }
     }
+    if (data.quantity === "" && this.hasUnlimitedStock() && !this.editingUnlimitedRow()) {
+      window.alert(this.alertSingleUnlimitedValue)
+      return false
+    }
     return true
   }
 
@@ -142,6 +163,7 @@ export default class extends Controller {
       const priority = row.querySelector("[data-sheet-inventory-display='priority']")
       if (priority) priority.textContent = `#${index + 1}`
     })
+    this.syncInventoryState()
   }
 
   pinUnlimitedLast() {
@@ -180,6 +202,7 @@ export default class extends Controller {
 
     this.pinUnlimitedLast()
     this.reindexSortOrders()
+    this.syncInventoryState()
   }
 
   updateRow(row, data) {
@@ -230,5 +253,27 @@ export default class extends Controller {
 
   quantityLabel(quantity) {
     return quantity !== "" ? quantity : this.summaryUnlimitedValue
+  }
+
+  syncInventoryState() {
+    const hasUnlimited = this.hasUnlimitedStock()
+    this.hasUnlimitedValue = hasUnlimited
+
+    const blockUnlimitedComposer = hasUnlimited && !this.editingUnlimitedRow()
+    this.quantityTarget.disabled = blockUnlimitedComposer
+  }
+
+  hasUnlimitedStock() {
+    return Boolean(this.unlimitedRow())
+  }
+
+  editingUnlimitedRow() {
+    const editingIndex = this.element.dataset.editingIndex
+    if (editingIndex === undefined || editingIndex === "") return false
+
+    const row = this.listTarget.querySelector(
+      `[data-sheet-inventory-row][data-sheet-inventory-index="${editingIndex}"]`
+    )
+    return Boolean(row && this.isUnlimitedRow(row))
   }
 }

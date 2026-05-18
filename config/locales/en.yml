@@ -186,6 +186,8 @@ en:
       consumption_priority: "Priority"
       consumption_order_legend: "The nesting engine consumes sheet types from top to bottom."
       reorder_sheet: "Drag to reorder"
+      sort_finite_first: "Sort: finite first"
+      alert_single_unlimited: "Only one unlimited sheet type is allowed per project."
       add_sheet: "Add"
       edit_sheet: "Edit"
       delete_sheet: "Delete"
