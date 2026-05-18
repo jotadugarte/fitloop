@@ -121,7 +121,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** `SheetStock` validation (or `Project` `validate` on nested attrs) — at most one unlimited stock per project; i18n error key under `activerecord.errors`.
 </step>
 
-<step id="2" status="pending">
+<step id="2" status="complete">
 **Test:** Add model spec — project with one finite (`sort_order: 1`) and one unlimited (`sort_order: 0`) fails until normalized; after `SheetStocks::NormalizeConsumptionOrder.call(project)` unlimited has highest `sort_order`. Tag `[REQ-FIT-DOM-001]`.
 **Implement:** `app/services/sheet_stocks/normalize_consumption_order.rb` — dense ranks 0..n-1; all finites first ascending prior relative order; single ∞ last if present. Call from `ProjectsController` on create/update instead of blind `assign_sheet_stock_sort_orders!` index-only pass.
 </step>
