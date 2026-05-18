@@ -17,22 +17,10 @@ RSpec.describe "Architecture-studio UI", type: :request do
   end
 
   describe "GET /projects [REQ-FIT-UI-004]" do
-    before { Project.destroy_all }
-
-    it "renders project grid when projects exist" do
-      create_project_for_spec!(title: "UI grid test", pin: "112233")
-
+    it "redirects to empezar (ephemeral workspace; no saved list)" do
       get projects_path
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('class="project-grid"')
-    end
-
-    it "renders empty state when there are no projects" do
-      get projects_path
-
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('data-testid="projects-empty"')
+      expect(response).to redirect_to(start_project_path)
     end
   end
 end

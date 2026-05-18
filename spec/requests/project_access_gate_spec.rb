@@ -4,9 +4,11 @@ require "rails_helper"
 
 RSpec.describe "Project PIN access", type: :request do
   let(:project) do
-    Project.create!(
+    create_project_for_spec!(
       title: "PIN gate bench",
       pin: "556688",
+      ephemeral: false,
+      bind_workspace: false,
       status: :completed,
       sheet_stocks_attributes: {
         "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
@@ -15,14 +17,10 @@ RSpec.describe "Project PIN access", type: :request do
   end
 
   describe "GET /projects [REQ-FIT-UI-003]" do
-    it "lists projects without login" do
-      project
-
+    it "redirects to empezar (ephemeral-only; no saved project list)" do
       get projects_path
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('data-testid="projects-index"')
-      expect(response.body).to include("PIN gate bench")
+      expect(response).to redirect_to(start_project_path)
     end
   end
 

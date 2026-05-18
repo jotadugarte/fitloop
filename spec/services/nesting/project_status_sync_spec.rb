@@ -34,4 +34,22 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project).to be_processing
     expect(project.progress_percent).to eq(3)
   end
+
+  it "reconciles a stuck processing run from work_dir report.json [REQ-FIT-JOB-001]" do
+    run = project.nesting_runs.create!(status: "processing", started_at: 30.seconds.ago)
+    work_dir = Rails.root.join("tmp/nesting_runs", run.id.to_s, "output")
+    FileUtils.mkdir_p(work_dir)
+    File.write(
+      work_dir.join("report.json"),
+      { status: "completed", sheets_used: 1 }.to_json
+    )
+
+    described_class.call(project: project)
+
+    project.reload
+    run.reload
+    expect(run.status).to eq("completed")
+    expect(project).to be_completed
+    expect(project.progress_percent).to eq(100)
+  end
 end

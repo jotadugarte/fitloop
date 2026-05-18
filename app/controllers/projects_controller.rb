@@ -11,8 +11,7 @@ class ProjectsController < ApplicationController
   ]
   before_action :require_project_access!, only: %i[edit update]
   def index
-    @projects = Project.saved.order(created_at: :desc)
-    @project_cards = @projects.map { |project| [ project, Nesting::PreviewPresenter.for(project) ] }
+    redirect_to start_project_path
   end
 
   def show
@@ -74,7 +73,9 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    @project.assign_attributes(normalized_project_attributes)
+    attributes = normalized_project_attributes
+    sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
+    @project.assign_attributes(attributes)
     normalize_sheet_stock_consumption_order!(@project)
 
     if @project.ephemeral?
@@ -143,7 +144,9 @@ class ProjectsController < ApplicationController
   private
 
   def update_workspace_sheets!
-    @project.assign_attributes(workspace_sheet_params)
+    attributes = workspace_sheet_params
+    sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
+    @project.assign_attributes(attributes)
     normalize_sheet_stock_consumption_order!(@project)
 
     if @project.save
@@ -265,12 +268,21 @@ class ProjectsController < ApplicationController
       next unless attrs.is_a?(Hash)
 
       quantity = attrs[:quantity].presence || attrs["quantity"].presence
-      attrs[:quantity] = quantity.present? ? quantity : nil
+      attrs[:quantity] = quantity.present? ? quantity.to_i : nil
     end
   end
 
   def normalize_sheet_stock_consumption_order!(project)
     SheetStocks::NormalizeConsumptionOrder.call(project)
+  end
+
+  def sync_sheet_inventory!(project, sheet_stocks_attributes)
+    return if sheet_stocks_attributes.blank?
+
+    SheetStocks::SyncInventory.call(
+      project: project,
+      sheet_stocks_attributes: sheet_stocks_attributes
+    )
   end
 
   def composer_draft_params

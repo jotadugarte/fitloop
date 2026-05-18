@@ -38,6 +38,8 @@ module Nesting
         handle_timeout!
       rescue CancelledError
         handle_cancelled!
+      rescue StandardError => error
+        handle_failure!(error)
       else
         update_progress!(percent: 100, message: terminal_progress_message)
         ProgressBroadcaster.call(
@@ -70,6 +72,23 @@ module Nesting
       )
       ProgressBroadcaster.call(project: @project, eta_overrun: false, time_limit_notice: false)
       true
+    end
+
+    def handle_failure!(error)
+      Rails.logger.error("[Nesting::JobRunner] nesting_run=#{@nesting_run.id} #{error.class}: #{error.message}")
+      Rails.logger.error(error.backtrace&.first(8)&.join("\n"))
+
+      @nesting_run.update!(
+        status: "failed",
+        finished_at: Time.current,
+        report_json: { "status" => "failed", "warnings" => [error.message] }
+      )
+      @project.update!(
+        status: :failed,
+        progress_percent: 0,
+        progress_message: I18n.t("nesting.failed")
+      )
+      ProgressBroadcaster.call(project: @project.reload, eta_overrun: false, time_limit_notice: false)
     end
 
     def handle_timeout!

@@ -25,6 +25,9 @@ export default class extends Controller {
   }
 
   shouldKeepPolling() {
+    const badge = document.querySelector('[data-testid="project-status-badge"]')
+    if (badge?.classList.contains("status-badge--processing")) return true
+
     return document.querySelector('[data-testid="nesting-progress"]') !== null
   }
 

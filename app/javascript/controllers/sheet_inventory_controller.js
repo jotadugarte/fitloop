@@ -19,11 +19,14 @@ export default class extends Controller {
       handle: "[data-testid='sheet-stock-drag-handle']",
       draggable: "[data-sheet-inventory-row]",
       animation: 150,
+      onStart: () => this.enforceTableLayout(),
       onEnd: () => {
+        this.enforceTableLayout()
         this.pinUnlimitedLast()
         this.reindexSortOrders()
       }
     })
+    this.enforceTableLayout()
     this.syncInventoryState()
   }
 
@@ -41,18 +44,6 @@ export default class extends Controller {
     if (!this.flushComposerIfNeeded()) event.preventDefault()
   }
 
-  sortFiniteFirst(event) {
-    event.preventDefault()
-
-    const finiteRows = this.visibleRows().filter((row) => !this.isUnlimitedRow(row))
-    const unlimitedRow = this.unlimitedRow()
-
-    finiteRows.forEach((row) => this.listTarget.appendChild(row))
-    if (unlimitedRow) this.listTarget.appendChild(unlimitedRow)
-
-    this.reindexSortOrders()
-  }
-
   edit(event) {
     event.preventDefault()
     const row = event.target.closest("[data-sheet-inventory-row]")
@@ -63,15 +54,16 @@ export default class extends Controller {
 
   remove(event) {
     event.preventDefault()
-    const row = event.target.closest("[data-sheet-inventory-row]")
+    event.stopPropagation()
+    const row = event.target.closest("tr[data-sheet-inventory-row]")
     if (!row) return
 
     const destroyField = row.querySelector("[data-sheet-inventory-field='_destroy']")
     const idField = row.querySelector("[data-sheet-inventory-field='id']")
-    if (idField && idField.value) {
-      destroyField.value = "1"
+    if (idField?.value) {
+      if (destroyField) destroyField.value = "1"
       row.dataset.destroyed = "true"
-      row.hidden = true
+      row.style.display = "none"
     } else {
       row.remove()
     }
@@ -256,11 +248,52 @@ export default class extends Controller {
   }
 
   syncInventoryState() {
-    const hasUnlimited = this.hasUnlimitedStock()
-    this.hasUnlimitedValue = hasUnlimited
+    this.hasUnlimitedValue = this.hasUnlimitedStock()
+  }
 
-    const blockUnlimitedComposer = hasUnlimited && !this.editingUnlimitedRow()
-    this.quantityTarget.disabled = blockUnlimitedComposer
+  enforceTableLayout() {
+    this.listTarget.style.display = "table-row-group"
+    this.listTarget.querySelectorAll("tr[data-sheet-inventory-row]").forEach((row) => {
+      if (row.dataset.destroyed === "true") {
+        row.style.display = "none"
+        return
+      }
+
+      row.style.display = "table-row"
+      row.querySelectorAll("td").forEach((cell) => {
+        cell.style.display = "table-cell"
+      })
+    })
+  }
+
+  blockDecimalKey(event) {
+    if (this.isNavigationOrEditKey(event)) return
+    if (event.key === "." && !event.target.value.includes(".")) return
+    if (/^\d$/.test(event.key)) return
+    event.preventDefault()
+  }
+
+  blockIntegerKey(event) {
+    if (this.isNavigationOrEditKey(event)) return
+    if (/^\d$/.test(event.key)) return
+    event.preventDefault()
+  }
+
+  isNavigationOrEditKey(event) {
+    if (event.ctrlKey || event.metaKey) return true
+    return [
+      "Backspace",
+      "Delete",
+      "Tab",
+      "Escape",
+      "Enter",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End"
+    ].includes(event.key)
   }
 
   hasUnlimitedStock() {

@@ -15,6 +15,11 @@ module Nesting
       new(nesting_run: nesting_run, invoke: invoke, cancel_check: cancel_check).call
     end
 
+    # Reconcile a stuck processing run when CLI output exists on disk (missed finalize).
+    def self.finalize_from_work_dir!(nesting_run:)
+      new(nesting_run: nesting_run).finalize_from_work_dir!
+    end
+
     def initialize(nesting_run:, invoke: nil, cancel_check: nil)
       @nesting_run = nesting_run
       @project = nesting_run.project
@@ -36,12 +41,29 @@ module Nesting
       Result.new(exit_status: exit_status, work_dir: work_dir)
     end
 
+    def finalize_from_work_dir!
+      work_dir = work_dir_path
+      return false unless work_dir.directory?
+
+      report = load_report(work_dir)
+      return false if report.empty?
+
+      terminal_status = StatusMapper.map(exit_status: 0, report: report, work_dir: work_dir)
+      attach_outputs!(work_dir, terminal_status: terminal_status)
+      finalize_run!(terminal_status: terminal_status, report: report)
+      true
+    end
+
     private
 
+    def work_dir_path
+      Pathname(Rails.root.join("tmp/nesting_runs", @nesting_run.id.to_s))
+    end
+
     def prepare_work_dir
-      path = Rails.root.join("tmp/nesting_runs", @nesting_run.id.to_s)
+      path = work_dir_path
       FileUtils.mkdir_p(path)
-      Pathname(path)
+      path
     end
 
     def materialize_input_dxfs!(work_dir)
@@ -110,7 +132,7 @@ module Nesting
 
     def attach_nested_dxf!(work_dir)
       nested_path = work_dir.join("output", "nested.dxf")
-      raise MissingOutputError, "nested.dxf not found" unless nested_path.file?
+      return unless nested_path.file?
 
       @project.nested_dxf.attach(
         io: File.open(nested_path),
@@ -146,6 +168,5 @@ module Nesting
       @project.update!(status: terminal_status)
     end
 
-    class MissingOutputError < StandardError; end
   end
 end

@@ -9,6 +9,8 @@ class NestingRunsController < ApplicationController
   before_action -> { require_project_access!(@project) }
 
   def create
+    @project.reload
+    SheetStocks::NormalizeConsumptionOrder.call(@project)
     readiness = ProjectReadinessValidator.validate(@project)
     unless readiness.ok?
       redirect_to @project, alert: readiness.errors.join(" ")

@@ -59,23 +59,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
     expect(page).to have_css("[data-sheet-inventory-target='list'][data-sortable='true']")
   end
 
-  it "[REQ-FIT-UI-001] shows the finite-first sort toolbar button" do
-    project = create_project_for_spec!(
-      title: "Finite-first button",
-      pin: "777888",
-      sheet_stocks_attributes: {
-        "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
-      }
-    )
-
-    unlock_project_for_spec!(project, pin: "777888")
-    visit edit_project_path(project)
-
-    expect(page).to have_button(I18n.t("projects.form.sort_finite_first"))
-    expect(page).to have_css("[data-testid='sheet-inventory-sort-finite-first']")
-  end
-
-  it "[REQ-FIT-UI-001] marks the inventory when an unlimited stock already exists" do
+  it "[REQ-FIT-UI-001] keeps quantity enabled when an unlimited stock already exists" do
     project = create_project_for_spec!(
       title: "Unlimited cap UI",
       pin: "999000",
@@ -88,6 +72,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
     visit edit_project_path(project)
 
     expect(page).to have_css("[data-controller='sheet-inventory'][data-sheet-inventory-has-unlimited-value='true']")
-    expect(page).to have_field("sheet_composer_quantity", disabled: true)
+    expect(page).to have_field("sheet_composer_quantity", disabled: false)
+    expect(page).to have_css(".sheet-inventory__legend", text: I18n.t("projects.form.consumption_order_legend"))
   end
 end

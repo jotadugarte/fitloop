@@ -15,6 +15,7 @@ module Nesting
 
     def call
       broadcast_progress!
+      broadcast_status_badge!
       return if @project.processing?
 
       broadcast_show_actions!
@@ -33,6 +34,15 @@ module Nesting
           eta_overrun: @eta_overrun,
           time_limit_notice: @time_limit_notice
         }
+      )
+    end
+
+    def broadcast_status_badge!
+      @project.broadcast_replace_to(
+        @project,
+        target: ActionView::RecordIdentifier.dom_id(@project, :status_badge),
+        partial: "projects/status_badge",
+        locals: { project: @project }
       )
     end
 

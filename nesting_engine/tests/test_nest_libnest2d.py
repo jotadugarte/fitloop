@@ -211,6 +211,26 @@ def test_libnest2d_kerf_keeps_minimum_gap_between_pieces() -> None:
     assert not polys[0].intersects(polys[1])
 
 
+def test_finite_quantity_ten_matches_unlimited_sheet_count() -> None:
+    # [REQ-FIT-NEST-002] Finite cap must not change layout when stock is plentiful.
+    pieces = [box(0, 0, 15, 15) for _ in range(3)]
+    params = {"margin_mm": 0.0, "kerf_mm": 0.0, "sheet_gap_mm": 10.0}
+    unlimited = nest_multi_bin(
+        pieces,
+        [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)],
+        **params,
+    )
+    finite = nest_multi_bin(
+        pieces,
+        [SheetStockSpec(width_mm=20, height_mm=20, quantity=10, sort_order=0)],
+        **params,
+    )
+
+    assert len(finite.sheets) == len(unlimited.sheets)
+    assert finite.orphans == []
+    assert unlimited.orphans == []
+
+
 def test_libnest2d_unlimited_stock_opens_extra_sheets_when_full() -> None:
     pieces = [box(0, 0, 15, 15) for _ in range(3)]
     stocks = [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)]

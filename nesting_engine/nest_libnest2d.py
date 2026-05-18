@@ -941,7 +941,7 @@ def _indices_by_descending_area(pieces: list[Polygon]) -> list[int]:
 def _can_open_sheet(stock: SheetStockSpec, sheets_used: int) -> bool:
     if stock.quantity is None:
         return True
-    return sheets_used < stock.quantity
+    return sheets_used < int(stock.quantity)
 
 
 def _consolidate_sheets(

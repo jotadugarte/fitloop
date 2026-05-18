@@ -19,7 +19,6 @@ RSpec.describe "I18n view copy", type: :request do
       expect(response.body).to include(I18n.t("projects.form.sheet_stocks_legend", locale: :en))
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :en))
       expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :en))
-      expect(response.body).to include(I18n.t("projects.form.sort_finite_first", locale: :en))
     end
 
     it "renders Spanish form labels" do
@@ -31,7 +30,6 @@ RSpec.describe "I18n view copy", type: :request do
       expect(response.body).to include(I18n.t("projects.form.dxf_upload_legend", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
-      expect(response.body).to include(I18n.t("projects.form.sort_finite_first", locale: :es))
       expect(response.body).not_to include("Unlimited quantity")
     end
   end
@@ -39,11 +37,10 @@ RSpec.describe "I18n view copy", type: :request do
   describe "GET /projects [REQ-FIT-UI-005]" do
     before { Project.destroy_all }
 
-    it "renders Spanish index copy" do
+    it "redirects Spanish locale index to empezar" do
       with_locale(:es) { get projects_path }
 
-      expect(response.body).to include(I18n.t("projects.index.title", locale: :es))
-      expect(response.body).to include(I18n.t("projects.index.new", locale: :es))
+      expect(response).to redirect_to(start_project_path)
     end
   end
 
@@ -65,7 +62,6 @@ RSpec.describe "I18n view copy", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
-      expect(response.body).to include(I18n.t("projects.form.sort_finite_first", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.alert_single_unlimited", locale: :es))
     end
   end

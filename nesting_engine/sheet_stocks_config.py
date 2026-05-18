@@ -4,6 +4,12 @@ from __future__ import annotations
 from nesting_engine.nest_types import SheetStockSpec
 
 
+def _coerce_quantity(raw) -> int | None:
+    if raw is None or raw == "":
+        return None
+    return int(raw)
+
+
 def validate_sheet_stocks(rows: list[dict]) -> None:
     assert isinstance(rows, list), "sheet_stocks must be a list"
 
@@ -44,7 +50,7 @@ def parse_sheet_stocks_from_config(config: dict) -> list[SheetStockSpec]:
         SheetStockSpec(
             width_mm=float(row["width_mm"]),
             height_mm=float(row["height_mm"]),
-            quantity=row["quantity"],
+            quantity=_coerce_quantity(row.get("quantity")),
             sort_order=int(row["sort_order"]),
         )
         for row in rows
