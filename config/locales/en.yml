@@ -68,6 +68,7 @@ en:
               blank: "can't be blank"
             base:
               no_sheet_stocks: "add at least one sheet type to the inventory"
+              multiple_unlimited_sheet_stocks: "only one unlimited sheet type is allowed per project"
         sheet_stock:
           attributes:
             width_mm:

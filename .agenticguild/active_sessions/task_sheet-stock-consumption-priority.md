@@ -116,52 +116,52 @@ _(None — discovery complete pending “listo para implementar”.)_
 
 <implementation_plan>
 
-<step id="1">
+<step id="1" status="complete">
 **Test:** Add `spec/models/sheet_stock_spec.rb` examples — project with two `quantity: nil` stocks fails validation; tag `[REQ-FIT-DOM-001]`.
 **Implement:** `SheetStock` validation (or `Project` `validate` on nested attrs) — at most one unlimited stock per project; i18n error key under `activerecord.errors`.
 </step>
 
-<step id="2">
+<step id="2" status="pending">
 **Test:** Add model spec — project with one finite (`sort_order: 1`) and one unlimited (`sort_order: 0`) fails until normalized; after `SheetStocks::NormalizeConsumptionOrder.call(project)` unlimited has highest `sort_order`. Tag `[REQ-FIT-DOM-001]`.
 **Implement:** `app/services/sheet_stocks/normalize_consumption_order.rb` — dense ranks 0..n-1; all finites first ascending prior relative order; single ∞ last if present. Call from `ProjectsController` on create/update instead of blind `assign_sheet_stock_sort_orders!` index-only pass.
 </step>
 
-<step id="3">
+<step id="3" status="pending">
 **Test:** Add `spec/requests/projects_sheet_inventory_spec.rb` — POST/PATCH project with attrs order `[∞, finite]`; assert persisted `sheet_stocks.order(:sort_order)` is `[finite, ∞]`. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Wire normalizer on save; ensure nested attributes order does not bypass ∞-last rule.
 </step>
 
-<step id="4">
+<step id="4" status="pending">
 **Test:** Add `nesting_engine/tests/test_cli_sheet_stocks.py` (or extend existing CLI schema test) — `config.json` with two `quantity: null` entries fails fast with clear error. Tag `[REQ-FIT-NEST-002]`, `[REQ-FIT-CLI-001]`.
 **Implement:** Validate `sheet_stocks` in CLI entry (`nest.py` / loader) — max one unlimited; if multiple stocks and one unlimited, assert its `sort_order` equals `max(sort_order)`.
 </step>
 
-<step id="5">
+<step id="5" status="pending">
 **Test:** Add `test_multi_bin_consumes_finite_stocks_before_unlimited` in `nesting_engine/tests/test_nest_libnest2d.py` — two finite stocks (qty 1 each) + one unlimited; pieces only fit on unlimited size; assert first opened sheet uses first finite `stock_sort_order`. Tag `[REQ-FIT-NEST-002]`.
 **Implement:** Only add engine-side guard/assert if step 4 validation insufficient; do **not** change `nest_multi_bin` phase order.
 </step>
 
-<step id="6">
+<step id="6" status="pending">
 **Test:** Add failing system spec `spec/system/sheet_inventory_priority_spec.rb` — project form shows priority column header and consumption legend (`en`); tag `[REQ-FIT-UI-001]`.
 **Implement:** Update `_sheet_inventory.html.erb` / `_sheet_stock_list_item.html.erb` — priority column (#1..n), drag handle column, legend copy; `config/locales/en.yml` + `es.yml`.
 </step>
 
-<step id="7">
+<step id="7" status="pending">
 **Test:** Extend system spec — create finite + unlimited rows via UI; unlimited row displays last priority number after save. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Pin SortableJS via `config/importmap.rb` (+ vendor or jspm pin per project convention); Stimulus `sheet_inventory_controller` — Sortable on `<tbody>`; `reindexSortOrders()` on `onEnd`; **insert finite before ∞** in `buildRow`; on add unlimited append last; on drag end call `pinUnlimitedLast()`.
 </step>
 
-<step id="8">
+<step id="8" status="pending">
 **Test:** System or request spec — click “Ordenar: finitos primero” reorders finite rows stable relative order and leaves ∞ last. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Toolbar button + `sortFiniteFirst` action (stable partition finites, ∞ unchanged at bottom); disable second unlimited in composer when one exists (alert/i18n).
 </step>
 
-<step id="9">
+<step id="9" status="pending">
 **Test:** `spec/requests/i18n_views_spec.rb` — Spanish locale includes priority legend strings. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Complete `es`/`en` strings for priority column, legend, finite-first button, single-unlimited cap error.
 </step>
 
-<step id="10">
+<step id="10" status="pending">
 **Test:** Run `bundle exec rspec` (targeted then full) and `python -m pytest nesting_engine/tests -q -m "not slow"`.
 **Implement:** Update `docs/core/SPEC.md` W1 (drag + auto ∞-last + max one ∞), `docs/core/DATA_FLOW_MAP.md` (`sort_order` semantics), `docs/core/SCHEMA_REFERENCE.md` (business rule note on `quantity` NULL cap), `docs/ROADMAP.md` mark item done when merged.
 </step>

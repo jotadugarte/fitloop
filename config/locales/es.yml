@@ -83,6 +83,7 @@ es:
               blank: "no puede estar en blanco"
             base:
               no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
+              multiple_unlimited_sheet_stocks: "solo se permite un tipo de lámina ilimitado por proyecto"
         sheet_stock:
           attributes:
             width_mm:

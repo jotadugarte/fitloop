@@ -22,4 +22,26 @@ RSpec.describe SheetStock, type: :model do
       expect(sheet_stock.quantity).to eq(3)
     end
   end
+
+  describe "unlimited stock cap per project [REQ-FIT-DOM-001]" do
+    it "rejects a second unlimited stock on the same project" do
+      project = Project.create!(
+        title: "Inventory cap",
+        pin: "123456",
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: nil, sort_order: 0 }
+        }
+      )
+
+      project.sheet_stocks.build(
+        width_mm: 1200,
+        height_mm: 2400,
+        quantity: nil,
+        sort_order: 1
+      )
+
+      expect(project).not_to be_valid
+      expect(project.errors).to be_of_kind(:base, :multiple_unlimited_sheet_stocks)
+    end
+  end
 end
