@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
+import Sortable from "sortablejs"
 
-// [REQ-FIT-UI-001] Sheet inventory composer + table (Stimulus; avoids duplicate Turbo listeners).
+// [REQ-FIT-UI-001] Sheet inventory composer + sortable table (finite stocks before unlimited).
 export default class extends Controller {
   static targets = ["list", "template", "width", "height", "quantity"]
 
@@ -8,6 +9,24 @@ export default class extends Controller {
     summaryUnlimited: String,
     alertDimensions: String,
     alertQuantity: String
+  }
+
+  connect() {
+    this.listTarget.dataset.sortable = "true"
+    this.sortable = Sortable.create(this.listTarget, {
+      handle: "[data-testid='sheet-stock-drag-handle']",
+      draggable: "[data-sheet-inventory-row]",
+      animation: 150,
+      onEnd: () => {
+        this.pinUnlimitedLast()
+        this.reindexSortOrders()
+      }
+    })
+    this.reindexSortOrders()
+  }
+
+  disconnect() {
+    this.sortable?.destroy()
   }
 
   add(event) {
@@ -41,6 +60,7 @@ export default class extends Controller {
     } else {
       row.remove()
     }
+    this.pinUnlimitedLast()
     this.reindexSortOrders()
     this.clearComposer()
   }
@@ -55,6 +75,8 @@ export default class extends Controller {
         `[data-sheet-inventory-row][data-sheet-inventory-index="${editingIndex}"]`
       )
       if (row) this.updateRow(row, data)
+      this.pinUnlimitedLast()
+      this.reindexSortOrders()
     } else {
       this.buildRow(this.nextIndex(), data)
     }
@@ -108,19 +130,25 @@ export default class extends Controller {
   }
 
   nextIndex() {
-    const indices = Array.from(this.listTarget.querySelectorAll("[data-sheet-inventory-row]")).map((row) =>
-      parseInt(row.dataset.sheetInventoryIndex || "0", 10)
-    )
+    const indices = this.visibleRows().map((row) => parseInt(row.dataset.sheetInventoryIndex || "0", 10))
     return indices.length ? Math.max(...indices) + 1 : 0
   }
 
   reindexSortOrders() {
-    this.listTarget
-      .querySelectorAll("[data-sheet-inventory-row]:not([data-destroyed='true'])")
-      .forEach((row, index) => {
-        const input = row.querySelector("[data-sheet-inventory-field='sort_order']")
-        if (input) input.value = index
-      })
+    this.visibleRows().forEach((row, index) => {
+      const input = row.querySelector("[data-sheet-inventory-field='sort_order']")
+      if (input) input.value = index
+
+      const priority = row.querySelector("[data-sheet-inventory-display='priority']")
+      if (priority) priority.textContent = `#${index + 1}`
+    })
+  }
+
+  pinUnlimitedLast() {
+    const unlimitedRow = this.unlimitedRow()
+    if (!unlimitedRow) return
+
+    this.listTarget.appendChild(unlimitedRow)
   }
 
   buildRow(index, data) {
@@ -143,7 +171,14 @@ export default class extends Controller {
     setField("quantity", data.quantity)
     setField("_destroy", "0")
 
-    this.listTarget.appendChild(fragment)
+    const insertBefore = this.isUnlimitedData(data) ? null : this.unlimitedRow()
+    if (insertBefore) {
+      this.listTarget.insertBefore(fragment, insertBefore)
+    } else {
+      this.listTarget.appendChild(fragment)
+    }
+
+    this.pinUnlimitedLast()
     this.reindexSortOrders()
   }
 
@@ -165,6 +200,25 @@ export default class extends Controller {
     this.heightTarget.value = row.querySelector("[data-sheet-inventory-field='height_mm']").value
     this.quantityTarget.value = row.querySelector("[data-sheet-inventory-field='quantity']").value
     this.element.dataset.editingIndex = row.dataset.sheetInventoryIndex
+  }
+
+  visibleRows() {
+    return Array.from(
+      this.listTarget.querySelectorAll("[data-sheet-inventory-row]:not([data-destroyed='true'])")
+    )
+  }
+
+  unlimitedRow() {
+    return this.visibleRows().find((row) => this.isUnlimitedRow(row))
+  }
+
+  isUnlimitedRow(row) {
+    const quantityField = row.querySelector("[data-sheet-inventory-field='quantity']")
+    return quantityField?.value === ""
+  }
+
+  isUnlimitedData(data) {
+    return data.quantity === ""
   }
 
   formatDimension(value) {

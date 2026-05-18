@@ -200,6 +200,7 @@ es:
       sheet_stocks_legend: "Inventario de láminas"
       consumption_priority: "Prioridad"
       consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
+      reorder_sheet: "Arrastrar para reordenar"
       add_sheet: "Agregar"
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"

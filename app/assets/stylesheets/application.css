@@ -1315,6 +1315,32 @@ h3.fit-section__legend {
   border-bottom: none;
 }
 
+.sheet-inventory-table__priority {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.sheet-inventory-table__drag-handle {
+  cursor: grab;
+  color: var(--fit-text-muted);
+  font-size: 0.85rem;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+}
+
+.sheet-inventory-table__drag-handle:active {
+  cursor: grabbing;
+}
+
+.sheet-inventory__legend {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--fit-text-muted);
+}
+
 .sheet-inventory-table__dim {
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-variant-numeric: tabular-nums;

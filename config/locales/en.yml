@@ -185,6 +185,7 @@ en:
       sheet_stocks_legend: "Sheet inventory"
       consumption_priority: "Priority"
       consumption_order_legend: "The nesting engine consumes sheet types from top to bottom."
+      reorder_sheet: "Drag to reorder"
       add_sheet: "Add"
       edit_sheet: "Edit"
       delete_sheet: "Delete"

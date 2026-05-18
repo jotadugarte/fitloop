@@ -146,7 +146,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Update `_sheet_inventory.html.erb` / `_sheet_stock_list_item.html.erb` — priority column (#1..n), drag handle column, legend copy; `config/locales/en.yml` + `es.yml`.
 </step>
 
-<step id="7" status="pending">
+<step id="7" status="complete">
 **Test:** Extend system spec — create finite + unlimited rows via UI; unlimited row displays last priority number after save. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Pin SortableJS via `config/importmap.rb` (+ vendor or jspm pin per project convention); Stimulus `sheet_inventory_controller` — Sortable on `<tbody>`; `reindexSortOrders()` on `onEnd`; **insert finite before ∞** in `buildRow`; on add unlimited append last; on drag end call `pinUnlimitedLast()`.
 </step>

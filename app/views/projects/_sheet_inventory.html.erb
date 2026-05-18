@@ -72,7 +72,7 @@
             <th scope="col" class="sheet-inventory-table__actions-col"><%= t("projects.form.sheet_actions") %></th>
           </tr>
         </thead>
-        <tbody data-sheet-inventory-target="list">
+        <tbody data-sheet-inventory-target="list" data-sortable="true">
           <%= form.fields_for :sheet_stocks do |sheet_form| %>
             <% next if sheet_form.object.marked_for_destruction? %>
             <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
@@ -84,7 +84,10 @@
 
   <template data-sheet-inventory-target="template">
     <tr data-sheet-inventory-row data-testid="sheet-stock-row">
-      <td class="sheet-inventory-table__priority" data-sheet-inventory-display="priority" data-testid="sheet-stock-priority">#1</td>
+      <td class="sheet-inventory-table__priority">
+        <span class="sheet-inventory-table__drag-handle" data-testid="sheet-stock-drag-handle" aria-hidden="true">⋮⋮</span>
+        <span data-sheet-inventory-display="priority" data-testid="sheet-stock-priority">#1</span>
+      </td>
       <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm"></td>
       <td class="sheet-inventory-table__dim" data-sheet-inventory-display="height_mm"></td>
       <td data-sheet-inventory-display="quantity"></td>
