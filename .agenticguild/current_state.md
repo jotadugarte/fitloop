@@ -3,6 +3,6 @@
   <execution_context>
     <active_skill>start-task</active_skill>
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
-    <current_step>3.2 — Step 8 complete; ready for step 9 failing test (i18n)</current_step>
+    <current_step>3.2 — Step 9 complete; ready for step 10 (docs + full suite)</current_step>
   </execution_context>
 </agent_state>

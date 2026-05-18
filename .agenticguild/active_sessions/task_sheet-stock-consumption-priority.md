@@ -156,7 +156,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Toolbar button + `sortFiniteFirst` action (stable partition finites, ∞ unchanged at bottom); disable second unlimited in composer when one exists (alert/i18n).
 </step>
 
-<step id="9" status="pending">
+<step id="9" status="complete">
 **Test:** `spec/requests/i18n_views_spec.rb` — Spanish locale includes priority legend strings. Tag `[REQ-FIT-UI-001]`.
 **Implement:** Complete `es`/`en` strings for priority column, legend, finite-first button, single-unlimited cap error.
 </step>
