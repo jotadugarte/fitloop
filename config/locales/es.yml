@@ -247,6 +247,7 @@ es:
     completed: "Anidado completado."
     partial: "Anidado terminado con huérfanos."
     failed: "Anidado fallido."
+    input_file_missing: "No se encontró el archivo DXF. Vuelve a subirlo e intenta de nuevo."
     progress_heading: "Progreso del anidado"
     eta_overrun: "Sigue en curso — está tardando más de lo estimado."
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."

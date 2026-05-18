@@ -196,6 +196,60 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 ---
 
+## Follow-up (post v1.1) — Contornos abiertos como huérfanos de extracción
+
+**Context (2026-05-18):** DXF con `LWPOLYLINE` / `SPLINE` / arcos **abiertos** (p. ej. pieza en S, cinta sin cerrar) no forman polígono en `extract_closed_contours` y **desaparecen** del nest sin aviso. Los sectores con bulge y `closed=False` ya se corrigen en extracción; lo que queda son entidades que siguen siendo **líneas abiertas** tras `polygonize`.
+
+**Objetivo:** Tratarlas como **huérfanos de extracción** (no de nest), visibles en la misma sección de huérfanos (o bloque hermano pre-nest), con **descarga DXF** para corrección manual en CAD (cerrar contorno, repetir vértice inicial, o dibujar el borde opuesto).
+
+### Decisiones propuestas (por cerrar en `explore-task` antes de implementar)
+
+| ID | Propuesta |
+|----|-----------|
+| O1 | Nuevo motivo en reporte: `open_contour` (o `unclosed_geometry`). Distinto de `oversized_for_sheet` / `no_sheet_capacity`. |
+| O2 | Detectar en **`nesting_engine/extract.py`** (o módulo `extract_open_contours.py`): entidades en capa de corte que aportan segmentos abiertos y **no** participan en ningún polígono de `polygonize` ni en un contorno cerrado directo. |
+| O3 | Incluir en `report.json` / `placements_json` con geometría exportable: polilínea aplanada (`make_path` + `flattening`) o referencia `source_dxf` + `entity_handle` para re-exportar tal cual. |
+| O4 | **DXF de descarga:** script dedicado (p. ej. `write_open_path_dxf.py`) — el exportador actual `write_piece_dxf` / `OrphanPieceExporter` asume **anillos cerrados** (`rings`); rutas abiertas requieren `LWPOLYLINE`/`SPLINE` sin `close`. |
+| O5 | UI: tarjeta huérfano con badge “Contorno abierto”, copy: cerrar en CAD → volver a subir / “He actualizado mis DXF” (reutilizar flujo manual F24–F27 cuando exista `OrphanResolution`). |
+| O6 | Pre-flight (`ProjectReadinessValidator`): permitir nest con piezas válidas pero **avisar** si hay `open_contour` pendientes; o bloquear nest hasta resolver (decisión de producto). |
+| O7 | **Fuera de scope:** auto-cerrar heurístico, offset de cinta, o unir dos bordes paralelos automáticamente. |
+
+### REQ / docs a tocar (cuando se implemente)
+
+- `REQ-FIT-EXT-001` o nuevo `REQ-FIT-EXT-003` — contornos abiertos reportados, no silenciados.
+- `REQ-FIT-NEST-003` — ampliar lista de `reason` y presenter.
+- `DATA_FLOW_MAP.md` — rama extract → open orphans → descarga DXF.
+
+### Plan de implementación (borrador — **después** de cerrar v1.1 auto-split)
+
+<implementation_plan>
+
+<step id="O-1">
+**Test:** `nesting_engine/tests/test_extract_open_contours.py` — `LWPOLYLINE` abierta con bulge (fixture tipo peluo `12FE`) → una entrada `open_contour` con puntos aplanados; no cuenta como pieza nestable. Tag `[REQ-FIT-EXT-001]`.
+**Implement:** `extract_open_contours()` o flag en `extract_closed_contours` que devuelva `(polygons, open_paths, warnings)`.
+</step>
+
+<step id="O-2">
+**Test:** `nesting_engine/tests/test_write_open_path_dxf.py` — round-trip ezdxf lee polilínea abierta. Tag `[REQ-FIT-DXF-001]`.
+**Implement:** `write_open_path_dxf.py` + `Dxf::OpenContourExporter` (Rails).
+</step>
+
+<step id="O-3">
+**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — fusiona huérfanos de nest + `open_contour` de último extract/report. Tag `[REQ-FIT-NEST-003]`.
+**Implement:** Extender `nest.py` / pipeline de carga de piezas para emitir open orphans antes del nest; `OrphansPresenter` + i18n `reason.open_contour`.
+</step>
+
+<step id="O-4">
+**Test:** `spec/requests/project_orphan_dxf_download_spec.rb` — descarga DXF para `open_contour` (polilínea abierta). Tag `[REQ-FIT-NEST-003]`.
+**Implement:** Ruta descarga reutilizada o `open_contour_dxf`; vista `_nesting_orphans` — botón descarga siempre que haya geometría exportable (anillo o path abierto).
+</step>
+
+</implementation_plan>
+
+**Dependencia:** Completar o al menos no bloquear **v1.1 auto-split** (estados `manual` / `resolved`, `PieceKey`). Este follow-up comparte tarjetas y descarga DXF pero es **pipeline de extracción**, no split.
+
+---
+
 ## Codebase reality (verified 2026-05-17)
 
 - `Workspace` — un `Project` efímero por sesión; `discard!` al salir (`app/services/workspace.rb`).

@@ -12,10 +12,8 @@ if [[ ! -x "${ROOT}/.venv/bin/python" ]]; then
 fi
 
 export PORT
-export ACTIVE_JOB_QUEUE_ADAPTER=solid_queue
-export SOLID_QUEUE_IN_PUMA=1
 
-echo "Fitloop development -> http://localhost:${PORT} (Solid Queue in Puma)"
+echo "Fitloop development -> http://localhost:${PORT} (Active Job :async, in-process)"
 echo "Demo runs on port 3000: ../fitloop-demo/bin/demo"
 echo "WSL: keep this terminal open; use localhost in your Windows browser."
 exec bin/rails server -b 0.0.0.0 -p "${PORT}"

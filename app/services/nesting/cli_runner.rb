@@ -160,6 +160,8 @@ module Nesting
     end
 
     def finalize_run!(terminal_status:, report:)
+      return unless @nesting_run.reload.status == "processing"
+
       @nesting_run.update!(
         status: terminal_status,
         report_json: report,

@@ -53,6 +53,7 @@ RSpec.describe "Project sheet inventory consumption order", type: :request do
             headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include("show_actions_project_#{project.id}")
       expect(quantities_by_consumption_rank(project)).to eq([3, nil])
     end
 

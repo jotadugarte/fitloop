@@ -26,7 +26,8 @@ class NestingRunsController < ApplicationController
   def cancel
     nesting_run = @project.nesting_runs.order(created_at: :desc).find(params[:id])
     nesting_run.update!(cancel_requested_at: Time.current)
-    redirect_to @project, notice: I18n.t("nesting.cancelling")
+    Nesting::ApplyCancel.call(nesting_run: nesting_run)
+    redirect_to @project, notice: I18n.t("nesting.cancelled")
   end
 
 end

@@ -150,6 +150,8 @@ class ProjectsController < ApplicationController
     normalize_sheet_stock_consumption_order!(@project)
 
     if @project.save
+      SheetStocks::InvalidateNestingOutputs.call(@project) if @project.nested_dxf.attached? || @project.placements_json.attached?
+      @project.reload
       render_workspace_turbo_stream(:sheets)
     else
       render_workspace_turbo_stream(:sheets, status: :unprocessable_content)
@@ -164,13 +166,8 @@ class ProjectsController < ApplicationController
   def render_workspace_turbo_stream(section, status: :ok)
     streams = case section
               when :sheets
-                [
-                  turbo_stream.replace(
-                    project_dom_id(:sheet_inventory),
-                    partial: "projects/show_sheet_inventory",
-                    locals: { project: @project }
-                  )
-                ]
+                @project.reload
+                sheet_workspace_streams
               when :layers
                 [
                   turbo_stream.replace(
@@ -292,6 +289,26 @@ class ProjectsController < ApplicationController
   def sync_nesting_ui_state!
     Nesting::ProjectStatusSync.call(project: @project)
     @project.reload
+  end
+
+  def sheet_workspace_streams
+    [
+      turbo_stream.replace(
+        project_dom_id(:sheet_inventory),
+        partial: "projects/show_sheet_inventory",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:show_actions),
+        partial: "projects/show_actions",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:status_badge),
+        partial: "projects/status_badge",
+        locals: { project: @project }
+      )
+    ]
   end
 
   def nesting_sync_streams

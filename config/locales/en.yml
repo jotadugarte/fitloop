@@ -232,6 +232,7 @@ en:
     completed: "Nesting completed."
     partial: "Nesting finished with orphans."
     failed: "Nesting failed."
+    input_file_missing: "The DXF file is missing. Upload it again and retry nesting."
     progress_heading: "Nesting progress"
     eta_overrun: "Still working — this is taking longer than estimated."
     time_limit_notice: "Time limit reached. Showing the best result so far."

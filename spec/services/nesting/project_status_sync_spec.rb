@@ -35,6 +35,33 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project.progress_percent).to eq(3)
   end
 
+  it "reconciles an abandoned processing run with no work_dir output [REQ-FIT-JOB-001]" do
+    run = project.nesting_runs.create!(status: "processing", started_at: 3.minutes.ago)
+
+    described_class.call(project: project)
+
+    project.reload
+    run.reload
+    expect(run.status).to eq("failed")
+    expect(project).to be_failed
+  end
+
+  it "reconciles a cancelled processing run [REQ-FIT-JOB-001]" do
+    run = project.nesting_runs.create!(
+      status: "processing",
+      started_at: Time.current,
+      cancel_requested_at: Time.current
+    )
+
+    described_class.call(project: project)
+
+    project.reload
+    run.reload
+    expect(run.status).to eq("failed")
+    expect(project).to be_failed
+    expect(project.progress_message).to eq(I18n.t("nesting.cancelled"))
+  end
+
   it "reconciles a stuck processing run from work_dir report.json [REQ-FIT-JOB-001]" do
     run = project.nesting_runs.create!(status: "processing", started_at: 30.seconds.ago)
     work_dir = Rails.root.join("tmp/nesting_runs", run.id.to_s, "output")

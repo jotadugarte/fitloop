@@ -39,6 +39,7 @@ class Workspace
 
     def discard!(session)
       project = find(session)
+      cancel_active_nesting!(project) if project
       project&.destroy
       session.delete(SESSION_KEY)
     end
@@ -96,6 +97,15 @@ class Workspace
     def reset!(session)
       discard!(session)
       create!(session)
+    end
+
+    private
+
+    def cancel_active_nesting!(project)
+      project.nesting_runs.where(status: "processing").find_each do |run|
+        run.update!(cancel_requested_at: Time.current) if run.cancel_requested_at.blank?
+        Nesting::ApplyCancel.call(nesting_run: run)
+      end
     end
   end
 end
