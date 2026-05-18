@@ -59,10 +59,13 @@
       </button>
     </div>
 
+    <p class="sheet-inventory__legend"><%= t("projects.form.consumption_order_legend") %></p>
+
     <div class="sheet-inventory__table panel panel--inset">
       <table class="sheet-inventory-table">
         <thead>
           <tr>
+            <th scope="col"><%= t("projects.form.consumption_priority") %></th>
             <th scope="col"><%= SheetStock.human_attribute_name(:width_mm) %></th>
             <th scope="col"><%= SheetStock.human_attribute_name(:height_mm) %></th>
             <th scope="col"><%= SheetStock.human_attribute_name(:quantity) %></th>
@@ -81,6 +84,7 @@
 
   <template data-sheet-inventory-target="template">
     <tr data-sheet-inventory-row data-testid="sheet-stock-row">
+      <td class="sheet-inventory-table__priority" data-sheet-inventory-display="priority" data-testid="sheet-stock-priority">#1</td>
       <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm"></td>
       <td class="sheet-inventory-table__dim" data-sheet-inventory-display="height_mm"></td>
       <td data-sheet-inventory-display="quantity"></td>

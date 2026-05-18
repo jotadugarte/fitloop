@@ -141,7 +141,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Only add engine-side guard/assert if step 4 validation insufficient; do **not** change `nest_multi_bin` phase order.
 </step>
 
-<step id="6" status="pending">
+<step id="6" status="complete">
 **Test:** Add failing system spec `spec/system/sheet_inventory_priority_spec.rb` — project form shows priority column header and consumption legend (`en`); tag `[REQ-FIT-UI-001]`.
 **Implement:** Update `_sheet_inventory.html.erb` / `_sheet_stock_list_item.html.erb` — priority column (#1..n), drag handle column, legend copy; `config/locales/en.yml` + `es.yml`.
 </step>

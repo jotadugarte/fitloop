@@ -4,6 +4,11 @@
   data-sheet-inventory-index="<%= sheet_form.index %>"
   data-testid="sheet-stock-row"
 >
+  <td
+    class="sheet-inventory-table__priority"
+    data-sheet-inventory-display="priority"
+    data-testid="sheet-stock-priority"
+  ><%= sheet_stock_consumption_priority_label(sheet_form.object) %></td>
   <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm">
     <%= sheet_stock_dimension_mm(sheet_form.object.width_mm) %>
   </td>

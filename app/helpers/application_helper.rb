@@ -15,6 +15,10 @@ module ApplicationHelper
     stock.quantity.present? ? stock.quantity.to_s : t("projects.form.quantity_unlimited")
   end
 
+  def sheet_stock_consumption_priority_label(stock)
+    "##{stock.sort_order.to_i + 1}"
+  end
+
   def sheet_stock_summary(stock)
     t(
       "projects.form.sheet_summary",

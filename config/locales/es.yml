@@ -198,6 +198,8 @@ es:
         one: "1 error impidió guardar"
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
+      consumption_priority: "Prioridad"
+      consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
       add_sheet: "Agregar"
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"
