@@ -136,7 +136,7 @@ _(None — discovery complete pending “listo para implementar”.)_
 **Implement:** Validate `sheet_stocks` in CLI entry (`nest.py` / loader) — max one unlimited; if multiple stocks and one unlimited, assert its `sort_order` equals `max(sort_order)`.
 </step>
 
-<step id="5" status="pending">
+<step id="5" status="complete">
 **Test:** Add `test_multi_bin_consumes_finite_stocks_before_unlimited` in `nesting_engine/tests/test_nest_libnest2d.py` — two finite stocks (qty 1 each) + one unlimited; pieces only fit on unlimited size; assert first opened sheet uses first finite `stock_sort_order`. Tag `[REQ-FIT-NEST-002]`.
 **Implement:** Only add engine-side guard/assert if step 4 validation insufficient; do **not** change `nest_multi_bin` phase order.
 </step>

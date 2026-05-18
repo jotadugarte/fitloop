@@ -18,6 +18,25 @@ def validate_sheet_stocks(rows: list[dict]) -> None:
             raise ValueError("unlimited sheet stock must have the highest sort_order")
 
 
+def validate_sheet_stock_specs(stocks: list[SheetStockSpec]) -> None:
+    rows = [{"quantity": stock.quantity, "sort_order": stock.sort_order} for stock in stocks]
+    validate_sheet_stocks(rows)
+
+
+def stocks_in_consumption_order(stocks: list[SheetStockSpec]) -> list[SheetStockSpec]:
+    """Finite stocks first (stable by sort_order), then unlimited — preserves each stock's sort_order."""
+    validate_sheet_stock_specs(stocks)
+    finites = sorted(
+        (stock for stock in stocks if stock.quantity is not None),
+        key=lambda stock: stock.sort_order,
+    )
+    unlimited = sorted(
+        (stock for stock in stocks if stock.quantity is None),
+        key=lambda stock: stock.sort_order,
+    )
+    return [*finites, *unlimited]
+
+
 def parse_sheet_stocks_from_config(config: dict) -> list[SheetStockSpec]:
     rows = list(config.get("sheet_stocks") or [])
     validate_sheet_stocks(rows)
