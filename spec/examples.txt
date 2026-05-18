@@ -101,4 +101,6 @@ example_id                                                              | status
 ./spec/system/golden_nesting_e2e_spec.rb[1:1]                           | passed  | 2.85 seconds    |
 ./spec/system/nesting_progress_spec.rb[1:1]                             | passed  | 1.62 seconds    |
 ./spec/system/projects_spec.rb[1:1]                                     | passed  | 0.58081 seconds |
-./spec/system/sheet_inventory_priority_spec.rb[1:1]                     | passed  | 0.88355 seconds |
+./spec/system/sheet_inventory_priority_spec.rb[1:1]                     | passed  | 0.4652 seconds  |
+./spec/system/sheet_inventory_priority_spec.rb[1:2]                     | passed  | 0.77269 seconds |
+./spec/system/sheet_inventory_priority_spec.rb[1:3]                     | failed  | 0.46459 seconds |
