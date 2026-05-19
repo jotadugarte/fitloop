@@ -7,7 +7,9 @@
                   action: "submit->sheet-inventory#flushOnSubmit",
                   sheet_inventory_summary_unlimited_value: t("projects.form.quantity_unlimited"),
                   sheet_inventory_alert_dimensions_value: t("projects.form.alert_dimensions"),
-                  sheet_inventory_alert_quantity_value: t("projects.form.alert_quantity")
+                  sheet_inventory_alert_quantity_value: t("projects.form.alert_quantity"),
+                  sheet_inventory_alert_single_unlimited_value: t("projects.form.alert_single_unlimited"),
+                  sheet_inventory_has_unlimited_value: project.sheet_stocks.reject(&:marked_for_destruction?).any? { |stock| stock.quantity.nil? }
                 }
               } do |f| %>
   <% if project.errors.any? %>

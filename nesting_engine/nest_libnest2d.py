@@ -21,6 +21,7 @@ from nesting_engine.nest_placement import (
     placed_polygon,
     score_sheet_layout,
 )
+from nesting_engine.sheet_stocks_config import stocks_in_consumption_order
 from nesting_engine.nest_types import (
     MultiBinResult,
     NestedSheet,
@@ -182,7 +183,7 @@ def nest_multi_bin(
 
     deadline = _time_limit_deadline(time_limit_sec)
     remaining_indices = _indices_by_descending_area(pieces)
-    stocks = sorted(sheet_stocks, key=lambda stock: stock.sort_order)
+    stocks = stocks_in_consumption_order(sheet_stocks)
 
     sheets, remaining_indices, warnings = _nest_across_stocks(
         pieces,
@@ -940,7 +941,7 @@ def _indices_by_descending_area(pieces: list[Polygon]) -> list[int]:
 def _can_open_sheet(stock: SheetStockSpec, sheets_used: int) -> bool:
     if stock.quantity is None:
         return True
-    return sheets_used < stock.quantity
+    return sheets_used < int(stock.quantity)
 
 
 def _consolidate_sheets(

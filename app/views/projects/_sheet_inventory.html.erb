@@ -1,34 +1,36 @@
-<%# [REQ-FIT-UI-001] Two-column sheet inventory: composer (left) + list (right). %>
+<%# [REQ-FIT-UI-001] Sheet inventory: composer, legend, then sortable list. %>
 <% composer_draft = local_assigns.fetch(:composer_draft, {}) %>
 <fieldset class="sheet-inventory-fieldset">
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
-  <div class="sheet-inventory">
+  <div class="sheet-inventory__stack">
     <div class="sheet-inventory__composer panel panel--inset">
       <div class="sheet-inventory__composer-fields">
         <div class="field">
           <label for="sheet_composer_width"><%= SheetStock.human_attribute_name(:width_mm) %></label>
           <input
-            type="number"
+            type="text"
+            inputmode="decimal"
             id="sheet_composer_width"
             name="composer_draft[width_mm]"
-            step="0.1"
-            min="0"
+            autocomplete="off"
             value="<%= composer_draft["width_mm"] || composer_draft[:width_mm] %>"
             data-sheet-inventory-target="width"
+            data-action="keydown->sheet-inventory#blockDecimalKey"
           >
         </div>
 
         <div class="field">
           <label for="sheet_composer_height"><%= SheetStock.human_attribute_name(:height_mm) %></label>
           <input
-            type="number"
+            type="text"
+            inputmode="decimal"
             id="sheet_composer_height"
             name="composer_draft[height_mm]"
-            step="0.1"
-            min="0"
+            autocomplete="off"
             value="<%= composer_draft["height_mm"] || composer_draft[:height_mm] %>"
             data-sheet-inventory-target="height"
+            data-action="keydown->sheet-inventory#blockDecimalKey"
           >
         </div>
 
@@ -38,13 +40,14 @@
             <span class="field__hint"><%= t("projects.form.quantity_hint") %></span>
           </label>
           <input
-            type="number"
+            type="text"
+            inputmode="numeric"
             id="sheet_composer_quantity"
             name="composer_draft[quantity]"
-            min="1"
-            step="1"
+            autocomplete="off"
             value="<%= composer_draft["quantity"] || composer_draft[:quantity] %>"
             data-sheet-inventory-target="quantity"
+            data-action="keydown->sheet-inventory#blockIntegerKey"
           >
         </div>
       </div>
@@ -59,17 +62,27 @@
       </button>
     </div>
 
+    <p class="sheet-inventory__legend"><%= t("projects.form.consumption_order_legend") %></p>
+
     <div class="sheet-inventory__table panel panel--inset">
       <table class="sheet-inventory-table">
+        <colgroup>
+          <col class="sheet-inventory-table__col-priority">
+          <col class="sheet-inventory-table__col-dim">
+          <col class="sheet-inventory-table__col-dim">
+          <col class="sheet-inventory-table__col-qty">
+          <col class="sheet-inventory-table__col-actions">
+        </colgroup>
         <thead>
           <tr>
-            <th scope="col"><%= SheetStock.human_attribute_name(:width_mm) %></th>
-            <th scope="col"><%= SheetStock.human_attribute_name(:height_mm) %></th>
-            <th scope="col"><%= SheetStock.human_attribute_name(:quantity) %></th>
-            <th scope="col" class="sheet-inventory-table__actions-col"><%= t("projects.form.sheet_actions") %></th>
+            <th scope="col" class="sheet-inventory-table__priority-head"><%= t("projects.form.consumption_priority") %></th>
+            <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:width_mm) %></th>
+            <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:height_mm) %></th>
+            <th scope="col" class="sheet-inventory-table__qty-head"><%= SheetStock.human_attribute_name(:quantity) %></th>
+            <th scope="col" class="sheet-inventory-table__actions-head"><%= t("projects.form.sheet_actions") %></th>
           </tr>
         </thead>
-        <tbody data-sheet-inventory-target="list">
+        <tbody data-sheet-inventory-target="list" data-sortable="true">
           <%= form.fields_for :sheet_stocks do |sheet_form| %>
             <% next if sheet_form.object.marked_for_destruction? %>
             <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
@@ -81,9 +94,15 @@
 
   <template data-sheet-inventory-target="template">
     <tr data-sheet-inventory-row data-testid="sheet-stock-row">
-      <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm"></td>
-      <td class="sheet-inventory-table__dim" data-sheet-inventory-display="height_mm"></td>
-      <td data-sheet-inventory-display="quantity"></td>
+      <td class="sheet-inventory-table__priority">
+        <span class="sheet-inventory-table__priority-inner">
+          <span class="sheet-inventory-table__drag-handle" data-testid="sheet-stock-drag-handle" aria-hidden="true">⋮⋮</span>
+          <span data-sheet-inventory-display="priority" data-testid="sheet-stock-priority">#1</span>
+        </span>
+      </td>
+      <td class="sheet-inventory-table__dim"><span data-sheet-inventory-display="width_mm"></span></td>
+      <td class="sheet-inventory-table__dim"><span data-sheet-inventory-display="height_mm"></span></td>
+      <td class="sheet-inventory-table__qty"><span data-sheet-inventory-display="quantity"></span></td>
       <td class="sheet-inventory-table__actions">
         <div class="sheet-inventory-table__action-buttons">
           <button type="button" class="btn btn-secondary btn--small" data-action="sheet-inventory#edit">
@@ -93,11 +112,13 @@
             <%= t("projects.form.delete_sheet") %>
           </button>
         </div>
-        <input type="hidden" data-sheet-inventory-field="sort_order" value="0">
-        <input type="hidden" data-sheet-inventory-field="width_mm">
-        <input type="hidden" data-sheet-inventory-field="height_mm">
-        <input type="hidden" data-sheet-inventory-field="quantity">
-        <input type="hidden" data-sheet-inventory-field="_destroy" value="0">
+        <div class="sheet-inventory-table__row-fields" hidden aria-hidden="true">
+          <input type="hidden" data-sheet-inventory-field="sort_order" value="0">
+          <input type="hidden" data-sheet-inventory-field="width_mm">
+          <input type="hidden" data-sheet-inventory-field="height_mm">
+          <input type="hidden" data-sheet-inventory-field="quantity">
+          <input type="hidden" data-sheet-inventory-field="_destroy" value="0">
+        </div>
       </td>
     </tr>
   </template>

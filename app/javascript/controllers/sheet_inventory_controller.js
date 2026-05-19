@@ -1,13 +1,42 @@
 import { Controller } from "@hotwired/stimulus"
+import Sortable from "sortablejs"
+import {
+  blockDecimalKey,
+  blockIntegerKey,
+  validateComposer
+} from "sheet_inventory_composer"
 
-// [REQ-FIT-UI-001] Sheet inventory composer + table (Stimulus; avoids duplicate Turbo listeners).
+// [REQ-FIT-UI-001] Sheet inventory composer + sortable table (finite stocks before unlimited).
 export default class extends Controller {
   static targets = ["list", "template", "width", "height", "quantity"]
 
   static values = {
     summaryUnlimited: String,
     alertDimensions: String,
-    alertQuantity: String
+    alertQuantity: String,
+    alertSingleUnlimited: String,
+    hasUnlimited: Boolean
+  }
+
+  connect() {
+    this.listTarget.dataset.sortable = "true"
+    this.sortable = Sortable.create(this.listTarget, {
+      handle: "[data-testid='sheet-stock-drag-handle']",
+      draggable: "[data-sheet-inventory-row]",
+      animation: 150,
+      onStart: () => this.enforceTableLayout(),
+      onEnd: () => {
+        this.enforceTableLayout()
+        this.pinUnlimitedLast()
+        this.reindexSortOrders()
+      }
+    })
+    this.enforceTableLayout()
+    this.syncInventoryState()
+  }
+
+  disconnect() {
+    this.sortable?.destroy()
   }
 
   add(event) {
@@ -25,24 +54,28 @@ export default class extends Controller {
     const row = event.target.closest("[data-sheet-inventory-row]")
     if (!row) return
     this.fillComposerFromRow(row)
+    this.syncInventoryState()
   }
 
   remove(event) {
     event.preventDefault()
-    const row = event.target.closest("[data-sheet-inventory-row]")
+    event.stopPropagation()
+    const row = event.target.closest("tr[data-sheet-inventory-row]")
     if (!row) return
 
     const destroyField = row.querySelector("[data-sheet-inventory-field='_destroy']")
     const idField = row.querySelector("[data-sheet-inventory-field='id']")
-    if (idField && idField.value) {
-      destroyField.value = "1"
+    if (idField?.value) {
+      if (destroyField) destroyField.value = "1"
       row.dataset.destroyed = "true"
-      row.hidden = true
+      row.style.display = "none"
     } else {
       row.remove()
     }
+    this.pinUnlimitedLast()
     this.reindexSortOrders()
     this.clearComposer()
+    this.syncInventoryState()
   }
 
   addComposerToList() {
@@ -55,10 +88,13 @@ export default class extends Controller {
         `[data-sheet-inventory-row][data-sheet-inventory-index="${editingIndex}"]`
       )
       if (row) this.updateRow(row, data)
+      this.pinUnlimitedLast()
+      this.reindexSortOrders()
     } else {
       this.buildRow(this.nextIndex(), data)
     }
     this.clearComposer()
+    this.syncInventoryState()
   }
 
   flushComposerIfNeeded() {
@@ -91,36 +127,40 @@ export default class extends Controller {
   }
 
   validateComposer(data) {
-    const width = parseFloat(data.width)
-    const height = parseFloat(data.height)
-    if (!data.width || !data.height || Number.isNaN(width) || Number.isNaN(height) || width <= 0 || height <= 0) {
-      window.alert(this.alertDimensionsValue)
-      return false
+    return validateComposer(data, this.composerContext())
+  }
+
+  composerContext() {
+    return {
+      alertDimensions: this.alertDimensionsValue,
+      alertQuantity: this.alertQuantityValue,
+      alertSingleUnlimited: this.alertSingleUnlimitedValue,
+      hasUnlimitedStock: () => this.hasUnlimitedStock(),
+      editingUnlimitedRow: () => this.editingUnlimitedRow()
     }
-    if (data.quantity !== "") {
-      const qty = parseInt(data.quantity, 10)
-      if (Number.isNaN(qty) || qty < 1) {
-        window.alert(this.alertQuantityValue)
-        return false
-      }
-    }
-    return true
   }
 
   nextIndex() {
-    const indices = Array.from(this.listTarget.querySelectorAll("[data-sheet-inventory-row]")).map((row) =>
-      parseInt(row.dataset.sheetInventoryIndex || "0", 10)
-    )
+    const indices = this.visibleRows().map((row) => parseInt(row.dataset.sheetInventoryIndex || "0", 10))
     return indices.length ? Math.max(...indices) + 1 : 0
   }
 
   reindexSortOrders() {
-    this.listTarget
-      .querySelectorAll("[data-sheet-inventory-row]:not([data-destroyed='true'])")
-      .forEach((row, index) => {
-        const input = row.querySelector("[data-sheet-inventory-field='sort_order']")
-        if (input) input.value = index
-      })
+    this.visibleRows().forEach((row, index) => {
+      const input = row.querySelector("[data-sheet-inventory-field='sort_order']")
+      if (input) input.value = index
+
+      const priority = row.querySelector("[data-sheet-inventory-display='priority']")
+      if (priority) priority.textContent = `#${index + 1}`
+    })
+    this.syncInventoryState()
+  }
+
+  pinUnlimitedLast() {
+    const unlimitedRow = this.unlimitedRow()
+    if (!unlimitedRow) return
+
+    this.listTarget.appendChild(unlimitedRow)
   }
 
   buildRow(index, data) {
@@ -143,8 +183,16 @@ export default class extends Controller {
     setField("quantity", data.quantity)
     setField("_destroy", "0")
 
-    this.listTarget.appendChild(fragment)
+    const insertBefore = this.isUnlimitedData(data) ? null : this.unlimitedRow()
+    if (insertBefore) {
+      this.listTarget.insertBefore(fragment, insertBefore)
+    } else {
+      this.listTarget.appendChild(fragment)
+    }
+
+    this.pinUnlimitedLast()
     this.reindexSortOrders()
+    this.syncInventoryState()
   }
 
   updateRow(row, data) {
@@ -167,6 +215,25 @@ export default class extends Controller {
     this.element.dataset.editingIndex = row.dataset.sheetInventoryIndex
   }
 
+  visibleRows() {
+    return Array.from(
+      this.listTarget.querySelectorAll("[data-sheet-inventory-row]:not([data-destroyed='true'])")
+    )
+  }
+
+  unlimitedRow() {
+    return this.visibleRows().find((row) => this.isUnlimitedRow(row))
+  }
+
+  isUnlimitedRow(row) {
+    const quantityField = row.querySelector("[data-sheet-inventory-field='quantity']")
+    return quantityField?.value === ""
+  }
+
+  isUnlimitedData(data) {
+    return data.quantity === ""
+  }
+
   formatDimension(value) {
     const number = parseFloat(value)
     if (Number.isNaN(number)) return value
@@ -176,5 +243,46 @@ export default class extends Controller {
 
   quantityLabel(quantity) {
     return quantity !== "" ? quantity : this.summaryUnlimitedValue
+  }
+
+  syncInventoryState() {
+    this.hasUnlimitedValue = this.hasUnlimitedStock()
+  }
+
+  enforceTableLayout() {
+    this.listTarget.style.display = "table-row-group"
+    this.listTarget.querySelectorAll("tr[data-sheet-inventory-row]").forEach((row) => {
+      if (row.dataset.destroyed === "true") {
+        row.style.display = "none"
+        return
+      }
+
+      row.style.display = "table-row"
+      row.querySelectorAll("td").forEach((cell) => {
+        cell.style.display = "table-cell"
+      })
+    })
+  }
+
+  blockDecimalKey(event) {
+    blockDecimalKey(event)
+  }
+
+  blockIntegerKey(event) {
+    blockIntegerKey(event)
+  }
+
+  hasUnlimitedStock() {
+    return Boolean(this.unlimitedRow())
+  }
+
+  editingUnlimitedRow() {
+    const editingIndex = this.element.dataset.editingIndex
+    if (editingIndex === undefined || editingIndex === "") return false
+
+    const row = this.listTarget.querySelector(
+      `[data-sheet-inventory-row][data-sheet-inventory-index="${editingIndex}"]`
+    )
+    return Boolean(row && this.isUnlimitedRow(row))
   }
 }

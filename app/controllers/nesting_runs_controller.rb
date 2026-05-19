@@ -9,16 +9,17 @@ class NestingRunsController < ApplicationController
   before_action -> { require_project_access!(@project) }
 
   def create
+    @project.reload
+    SheetStocks::NormalizeConsumptionOrder.call(@project)
+    SheetStocks::NormalizeConsumptionOrder.persist!(@project)
     readiness = ProjectReadinessValidator.validate(@project)
     unless readiness.ok?
       redirect_to @project, alert: readiness.errors.join(" ")
       return
     end
 
-    renesting = renesting?(@project)
     start_nesting_for!(@project)
-    notice = renesting ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
-    redirect_to @project, notice: notice
+    redirect_to @project
   end
 
   def cancel

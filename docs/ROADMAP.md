@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Last audit:** 2026-05-17 — full-sheet libnest2d epic + intra-sheet repack (`nest_multi_bin` five-phase pipeline, `score_sheet_layout`).
 
-**Next action:** Backlog — sheet-stock consumption priority UX, v1.1 auto-split (`REQ-FIT-SPLIT-001`), or optional FastAPI wrapper.
+**Next action:** Pending — nesting progress/status bar UX; v1.1 auto-split (`REQ-FIT-SPLIT-001`); or optional FastAPI wrapper.
 
 ---
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** sheet-stock consumption priority UX (finite → ∞ default); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -92,7 +92,8 @@ _(none)_
 
 ### Product / UX
 
-- [ ] **Sheet stock consumption priority** — user can set which `SheetStock` rows the engine consumes first (`sort_order`); default policy: **finite quantities first**, then unlimited (∞) stocks (REQ-FIT-UI-001, REQ-FIT-DOM-001)
+- [x] **Sheet stock consumption priority** — Priority column, drag reorder, finite-first button, ∞ auto-last, max one ∞ per project; server + CLI + engine alignment (REQ-FIT-UI-001, REQ-FIT-DOM-001, REQ-FIT-NEST-002) — 2026-05-17
+- [ ] **Nesting progress / status bar UX** — During `processing`, the bar mostly shows only coarse percentages (e.g. 5%, 15%) with little phase context for most of the run; make feedback friendlier: clearer step labels (queued → preparing → engine → finishing), smoother or engine-driven progress where possible, visible cancel/ETA copy, and accessible status text in `en`/`es` (REQ-FIT-JOB-001)
 
 ### Nesting engine
 - [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped

@@ -211,6 +211,26 @@ def test_libnest2d_kerf_keeps_minimum_gap_between_pieces() -> None:
     assert not polys[0].intersects(polys[1])
 
 
+def test_finite_quantity_ten_matches_unlimited_sheet_count() -> None:
+    # [REQ-FIT-NEST-002] Finite cap must not change layout when stock is plentiful.
+    pieces = [box(0, 0, 15, 15) for _ in range(3)]
+    params = {"margin_mm": 0.0, "kerf_mm": 0.0, "sheet_gap_mm": 10.0}
+    unlimited = nest_multi_bin(
+        pieces,
+        [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)],
+        **params,
+    )
+    finite = nest_multi_bin(
+        pieces,
+        [SheetStockSpec(width_mm=20, height_mm=20, quantity=10, sort_order=0)],
+        **params,
+    )
+
+    assert len(finite.sheets) == len(unlimited.sheets)
+    assert finite.orphans == []
+    assert unlimited.orphans == []
+
+
 def test_libnest2d_unlimited_stock_opens_extra_sheets_when_full() -> None:
     pieces = [box(0, 0, 15, 15) for _ in range(3)]
     stocks = [SheetStockSpec(width_mm=20, height_mm=20, quantity=None, sort_order=0)]
@@ -227,6 +247,28 @@ def test_libnest2d_unlimited_stock_opens_extra_sheets_when_full() -> None:
     assert result.orphans == []
     assert result.sheets[1].offset_x_mm == pytest.approx(30.0, abs=0.05)
     assert result.sheets[2].offset_x_mm == pytest.approx(60.0, abs=0.05)
+
+
+def test_multi_bin_consumes_finite_stocks_before_unlimited() -> None:
+    # [REQ-FIT-NEST-002] Mis-ordered unlimited sort_order must not open the first sheet.
+    pieces = [box(0, 0, 30, 30)]
+    stocks = [
+        SheetStockSpec(width_mm=500, height_mm=500, quantity=None, sort_order=0),
+        SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=1),
+        SheetStockSpec(width_mm=50, height_mm=50, quantity=1, sort_order=2),
+    ]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=10.0,
+    )
+
+    assert result.orphans == []
+    assert len(result.sheets) == 1
+    assert result.sheets[0].stock_sort_order == 1
 
 
 def test_libnest2d_finite_stock_then_next_sort_order() -> None:

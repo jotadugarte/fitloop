@@ -22,10 +22,8 @@ class ProjectLayersController < ApplicationController
       return
     end
 
-    renesting = renesting?(@project)
     start_nesting_for!(@project)
-    notice = renesting ? I18n.t("nesting.renest_started") : I18n.t("nesting.started")
-    redirect_to @project, notice: notice
+    redirect_to @project
   end
 
   private

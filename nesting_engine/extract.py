@@ -715,11 +715,15 @@ def _closed_contour_polygon(entity: object, *, curve_tolerance_mm: float) -> Pol
     if _is_full_circle_entity(entity):
         return None
     if isinstance(entity, LWPolyline):
+        if _lwpolyline_has_bulge(entity):
+            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
         polygon = _lwpolyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
         if polygon is not None:
             return polygon
         return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
     if isinstance(entity, Polyline) and entity.is_closed:
+        if _polyline_has_bulge(entity):
+            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
         return _polyline_polygon(entity)
     if hasattr(entity, "dxftype") and entity.dxftype() in {"ARC", "ELLIPSE", "SPLINE"}:
         return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
@@ -739,6 +743,14 @@ def _flattened_path_polygon(entity: object, *, curve_tolerance_mm: float) -> Pol
     if gap > 0:
         points.append(points[0])
     return _polygon_from_points(points)
+
+
+def _lwpolyline_has_bulge(entity: LWPolyline) -> bool:
+    return any(abs(bulge) > 1e-9 for *_, bulge in entity.get_points("xyb"))
+
+
+def _polyline_has_bulge(entity: Polyline) -> bool:
+    return any(abs(float(vertex.dxf.bulge)) > 1e-9 for vertex in entity.vertices)
 
 
 def _lwpolyline_polygon(entity: LWPolyline, *, curve_tolerance_mm: float) -> Polygon | None:
@@ -784,6 +796,25 @@ def _transform_coords(coords, matrix: Matrix44) -> list[tuple[float, float]]:
     return transformed
 
 
+def _coerce_single_polygon(geometry: object) -> Polygon | None:
+    if geometry is None:
+        return None
+    if isinstance(geometry, Polygon):
+        if geometry.is_empty or geometry.area <= 0:
+            return None
+        return geometry
+    if hasattr(geometry, "geoms"):
+        polygons = [
+            part
+            for part in geometry.geoms
+            if isinstance(part, Polygon) and not part.is_empty and part.area > 0
+        ]
+        if not polygons:
+            return None
+        return max(polygons, key=lambda part: part.area)
+    return None
+
+
 def _polygon_from_points(
     points: list[tuple[float, float]],
     *,
@@ -795,7 +826,8 @@ def _polygon_from_points(
     polygon = Polygon(points, holes or [])
     if not polygon.is_valid:
         polygon = make_valid(polygon)
-    if polygon.is_empty or polygon.area <= 0:
+    polygon = _coerce_single_polygon(polygon)
+    if polygon is None:
         return None
 
     assert polygon.is_valid

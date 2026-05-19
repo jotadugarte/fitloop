@@ -7,6 +7,8 @@ export default class extends Controller {
   }
 
   connect() {
+    if (!this.shouldKeepPolling()) return
+
     this.runSyncLoop()
   }
 
@@ -25,7 +27,8 @@ export default class extends Controller {
   }
 
   shouldKeepPolling() {
-    return document.querySelector('[data-testid="nesting-progress"]') !== null
+    const badge = document.querySelector('[data-testid="project-status-badge"]')
+    return badge?.classList.contains("status-badge--processing") === true
   }
 
   clearTimers() {
@@ -49,6 +52,9 @@ export default class extends Controller {
 
     const message = await response.text()
     if (message.trim()) window.Turbo.renderStreamMessage(message)
+
+    const status = document.querySelector('[data-testid="project-status-badge"]')?.dataset.projectStatus
+    if (status) this.element.dataset.projectStatus = status
 
     if (!this.shouldKeepPolling()) this.clearTimers()
   }

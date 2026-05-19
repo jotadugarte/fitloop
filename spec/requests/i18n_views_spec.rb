@@ -15,21 +15,21 @@ RSpec.describe "I18n view copy", type: :request do
       with_locale(:en) { get new_project_path }
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(I18n.t("activerecord.attributes.project.title", locale: :en))
       expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.width_mm", locale: :en))
       expect(response.body).to include(I18n.t("projects.form.sheet_stocks_legend", locale: :en))
+      expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :en))
+      expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :en))
     end
 
     it "renders Spanish form labels" do
       with_locale(:es) { get new_project_path }
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include(I18n.t("activerecord.attributes.project.title", locale: :es))
       expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.width_mm", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.quantity_hint", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.dxf_upload_legend", locale: :es))
-      expect(response.body).to include(I18n.t("activerecord.attributes.project.pin", locale: :es))
-      expect(response.body).not_to include(">Title<")
+      expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
+      expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
       expect(response.body).not_to include("Unlimited quantity")
     end
   end
@@ -37,11 +37,32 @@ RSpec.describe "I18n view copy", type: :request do
   describe "GET /projects [REQ-FIT-UI-005]" do
     before { Project.destroy_all }
 
-    it "renders Spanish index copy" do
+    it "redirects Spanish locale index to empezar" do
       with_locale(:es) { get projects_path }
 
-      expect(response.body).to include(I18n.t("projects.index.title", locale: :es))
-      expect(response.body).to include(I18n.t("projects.index.new", locale: :es))
+      expect(response).to redirect_to(start_project_path)
+    end
+  end
+
+  describe "GET /projects/:id/edit sheet inventory [REQ-FIT-UI-001]" do
+    let(:project) do
+      Project.create!(
+        title: "Puerta",
+        pin: "123456",
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
+        }
+      )
+    end
+
+    it "renders Spanish sheet consumption priority copy" do
+      post verify_pin_project_path(project), params: { pin: "123456" }
+      with_locale(:es) { get edit_project_path(project) }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
+      expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
+      expect(response.body).to include(I18n.t("projects.form.alert_single_unlimited", locale: :es))
     end
   end
 

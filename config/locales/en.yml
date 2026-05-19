@@ -68,6 +68,7 @@ en:
               blank: "can't be blank"
             base:
               no_sheet_stocks: "add at least one sheet type to the inventory"
+              multiple_unlimited_sheet_stocks: "only one unlimited sheet type is allowed per project"
         sheet_stock:
           attributes:
             width_mm:
@@ -182,6 +183,11 @@ en:
         one: "1 error prevented saving"
         other: "%{count} errors prevented saving"
       sheet_stocks_legend: "Sheet inventory"
+      consumption_priority: "Priority"
+      consumption_order_legend: "The nesting engine consumes sheet types from top to bottom."
+      reorder_sheet: "Drag to reorder"
+      sort_finite_first: "Sort: finite first"
+      alert_single_unlimited: "Only one unlimited sheet type is allowed per project."
       add_sheet: "Add"
       edit_sheet: "Edit"
       delete_sheet: "Delete"
@@ -226,6 +232,7 @@ en:
     completed: "Nesting completed."
     partial: "Nesting finished with orphans."
     failed: "Nesting failed."
+    input_file_missing: "The DXF file is missing. Upload it again and retry nesting."
     progress_heading: "Nesting progress"
     eta_overrun: "Still working — this is taking longer than estimated."
     time_limit_notice: "Time limit reached. Showing the best result so far."

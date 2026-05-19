@@ -4,14 +4,27 @@
   data-sheet-inventory-index="<%= sheet_form.index %>"
   data-testid="sheet-stock-row"
 >
-  <td class="sheet-inventory-table__dim" data-sheet-inventory-display="width_mm">
-    <%= sheet_stock_dimension_mm(sheet_form.object.width_mm) %>
+  <td class="sheet-inventory-table__priority">
+    <span class="sheet-inventory-table__priority-inner">
+      <span
+        class="sheet-inventory-table__drag-handle"
+        data-testid="sheet-stock-drag-handle"
+        aria-hidden="true"
+        title="<%= t('projects.form.reorder_sheet') %>"
+      >⋮⋮</span>
+      <span data-sheet-inventory-display="priority" data-testid="sheet-stock-priority">
+        <%= sheet_stock_consumption_priority_label(sheet_form.object) %>
+      </span>
+    </span>
   </td>
-  <td class="sheet-inventory-table__dim" data-sheet-inventory-display="height_mm">
-    <%= sheet_stock_dimension_mm(sheet_form.object.height_mm) %>
+  <td class="sheet-inventory-table__dim">
+    <span data-sheet-inventory-display="width_mm"><%= sheet_stock_dimension_mm(sheet_form.object.width_mm) %></span>
   </td>
-  <td data-sheet-inventory-display="quantity">
-    <%= sheet_stock_quantity_label(sheet_form.object) %>
+  <td class="sheet-inventory-table__dim">
+    <span data-sheet-inventory-display="height_mm"><%= sheet_stock_dimension_mm(sheet_form.object.height_mm) %></span>
+  </td>
+  <td class="sheet-inventory-table__qty">
+    <span data-sheet-inventory-display="quantity"><%= sheet_stock_quantity_label(sheet_form.object) %></span>
   </td>
   <td class="sheet-inventory-table__actions">
     <div class="sheet-inventory-table__action-buttons">
@@ -22,13 +35,15 @@
             <%= t("projects.form.delete_sheet") %>
           </button>
     </div>
-    <% if sheet_form.object.persisted? %>
-      <%= sheet_form.hidden_field :id, data: { sheet_inventory_field: "id" } %>
-    <% end %>
-    <%= sheet_form.hidden_field :sort_order, value: sheet_form.object.sort_order || sheet_form.index, data: { sheet_inventory_field: "sort_order" } %>
-    <%= sheet_form.hidden_field :width_mm, data: { sheet_inventory_field: "width_mm" } %>
-    <%= sheet_form.hidden_field :height_mm, data: { sheet_inventory_field: "height_mm" } %>
-    <%= sheet_form.hidden_field :quantity, data: { sheet_inventory_field: "quantity" } %>
-    <%= sheet_form.hidden_field :_destroy, value: "0", data: { sheet_inventory_field: "_destroy" } %>
+    <div class="sheet-inventory-table__row-fields" hidden aria-hidden="true">
+      <% if sheet_form.object.persisted? %>
+        <%= sheet_form.hidden_field :id, data: { sheet_inventory_field: "id" } %>
+      <% end %>
+      <%= sheet_form.hidden_field :sort_order, value: sheet_form.object.sort_order || sheet_form.index, data: { sheet_inventory_field: "sort_order" } %>
+      <%= sheet_form.hidden_field :width_mm, data: { sheet_inventory_field: "width_mm" } %>
+      <%= sheet_form.hidden_field :height_mm, data: { sheet_inventory_field: "height_mm" } %>
+      <%= sheet_form.hidden_field :quantity, data: { sheet_inventory_field: "quantity" } %>
+      <%= sheet_form.hidden_field :_destroy, value: "0", data: { sheet_inventory_field: "_destroy" } %>
+    </div>
   </td>
 </tr>

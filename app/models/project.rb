@@ -32,6 +32,7 @@ class Project < ApplicationRecord
   validates :curve_tolerance_mm, numericality: { greater_than: 0 }
   validate :validate_pin_assignment, unless: :ephemeral?
   validate :must_have_sheet_stocks, unless: :ephemeral?
+  validate :at_most_one_unlimited_sheet_stock
 
   before_save :digest_pin, if: :digestible_pin?
 
@@ -59,6 +60,15 @@ class Project < ApplicationRecord
     return if sheet_stocks.reject(&:marked_for_destruction?).any?
 
     errors.add(:base, :no_sheet_stocks)
+  end
+
+  # [REQ-FIT-DOM-001] At most one SheetStock with quantity nil (∞) per project.
+  def at_most_one_unlimited_sheet_stock
+    active_stocks = sheet_stocks.reject(&:marked_for_destruction?)
+    unlimited_count = active_stocks.count { |stock| stock.quantity.nil? }
+    return if unlimited_count <= 1
+
+    errors.add(:base, :multiple_unlimited_sheet_stocks)
   end
 
   def validate_pin_assignment

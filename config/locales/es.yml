@@ -83,6 +83,7 @@ es:
               blank: "no puede estar en blanco"
             base:
               no_sheet_stocks: "añade al menos un tipo de lámina al inventario"
+              multiple_unlimited_sheet_stocks: "solo se permite un tipo de lámina ilimitado por proyecto"
         sheet_stock:
           attributes:
             width_mm:
@@ -197,6 +198,11 @@ es:
         one: "1 error impidió guardar"
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
+      consumption_priority: "Prioridad"
+      consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
+      reorder_sheet: "Arrastrar para reordenar"
+      sort_finite_first: "Ordenar: finitos primero"
+      alert_single_unlimited: "Solo se permite un tipo de lámina ilimitado por proyecto."
       add_sheet: "Agregar"
       edit_sheet: "Editar"
       delete_sheet: "Eliminar"
@@ -241,6 +247,7 @@ es:
     completed: "Anidado completado."
     partial: "Anidado terminado con huérfanos."
     failed: "Anidado fallido."
+    input_file_missing: "No se encontró el archivo DXF. Vuelve a subirlo e intenta de nuevo."
     progress_heading: "Progreso del anidado"
     eta_overrun: "Sigue en curso — está tardando más de lo estimado."
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."

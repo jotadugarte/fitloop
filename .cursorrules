@@ -79,6 +79,11 @@
       9. Commit acceptance/integration DXFs under `nesting_engine/tests/fixtures/` (kebab-case filenames). Mark `@pytest.mark.slow` when loading real DXF fixtures. Do not commit `xf-test-temp/` (local scratch only; see `.gitignore`).
       10. Intra-sheet repack (`_intra_sheet_repack_search`): skip sheets with fewer than 2 pieces; accept only on layout-score improvement (`score_sheet_layout` / `_layout_better_than`) or successful pull from a later same-stock sheet; rollback when re-nest places fewer pieces or regresses the score.
       11. `_MAX_PIECES` (128) in `nest_sheet_with_obstacles` counts fixed obstacle items plus nestable pieces together—batch size is `_MAX_PIECES - len(occupied)` when obstacles already occupy the sheet.
+      12. Sheet stock consumption: see `docs/core/SYSTEM_ARCHITECTURE.md` §8. At most one stock with `quantity: nil` per project. `SheetStocks::NormalizeConsumptionOrder` reorders in memory only (finite stocks first, dense `sort_order`); do not `save!` inside that service. Call `NormalizeConsumptionOrder.persist!` before nesting when the project is not saved in the same request (e.g. `NestingRunsController#create`).
+      13. After sheet inventory changes, purge stale nest artifacts with `SheetStocks::InvalidateNestingOutputs` when appropriate (terminal status + attached outputs). The form is source of truth: rows omitted from nested attributes are destroyed via `SheetStocks::SyncInventory`.
+      14. CLI `sheet_stocks` validation lives in `nesting_engine/sheet_stocks_config.py`; the engine consumes via `stocks_in_consumption_order`—do not rely on raw client `sort_order` alone in `nest_multi_bin`.
+      15. DXF extract: if `LWPOLYLINE` or closed `Polyline` has non-zero bulge, use `_flattened_path_polygon`; do not chord-connect bulged vertices (`_lwpolyline_has_bulge` / `_polyline_has_bulge`).
+      16. Nesting cancel: controllers set `cancel_requested_at` only and flash `nesting.cancelling`; `Nesting::ApplyCancel` runs from the job runner or `ProjectStatusSync`. Reconcile stuck processing runs: `ApplyCancel` → `ReconcileFailedJob` → `CliRunner.finalize_from_work_dir!` before inferring a terminal status.
     </rules>
   </project_rules>
 </agentic_guild_os>

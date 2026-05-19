@@ -11,8 +11,7 @@ class ProjectsController < ApplicationController
   ]
   before_action :require_project_access!, only: %i[edit update]
   def index
-    @projects = Project.saved.order(created_at: :desc)
-    @project_cards = @projects.map { |project| [ project, Nesting::PreviewPresenter.for(project) ] }
+    redirect_to start_project_path
   end
 
   def show
@@ -74,8 +73,10 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    @project.assign_attributes(normalized_project_attributes)
-    assign_sheet_stock_sort_orders!(@project)
+    attributes = normalized_project_attributes
+    sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
+    @project.assign_attributes(attributes)
+    normalize_sheet_stock_consumption_order!(@project)
 
     if @project.ephemeral?
       finish_ephemeral_setup
@@ -143,10 +144,14 @@ class ProjectsController < ApplicationController
   private
 
   def update_workspace_sheets!
-    @project.assign_attributes(workspace_sheet_params)
-    assign_sheet_stock_sort_orders!(@project)
+    attributes = workspace_sheet_params
+    sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
+    @project.assign_attributes(attributes)
+    normalize_sheet_stock_consumption_order!(@project)
 
     if @project.save
+      SheetStocks::InvalidateNestingOutputs.call(@project) if @project.nested_dxf.attached? || @project.placements_json.attached?
+      @project.reload
       render_workspace_turbo_stream(:sheets)
     else
       render_workspace_turbo_stream(:sheets, status: :unprocessable_content)
@@ -161,13 +166,8 @@ class ProjectsController < ApplicationController
   def render_workspace_turbo_stream(section, status: :ok)
     streams = case section
               when :sheets
-                [
-                  turbo_stream.replace(
-                    project_dom_id(:sheet_inventory),
-                    partial: "projects/show_sheet_inventory",
-                    locals: { project: @project }
-                  )
-                ]
+                @project.reload
+                sheet_workspace_streams
               when :layers
                 [
                   turbo_stream.replace(
@@ -265,14 +265,21 @@ class ProjectsController < ApplicationController
       next unless attrs.is_a?(Hash)
 
       quantity = attrs[:quantity].presence || attrs["quantity"].presence
-      attrs[:quantity] = quantity.present? ? quantity : nil
+      attrs[:quantity] = quantity.present? ? quantity.to_i : nil
     end
   end
 
-  def assign_sheet_stock_sort_orders!(project)
-    project.sheet_stocks.reject(&:marked_for_destruction?).each_with_index do |stock, index|
-      stock.sort_order = index
-    end
+  def normalize_sheet_stock_consumption_order!(project)
+    SheetStocks::NormalizeConsumptionOrder.call(project)
+  end
+
+  def sync_sheet_inventory!(project, sheet_stocks_attributes)
+    return if sheet_stocks_attributes.blank?
+
+    SheetStocks::SyncInventory.call(
+      project: project,
+      sheet_stocks_attributes: sheet_stocks_attributes
+    )
   end
 
   def composer_draft_params
@@ -282,6 +289,26 @@ class ProjectsController < ApplicationController
   def sync_nesting_ui_state!
     Nesting::ProjectStatusSync.call(project: @project)
     @project.reload
+  end
+
+  def sheet_workspace_streams
+    [
+      turbo_stream.replace(
+        project_dom_id(:sheet_inventory),
+        partial: "projects/show_sheet_inventory",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:show_actions),
+        partial: "projects/show_actions",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:status_badge),
+        partial: "projects/status_badge",
+        locals: { project: @project }
+      )
+    ]
   end
 
   def nesting_sync_streams

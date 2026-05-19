@@ -84,6 +84,48 @@ def test_arc_entity_is_not_treated_as_full_circle(tmp_path: Path) -> None:
     assert contours == []
 
 
+def test_unclosed_lwpolyline_with_bulge_and_snapped_ends_uses_flattened_outline(
+    tmp_path: Path,
+) -> None:
+    """[REQ-FIT-EXT-001] Bulged outlines must flatten even when the closed flag is unset."""
+    path = tmp_path / "bulged_unclosed_sector.dxf"
+    doc = ezdxf.new("R2010")
+    doc.modelspace().add_lwpolyline(
+        [(0, 0, 0), (100, 0, 0.414213562373095), (0, 100, 0), (0, 0, 0)],
+        format="xyb",
+        close=False,
+        dxfattribs={"layer": LAYER},
+    )
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.1)
+
+    assert len(contours) == 1
+    chord_triangle_area = 0.5 * 100 * 100
+    assert contours[0].area > chord_triangle_area * 1.1
+    assert len(list(contours[0].exterior.coords)) > 6
+
+
+def test_closed_lwpolyline_with_bulge_preserves_curved_outline(tmp_path: Path) -> None:
+    """[REQ-FIT-EXT-001] Closed LWPOLYLINE bulges must flatten, not chord-connect vertices."""
+    path = tmp_path / "bulged_sector.dxf"
+    doc = ezdxf.new("R2010")
+    doc.modelspace().add_lwpolyline(
+        [(0, 0, 0), (100, 0, 0.414213562373095), (0, 100, 0)],
+        format="xyb",
+        close=True,
+        dxfattribs={"layer": LAYER},
+    )
+    doc.saveas(path)
+
+    contours = extract_closed_contours(path, layer_name=LAYER, curve_tolerance_mm=0.1)
+
+    assert len(contours) == 1
+    chord_triangle_area = 0.5 * 100 * 100
+    assert contours[0].area > chord_triangle_area * 1.1
+    assert len(list(contours[0].exterior.coords)) > 6
+
+
 def test_open_arc_is_not_extracted_as_phantom_piece(tmp_path: Path) -> None:
     path = tmp_path / "open_arc.dxf"
     doc = ezdxf.new("R2010")

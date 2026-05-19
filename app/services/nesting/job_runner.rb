@@ -38,7 +38,11 @@ module Nesting
         handle_timeout!
       rescue CancelledError
         handle_cancelled!
+      rescue StandardError => error
+        handle_failure!(error)
       else
+        return if handle_cancelled!
+
         update_progress!(percent: 100, message: terminal_progress_message)
         ProgressBroadcaster.call(
           project: @project.reload,
@@ -58,18 +62,15 @@ module Nesting
     def handle_cancelled!
       return false unless cancel_requested?
 
-      @nesting_run.update!(
-        status: "failed",
-        finished_at: Time.current,
-        report_json: { "status" => "failed", "warnings" => ["cancelled"] }
-      )
-      @project.update!(
-        status: :failed,
-        progress_percent: 0,
-        progress_message: I18n.t("nesting.cancelled")
-      )
-      ProgressBroadcaster.call(project: @project, eta_overrun: false, time_limit_notice: false)
+      ApplyCancel.call(nesting_run: @nesting_run)
       true
+    end
+
+    def handle_failure!(error)
+      Rails.logger.error("[Nesting::JobRunner] nesting_run=#{@nesting_run.id} #{error.class}: #{error.message}")
+      Rails.logger.error(error.backtrace&.first(8)&.join("\n"))
+
+      FailRun.call(nesting_run: @nesting_run, error: error)
     end
 
     def handle_timeout!

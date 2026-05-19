@@ -83,13 +83,19 @@ RSpec.describe Nesting::ProgressBroadcaster do
       expect(html).to match(/Pieza 1|Piece 1/)
     end
 
-    it "broadcasts only nesting progress while processing" do
+    it "broadcasts nesting progress and status badge while processing" do
       allow(project).to receive(:processing?).and_return(true)
       allow(project).to receive(:broadcast_replace_to)
 
       described_class.call(project: project, eta_overrun: false, time_limit_notice: false)
 
-      expect(project).to have_received(:broadcast_replace_to).once
+      expect(project).to have_received(:broadcast_replace_to).twice
+      expect(project).to have_received(:broadcast_replace_to).with(
+        project,
+        target: ActionView::RecordIdentifier.dom_id(project, :status_badge),
+        partial: "projects/status_badge",
+        locals: { project: project }
+      )
     end
   end
 end

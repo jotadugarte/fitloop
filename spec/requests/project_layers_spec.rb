@@ -44,13 +44,23 @@ RSpec.describe "Project layers", type: :request do
       end.to have_enqueued_job(NestingJob)
 
       expect(response).to redirect_to(project_path(project))
-      expect(flash[:notice]).to eq(I18n.t("nesting.started"))
+      expect(flash[:notice]).to be_nil
       expect(layer.reload).to be_included
       expect(project.reload.status).to eq("processing")
     end
   end
 
   describe "POST /projects/:project_id/input_dxf_files [REQ-FIT-DXF-001]" do
+    # Saved project: avoids ephemeral workspace session coupling (resolve! requires bound session).
+    let(:project) do
+      create_project_for_spec!(
+        title: "DXF multi-upload bench",
+        pin: "445566",
+        ephemeral: false,
+        bind_workspace: false
+      )
+    end
+
     it "accepts multiple DXF uploads in one request" do
       unlock_project_for_spec!(project, pin: "445566")
 
@@ -61,7 +71,7 @@ RSpec.describe "Project layers", type: :request do
         ]
       }
 
-      expect(response).to redirect_to(project_layers_path(project))
+      expect(response).to redirect_to(project_path(project))
       expect(project.reload.input_dxf.count).to eq(2)
     end
   end

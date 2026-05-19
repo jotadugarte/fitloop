@@ -13,8 +13,9 @@ from shapely.affinity import rotate, translate  # noqa: E402
 from shapely.geometry import Polygon  # noqa: E402
 
 from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
-from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, SheetStockSpec, nest_multi_bin  # noqa: E402
+from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, nest_multi_bin  # noqa: E402
 from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
+from nesting_engine.sheet_stocks_config import parse_sheet_stocks_from_config  # noqa: E402
 
 
 def _piece_bounds_dict(polygon: Polygon, *, piece_index: int, extra: dict | None = None) -> dict:
@@ -85,15 +86,7 @@ def run_from_config(config: dict) -> MultiBinResult:
     warnings: list[str] = list(config.get("warnings") or [])
     pieces = load_pieces_from_config(config, warnings=warnings)
 
-    stocks = [
-        SheetStockSpec(
-            width_mm=float(row["width_mm"]),
-            height_mm=float(row["height_mm"]),
-            quantity=row["quantity"],
-            sort_order=int(row["sort_order"]),
-        )
-        for row in config.get("sheet_stocks", [])
-    ]
+    stocks = parse_sheet_stocks_from_config(config)
 
     if not pieces:
         report = {"status": "failed", "orphans": [], "warnings": warnings + ["no_extractable_pieces"]}
@@ -164,7 +157,11 @@ def main(argv: list[str] | None = None) -> int:
 
     config_path = Path(argv[0])
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    run_from_config(config)
+    try:
+        run_from_config(config)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     return 0
 
 

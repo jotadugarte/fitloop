@@ -45,12 +45,14 @@ Ordered sheet inventory per project.
 | `project_id` | bigint | no | FK → `projects` | |
 | `width_mm` | float | no | | |
 | `height_mm` | float | no | | |
-| `quantity` | integer | yes | | `NULL` = **infinite** sheets |
-| `sort_order` | integer | no | `0` | Consumption priority (low first) |
+| `quantity` | integer | yes | | `NULL` = **infinite** sheets; **at most one** `NULL` per `project_id` |
+| `sort_order` | integer | no | `0` | Consumption priority (ascending; UI label `#1` = `0`). When `quantity` is `NULL`, `sort_order` must be the maximum among the project's stocks. |
 | `created_at` | datetime | no | | |
 | `updated_at` | datetime | no | | |
 
 **Indexes:** `index_sheet_stocks_on_project_id`
+
+**Business rules:** At most one unlimited (`quantity IS NULL`) stock per project. After save, all finite stocks have lower `sort_order` than the unlimited stock (if present). Ranks are gapless `0..n-1` per project.
 
 ---
 

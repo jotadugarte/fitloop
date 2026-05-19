@@ -43,6 +43,23 @@ RSpec.describe Nesting::JobRunner do
       expect(project.progress_message).to eq(I18n.t("nesting.time_limit_notice"))
     end
 
+    it "marks failed and broadcasts when the CLI raises" do
+      allow(Nesting::CliRunner).to receive(:call).and_raise(StandardError, "nest exploded")
+      allow(Nesting::ProgressBroadcaster).to receive(:call)
+
+      described_class.call(nesting_run: nesting_run)
+
+      nesting_run.reload
+      project.reload
+
+      expect(nesting_run.status).to eq("failed")
+      expect(project.status).to eq("failed")
+      expect(project.progress_message).to eq(I18n.t("nesting.failed"))
+      expect(Nesting::ProgressBroadcaster).to have_received(:call).with(
+        hash_including(project: project, eta_overrun: false, time_limit_notice: false)
+      )
+    end
+
     it "broadcasts eta overrun when past estimated_finished_at" do
       allow(Nesting::CliRunner).to receive(:call)
       allow(Nesting::ProgressBroadcaster).to receive(:call)
