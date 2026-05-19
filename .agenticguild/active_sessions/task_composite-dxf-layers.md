@@ -194,7 +194,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Wire `piece_loader.py` → `composite_extract`; attach decorations list on piece objects passed to nest pipeline.
 </step>
 
-<step id="9" status="pending">
+<step id="9" status="complete">
 **Test:** `nesting_engine/tests/test_decoration_transform.py` — translate+rotate decoration with `PlacedPiece` transform; relative offset invariant (fixture: mark at known offset from centroid). Tag `[REQ-FIT-DXF-002]`.
 **Implement:** `nesting_engine/decoration_transform.py` — apply same `rotate(centroid)` + `translate` as primary polygon to each decoration primitive.
 </step>

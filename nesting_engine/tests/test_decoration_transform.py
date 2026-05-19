@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pytest
+from shapely.affinity import rotate as rotate_geometry
 from shapely.geometry import LineString, Point, Polygon
 
 from nesting_engine.composite_extract import DecorationEntity
@@ -12,6 +13,11 @@ from nesting_engine.nest_placement import Placement, placed_polygon
 def _offset_from_centroid(polygon: Polygon, point: Point) -> tuple[float, float]:
     centroid = polygon.centroid
     return (point.x - centroid.x, point.y - centroid.y)
+
+
+def _rotate_offset(offset: tuple[float, float], rotation_deg: float) -> tuple[float, float]:
+    rotated = rotate_geometry(Point(offset[0], offset[1]), rotation_deg, origin=(0, 0))
+    return (rotated.x, rotated.y)
 
 
 def test_transform_decorations_preserves_relative_offset_to_primary_centroid() -> None:
@@ -34,9 +40,10 @@ def test_transform_decorations_preserves_relative_offset_to_primary_centroid() -
     source_midpoint = source_line.interpolate(0.5, normalized=True)
     before_offset = _offset_from_centroid(primary, source_midpoint)
     after_offset = _offset_from_centroid(placed_primary, midpoint)
+    expected_offset = _rotate_offset(before_offset, placement.rotation_deg)
 
-    assert before_offset[0] == pytest.approx(after_offset[0], abs=1e-6)
-    assert before_offset[1] == pytest.approx(after_offset[1], abs=1e-6)
+    assert expected_offset[0] == pytest.approx(after_offset[0], abs=1e-6)
+    assert expected_offset[1] == pytest.approx(after_offset[1], abs=1e-6)
     assert source_midpoint.distance(primary.centroid) == pytest.approx(
         midpoint.distance(placed_primary.centroid),
         abs=1e-6,
@@ -62,5 +69,6 @@ def test_transform_decorations_rotates_text_insert_point() -> None:
 
     before_offset = _offset_from_centroid(primary, source_insert)
     after_offset = _offset_from_centroid(placed_primary, placed_insert)
-    assert before_offset[0] == pytest.approx(after_offset[0], abs=1e-6)
-    assert before_offset[1] == pytest.approx(after_offset[1], abs=1e-6)
+    expected_offset = _rotate_offset(before_offset, placement.rotation_deg)
+    assert expected_offset[0] == pytest.approx(after_offset[0], abs=1e-6)
+    assert expected_offset[1] == pytest.approx(after_offset[1], abs=1e-6)
