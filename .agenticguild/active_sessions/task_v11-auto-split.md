@@ -277,7 +277,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="7" status="complete">**Test:** `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH `system_split` / `manual` / `pending`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `OrphanResolutionsController` + routes; `session_workflow_log` events (J43).</step>
 
-<step id="8" status="pending">**Test:** `spec/jobs/nesting_split_plan_job_spec.rb` — CLI plan mode; `SplitProposal` draft with preview geometry. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`. **Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner`; Turbo preview frame.</step>
+<step id="8" status="complete">**Test:** `spec/jobs/nesting_split_plan_job_spec.rb` — CLI plan mode; `SplitProposal` draft with preview geometry. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`. **Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner`; Turbo preview frame.</step>
 
 <step id="9" status="pending">**Test:** `spec/system/orphan_auto_split_spec.rb` — partial nest → card → “Dividir con Fitloop” → preview → Aceptar. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`. **Implement:** `_nesting_orphans.html.erb` — badges, toggles, inline SVG, Aceptar/Rechazar/Regenerar.</step>
 
