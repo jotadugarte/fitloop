@@ -21,6 +21,8 @@ class PlacedPiece:
     piece_index: int
     polygon: Polygon
     placement: Placement
+    primary_layer_name: str | None = None
+    decorations: tuple = ()
 
 
 @dataclass(frozen=True)
