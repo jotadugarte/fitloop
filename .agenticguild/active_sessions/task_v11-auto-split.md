@@ -265,7 +265,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="1" status="complete">**Test:** `spec/models/orphan_resolution_spec.rb` — `OrphanResolution` on ephemeral project; states `pending|system_split|manual|resolved`; unique `piece_key`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-DOM-001]`. **Implement:** Migration + models `OrphanResolution`, `SplitProposal`, `DerivedPiece`; `projects.session_workflow_log` jsonb default `[]`.</step>
 
-<step id="2" status="pending">**Test:** `spec/services/nesting/piece_key_builder_spec.rb` — stable key from attachment id + extractor piece id / geometry fingerprint. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::PieceKeyBuilder` when persisting orphan rows after nest.</step>
+<step id="2" status="complete">**Test:** `spec/services/nesting/piece_key_builder_spec.rb` — stable key from attachment id + extractor piece id / geometry fingerprint. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::PieceKeyBuilder` when persisting orphan rows after nest.</step>
 
 <step id="3" status="pending">**Test:** Expand `docs/core/SPEC.md` — full **REQ-FIT-SPLIT-001** (opt-in orphans, states, ephemeral session, manual copy, CLI modes, `split_not_feasible`). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** SPEC + `DATA_FLOW_MAP.md` workflow (split plan job → accept → nest).</step>
 

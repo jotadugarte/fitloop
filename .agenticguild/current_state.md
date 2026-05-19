@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Awaiting approval of failing test (step 2: PieceKeyBuilder)</current_step>
+    <current_step>3.1 — Step 2 complete; ready for step 3 (SPEC REQ-FIT-SPLIT-001)</current_step>
 
   </execution_context>
 
