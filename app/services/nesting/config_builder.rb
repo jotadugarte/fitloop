@@ -72,6 +72,8 @@ module Nesting
 
       payload[:excluded_piece_keys] = excluded_piece_keys
       payload[:derived_pieces] = derived
+      cuts = split_cut_segments_payload
+      payload[:split_cut_segments] = cuts if cuts.present?
     end
 
     def excluded_piece_keys
@@ -87,6 +89,13 @@ module Nesting
           rings: piece.geometry_json.fetch("rings")
         }
       end
+    end
+
+    def split_cut_segments_payload
+      SplitProposal
+        .joins(:orphan_resolution)
+        .where(orphan_resolutions: { project_id: @project.id }, status: :accepted)
+        .flat_map { |proposal| Array(proposal.cut_segments) }
     end
 
     def sheet_stock_payload

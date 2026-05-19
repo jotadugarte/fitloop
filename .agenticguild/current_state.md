@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Step 11 complete; ready for step 12 (nest pipeline derived)</current_step>
+    <current_step>3.1 — Step 12 complete; ready for step 13 (nest CTA auto-enqueue)</current_step>
 
   </execution_context>
 

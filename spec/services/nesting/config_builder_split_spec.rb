@@ -43,7 +43,7 @@ RSpec.describe Nesting::ConfigBuilder do
         version: 1,
         labels: %w[a b],
         child_piece_geometries: [],
-        cut_segments: []
+        cut_segments: [ [ [ 80.0, 0.0 ], [ 80.0, 40.0 ] ] ]
       )
 
       payload = described_class.build(
@@ -61,6 +61,7 @@ RSpec.describe Nesting::ConfigBuilder do
         sort_order: 0
       )
       expect(derived.first.fetch(:rings)).to be_present
+      expect(payload.fetch(:split_cut_segments)).to eq([ [ [ 80.0, 0.0 ], [ 80.0, 40.0 ] ] ])
     end
 
     it "[REQ-FIT-SPLIT-001] omits split keys when no derived pieces exist" do

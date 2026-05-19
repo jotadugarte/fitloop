@@ -37,10 +37,10 @@ def _piece_bounds_dict(polygon: Polygon, *, piece_index: int, extra: dict | None
     return payload
 
 
-def _piece_placement_dict(placed: PlacedPiece) -> dict:
+def _piece_placement_dict(placed: PlacedPiece, *, label: str | None = None) -> dict:
     world = _placed_world_polygon(placed)
     minx, miny, maxx, maxy = world.bounds
-    return {
+    payload = {
         "piece_index": placed.piece_index,
         "x_mm": float(minx),
         "y_mm": float(miny),
@@ -49,6 +49,23 @@ def _piece_placement_dict(placed: PlacedPiece) -> dict:
         "height_mm": float(maxy - miny),
         "rings": _polygon_rings(world),
     }
+    if label:
+        payload["label"] = label
+    return payload
+
+
+def _derived_piece_labels(config: dict, *, piece_count: int) -> dict[int, str]:
+    derived = list(config.get("derived_pieces") or [])
+    if not derived:
+        return {}
+
+    base_index = piece_count - len(derived)
+    labels: dict[int, str] = {}
+    for offset, entry in enumerate(derived):
+        label = entry.get("label")
+        if label:
+            labels[base_index + offset] = str(label)
+    return labels
 
 
 def _orphan_piece_dict(orphan, polygon: Polygon) -> dict:
@@ -102,6 +119,7 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
             MultiBinResult(sheets=[], orphans=[], warnings=warnings),
             report,
             pieces=[],
+            config=config,
         )
         return MultiBinResult(sheets=[], orphans=[], warnings=warnings)
 
@@ -126,7 +144,7 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
         "warnings": merged_warnings,
     }
-    _write_outputs(output_dir, result, report, pieces=pieces)
+    _write_outputs(output_dir, result, report, pieces=pieces, config=config)
     return result
 
 
@@ -194,8 +212,22 @@ def _write_outputs(
     report: dict,
     *,
     pieces: list,
+    config: dict,
 ) -> None:
-    write_nested_dxf(output_dir / "nested.dxf", result.sheets)
+    piece_labels = _derived_piece_labels(config, piece_count=len(pieces))
+    cut_segments = list(config.get("split_cut_segments") or [])
+    if piece_labels or cut_segments:
+        report["split"] = {
+            "derived_labels": [piece_labels[index] for index in sorted(piece_labels)],
+            "cut_segment_count": len(cut_segments),
+        }
+
+    write_nested_dxf(
+        output_dir / "nested.dxf",
+        result.sheets,
+        cut_segments=cut_segments,
+        piece_labels=piece_labels,
+    )
     placements = {
         "sheets": [
             {
@@ -204,7 +236,10 @@ def _write_outputs(
                 "width_mm": sheet.width_mm,
                 "height_mm": sheet.height_mm,
                 "offset_x_mm": sheet.offset_x_mm,
-                "pieces": [_piece_placement_dict(placed) for placed in sheet.pieces],
+                "pieces": [
+                    _piece_placement_dict(placed, label=piece_labels.get(placed.piece_index))
+                    for placed in sheet.pieces
+                ],
             }
             for sheet in result.sheets
         ],
