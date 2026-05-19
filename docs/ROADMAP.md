@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-17 — full-sheet libnest2d epic + intra-sheet repack (`nest_multi_bin` five-phase pipeline, `score_sheet_layout`).
+**Last audit:** 2026-05-19 — v1.1 auto-split shipped (`REQ-FIT-SPLIT-001`, ADR-0002).
 
-**Next action:** Pending — nesting progress/status bar UX; v1.1 auto-split (`REQ-FIT-SPLIT-001`); or optional FastAPI wrapper.
+**Next action:** Pending — nesting progress/status bar UX; or optional FastAPI wrapper.
 
 ---
 
@@ -20,13 +20,13 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 | P3 | Nesting pipeline | **Complete** |
 | P4 | UX completion & ship | **Complete** |
 | Docs | Core reference docs | **Complete** |
-| P5 / Backlog | v1.1+ | **Not started** |
+| P5 / Backlog | v1.1+ | **In progress** (auto-split shipped) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); optional FastAPI wrapper; hard file/piece caps; PIN recovery.
 
 ---
 
@@ -79,6 +79,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 - [x] **libnest2d integration** — `nest_libnest2d` + `python-libnest2d==0.1.3`; DEPLOY native deps; CI `nesting_engine` job (REQ-FIT-NEST-001, REQ-FIT-NEST-002, REQ-FIT-QA-001) — 2026-05-17 — Session: `task_libnest2d-integration.md`
 - [x] **Full-sheet libnest2d placement (kerf + obstacles)** — `nest_sheet_with_obstacles`, batch fill in `_place_on_one_sheet`, `_consolidate_sheets` repack, `_inter_sheet_local_search`; invariant tests (REQ-FIT-NEST-002, ADR-0001) — 2026-05-18 — Session: `task_full-sheet-libnest2d-epic.md`
 - [x] **Intra-sheet repack (void closure)** — `_intra_sheet_repack_search` (×2 post-fill/post-consolidate), `score_sheet_layout` / `_layout_better_than`, opportunistic pull from later sheets; peluo DXF fixture + `@pytest.mark.slow` (REQ-FIT-NEST-002, ADR-0001) — 2026-05-17 — Session: `task_intra-sheet-repack.md`
+- [x] **v1.1 — Auto-split** — opt-in orphan resolution (`OrphanResolution`, `SplitProposal`, `DerivedPiece`), `split_planner.py`, `plan_splits` CLI, ephemeral UI, manual CAD path, nest-with-updated-pieces CTA, `split_not_feasible`, cancel/sheet invalidation (REQ-FIT-SPLIT-001, ADR-0002) — 2026-05-19 — Session: `task_v11-auto-split.md`
 
 ---
 
@@ -96,7 +97,8 @@ _(none)_
 - [ ] **Nesting progress / status bar UX** — During `processing`, the bar mostly shows only coarse percentages (e.g. 5%, 15%) with little phase context for most of the run; make feedback friendlier: clearer step labels (queued → preparing → engine → finishing), smoother or engine-driven progress where possible, visible cancel/ETA copy, and accessible status text in `en`/`es` (REQ-FIT-JOB-001)
 
 ### Nesting engine
-- [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
+
+_(no pending engine items)_
 
 ---
 

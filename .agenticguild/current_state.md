@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Step 16 complete; ready for step 17 (full test pass + ROADMAP)</current_step>
+    <current_step>3.2 — v1.1 auto-split complete (all steps 1–17 done)</current_step>
 
   </execution_context>
 

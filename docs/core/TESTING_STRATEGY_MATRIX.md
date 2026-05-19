@@ -68,6 +68,7 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | REQ-FIT-NEST-003 | `spec/services/nesting/status_mapper_spec.rb`, `spec/jobs/nesting_job_integration_spec.rb` |
 | REQ-FIT-JOB-001 | `spec/services/nesting/job_runner_spec.rb`, `spec/system/nesting_progress_spec.rb` |
 | REQ-FIT-NEST-004 | `spec/requests/nesting_renest_spec.rb`, `spec/jobs/nesting_renest_spec.rb` |
+| REQ-FIT-SPLIT-001 | `spec/models/orphan_resolution_spec.rb`, `spec/services/nesting/piece_key_builder_spec.rb`, `spec/services/nesting/orphans_presenter_spec.rb`, `spec/services/nesting/config_builder_split_spec.rb`, `spec/jobs/nesting_split_plan_job_spec.rb`, `spec/requests/orphan_resolutions_spec.rb`, `spec/requests/split_proposals_accept_spec.rb`, `spec/requests/split_proposals_not_feasible_spec.rb`, `spec/requests/nesting_nest_updated_pieces_spec.rb`, `spec/requests/orphan_manual_resolution_spec.rb`, `spec/services/nesting/apply_cancel_split_previews_spec.rb`, `spec/system/orphan_auto_split_spec.rb`, `nesting_engine/tests/test_split_planner.py`, `nesting_engine/tests/test_cli_plan_splits.py`, `nesting_engine/tests/test_piece_loader_split.py`, `test/spec/split_spec_doc_test.rb` |
 | REQ-FIT-QA-001 | `spec/system/golden_nesting_e2e_spec.rb` |
 
 ---

@@ -295,6 +295,6 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="16" status="complete">**Test:** Job spec — cancel nesting invalidates draft `SplitProposal` (J42). Tag `[REQ-FIT-JOB-001]`. **Implement:** Cancel hook on `Nesting::JobRunner` clears stale drafts.</step>
 
-<step id="17" status="pending">**Test:** Targeted RSpec + `pytest nesting_engine/tests -q -m "not slow"`. **Implement:** Mark ROADMAP v1.1 auto-split done; optional ADR `0002-auto-split.md`.</step>
+<step id="17" status="complete">**Test:** Targeted RSpec + `pytest nesting_engine/tests -q -m "not slow"`. **Implement:** Mark ROADMAP v1.1 auto-split done; optional ADR `0002-auto-split.md`.</step>
 
 </implementation_plan>
