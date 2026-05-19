@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 20 next (regression sweep)</current_step>
+    <current_step>3.2 — Task complete; use finish-branch for PR</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 19 complete (derived composite nest e2e). Next: step 20 regression sweep.</note>
+  <note>Plan step 20 complete (regression sweep green). All 20 implementation steps done.</note>
 
 </agent_state>

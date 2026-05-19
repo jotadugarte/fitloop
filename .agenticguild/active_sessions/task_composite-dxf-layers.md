@@ -249,7 +249,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** End-to-end split → accept → nest updated pieces; invariant tests only.
 </step>
 
-<step id="20">
+<step id="20" status="complete">
 **Test:** Targeted `bundle exec rspec` (files above) + `pytest nesting_engine/tests -q -m "not slow"`.
 **Implement:** Fix regressions; mark ROADMAP v1.2 composite layers (+ split note).
 </step>
