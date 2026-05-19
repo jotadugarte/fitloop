@@ -281,7 +281,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="9" status="complete">**Test:** `spec/system/orphan_auto_split_spec.rb` — partial nest → card → “Dividir con Fitloop” → preview → Aceptar. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`. **Implement:** `_nesting_orphans.html.erb` — badges, toggles, inline SVG, Aceptar/Rechazar/Regenerar.</step>
 
-<step id="10" status="pending">**Test:** Request spec — accept creates `DerivedPiece`, excludes mother `piece_key`, logs session event. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; invalidate drafts on sheet stock change (G32).</step>
+<step id="10" status="complete">**Test:** Request spec — accept creates `DerivedPiece`, excludes mother `piece_key`, logs session event. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; invalidate drafts on sheet stock change (G32).</step>
 
 <step id="11" status="pending">**Test:** `spec/services/nesting/config_builder_split_spec.rb` — `excluded_piece_keys`, `derived_pieces` in payload. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::ConfigBuilder` + extractor skip/inject derived polygons.</step>
 

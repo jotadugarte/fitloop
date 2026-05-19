@@ -12,8 +12,11 @@ class SplitProposalsController < ApplicationController
 
   def accept
     proposal = current_draft_proposal!
-    proposal.update!(status: :accepted)
-    append_session_workflow_log!("split_accepted", proposal)
+    Nesting::MaterializeSplitProposal.call(
+      project: @project,
+      orphan_resolution: @orphan_resolution,
+      proposal: proposal
+    )
     redirect_to @project
   end
 

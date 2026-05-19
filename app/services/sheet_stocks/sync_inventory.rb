@@ -16,7 +16,10 @@ module SheetStocks
       stale = @project.sheet_stocks.where.not(id: kept_sheet_stock_ids)
       removed = stale.exists?
       stale.destroy_all
-      InvalidateNestingOutputs.call(@project) if removed
+      if removed
+        InvalidateNestingOutputs.call(@project)
+        InvalidateSplitPreviews.call(@project)
+      end
       removed
     end
 

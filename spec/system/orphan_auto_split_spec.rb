@@ -92,6 +92,9 @@ RSpec.describe "Orphan auto split", type: :system do
 
     click_button I18n.t("nesting.split.accept")
 
-    expect(page).to have_css('[data-testid="split-proposal-accepted"]')
+    project.reload
+    expect(project.derived_pieces.count).to eq(2)
+    expect(OrphanResolution.find_by!(project: project, piece_key: "0").resolution_state).to eq("resolved")
+    expect(page).to have_no_css('[data-testid="orphan-card"]')
   end
 end
