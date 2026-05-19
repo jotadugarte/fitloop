@@ -56,4 +56,113 @@ RSpec.describe Nesting::OrphansPresenter do
       expect(presenter.items.first.view_width).to eq(816.0)
     end
   end
+
+  describe "orphan resolutions [REQ-FIT-SPLIT-001] [REQ-FIT-NEST-003]" do
+    def attach_orphan_placements!(rows)
+      project.nesting_runs.create!(
+        status: "partial",
+        report_json: { "orphans" => rows.map { |row| row.slice(:piece_index, :reason) } },
+        finished_at: Time.current
+      )
+      project.placements_json.attach(
+        io: StringIO.new({ sheets: [], orphans: rows }.to_json),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+    end
+
+    it "[REQ-FIT-SPLIT-001] merges report orphans with OrphanResolution state" do
+      attach_orphan_placements!(
+        [
+          {
+            piece_index: 0,
+            reason: "oversized_for_sheet",
+            width_mm: 800.0,
+            height_mm: 400.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: [ [ [ 0.0, 0.0 ], [ 800.0, 0.0 ], [ 800.0, 400.0 ], [ 0.0, 400.0 ] ] ]
+          },
+          {
+            piece_index: 1,
+            reason: "no_sheet_capacity",
+            width_mm: 120.0,
+            height_mm: 50.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: [ [ [ 0.0, 0.0 ], [ 120.0, 0.0 ], [ 120.0, 50.0 ], [ 0.0, 50.0 ] ] ]
+          }
+        ]
+      )
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :pending
+      )
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "1",
+        reason: "no_sheet_capacity",
+        resolution_state: :system_split
+      )
+
+      items = described_class.for(project).items
+
+      expect(items.size).to eq(2)
+      expect(items.find { |row| row.piece_index == 0 }.resolution_state).to eq("pending")
+      expect(items.find { |row| row.piece_index == 1 }.resolution_state).to eq("system_split")
+    end
+
+    it "[REQ-FIT-SPLIT-001] excludes resolved OrphanResolution rows" do
+      attach_orphan_placements!(
+        [
+          {
+            piece_index: 0,
+            reason: "oversized_for_sheet",
+            width_mm: 100.0,
+            height_mm: 50.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: [ [ [ 0.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 50.0 ], [ 0.0, 50.0 ] ] ]
+          }
+        ]
+      )
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :resolved
+      )
+
+      expect(described_class.for(project).items).to be_empty
+    end
+
+    it "[REQ-FIT-SPLIT-001] disables system_split when rings are not exportable" do
+      attach_orphan_placements!(
+        [
+          {
+            piece_index: 2,
+            reason: "oversized_for_sheet",
+            width_mm: 10.0,
+            height_mm: 10.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: []
+          }
+        ]
+      )
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "2",
+        reason: "oversized_for_sheet",
+        resolution_state: :pending
+      )
+
+      orphan = described_class.for(project).items.sole
+
+      expect(orphan.system_split_enabled?).to be(false)
+      expect(orphan.exportable?).to be(false)
+    end
+  end
 end
