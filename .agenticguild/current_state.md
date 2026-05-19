@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Awaiting approval of failing test (step 4: split_planner.py)</current_step>
+    <current_step>3.1 — Step 4 complete; ready for step 5 (CLI plan_splits)</current_step>
 
   </execution_context>
 

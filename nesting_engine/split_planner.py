@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shapely.geometry import LineString, Polygon, box
-from shapely.ops import unary_union
+from shapely.geometry import Polygon, box
 
 from nesting_engine.nest_types import SheetStockSpec
 
@@ -40,10 +39,12 @@ def plan_split(
     if max_w <= _EPS or max_h <= _EPS:
         return SplitPlanResult(False, "split_not_feasible", [], [])
 
+    hole_rings = list(piece.interiors)
     polygons, cuts = _partition_to_fit(piece, max_w, max_h)
     if polygons is None:
         return SplitPlanResult(False, "split_not_feasible", [], [])
 
+    polygons = _restore_holes(polygons, hole_rings)
     labels = _child_labels(len(polygons))
     children = [SplitChild(label=label, polygon=poly) for label, poly in zip(labels, polygons, strict=True)]
     return SplitPlanResult(True, None, children, cuts)
@@ -224,6 +225,32 @@ def _as_single_polygon(geometry) -> Polygon | None:
 def _fits_bbox(polygon: Polygon, max_w: float, max_h: float) -> bool:
     minx, miny, maxx, maxy = polygon.bounds
     return (maxx - minx) <= max_w + _EPS and (maxy - miny) <= max_h + _EPS
+
+
+def _restore_holes(pieces: list[Polygon], hole_rings: list) -> list[Polygon]:
+    if not hole_rings:
+        return pieces
+
+    restored = pieces[:]
+    for ring in hole_rings:
+        hole_poly = Polygon(ring)
+        hole_probe = hole_poly.buffer(0.5)
+        best_index = -1
+        best_overlap = 0.0
+        for index, piece in enumerate(restored):
+            shell = piece if piece.geom_type == "Polygon" else _as_single_polygon(piece)
+            if shell is None:
+                continue
+            overlap = shell.intersection(hole_probe).area
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best_index = index
+        if best_index < 0 or best_overlap <= _EPS:
+            continue
+        shell = restored[best_index]
+        interiors = list(shell.interiors) + [ring]
+        restored[best_index] = Polygon(shell.exterior.coords, interiors)
+    return restored
 
 
 def _child_labels(count: int) -> list[str]:
