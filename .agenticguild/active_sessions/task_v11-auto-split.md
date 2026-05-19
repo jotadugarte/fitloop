@@ -275,7 +275,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="6" status="complete">**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — merge report orphans + unresolved `OrphanResolution`; exclude `resolved`; disable system_split without rings. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`. **Implement:** `Nesting::OrphansPresenter` + `resolution_state`, `system_split_enabled?`.</step>
 
-<step id="7" status="pending">**Test:** `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH `system_split` / `manual` / `pending`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `OrphanResolutionsController` + routes; `session_workflow_log` events (J43).</step>
+<step id="7" status="complete">**Test:** `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH `system_split` / `manual` / `pending`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `OrphanResolutionsController` + routes; `session_workflow_log` events (J43).</step>
 
 <step id="8" status="pending">**Test:** `spec/jobs/nesting_split_plan_job_spec.rb` — CLI plan mode; `SplitProposal` draft with preview geometry. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`. **Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner`; Turbo preview frame.</step>
 

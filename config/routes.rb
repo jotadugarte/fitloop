@@ -35,5 +35,6 @@ Rails.application.routes.draw do
         post :cancel
       end
     end
+    resources :orphan_resolutions, only: :update, param: :piece_key
   end
 end

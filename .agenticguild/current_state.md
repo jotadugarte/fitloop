@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Awaiting approval of failing test (step 7: OrphanResolutionsController)</current_step>
+    <current_step>3.1 — Step 7 complete; ready for step 8 (SplitPlanJob)</current_step>
 
   </execution_context>
 
