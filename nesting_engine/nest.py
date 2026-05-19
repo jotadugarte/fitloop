@@ -16,6 +16,10 @@ from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, nest_multi_bin  # noqa: E402
 from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
 from nesting_engine.sheet_stocks_config import parse_sheet_stocks_from_config  # noqa: E402
+from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
+
+_PLAN_SPLITS_MODE = "plan_splits"
+_MAX_PLAN_PIECES = 128
 
 
 def _piece_bounds_dict(polygon: Polygon, *, piece_index: int, extra: dict | None = None) -> dict:
@@ -79,7 +83,10 @@ def _ring_coords(linear_ring) -> list[list[float]]:
     ]
 
 
-def run_from_config(config: dict) -> MultiBinResult:
+def run_from_config(config: dict) -> MultiBinResult | dict:
+    if config.get("mode") == _PLAN_SPLITS_MODE:
+        return run_plan_splits_from_config(config)
+
     output_dir = Path(config["output_dir"])
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -121,6 +128,64 @@ def run_from_config(config: dict) -> MultiBinResult:
     }
     _write_outputs(output_dir, result, report, pieces=pieces)
     return result
+
+
+def run_plan_splits_from_config(config: dict) -> dict:
+    """[REQ-FIT-SPLIT-001] Plan straight-cut splits; writes split_preview.json only."""
+    output_dir = Path(config["output_dir"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    warnings: list[str] = list(config.get("warnings") or [])
+    pieces = load_pieces_from_config(config, warnings=warnings)
+    stocks = parse_sheet_stocks_from_config(config)
+    margin_mm = float(config.get("margin_mm", 0.0))
+
+    proposals: list[dict] = []
+    piece_keys = list(config.get("piece_keys") or [])[:_MAX_PLAN_PIECES]
+    for piece_key in piece_keys:
+        proposals.append(_plan_split_for_key(piece_key, pieces, stocks, margin_mm=margin_mm))
+
+    preview = {"proposals": proposals, "warnings": warnings}
+    (output_dir / "split_preview.json").write_text(json.dumps(preview, indent=2), encoding="utf-8")
+    return preview
+
+
+def _plan_split_for_key(
+    piece_key: str,
+    pieces: list,
+    stocks: list,
+    *,
+    margin_mm: float,
+) -> dict:
+    index = _piece_index_from_key(piece_key)
+    if index is None or index < 0 or index >= len(pieces):
+        return _split_proposal_dict(piece_key, SplitPlanResult(False, "split_not_feasible", [], []))
+
+    result = plan_split(pieces[index], stocks, margin_mm=margin_mm)
+    return _split_proposal_dict(piece_key, result)
+
+
+def _piece_index_from_key(piece_key: str) -> int | None:
+    text = str(piece_key).strip()
+    if not text.isdigit():
+        return None
+    return int(text)
+
+
+def _split_proposal_dict(piece_key: str, result: SplitPlanResult) -> dict:
+    return {
+        "piece_key": piece_key,
+        "feasible": result.feasible,
+        "reason": result.reason,
+        "children": [
+            {"label": child.label, "rings": _polygon_rings(child.polygon)}
+            for child in result.children
+        ],
+        "cut_segments": [
+            [[float(start[0]), float(start[1])], [float(end[0]), float(end[1])]]
+            for start, end in result.cut_segments
+        ],
+    }
 
 
 def _write_outputs(

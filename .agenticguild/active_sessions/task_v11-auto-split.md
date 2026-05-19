@@ -271,7 +271,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="4" status="complete">**Test:** `nesting_engine/tests/test_split_planner.py` — rectangle oversized → 2 parts fit largest stock; hole preserved; recursive re-split; failure → `split_not_feasible`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `nesting_engine/split_planner.py` (Shapely; straight cuts any angle; minimize piece count; hole-aware).</step>
 
-<step id="5" status="pending">**Test:** `nesting_engine/tests/test_cli_plan_splits.py` — `mode: "plan_splits"` + `piece_keys` → `split_preview.json`. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Plan mode in `nest.py` or `split_cli.py`; schema in `nesting_engine/README.md`.</step>
+<step id="5" status="complete">**Test:** `nesting_engine/tests/test_cli_plan_splits.py` — `mode: "plan_splits"` + `piece_keys` → `split_preview.json`. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Plan mode in `nest.py` or `split_cli.py`; schema in `nesting_engine/README.md`.</step>
 
 <step id="6" status="pending">**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — merge report orphans + unresolved `OrphanResolution`; exclude `resolved`; disable system_split without rings. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`. **Implement:** `Nesting::OrphansPresenter` + `resolution_state`, `system_split_enabled?`.</step>
 

@@ -59,6 +59,34 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
 | `time_limit_sec` | integer | yes | Safety time cap for nesting |
 | `output_dir` | string | yes | Directory for engine output files |
 
+## Split plan mode (`mode`: `"plan_splits"`)
+
+v1.1 auto-split preview (see `REQ-FIT-SPLIT-001`). Same `config.json` base fields plus:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `mode` | string | yes | Must be `"plan_splits"` |
+| `piece_keys` | string[] | yes | Piece keys to plan (v1: numeric string indices into extracted pieces, e.g. `"0"`) |
+
+**Output:** `split_preview.json` only (no `nested.dxf`, `placements.json`, or `report.json`).
+
+```json
+{
+  "proposals": [
+    {
+      "piece_key": "0",
+      "feasible": true,
+      "reason": null,
+      "children": [{ "label": "a", "rings": [[[0, 0], [100, 0], [100, 50], [0, 50]]] }],
+      "cut_segments": [[[100.0, 0.0], [100.0, 50.0]]]
+    }
+  ],
+  "warnings": []
+}
+```
+
+When `feasible` is `false`, `reason` is `split_not_feasible` and `children` is empty.
+
 ## Output files (`output_dir`)
 
 | File | Description |
@@ -66,6 +94,7 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
 | `nested.dxf` | Combined nested DXF; sheets offset +X by `sheet_gap_mm` |
 | `placements.json` | Piece placements per sheet (preview) |
 | `report.json` | Status hint, orphans, warnings |
+| `split_preview.json` | Split plan preview (`plan_splits` mode only) |
 
 ### `report.json` (minimum)
 
