@@ -18,7 +18,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 |------|------------|----------------|
 | **Project** | A nesting workspace: title, parameters, PIN, inputs, sheet stocks, selected layers, job state | `Project` model |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
-| **ProjectLayer** | A DXF layer name discovered from uploads; `included` flag for nesting | `ProjectLayer` |
+| **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
+| **CompositePiece** | One nestable unit: primary polygon (+ holes) + attached decoration entities (Python) | `composite_extract` |
+| **DecorationEntity** | Non-nestable DXF entity associated to a primary polygon; keeps `layer_name` for output | `composite_extract` |
 | **NestingRun** | One execution of the nesting pipeline for a project; stores params snapshot and results | `NestingRun` |
 | **Piece** | Runtime polygon (with optional holes) extracted from DXF on selected layers | Python / `PieceId` |
 | **Orphan** | Piece not placed; listed in `report.json` with reason code | Report only |
@@ -48,7 +50,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### ProjectLayer
 
-- `layer_name` (union of all uploaded DXF layer names), `included` (boolean) — **layer filter** for extraction/nesting
+- `layer_name` per `active_storage_attachment_id`, `included` (boolean), optional `layer_role` (`primary` \| `auxiliary` \| nil)
+- **Legacy mode:** no `layer_role: primary` on a file → every `included` layer yields independent nest polygons (current behavior).
+- **Composite mode:** exactly one **primary layer per file**; optional **auxiliary** layers contribute decorations only (see `REQ-FIT-DXF-002`).
 
 ### NestingRun
 
@@ -109,6 +113,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-AUTH-001** | User **6-digit PIN** at create (bcrypt); admin **10-digit** master PIN from credentials; `ProjectAccess` | P1 |
 | **REQ-FIT-UI-001** | Project CRUD; ordered sheet inventory UI (finite + ∞) | P1 |
 | **REQ-FIT-DXF-001** | Multi-DXF upload; union layers; **layer checklist** (i18n) | P2 |
+| **REQ-FIT-DXF-002** | **Primary layer per file** + **auxiliary** layers clipped to primary polygons; composite nest + output | v1.2 |
 | **REQ-FIT-VAL-001** | Pre-flight: reject zero layers / zero pieces | P2 |
 | **REQ-FIT-EXT-002** | Extractor: INSERT on layer, nested blocks depth ≤8, warnings in report | P2 |
 | **REQ-FIT-CLI-001** | CLI contract documented; `NestingJob` + `Nesting::CliRunner` | P3 |
@@ -139,6 +144,51 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 - Multiple DXF per project; layer names unioned across files.
 - Checkbox **layer filter** persists `ProjectLayer.included`.
+
+### REQ-FIT-DXF-002 (detail)
+
+**Scope:** v1.2 — one DXF file may define a **primary layer** (cut outlines) and optional **auxiliary** layers (engraving, marks, text). Auxiliary geometry is **not** nested alone; it is associated to the primary polygon that contains it and moves with that piece after placement.
+
+**Rails (`ProjectLayer`):**
+
+- `layer_role` enum: `primary` \| `auxiliary` \| nil (legacy).
+- **Exclusive primary layer per file:** at most one `layer_role: primary` per `(project_id, active_storage_attachment_id)`; `ProjectLayer::SetPrimary` clears sibling primaries and sets `included: true`.
+- UI: one **primary** radio per attachment; **auxiliary** checkboxes; i18n **Capa principal** / **Primary layer**.
+- Pre-flight (`REQ-FIT-VAL-001`): if any auxiliary layer is `included` on a file, a **primary layer** must be set for that same attachment.
+- `Nesting::ConfigBuilder` emits per-file `primary_layer` + `auxiliary_layers[]` in `input_files[]`; when no primary is set for a file, legacy flat `included_layers` union applies.
+
+**Python value objects:**
+
+- **`CompositePiece`:** primary closed polygon (+ holes) + `decorations[]` (`DecorationEntity` list). Nesting optimizer uses **primary polygon only** (kerf/margin unchanged). `piece_key` identity derives from primary geometry, not decorations.
+- **`DecorationEntity`:** normalized DXF entity with preserved **`layer_name`** for output emission.
+
+**Spatial association (per source file, normative):**
+
+- **Inside** = primary polygon fill **including holes as interior** (geometry inside a hole associates to the same piece).
+- **Lines / arcs / polylines:** `intersection(entity, primary_polygon)` — keep interior segments only (Option B clip); discard exterior. One entity crossing two primary polygons → two decorations, each clipped independently.
+- **TEXT / MTEXT:** include whole entity if **insert point** ∈ primary polygon; no glyph clipping. Outside → silent discard.
+- **INSERT:** include if **insert point** ∈ primary polygon; nested block resolution depth ≤8 (`REQ-FIT-EXT-002`). Outside → silent discard.
+- **Circles / points:** center-in or clipped arc segments per entity type in `composite_extract`.
+- **Outside all primary polygons:** silent discard (no report requirement).
+
+**Extract (`nesting_engine/composite_extract.py`):**
+
+- `load_composite_pieces(path, primary_layer, auxiliary_layers, …)` returns `CompositePiece[]` with spatial index per file.
+- `piece_loader` uses composite path when `primary_layer` is present in config; legacy path unchanged otherwise.
+
+**Nest and output:**
+
+- Placement applies the same translate/rotate to primary and decorations (`decoration_transform`).
+- **`nested.dxf`** writes primary rings on the **source primary layer name** and decoration entities on their **original layer names** (not forced `PIECES` for composite runs).
+
+**Integration with auto-split (`REQ-FIT-SPLIT-001`):**
+
+- Split cuts apply to the **primary polygon** only; auxiliary layers are **not** split independently.
+- `partition_decorations(mother, split_children, cut_segments)` assigns each mother decoration to children via `intersection(decoration, child_primary_polygon)`; decorations crossing a cut split between children (same clip rules as extract).
+- Mother `piece_key` remains in `excluded_piece_keys`; children are supplied via `derived_pieces[]` with `rings` and `decorations` / `decorations_json`.
+- Split preview and accept materialize per-child decoration payloads; nest of derived composite children preserves **original layer names** after placement.
+
+**Out of v1.2:** different cut angles per auxiliary layer; re-associating decorations across children after nest (only at extract + split).
 
 ### REQ-FIT-NEST-002 (detail)
 

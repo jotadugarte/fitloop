@@ -160,7 +160,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Migration `layer_role` enum (`primary`, `auxiliary`, null) on `project_layers`; model validations + `ProjectLayer::SetPrimary` service; DB partial unique index one primary per `(project_id, active_storage_attachment_id)`.
 </step>
 
-<step id="2" status="pending">
+<step id="2" status="complete">
 **Test:** Expand `docs/core/SPEC.md` — **REQ-FIT-DXF-002** (primary per file, auxiliary clip B, insert-point TEXT/INSERT, output preserves layer names, composite invariants, **auto-split partitions aux with same cuts as primary**). Cross-ref `REQ-FIT-SPLIT-001`. Tag `[REQ-FIT-DXF-002]`. **Implement:** SPEC detail + `DATA_FLOW_MAP.md` § extract → composite → split partition → nest → emit.
 </step>
 

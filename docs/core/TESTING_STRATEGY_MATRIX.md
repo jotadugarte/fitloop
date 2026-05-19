@@ -59,6 +59,7 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | REQ-FIT-UI-004 | `spec/requests/ui_design_spec.rb` |
 | REQ-FIT-UI-005 | `spec/requests/locale_spec.rb` |
 | REQ-FIT-DXF-001 | `spec/requests/project_layers_spec.rb` |
+| REQ-FIT-DXF-002 | `spec/models/project_layer_spec.rb`, `test/spec/composite_dxf_spec_doc_test.rb`, `nesting_engine/tests/test_composite_extract.py` (planned), `nesting_engine/tests/test_nest_pipeline_composite.py` (planned) |
 | REQ-FIT-VAL-001 | `spec/services/project_readiness_validator_spec.rb`, `spec/requests/project_readiness_spec.rb` |
 | REQ-FIT-EXT-001 | `nesting_engine/tests/test_extract_contours.py` |
 | REQ-FIT-EXT-002 | `nesting_engine/tests/test_extract_insert_blocks.py` |

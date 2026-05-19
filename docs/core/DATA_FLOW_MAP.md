@@ -173,6 +173,49 @@ project#show (orphan cards, post-job)
 
 ---
 
+## 9. Composite DXF layers (W7)
+
+When the user sets a **primary layer per file** and optional **auxiliary** layers, extraction and nesting follow the composite pipeline (`REQ-FIT-DXF-002`). Rails owns UI + `ProjectLayer.layer_role`; Python owns geometry.
+
+```
+project#layers (grouped by attachment)
+  → PATCH primary radio + auxiliary checkboxes
+  → ProjectLayer.layer_role (primary | auxiliary) + included
+  → ProjectReadinessValidator (auxiliary requires primary on same file)
+  → NestingRunsController#create
+  → Nesting::ConfigBuilder
+       → input_files[]: { primary_layer, auxiliary_layers[] } per attachment
+       → (legacy) included_layers union when no primary_layer on that file
+  → Nesting::JobRunner → CLI
+       → piece_loader → composite_extract.load_composite_pieces
+            → CompositePiece (primary rings + decorations[])
+       → nest_multi_bin (primary polygon only for placement)
+       → decoration_transform (same placement transform as primary)
+       → dxf_output.write_nested_dxf (original layer names on nested.dxf)
+```
+
+| Stage | Component | Notes |
+|-------|-----------|--------|
+| Extract | `composite_extract` | `intersection` clip for lines/arcs/polylines; insert point for TEXT/MTEXT/INSERT |
+| Preview | `dxf_preview` + Rails presenter | Clipped auxiliary geometry with primary outlines |
+| Split + composite | `partition_decorations` | Same cut segments as primary; mother excluded via `excluded_piece_keys` |
+| Accept split | `DerivedPiece` + `decorations_json` | `derived_pieces[]` in config; `piece_loader` attaches decorations |
+| Nest children | `nest_multi_bin` | Derived `CompositePiece` children nest like any piece |
+
+**Auto-split branch (see also §8, `REQ-FIT-SPLIT-001`):**
+
+```
+orphan CompositePiece (mother has decorations)
+  → CLI plan_splits → split_preview.json (child outlines + decorations[] per child)
+  → SplitProposals#accept → DerivedPiece rows (geometry_json + decorations_json)
+  → excluded_piece_keys + derived_pieces in config.json
+  → nest → nested.dxf with per-child aux on original layers
+```
+
+**Forbidden:** nest auxiliary layers as standalone pieces when `layer_role: primary` is configured; composite association math in Ruby; drop original layer names in composite `nested.dxf` output.
+
+---
+
 ## 7. Forbidden Shortcuts
 
 - Do not write to `nested.dxf` from Rails — CLI only.
