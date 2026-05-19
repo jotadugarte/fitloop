@@ -179,7 +179,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `Nesting::ConfigBuilder#input_files_payload` + union fallback.
 </step>
 
-<step id="6">
+<step id="6" status="pending">
 **Test:** `nesting_engine/tests/test_composite_extract.py` — fixture DXF: primary `CORTE` + `GRABADO` line crossing border → two segments on two pieces; line fully outside discarded; TEXT insert inside kept whole. Tag `[REQ-FIT-DXF-002]`.
 **Implement:** `nesting_engine/composite_extract.py` — `load_composite_pieces(path, primary_layer, auxiliary_layers, ...)` returning `CompositePiece` list with `DecorationEntity` payloads; clip via Shapely intersection; spatial index per file.
 </step>
