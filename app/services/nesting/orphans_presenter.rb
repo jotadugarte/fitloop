@@ -15,6 +15,7 @@ module Nesting
       :offset_x_mm,
       :offset_y_mm,
       :resolution_state,
+      :split_proposal,
       keyword_init: true
     ) do
       def display_number
@@ -32,6 +33,14 @@ module Nesting
       # [REQ-FIT-SPLIT-001] System split requires closed-ring geometry for preview/plan CLI.
       def system_split_enabled?
         exportable?
+      end
+
+      def split_preview_available?
+        split_proposal&.draft? && split_proposal.child_piece_geometries.present?
+      end
+
+      def split_accepted?
+        split_proposal&.accepted?
       end
 
       def view_width
@@ -108,7 +117,8 @@ module Nesting
         height_mm: row.fetch("height_mm", 0).to_f,
         offset_x_mm: row.fetch("offset_x_mm", 0).to_f,
         offset_y_mm: row.fetch("offset_y_mm", 0).to_f,
-        resolution_state: resolution&.resolution_state || "pending"
+        resolution_state: resolution&.resolution_state || "pending",
+        split_proposal: resolution&.split_proposals&.order(version: :desc)&.first
       )
     end
 

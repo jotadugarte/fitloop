@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Awaiting approval of failing test (step 9: orphan UI)</current_step>
+    <current_step>3.1 — Step 9 complete; ready for step 10 (accept split materialize)</current_step>
 
   </execution_context>
 

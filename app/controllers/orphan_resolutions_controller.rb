@@ -15,6 +15,7 @@ class OrphanResolutionsController < ApplicationController
     resolution.save!
 
     append_session_workflow_log!(resolution)
+    enqueue_split_plan_job!(resolution) if resolution.system_split?
     redirect_to @project
   end
 
@@ -28,6 +29,10 @@ class OrphanResolutionsController < ApplicationController
 
   def orphan_resolution_params
     params.require(:orphan_resolution).permit(:resolution_state, :reason)
+  end
+
+  def enqueue_split_plan_job!(resolution)
+    Nesting::SplitPlanJob.perform_later(resolution.id)
   end
 
   def append_session_workflow_log!(resolution)

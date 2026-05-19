@@ -267,6 +267,19 @@ es:
       oversized_for_sheet: "Prueba una lámina más grande o divide la pieza en el DXF."
       no_sheet_capacity: "Añade más láminas al inventario o vuelve a anidar."
       unknown: "Revisa el DXF y el inventario de láminas, luego vuelve a anidar."
+    split:
+      choose_pending: "Dejar pendiente"
+      choose_system: "Dividir con Fitloop"
+      choose_manual: "Resolver manualmente"
+      accept: "Aceptar"
+      reject: "Rechazar"
+      regenerate: "Regenerar"
+      accepted: "División aceptada — listo para re-anidar con piezas actualizadas."
+      badge:
+        pending: "Pendiente"
+        system_split: "Sistema"
+        manual: "Manual"
+        resolved: "Resuelto"
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"

@@ -279,7 +279,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="8" status="complete">**Test:** `spec/jobs/nesting_split_plan_job_spec.rb` — CLI plan mode; `SplitProposal` draft with preview geometry. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`. **Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner`; Turbo preview frame.</step>
 
-<step id="9" status="pending">**Test:** `spec/system/orphan_auto_split_spec.rb` — partial nest → card → “Dividir con Fitloop” → preview → Aceptar. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`. **Implement:** `_nesting_orphans.html.erb` — badges, toggles, inline SVG, Aceptar/Rechazar/Regenerar.</step>
+<step id="9" status="complete">**Test:** `spec/system/orphan_auto_split_spec.rb` — partial nest → card → “Dividir con Fitloop” → preview → Aceptar. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`. **Implement:** `_nesting_orphans.html.erb` — badges, toggles, inline SVG, Aceptar/Rechazar/Regenerar.</step>
 
 <step id="10" status="pending">**Test:** Request spec — accept creates `DerivedPiece`, excludes mother `piece_key`, logs session event. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; invalidate drafts on sheet stock change (G32).</step>
 

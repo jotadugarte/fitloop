@@ -252,6 +252,19 @@ en:
       oversized_for_sheet: "Try a larger sheet or split the piece in the DXF."
       no_sheet_capacity: "Add more sheets to inventory or re-nest."
       unknown: "Review the DXF and sheet inventory, then re-nest."
+    split:
+      choose_pending: "Leave pending"
+      choose_system: "Split with Fitloop"
+      choose_manual: "Resolve manually"
+      accept: "Accept"
+      reject: "Reject"
+      regenerate: "Regenerate"
+      accepted: "Split accepted — ready to re-nest with updated pieces."
+      badge:
+        pending: "Pending"
+        system_split: "System split"
+        manual: "Manual"
+        resolved: "Resolved"
 
   project_readiness:
     heading: "Cannot start nesting yet"

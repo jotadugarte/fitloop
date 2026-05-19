@@ -9,6 +9,9 @@
             <h4 class="orphan-card__title">
               <%= t("nesting.orphan_preview.piece_title", piece_number: orphan.display_number) %>
             </h4>
+            <span class="orphan-card__badge" data-testid="orphan-resolution-badge">
+              <%= t("nesting.split.badge.#{orphan.resolution_state}") %>
+            </span>
             <p class="orphan-card__reason">
               <%= t(
                     "nesting.orphan_reason.#{orphan.reason}",
@@ -17,6 +20,43 @@
                   ) %>
             </p>
           </header>
+
+          <div class="orphan-card__resolution-actions">
+            <%= button_to t("nesting.split.choose_pending"),
+                          project_orphan_resolution_path(project, orphan.piece_key),
+                          method: :patch,
+                          params: {
+                            orphan_resolution: {
+                              resolution_state: "pending",
+                              reason: orphan.reason
+                            }
+                          },
+                          class: "btn btn-secondary btn--small",
+                          form: { data: { turbo: true } } %>
+            <%= button_to t("nesting.split.choose_system"),
+                          project_orphan_resolution_path(project, orphan.piece_key),
+                          method: :patch,
+                          params: {
+                            orphan_resolution: {
+                              resolution_state: "system_split",
+                              reason: orphan.reason
+                            }
+                          },
+                          class: "btn btn-secondary btn--small",
+                          disabled: !orphan.system_split_enabled?,
+                          form: { data: { turbo: true } } %>
+            <%= button_to t("nesting.split.choose_manual"),
+                          project_orphan_resolution_path(project, orphan.piece_key),
+                          method: :patch,
+                          params: {
+                            orphan_resolution: {
+                              resolution_state: "manual",
+                              reason: orphan.reason
+                            }
+                          },
+                          class: "btn btn-secondary btn--small",
+                          form: { data: { turbo: true } } %>
+          </div>
 
           <% if orphan.preview_available? %>
             <div class="orphan-preview orphan-preview--cad" data-testid="orphan-preview">
@@ -30,6 +70,35 @@
                           orphan_dxf_project_path(project, piece_index: orphan.piece_index),
                           class: "btn btn-secondary btn--small",
                           data: { turbo: false, turbo_frame: "_top", testid: "download-orphan-dxf" } %>
+            </p>
+          <% end %>
+
+          <% if orphan.split_preview_available? %>
+            <div class="split-plan-preview" data-testid="split-plan-preview">
+              <%= split_plan_preview_svg(orphan, css_class: "split-plan-preview__svg") %>
+            </div>
+            <div class="orphan-card__actions">
+              <%= button_to t("nesting.split.accept"),
+                            project_accept_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            method: :post,
+                            class: "btn btn-primary btn--small",
+                            form: { data: { turbo: true } } %>
+              <%= button_to t("nesting.split.reject"),
+                            project_reject_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            method: :post,
+                            class: "btn btn-secondary btn--small",
+                            form: { data: { turbo: true } } %>
+              <%= button_to t("nesting.split.regenerate"),
+                            project_regenerate_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            method: :post,
+                            class: "btn btn-secondary btn--small",
+                            form: { data: { turbo: true } } %>
+            </div>
+          <% end %>
+
+          <% if orphan.split_accepted? %>
+            <p class="orphan-card__split-status" data-testid="split-proposal-accepted">
+              <%= t("nesting.split.accepted") %>
             </p>
           <% end %>
 
