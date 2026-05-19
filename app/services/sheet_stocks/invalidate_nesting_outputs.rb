@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SheetStocks
-  # Clear stale nesting artifacts after sheet inventory changes.
+  # [REQ-FIT-NEST-004] Clear stale nesting artifacts after sheet inventory changes.
   class InvalidateNestingOutputs
     def self.call(project)
       new(project).call

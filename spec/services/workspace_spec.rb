@@ -5,8 +5,8 @@ require "rails_helper"
 RSpec.describe Workspace do
   before { Project.destroy_all }
 
-  describe ".purge_all_ephemeral!" do
-    it "removes all ephemeral projects and sheet stocks" do
+  describe ".purge_all_ephemeral! [REQ-FIT-DOM-001]" do
+    it "[REQ-FIT-DOM-001] removes all ephemeral projects and sheet stocks" do
       ephemeral = Project.create!(ephemeral: true, title: "Ephemeral", status: :draft)
       ephemeral.sheet_stocks.create!(width_mm: 1000, height_mm: 1000, quantity: 1, sort_order: 0)
       Project.create!(
@@ -24,8 +24,8 @@ RSpec.describe Workspace do
     end
   end
 
-  describe ".purge_all!" do
-    it "removes every project and sheet stock" do
+  describe ".purge_all! [REQ-FIT-DOM-001]" do
+    it "[REQ-FIT-DOM-001] removes every project and sheet stock" do
       Project.create!(ephemeral: true, title: "A", status: :draft)
       Project.create!(
         ephemeral: false,
@@ -42,8 +42,8 @@ RSpec.describe Workspace do
     end
   end
 
-  describe ".resolve!" do
-    it "rejects ephemeral project ids not bound to the session" do
+  describe ".resolve! [REQ-FIT-DOM-001]" do
+    it "[REQ-FIT-DOM-001] rejects ephemeral project ids not bound to the session" do
       project = Project.create!(ephemeral: true, title: "Other", status: :draft)
 
       expect do
@@ -51,7 +51,7 @@ RSpec.describe Workspace do
       end.to raise_error(ActiveRecord::RecordNotFound, /not bound/)
     end
 
-    it "allows non-ephemeral projects for legacy PIN flows" do
+    it "[REQ-FIT-DOM-001] allows non-ephemeral projects for legacy PIN flows" do
       saved = Project.create!(
         ephemeral: false,
         title: "Saved",

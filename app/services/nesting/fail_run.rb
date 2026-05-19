@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Nesting
-  # Marks a processing nesting run and project as failed (idempotent).
+  # [REQ-FIT-JOB-001] Marks a processing nesting run and project as failed (idempotent).
   class FailRun
     def self.call(nesting_run:, error: nil, message: nil)
       new(nesting_run: nesting_run, error: error, message: message).call

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module SheetStocks
-  # Drop sheet stocks omitted from a nested-attributes POST (form is source of truth).
+  # [REQ-FIT-UI-001] Drop sheet stocks omitted from a nested-attributes POST (form is source of truth).
   class SyncInventory
     def self.call(project:, sheet_stocks_attributes:)
       new(project: project, sheet_stocks_attributes: sheet_stocks_attributes).call

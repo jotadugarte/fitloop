@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Nesting
-  # Marks a processing nesting run and project as cancelled (idempotent).
+  # [REQ-FIT-JOB-001] Marks a processing nesting run and project as cancelled (idempotent).
   class ApplyCancel
     def self.call(nesting_run:)
       new(nesting_run: nesting_run).call

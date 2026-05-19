@@ -15,6 +15,7 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
       )
 
       described_class.call(project)
+      described_class.persist!(project)
       project.reload
 
       ordered = project.sheet_stocks.order(:sort_order)
@@ -34,6 +35,7 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
       )
 
       described_class.call(project)
+      described_class.persist!(project)
       project.reload
 
       finites = project.sheet_stocks.order(:sort_order).reject { |s| s.quantity.nil? }

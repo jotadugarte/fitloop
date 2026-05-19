@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Nesting
-  # Reconcile project.status with the latest nesting run when Turbo missed broadcasts.
+  # [REQ-FIT-JOB-001] Reconcile project.status with the latest nesting run when Turbo missed broadcasts.
   class ProjectStatusSync
     TERMINAL_STATUSES = StatusMapper::TERMINAL_STATUSES
 

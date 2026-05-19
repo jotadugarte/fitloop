@@ -18,7 +18,7 @@ RSpec.describe "Project sheet inventory consumption order", type: :request do
   end
 
   describe "PATCH /projects/:id/workspace (sheets) [REQ-FIT-UI-001]" do
-    it "normalizes consumption order when saving sheet inventory from the workspace" do
+    it "[REQ-FIT-UI-001] normalizes consumption order when saving sheet inventory from the workspace" do
       project = ephemeral_workspace_project!(
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: nil, sort_order: 0 },
@@ -57,7 +57,7 @@ RSpec.describe "Project sheet inventory consumption order", type: :request do
       expect(quantities_by_consumption_rank(project)).to eq([3, nil])
     end
 
-    it "drops sheet stocks omitted from the form submission" do
+    it "[REQ-FIT-UI-001] drops sheet stocks omitted from the form submission" do
       project = ephemeral_workspace_project!(
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 },
@@ -88,7 +88,7 @@ RSpec.describe "Project sheet inventory consumption order", type: :request do
       expect(project.reload.sheet_stocks).to contain_exactly(keep)
     end
 
-    it "deletes a sheet stock when _destroy is set" do
+    it "[REQ-FIT-UI-001] deletes a sheet stock when _destroy is set" do
       project = ephemeral_workspace_project!(
         sheet_stocks_attributes: {
           "0" => { width_mm: 600, height_mm: 600, quantity: 2, sort_order: 0 },

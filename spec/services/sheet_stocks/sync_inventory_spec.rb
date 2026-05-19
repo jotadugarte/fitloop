@@ -38,7 +38,7 @@ RSpec.describe SheetStocks::SyncInventory do
     expect(project.sheet_stocks).to contain_exactly(keep)
   end
 
-  it "clears nesting outputs when orphan stocks are removed" do
+  it "[REQ-FIT-NEST-004] clears nesting outputs when orphan stocks are removed" do
     keep = project.sheet_stocks.find_by!(height_mm: 1000, quantity: 10)
     project.placements_json.attach(
       io: StringIO.new('{"sheets":[]}'),

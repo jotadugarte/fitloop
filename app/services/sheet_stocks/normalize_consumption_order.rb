@@ -41,8 +41,12 @@ module SheetStocks
     def assign_dense_ranks(ordered_stocks)
       ordered_stocks.each_with_index do |stock, rank|
         stock.sort_order = rank
-        stock.save! if stock.persisted?
       end
+    end
+
+    # Persist in-memory rank changes (e.g. before nesting when project.save is not called).
+    def self.persist!(project)
+      project.sheet_stocks.select(&:changed?).each(&:save!)
     end
   end
 end

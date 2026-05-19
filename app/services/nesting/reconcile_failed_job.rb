@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Nesting
-  # Aligns a processing nesting run when its Solid Queue job already failed.
+  # [REQ-FIT-JOB-001] Aligns a processing nesting run when its Solid Queue job already failed.
   class ReconcileFailedJob
     ABANDON_AFTER = 90.seconds
 
@@ -34,8 +34,15 @@ module Nesting
       SolidQueue::FailedExecution
         .joins(:job)
         .where(solid_queue_jobs: { class_name: "NestingJob" })
-        .where("solid_queue_jobs.arguments LIKE ?", "%\"arguments\": [#{@nesting_run.id}]%")
-        .exists?
+        .any? { |failed| nesting_run_id_from_job(failed.job) == @nesting_run.id }
+    end
+
+    def nesting_run_id_from_job(job)
+      payload = job.arguments
+      payload = JSON.parse(payload) if payload.is_a?(String)
+      Array(payload["arguments"] || payload[:arguments]).first
+    rescue JSON::ParserError, TypeError
+      nil
     end
 
     def solid_queue_tables?

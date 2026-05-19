@@ -1,5 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 import Sortable from "sortablejs"
+import {
+  blockDecimalKey,
+  blockIntegerKey,
+  validateComposer
+} from "sheet_inventory_composer"
 
 // [REQ-FIT-UI-001] Sheet inventory composer + sortable table (finite stocks before unlimited).
 export default class extends Controller {
@@ -122,24 +127,17 @@ export default class extends Controller {
   }
 
   validateComposer(data) {
-    const width = parseFloat(data.width)
-    const height = parseFloat(data.height)
-    if (!data.width || !data.height || Number.isNaN(width) || Number.isNaN(height) || width <= 0 || height <= 0) {
-      window.alert(this.alertDimensionsValue)
-      return false
+    return validateComposer(data, this.composerContext())
+  }
+
+  composerContext() {
+    return {
+      alertDimensions: this.alertDimensionsValue,
+      alertQuantity: this.alertQuantityValue,
+      alertSingleUnlimited: this.alertSingleUnlimitedValue,
+      hasUnlimitedStock: () => this.hasUnlimitedStock(),
+      editingUnlimitedRow: () => this.editingUnlimitedRow()
     }
-    if (data.quantity !== "") {
-      const qty = parseInt(data.quantity, 10)
-      if (Number.isNaN(qty) || qty < 1) {
-        window.alert(this.alertQuantityValue)
-        return false
-      }
-    }
-    if (data.quantity === "" && this.hasUnlimitedStock() && !this.editingUnlimitedRow()) {
-      window.alert(this.alertSingleUnlimitedValue)
-      return false
-    }
-    return true
   }
 
   nextIndex() {
@@ -267,33 +265,11 @@ export default class extends Controller {
   }
 
   blockDecimalKey(event) {
-    if (this.isNavigationOrEditKey(event)) return
-    if (event.key === "." && !event.target.value.includes(".")) return
-    if (/^\d$/.test(event.key)) return
-    event.preventDefault()
+    blockDecimalKey(event)
   }
 
   blockIntegerKey(event) {
-    if (this.isNavigationOrEditKey(event)) return
-    if (/^\d$/.test(event.key)) return
-    event.preventDefault()
-  }
-
-  isNavigationOrEditKey(event) {
-    if (event.ctrlKey || event.metaKey) return true
-    return [
-      "Backspace",
-      "Delete",
-      "Tab",
-      "Escape",
-      "Enter",
-      "ArrowLeft",
-      "ArrowRight",
-      "ArrowUp",
-      "ArrowDown",
-      "Home",
-      "End"
-    ].includes(event.key)
+    blockIntegerKey(event)
   }
 
   hasUnlimitedStock() {

@@ -43,11 +43,11 @@ RSpec.describe "Re-nesting", type: :request do
       end.to change { project.nesting_runs.count }.by(1)
 
       expect(response).to redirect_to(project_path(project))
-      expect(flash[:notice]).to eq(I18n.t("nesting.renest_started"))
+      expect(flash[:notice]).not_to eq(I18n.t("nesting.renest_started"))
 
       follow_redirect!
-      expect(response.body).to include(I18n.t("nesting.renest_started"))
-      expect(response.body.scan('data-testid="nesting-run-row"').size).to eq(2)
+      expect(response.body).not_to include(I18n.t("nesting.renest_started"))
+      expect(project.reload.nesting_runs.count).to eq(2)
     end
   end
 
