@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing test for plan step 4 (layer UI)</current_step>
+    <current_step>3.1 — Plan step 5 next (Nesting::ConfigBuilder)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 4 request specs written (red). Awaiting approval before UI + ProjectLayerSelection.</note>
+  <note>Plan step 4 complete (layer UI primary/auxiliary). Next: step 5 config_builder input_files.</note>
 
 </agent_state>

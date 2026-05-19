@@ -1,47 +1,112 @@
 <main class="page page--wide project-layers" data-testid="project-layers">
+
   <header class="page-header page-header--compact">
+
     <h1><%= t("project_layers.index.title", title: @project.title) %></h1>
+
     <p><%= link_to t("project_layers.index.back"), @project, class: "text-link" %></p>
+
   </header>
 
+
+
   <% unless @readiness.ok? %>
+
     <div class="readiness-errors panel panel--alert" data-testid="readiness-errors" role="alert">
+
       <h2><%= t("project_readiness.heading") %></h2>
+
       <ul>
+
         <% @readiness.errors.each do |error| %>
+
           <li><%= error %></li>
+
         <% end %>
+
       </ul>
+
     </div>
+
   <% end %>
+
+
 
   <% if @project.input_dxf_attachments.any? %>
+
     <p class="files-attached"><%= t("project_layers.index.files_attached", count: @project.input_dxf.count) %></p>
+
   <% end %>
 
+
+
   <section class="fit-section panel panel--chrome">
+
     <h2 class="fit-section__legend"><%= t("project_layers.index.legend") %></h2>
+
     <div class="fit-section__content">
-      <%= form_with url: project_layers_path(@project), method: :patch, class: "layer-checklist-form panel panel--inset" do %>
+
+      <%= form_with url: project_layers_path(@project), method: :patch, class: "layer-checklist-form" do %>
+
         <div data-testid="layer-checklist">
-          <% if @project_layers.any? %>
-            <ul class="layer-list layer-list--visual">
-              <% @project_layers.each do |layer| %>
-                <li class="layer-list__item">
-                  <label class="layer-list__label">
-                    <%= check_box_tag "project_layers[#{layer.id}][included]", "1", layer.included %>
-                    <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer) %>"></span>
-                    <span class="layer-list__name"><%= layer.layer_name %></span>
-                  </label>
-                </li>
+
+          <% if @per_file_layers && @input_dxf_attachments.any? %>
+
+            <div class="dxf-files-layers">
+
+              <% @input_dxf_attachments.each do |attachment| %>
+
+                <%= render "project_layers/file_layers", project: @project, attachment: attachment %>
+
               <% end %>
+
+            </div>
+
+          <% elsif @project_layers.any? %>
+
+            <ul class="layer-list layer-list--visual">
+
+              <% @project_layers.each do |layer| %>
+
+                <li class="layer-list__item">
+
+                  <label class="layer-list__label">
+
+                    <%= check_box_tag "project_layers[#{layer.id}][included]", "1", layer.included %>
+
+                    <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer) %>"></span>
+
+                    <span class="layer-list__name"><%= layer.layer_name %></span>
+
+                  </label>
+
+                </li>
+
+              <% end %>
+
             </ul>
-            <p class="form-actions"><%= submit_tag t("project_layers.index.save"), class: "btn btn-primary" %></p>
+
           <% else %>
+
             <p><%= t("project_layers.index.empty") %></p>
+
           <% end %>
+
+
+
+          <% if @project_layers.any? %>
+
+            <p class="form-actions"><%= submit_tag t("project_layers.index.save"), class: "btn btn-primary" %></p>
+
+          <% end %>
+
         </div>
+
       <% end %>
+
     </div>
+
   </section>
+
 </main>
+

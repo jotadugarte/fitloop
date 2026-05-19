@@ -292,6 +292,12 @@ en:
     primary_layer_required: "Choose a primary layer for each DXF file that includes associated layers."
 
   project_layers:
+    primary_layer:
+      label: "Primary layer"
+      tooltip: "Outlines to nest; other geometry stays inside each piece."
+    auxiliary_layers:
+      label: "Associated layers"
+      helper: "Engraving, marks, text… move with the piece that contains them."
     updated: "Layer selection saved."
     upload:
       created: "DXF files uploaded."

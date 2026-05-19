@@ -33,17 +33,7 @@
 
   <div class="collapsible-panel__body dxf-file-entry__body">
     <% if layers.any? %>
-      <ul class="layer-list layer-list--visual">
-        <% layers.each do |layer| %>
-          <li class="layer-list__item">
-            <label class="layer-list__label">
-              <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][included]", "1", layer.included %>
-              <span class="layer-chip" style="--layer-chip-color: <%= layer_chip_color(layer) %>"></span>
-              <span class="layer-list__name"><%= layer.layer_name %></span>
-            </label>
-          </li>
-        <% end %>
-      </ul>
+      <%= render "project_layers/file_layers", project: project, attachment: attachment %>
     <% else %>
       <p class="dxf-file-card__empty"><%= t("projects.form.dxf_layers_empty") %></p>
     <% end %>

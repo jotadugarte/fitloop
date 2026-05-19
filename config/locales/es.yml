@@ -307,6 +307,12 @@ es:
     primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
 
   project_layers:
+    primary_layer:
+      label: "Capa principal"
+      tooltip: "Contornos a anidar; el resto queda dentro de cada pieza."
+    auxiliary_layers:
+      label: "Capas asociadas"
+      helper: "Grabado, marcas, texto… se mueven con la pieza que los contiene."
     updated: "Selección de capas guardada."
     upload:
       created: "Archivos DXF subidos."
