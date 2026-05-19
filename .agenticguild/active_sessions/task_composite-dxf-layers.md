@@ -169,7 +169,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `ProjectReadinessValidator` + i18n `project_readiness.primary_layer_required` (en/es).
 </step>
 
-<step id="4">
+<step id="4" status="pending">
 **Test:** `spec/requests/project_layers_spec.rb` — PATCH sets exclusive primary radio per attachment + auxiliary checkboxes; cannot mark two primaries. Tag `[REQ-FIT-DXF-002]`.
 **Implement:** Group layers by attachment in `project_layers/index` (and setup form if shared); radio `primary_layer_id` + auxiliary checkboxes; `ProjectLayerSelection` / controller permit `layer_role`; tooltip ES/EN locked copy.
 </step>

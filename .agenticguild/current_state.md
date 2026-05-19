@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 4 next (layer UI primary/auxiliary)</current_step>
+    <current_step>3.1 — Failing test for plan step 4 (layer UI)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 3 complete (readiness primary_layer_required). Next: step 4 UI.</note>
+  <note>Plan step 4 request specs written (red). Awaiting approval before UI + ProjectLayerSelection.</note>
 
 </agent_state>
