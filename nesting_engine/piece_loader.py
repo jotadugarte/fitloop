@@ -6,6 +6,7 @@ from pathlib import Path
 
 from shapely.geometry import Polygon
 
+from nesting_engine.composite_extract import CompositePiece, load_composite_pieces
 from nesting_engine.extract import extract_closed_contours
 
 
@@ -38,17 +39,11 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
     curve_tolerance_mm = float(config.get("curve_tolerance_mm", 0.1))
     input_files = config.get("input_files")
     if input_files:
-        pieces: list = []
-        for entry in input_files:
-            path = Path(entry["path"])
-            for layer_name in entry.get("included_layers", []):
-                contours = extract_closed_contours(
-                    path,
-                    layer_name,
-                    curve_tolerance_mm=curve_tolerance_mm,
-                    warnings=warnings,
-                )
-                pieces.extend(contours)
+        pieces = _pieces_from_input_files(
+            input_files,
+            curve_tolerance_mm=curve_tolerance_mm,
+            warnings=warnings,
+        )
     else:
         pieces = load_pieces(
             config.get("input_dxf_paths", []),
@@ -59,6 +54,46 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
 
     pieces = _without_excluded_pieces(pieces, config)
     pieces.extend(_derived_pieces_from_config(config))
+    return pieces
+
+
+def piece_polygon(piece: Polygon | CompositePiece) -> Polygon:
+    if isinstance(piece, CompositePiece):
+        return piece.polygon
+    return piece
+
+
+def _pieces_from_input_files(
+    input_files: list[dict],
+    *,
+    curve_tolerance_mm: float,
+    warnings: list[str],
+) -> list:
+    pieces: list = []
+    for entry in input_files:
+        path = Path(entry["path"])
+        primary_layer = entry.get("primary_layer")
+        if primary_layer:
+            auxiliary_layers = list(entry.get("auxiliary_layers") or [])
+            composite_pieces = load_composite_pieces(
+                path,
+                primary_layer=str(primary_layer),
+                auxiliary_layers=auxiliary_layers,
+                curve_tolerance_mm=curve_tolerance_mm,
+                warnings=warnings,
+            )
+            pieces.extend(composite_pieces)
+            continue
+
+        for layer_name in entry.get("included_layers", []):
+            contours = extract_closed_contours(
+                path,
+                layer_name,
+                curve_tolerance_mm=curve_tolerance_mm,
+                warnings=warnings,
+            )
+            pieces.extend(contours)
+
     return pieces
 
 

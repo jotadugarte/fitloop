@@ -189,7 +189,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Entity handlers in `composite_extract.py` (LINE, ARC, LWPOLYLINE, CIRCLE, TEXT, MTEXT, INSERT depth ≤8); assertions on bounded entity loops.
 </step>
 
-<step id="8" status="pending">
+<step id="8" status="complete">
 **Test:** `nesting_engine/tests/test_piece_loader_composite.py` — `load_pieces_from_config` uses composite path when `primary_layer` present; legacy path unchanged. Tags `[REQ-FIT-DXF-002]`, `[REQ-FIT-CLI-001]`.
 **Implement:** Wire `piece_loader.py` → `composite_extract`; attach decorations list on piece objects passed to nest pipeline.
 </step>
