@@ -304,6 +304,7 @@ es:
     heading: "Aún no se puede iniciar el anidado"
     no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."
     no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
+    primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
 
   project_layers:
     updated: "Selección de capas guardada."

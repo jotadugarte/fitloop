@@ -15,6 +15,7 @@ class ProjectReadinessValidator
   def validate
     errors = []
     errors << I18n.t("project_readiness.no_layers_selected") unless selected_layers?
+    errors.concat(missing_primary_layer_errors)
     errors << I18n.t("project_readiness.no_extractable_pieces") if selected_layers? && extractable_piece_count.zero?
 
     Result.new(ok?: errors.empty?, errors: errors)
@@ -24,6 +25,27 @@ class ProjectReadinessValidator
 
   def selected_layers?
     @project.project_layers.where(included: true).exists?
+  end
+
+  # [REQ-FIT-DXF-002] Included auxiliary layers require a primary on the same DXF file.
+  def missing_primary_layer_errors
+    attachment_ids = @project.project_layers
+      .where(included: true, layer_role: :auxiliary)
+      .where.not(active_storage_attachment_id: nil)
+      .distinct
+      .pluck(:active_storage_attachment_id)
+
+    return [] if attachment_ids.empty?
+
+    message = I18n.t("project_readiness.primary_layer_required")
+    attachment_ids.filter_map do |attachment_id|
+      primary_set = @project.project_layers.exists?(
+        active_storage_attachment_id: attachment_id,
+        included: true,
+        layer_role: :primary
+      )
+      message unless primary_set
+    end
   end
 
   def extractable_piece_count

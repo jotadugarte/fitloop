@@ -164,7 +164,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Test:** Expand `docs/core/SPEC.md` — **REQ-FIT-DXF-002** (primary per file, auxiliary clip B, insert-point TEXT/INSERT, output preserves layer names, composite invariants, **auto-split partitions aux with same cuts as primary**). Cross-ref `REQ-FIT-SPLIT-001`. Tag `[REQ-FIT-DXF-002]`. **Implement:** SPEC detail + `DATA_FLOW_MAP.md` § extract → composite → split partition → nest → emit.
 </step>
 
-<step id="3" status="pending">
+<step id="3" status="complete">
 **Test:** `spec/services/project_readiness_validator_spec.rb` — error when auxiliary included without primary on same file; ok when only primary; legacy union mode unchanged. Tags `[REQ-FIT-DXF-002]`, `[REQ-FIT-VAL-001]`.
 **Implement:** `ProjectReadinessValidator` + i18n `project_readiness.primary_layer_required` (en/es).
 </step>
