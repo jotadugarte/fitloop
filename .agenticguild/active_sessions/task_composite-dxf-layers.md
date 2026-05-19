@@ -214,7 +214,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `Dxf::PieceCounter` / readiness path uses primary layer only (not auxiliary).
 </step>
 
-<step id="13">
+<step id="13" status="complete">
 **Test:** `nesting_engine/tests/test_dxf_preview_composite.py` or request spec for preview JSON — auxiliary polylines visible clipped in preview. Tag `[REQ-FIT-DXF-002]`, `[REQ-FIT-UI-004]`.
 **Implement:** `dxf_preview.py` + Rails preview builder: include clipped aux geometry per included attachment.
 </step>

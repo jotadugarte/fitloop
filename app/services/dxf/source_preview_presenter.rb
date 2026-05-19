@@ -55,13 +55,13 @@ module Dxf
 
     def load_data
       return SourcePreviewReader.empty_payload if @project.input_dxf_attachments.blank?
-      return SourcePreviewReader.empty_payload if included_layer_names.blank?
+      return SourcePreviewReader.empty_payload unless preview_config_ready?
 
       with_downloaded_dxf_paths do |paths|
         SourcePreviewReader.preview(
           paths: paths,
-          layer_names: included_layer_names,
-          curve_tolerance_mm: @project.curve_tolerance_mm
+          curve_tolerance_mm: @project.curve_tolerance_mm,
+          **reader_preview_options
         )
       end
     rescue SourcePreviewReader::Error
@@ -82,6 +82,75 @@ module Dxf
       Array(polylines).map do |line|
         Array(line).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
       end
+    end
+
+    def preview_config_ready?
+      reader_preview_options.present?
+    end
+
+    def reader_preview_options
+      if per_file_preview_configs?
+        files = preview_input_files
+        return {} if files.blank?
+
+        { input_files: files }
+      else
+        return {} if included_layer_names.blank?
+
+        { layer_names: included_layer_names }
+      end
+    end
+
+    def per_file_preview_configs?
+      composite_preview? ||
+        @project.project_layers.where.not(active_storage_attachment_id: nil).exists?
+    end
+
+    def composite_preview?
+      preview_attachments.any? { |attachment| primary_layer_for(attachment).present? }
+    end
+
+    def preview_input_files
+      preview_attachments.filter_map do |attachment|
+        primary = primary_layer_for(attachment)
+        if primary
+          entry = { primary_layer: primary.layer_name }
+          auxiliary = auxiliary_layers_for(attachment)
+          entry[:auxiliary_layers] = auxiliary if auxiliary.any?
+          entry
+        else
+          names = included_layers_for(attachment)
+          next if names.blank?
+
+          { layer_names: names }
+        end
+      end
+    end
+
+    def included_layers_for(attachment)
+      @project.project_layers
+        .where(included: true, active_storage_attachment_id: attachment.id)
+        .order(:layer_name)
+        .pluck(:layer_name)
+    end
+
+    def preview_attachments
+      @attachment ? [ @attachment ] : @project.input_dxf_attachments.to_a
+    end
+
+    def primary_layer_for(attachment)
+      @project.project_layers.find_by(
+        active_storage_attachment_id: attachment.id,
+        included: true,
+        layer_role: :primary
+      )
+    end
+
+    def auxiliary_layers_for(attachment)
+      @project.project_layers
+        .where(included: true, active_storage_attachment_id: attachment.id, layer_role: :auxiliary)
+        .order(:layer_name)
+        .pluck(:layer_name)
     end
 
     def with_downloaded_dxf_paths

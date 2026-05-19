@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); optional FastAPI wrapper; hard file/piece caps; remove PIN from app (see Pending).
 
 ---
 
@@ -95,6 +95,7 @@ _(none)_
 
 - [x] **Sheet stock consumption priority** — Priority column, drag reorder, finite-first button, ∞ auto-last, max one ∞ per project; server + CLI + engine alignment (REQ-FIT-UI-001, REQ-FIT-DOM-001, REQ-FIT-NEST-002) — 2026-05-17
 - [ ] **Nesting progress / status bar UX** — During `processing`, the bar mostly shows only coarse percentages (e.g. 5%, 15%) with little phase context for most of the run; make feedback friendlier: clearer step labels (queued → preparing → engine → finishing), smoother or engine-driven progress where possible, visible cancel/ETA copy, and accessible status text in `en`/`es` (REQ-FIT-JOB-001)
+- [ ] **Eliminar todo rastro del uso de PIN en la app** — Quitar acceso por PIN de punta a punta: `pin_digest` y validación en create, `ProjectAccess` / `ProjectAccessGate`, pantalla de gate y `verify_pin`, admin PIN en credentials, copy `en`/`es`, specs y docs (`SPEC`, `DATA_FLOW_MAP`, `TESTING_STRATEGY_MATRIX`); definir y documentar el modelo de acceso sustituto vía ADR + actualización de REQ-FIT-AUTH-001
 
 ### Nesting engine
 
