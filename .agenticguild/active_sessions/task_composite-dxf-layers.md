@@ -204,7 +204,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Extend `dxf_output.write_nested_dxf` / `_add_piece` to emit primary rings on **source primary layer name** + write decoration entities on their layers; ensure layers exist in output doc.
 </step>
 
-<step id="11" status="pending">
+<step id="11" status="complete">
 **Test:** `nesting_engine/tests/test_nest_pipeline_composite.py` — end-to-end nest: two pieces + engraved lines; assert invariants (fit, kerf, layer names in output doc, decoration count per piece); **no golden x/y**. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-DXF-002]`.
 **Implement:** Pipeline passes `CompositePiece` through `nest_multi_bin`; placements carry decoration payloads to output writer.
 </step>

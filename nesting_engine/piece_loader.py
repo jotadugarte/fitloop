@@ -8,6 +8,8 @@ from shapely.geometry import Polygon
 
 from nesting_engine.composite_extract import CompositePiece, load_composite_pieces
 from nesting_engine.extract import extract_closed_contours
+from nesting_engine.nest_placement import Placement
+from nesting_engine.nest_types import PlacedPiece
 
 
 def load_pieces(
@@ -61,6 +63,23 @@ def piece_polygon(piece: Polygon | CompositePiece) -> Polygon:
     if isinstance(piece, CompositePiece):
         return piece.polygon
     return piece
+
+
+def placed_piece_from_source(
+    piece_index: int,
+    piece: Polygon | CompositePiece,
+    placement: Placement,
+) -> PlacedPiece:
+    polygon = piece_polygon(piece)
+    if isinstance(piece, CompositePiece):
+        return PlacedPiece(
+            piece_index=piece_index,
+            polygon=polygon,
+            placement=placement,
+            primary_layer_name=piece.primary_layer_name,
+            decorations=tuple(piece.decorations),
+        )
+    return PlacedPiece(piece_index=piece_index, polygon=polygon, placement=placement)
 
 
 def _pieces_from_input_files(

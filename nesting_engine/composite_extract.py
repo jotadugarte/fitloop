@@ -34,6 +34,7 @@ class CompositePiece:
     polygon: Polygon
     decorations: list[DecorationEntity] = field(default_factory=list)
     piece_index: int = 0
+    primary_layer_name: str = ""
 
 
 def load_composite_pieces(
@@ -63,7 +64,11 @@ def load_composite_pieces(
         warnings=report,
     )
     pieces = [
-        CompositePiece(polygon=polygon, piece_index=index)
+        CompositePiece(
+            polygon=polygon,
+            piece_index=index,
+            primary_layer_name=primary_layer,
+        )
         for index, polygon in enumerate(primaries)
     ]
 
