@@ -273,7 +273,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="5" status="complete">**Test:** `nesting_engine/tests/test_cli_plan_splits.py` — `mode: "plan_splits"` + `piece_keys` → `split_preview.json`. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Plan mode in `nest.py` or `split_cli.py`; schema in `nesting_engine/README.md`.</step>
 
-<step id="6" status="pending">**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — merge report orphans + unresolved `OrphanResolution`; exclude `resolved`; disable system_split without rings. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`. **Implement:** `Nesting::OrphansPresenter` + `resolution_state`, `system_split_enabled?`.</step>
+<step id="6" status="complete">**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — merge report orphans + unresolved `OrphanResolution`; exclude `resolved`; disable system_split without rings. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`. **Implement:** `Nesting::OrphansPresenter` + `resolution_state`, `system_split_enabled?`.</step>
 
 <step id="7" status="pending">**Test:** `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH `system_split` / `manual` / `pending`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `OrphanResolutionsController` + routes; `session_workflow_log` events (J43).</step>
 

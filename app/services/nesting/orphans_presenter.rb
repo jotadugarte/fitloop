@@ -7,12 +7,14 @@ module Nesting
 
     Orphan = Struct.new(
       :piece_index,
+      :piece_key,
       :reason,
       :rings,
       :width_mm,
       :height_mm,
       :offset_x_mm,
       :offset_y_mm,
+      :resolution_state,
       keyword_init: true
     ) do
       def display_number
@@ -25,6 +27,11 @@ module Nesting
 
       def exportable?
         rings.present? && rings.any? { |ring| ring.size >= 3 }
+      end
+
+      # [REQ-FIT-SPLIT-001] System split requires closed-ring geometry for preview/plan CLI.
+      def system_split_enabled?
+        exportable?
       end
 
       def view_width
@@ -75,22 +82,33 @@ module Nesting
 
     def build_items
       placement_rows = Array(placements_data&.fetch("orphans", nil))
-      if placement_rows.any? && placement_rows.first.key?("rings")
-        return placement_rows.map { |row| build_orphan(row) }
-      end
+      rows =
+        if placement_rows.any? && placement_rows.first.key?("rings")
+          placement_rows
+        else
+          Array(latest_report&.fetch("orphans", nil))
+        end
 
-      Array(latest_report&.fetch("orphans", nil)).map { |row| build_orphan(row) }
+      resolutions_by_key = @project.orphan_resolutions.index_by(&:piece_key)
+      rows.filter_map { |row| build_orphan(row, resolutions_by_key) }
     end
 
-    def build_orphan(row)
+    def build_orphan(row, resolutions_by_key)
+      piece_index = row.fetch("piece_index").to_i
+      piece_key = row["piece_key"].presence || piece_index.to_s
+      resolution = resolutions_by_key[piece_key]
+      return if resolution&.resolved?
+
       Orphan.new(
-        piece_index: row.fetch("piece_index").to_i,
+        piece_index: piece_index,
+        piece_key: piece_key,
         reason: row.fetch("reason"),
         rings: normalize_rings(row["rings"]),
         width_mm: row.fetch("width_mm", 0).to_f,
         height_mm: row.fetch("height_mm", 0).to_f,
         offset_x_mm: row.fetch("offset_x_mm", 0).to_f,
-        offset_y_mm: row.fetch("offset_y_mm", 0).to_f
+        offset_y_mm: row.fetch("offset_y_mm", 0).to_f,
+        resolution_state: resolution&.resolution_state || "pending"
       )
     end
 
