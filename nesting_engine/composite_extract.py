@@ -5,12 +5,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import ezdxf
-from ezdxf.entities import Line, MText, Text
+from ezdxf.entities import Circle, Insert, Line, LWPolyline, MText, Polyline, Text
+from ezdxf.path import make_path
 from shapely.geometry import LineString, Point, Polygon
 
-from nesting_engine.extract import _line_segment, extract_closed_contours
+from nesting_engine.extract import (
+    _circle_polygon,
+    _line_segment,
+    _open_curve_segments,
+    _open_polyline_segments,
+    extract_closed_contours,
+)
 
 _MAX_ENTITIES = 100_000
+_DEFAULT_MAX_BLOCK_DEPTH = 8
 _MIN_CLIP_LENGTH_MM = 0.01
 
 
@@ -34,11 +42,13 @@ def load_composite_pieces(
     auxiliary_layers: list[str],
     *,
     curve_tolerance_mm: float = 0.1,
+    max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
 ) -> list[CompositePiece]:
     assert primary_layer and primary_layer.strip(), "primary_layer is required"
     assert auxiliary_layers is not None, "auxiliary_layers is required"
     assert curve_tolerance_mm > 0, "curve_tolerance_mm must be positive"
+    assert max_block_depth >= 1, "max_block_depth must be at least 1"
 
     path = Path(dxf_path)
     assert path.is_file(), f"DXF file not found: {path}"
@@ -65,34 +75,124 @@ def load_composite_pieces(
     for entity in doc.modelspace():
         scanned += 1
         assert scanned <= _MAX_ENTITIES, "DXF entity limit exceeded"
-        layer_name = entity.dxf.layer
-        if layer_name not in aux_layers:
+        if entity.dxf.layer not in aux_layers:
             continue
-
-        if isinstance(entity, Line):
-            _attach_line_decoration(entity, layer_name, pieces)
-        elif isinstance(entity, (Text, MText)):
-            _attach_text_decoration(entity, layer_name, pieces)
+        _attach_auxiliary_entity(
+            entity,
+            entity.dxf.layer,
+            pieces,
+            curve_tolerance_mm=curve_tolerance_mm,
+        )
 
     return pieces
+
+
+def _attach_auxiliary_entity(
+    entity: object,
+    layer_name: str,
+    pieces: list[CompositePiece],
+    *,
+    curve_tolerance_mm: float,
+) -> None:
+    if isinstance(entity, Line):
+        _attach_line_decoration(entity, layer_name, pieces)
+    elif isinstance(entity, Circle):
+        _attach_circle_decoration(entity, layer_name, pieces, curve_tolerance_mm=curve_tolerance_mm)
+    elif isinstance(entity, Insert):
+        _attach_insert_decoration(entity, layer_name, pieces)
+    elif isinstance(entity, (Text, MText)):
+        _attach_text_decoration(entity, layer_name, pieces)
+    elif hasattr(entity, "dxftype") and entity.dxftype() == "ARC":
+        _attach_curve_segments_decoration(entity, layer_name, pieces, curve_tolerance_mm=curve_tolerance_mm)
+    elif isinstance(entity, (LWPolyline, Polyline)):
+        _attach_polyline_decoration(entity, layer_name, pieces, curve_tolerance_mm=curve_tolerance_mm)
 
 
 def _attach_line_decoration(entity: Line, layer_name: str, pieces: list[CompositePiece]) -> None:
     segment = _line_segment(entity)
     if segment[0] == segment[1]:
         return
-    line = LineString(segment)
+    _attach_linestring_to_pieces(LineString(segment), layer_name, pieces)
+
+
+def _attach_circle_decoration(
+    entity: Circle,
+    layer_name: str,
+    pieces: list[CompositePiece],
+    *,
+    curve_tolerance_mm: float,
+) -> None:
+    circle_polygon = _circle_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+    if circle_polygon is None or circle_polygon.is_empty:
+        return
+    ring = LineString(circle_polygon.exterior.coords)
+    _attach_linestring_to_pieces(ring, layer_name, pieces)
+
+
+def _attach_curve_segments_decoration(
+    entity: object,
+    layer_name: str,
+    pieces: list[CompositePiece],
+    *,
+    curve_tolerance_mm: float,
+) -> None:
+    for segment in _open_curve_segments(entity, curve_tolerance_mm=curve_tolerance_mm):
+        if segment[0] == segment[1]:
+            continue
+        _attach_linestring_to_pieces(LineString(segment), layer_name, pieces)
+
+
+def _attach_polyline_decoration(
+    entity: LWPolyline | Polyline,
+    layer_name: str,
+    pieces: list[CompositePiece],
+    *,
+    curve_tolerance_mm: float,
+) -> None:
+    for segment in _open_polyline_segments(entity, curve_tolerance_mm=curve_tolerance_mm):
+        if segment[0] == segment[1]:
+            continue
+        _attach_linestring_to_pieces(LineString(segment), layer_name, pieces)
+
+    if isinstance(entity, LWPolyline) and entity.closed:
+        _attach_closed_path_decoration(entity, layer_name, pieces, curve_tolerance_mm=curve_tolerance_mm)
+    if isinstance(entity, Polyline) and entity.is_closed:
+        _attach_closed_path_decoration(entity, layer_name, pieces, curve_tolerance_mm=curve_tolerance_mm)
+
+
+def _attach_closed_path_decoration(
+    entity: object,
+    layer_name: str,
+    pieces: list[CompositePiece],
+    *,
+    curve_tolerance_mm: float,
+) -> None:
+    path = make_path(entity)
+    points = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance_mm)]
+    if len(points) < 2:
+        return
+    ring = LineString(points + [points[0]])
+    _attach_linestring_to_pieces(ring, layer_name, pieces)
+
+
+def _attach_insert_decoration(entity: Insert, layer_name: str, pieces: list[CompositePiece]) -> None:
+    insert = entity.dxf.insert
+    point = Point(float(insert.x), float(insert.y))
 
     for piece in pieces:
-        clipped = piece.polygon.intersection(line)
-        for part in _line_parts(clipped):
-            piece.decorations.append(
-                DecorationEntity(
-                    layer_name=layer_name,
-                    geometry_type="line",
-                    payload={"coordinates": list(part.coords)},
-                )
+        if not _point_associates_with_piece(point, piece.polygon):
+            continue
+        piece.decorations.append(
+            DecorationEntity(
+                layer_name=layer_name,
+                geometry_type="insert",
+                payload={
+                    "block_name": entity.dxf.name,
+                    "insert": [float(insert.x), float(insert.y)],
+                },
             )
+        )
+        return
 
 
 def _attach_text_decoration(entity: Text | MText, layer_name: str, pieces: list[CompositePiece]) -> None:
@@ -101,7 +201,7 @@ def _attach_text_decoration(entity: Text | MText, layer_name: str, pieces: list[
     text_value = getattr(entity.dxf, "text", None) or getattr(entity, "text", "")
 
     for piece in pieces:
-        if not _point_in_primary_piece(point, piece.polygon):
+        if not _point_associates_with_piece(point, piece.polygon):
             continue
         piece.decorations.append(
             DecorationEntity(
@@ -116,13 +216,66 @@ def _attach_text_decoration(entity: Text | MText, layer_name: str, pieces: list[
         return
 
 
-def _point_in_primary_piece(point: Point, polygon: Polygon) -> bool:
-    if not polygon.contains(point):
+def _attach_linestring_to_pieces(
+    line: LineString,
+    layer_name: str,
+    pieces: list[CompositePiece],
+) -> None:
+    if line.is_empty or line.length < _MIN_CLIP_LENGTH_MM:
+        return
+
+    for piece in pieces:
+        clipped = _append_clipped_line_parts(line, layer_name, piece)
+        if clipped:
+            continue
+        if _line_in_hole_interior(line, piece.polygon):
+            _append_line_decoration(piece, layer_name, line)
+
+
+def _append_clipped_line_parts(
+    line: LineString,
+    layer_name: str,
+    piece: CompositePiece,
+) -> bool:
+    parts = _line_parts(piece.polygon.intersection(line))
+    if not parts:
         return False
-    for hole in polygon.interiors:
-        if Polygon(hole).contains(point):
-            return True
+    for part in parts:
+        _append_line_decoration(piece, layer_name, part)
     return True
+
+
+def _append_line_decoration(
+    piece: CompositePiece,
+    layer_name: str,
+    line: LineString,
+) -> None:
+    piece.decorations.append(
+        DecorationEntity(
+            layer_name=layer_name,
+            geometry_type="line",
+            payload={"coordinates": list(line.coords)},
+        )
+    )
+
+
+def _point_associates_with_piece(point: Point, polygon: Polygon) -> bool:
+    if polygon.contains(point):
+        return True
+    for interior in polygon.interiors:
+        if Polygon(interior).contains(point):
+            return True
+    return False
+
+
+def _line_in_hole_interior(line: LineString, polygon: Polygon) -> bool:
+    if line.length < _MIN_CLIP_LENGTH_MM:
+        return False
+    midpoint = line.interpolate(0.5, normalized=True)
+    for interior in polygon.interiors:
+        if Polygon(interior).contains(midpoint):
+            return True
+    return False
 
 
 def _line_parts(geometry: object) -> list[LineString]:
