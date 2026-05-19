@@ -102,6 +102,26 @@
             </p>
           <% end %>
 
+          <% if orphan.manual_resolution? %>
+            <div class="orphan-card__manual-flow" data-testid="orphan-manual-flow">
+              <p class="orphan-card__manual-intro"><%= t("nesting.split.manual.intro") %></p>
+              <ol class="orphan-card__manual-steps">
+                <li><%= t("nesting.split.manual.step_1", piece_number: orphan.display_number) %></li>
+                <li><%= t("nesting.split.manual.step_2", piece_number: orphan.display_number) %></li>
+                <li><%= t("nesting.split.manual.step_3") %></li>
+              </ol>
+              <p class="orphan-card__manual-note"><%= t("nesting.split.manual.no_dedup") %></p>
+              <p class="orphan-card__actions">
+                <%= button_to t("nesting.split.manual.confirm"),
+                              confirm_manual_project_orphan_resolution_path(project, orphan.piece_key),
+                              method: :post,
+                              class: "btn btn-primary btn--small",
+                              form: { data: { turbo: true } },
+                              data: { testid: "confirm-manual-orphan" } %>
+              </p>
+            </div>
+          <% end %>
+
           <p class="orphan-card__hint">
             <%= t(
                   "nesting.orphan_hint.#{orphan.reason}",

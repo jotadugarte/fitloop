@@ -43,6 +43,10 @@ module Nesting
         split_proposal&.accepted?
       end
 
+      def manual_resolution?
+        resolution_state == "manual"
+      end
+
       def view_width
         width_mm + (2 * PREVIEW_PADDING_MM)
       end

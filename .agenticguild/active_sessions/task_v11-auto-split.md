@@ -289,7 +289,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="13" status="complete">**Test:** Request spec — “Anidar con piezas actualizadas” auto-enqueues `NestingJob` (G30). Tags `[REQ-FIT-NEST-004]`, `[REQ-FIT-SPLIT-001]`. **Implement:** CTA + `NestingRunsController` flag from accept handler.</step>
 
-<step id="14" status="pending">**Test:** System/request — manual 3-step copy (F24); “He actualizado mis DXF” → readiness → `resolved`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-VAL-001]`. **Implement:** i18n `en`/`es`; disabled system button without rings (B5).</step>
+<step id="14" status="complete">**Test:** System/request — manual 3-step copy (F24); “He actualizado mis DXF” → readiness → `resolved`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-VAL-001]`. **Implement:** i18n `en`/`es`; disabled system button without rings (B5).</step>
 
 <step id="15" status="pending">**Test:** `test_split_planner.py` — any reason → planner runs; `split_not_feasible` in preview (J40). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** Surface in `split_preview.json` + orphan card error state.</step>
 

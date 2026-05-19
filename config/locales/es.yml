@@ -278,6 +278,17 @@ es:
       reject: "Rechazar"
       regenerate: "Regenerar"
       accepted: "División aceptada — listo para re-anidar con piezas actualizadas."
+      manual_mother_still_present: "La geometría de la pieza original sigue en tu DXF. Quítala en el CAD, sube el archivo actualizado e inténtalo de nuevo."
+      manual:
+        intro: "Resuelve esta pieza fuera de Fitloop:"
+        step_1: "Descarga la pieza %{piece_number} (botón arriba) y ábrela en tu CAD."
+        step_2: "Quita la pieza %{piece_number} del DXF origen o sustitúyela por geometría corregida."
+        step_3: "Sube el DXF actualizado en Archivos fuente abajo y confirma."
+        no_dedup: "Fitloop no edita tu DXF origen ni elimina duplicados por ti."
+        confirm: "He actualizado mis DXF"
+        resolved: "Resolución manual confirmada — este huérfano quedó resuelto."
+        not_manual_state: "Este huérfano no está en resolución manual."
+        orphan_geometry_missing: "Falta la geometría del huérfano — ejecuta un anidado antes de confirmar."
       badge:
         pending: "Pendiente"
         system_split: "Sistema"

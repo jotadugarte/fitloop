@@ -19,6 +19,24 @@ class OrphanResolutionsController < ApplicationController
     redirect_to @project
   end
 
+  def confirm_manual
+    resolution = @project.orphan_resolutions.find_by!(piece_key: params[:piece_key])
+    unless resolution.manual?
+      redirect_to @project, alert: I18n.t("nesting.split.manual.not_manual_state")
+      return
+    end
+
+    result = Nesting::ConfirmManualOrphanResolution.call(
+      project: @project,
+      orphan_resolution: resolution
+    )
+    if result.ok?
+      redirect_to @project, notice: I18n.t("nesting.split.manual.resolved")
+    else
+      redirect_to @project, alert: result.errors.join(" ")
+    end
+  end
+
   private
 
   def ensure_ephemeral_workspace!

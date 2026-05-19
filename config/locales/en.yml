@@ -263,6 +263,17 @@ en:
       reject: "Reject"
       regenerate: "Regenerate"
       accepted: "Split accepted — ready to re-nest with updated pieces."
+      manual_mother_still_present: "The original piece geometry is still in your DXF. Remove it in CAD, upload the updated file, then try again."
+      manual:
+        intro: "Resolve this piece outside Fitloop:"
+        step_1: "Download piece %{piece_number} (button above) and open it in your CAD."
+        step_2: "Remove piece %{piece_number} from the source DXF or replace it with corrected geometry."
+        step_3: "Upload the updated DXF in Source files below, then confirm."
+        no_dedup: "Fitloop does not edit your source DXF or remove duplicates for you."
+        confirm: "I updated my DXF"
+        resolved: "Manual resolution confirmed — this orphan is resolved."
+        not_manual_state: "This orphan is not in manual resolution."
+        orphan_geometry_missing: "Orphan geometry is missing — run nesting again before confirming."
       badge:
         pending: "Pending"
         system_split: "System split"
