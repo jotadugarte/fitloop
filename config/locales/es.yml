@@ -278,6 +278,8 @@ es:
       reject: "Rechazar"
       regenerate: "Regenerar"
       accepted: "División aceptada — listo para re-anidar con piezas actualizadas."
+      not_feasible: "Fitloop no pudo dividir esta pieza para que quepa en tu inventario de láminas. Prueba resolución manual o añade láminas más grandes."
+      not_feasible_accept: "Esta vista previa de división no es viable y no se puede aceptar."
       manual_mother_still_present: "La geometría de la pieza original sigue en tu DXF. Quítala en el CAD, sube el archivo actualizado e inténtalo de nuevo."
       manual:
         intro: "Resuelve esta pieza fuera de Fitloop:"

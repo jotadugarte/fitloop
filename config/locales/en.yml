@@ -263,6 +263,8 @@ en:
       reject: "Reject"
       regenerate: "Regenerate"
       accepted: "Split accepted — ready to re-nest with updated pieces."
+      not_feasible: "Fitloop could not split this piece to fit your sheet inventory. Try manual resolution or add larger sheets."
+      not_feasible_accept: "This split preview is not feasible and cannot be accepted."
       manual_mother_still_present: "The original piece geometry is still in your DXF. Remove it in CAD, upload the updated file, then try again."
       manual:
         intro: "Resolve this piece outside Fitloop:"

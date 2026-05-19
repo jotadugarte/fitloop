@@ -73,7 +73,23 @@
             </p>
           <% end %>
 
-          <% if orphan.split_preview_available? %>
+          <% if orphan.split_not_feasible? %>
+            <p class="orphan-card__split-error" data-testid="split-not-feasible" role="alert">
+              <%= t("nesting.split.not_feasible") %>
+            </p>
+            <div class="orphan-card__actions">
+              <%= button_to t("nesting.split.reject"),
+                            project_reject_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            method: :post,
+                            class: "btn btn-secondary btn--small",
+                            form: { data: { turbo: true } } %>
+              <%= button_to t("nesting.split.regenerate"),
+                            project_regenerate_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            method: :post,
+                            class: "btn btn-secondary btn--small",
+                            form: { data: { turbo: true } } %>
+            </div>
+          <% elsif orphan.split_preview_available? %>
             <div class="split-plan-preview" data-testid="split-plan-preview">
               <%= split_plan_preview_svg(orphan, css_class: "split-plan-preview__svg") %>
             </div>

@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Step 14 complete; ready for step 15 (split_not_feasible UI)</current_step>
+    <current_step>3.1 — Step 15 complete; ready for step 16 (cancel invalidates drafts)</current_step>
 
   </execution_context>
 

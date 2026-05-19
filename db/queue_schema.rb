@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_19_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -125,8 +125,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
     t.jsonb "child_piece_geometries", default: [], null: false
     t.datetime "created_at", null: false
     t.jsonb "cut_segments", default: [], null: false
+    t.boolean "feasible", default: true, null: false
     t.jsonb "labels", default: [], null: false
     t.bigint "orphan_resolution_id", null: false
+    t.string "plan_reason"
     t.string "status", default: "draft", null: false
     t.datetime "updated_at", null: false
     t.integer "version", default: 1, null: false

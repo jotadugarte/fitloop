@@ -70,5 +70,23 @@ RSpec.describe Nesting::SplitPlanJob, type: :job do
         described_class.perform_later(orphan_resolution.id)
       }.to have_enqueued_job(described_class).with(orphan_resolution.id)
     end
+
+    it "[REQ-FIT-SPLIT-001] stores split_not_feasible when planner cannot split" do
+      allow(Nesting::SplitPlannerRunner).to receive(:call).and_return(
+        preview_payload.merge(
+          "feasible" => false,
+          "reason" => "split_not_feasible",
+          "children" => [],
+          "cut_segments" => []
+        )
+      )
+
+      described_class.perform_now(orphan_resolution.id)
+
+      proposal = orphan_resolution.split_proposals.reload.sole
+      expect(proposal.feasible).to be(false)
+      expect(proposal.plan_reason).to eq("split_not_feasible")
+      expect(proposal.child_piece_geometries).to eq([])
+    end
   end
 end

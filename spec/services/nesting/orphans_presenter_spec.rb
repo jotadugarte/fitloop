@@ -164,5 +164,42 @@ RSpec.describe Nesting::OrphansPresenter do
       expect(orphan.system_split_enabled?).to be(false)
       expect(orphan.exportable?).to be(false)
     end
+
+    it "[REQ-FIT-SPLIT-001] surfaces split_not_feasible draft without preview actions" do
+      attach_orphan_placements!(
+        [
+          {
+            piece_index: 0,
+            reason: "no_sheet_capacity",
+            width_mm: 800.0,
+            height_mm: 400.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: [ [ [ 0.0, 0.0 ], [ 800.0, 0.0 ], [ 800.0, 400.0 ], [ 0.0, 400.0 ] ] ]
+          }
+        ]
+      )
+      resolution = OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "no_sheet_capacity",
+        resolution_state: :system_split
+      )
+      resolution.split_proposals.create!(
+        status: :draft,
+        version: 1,
+        feasible: false,
+        plan_reason: "split_not_feasible",
+        child_piece_geometries: [],
+        cut_segments: [],
+        labels: []
+      )
+
+      orphan = described_class.for(project).items.sole
+
+      expect(orphan.split_not_feasible?).to be(true)
+      expect(orphan.split_preview_available?).to be(false)
+      expect(orphan.split_plan_failed?).to be(true)
+    end
   end
 end

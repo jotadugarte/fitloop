@@ -36,7 +36,17 @@ module Nesting
       end
 
       def split_preview_available?
-        split_proposal&.draft? && split_proposal.child_piece_geometries.present?
+        split_proposal&.draft? &&
+          split_proposal.feasible? &&
+          split_proposal.child_piece_geometries.present?
+      end
+
+      def split_plan_failed?
+        split_proposal&.draft? && !split_proposal.feasible?
+      end
+
+      def split_not_feasible?
+        split_proposal&.split_not_feasible?
       end
 
       def split_accepted?

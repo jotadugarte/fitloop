@@ -21,9 +21,11 @@ module Nesting
       orphan_resolution.split_proposals.create!(
         status: :draft,
         version: next_version(orphan_resolution),
+        feasible: payload.fetch("feasible", true),
+        plan_reason: payload["reason"],
         child_piece_geometries: children,
         cut_segments: Array(payload["cut_segments"]),
-        labels: children.map { |child| child.fetch("label") }
+        labels: children.map { |child| child["label"] }.compact
       )
     end
 

@@ -12,6 +12,11 @@ class SplitProposalsController < ApplicationController
 
   def accept
     proposal = current_draft_proposal!
+    if proposal.split_not_feasible?
+      redirect_to @project, alert: I18n.t("nesting.split.not_feasible_accept")
+      return
+    end
+
     Nesting::MaterializeSplitProposal.call(
       project: @project,
       orphan_resolution: @orphan_resolution,

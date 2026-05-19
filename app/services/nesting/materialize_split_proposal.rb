@@ -14,6 +14,8 @@ module Nesting
     end
 
     def call
+      raise ArgumentError, "cannot accept infeasible split proposal" if @proposal.split_not_feasible?
+
       ActiveRecord::Base.transaction do
         @proposal.update!(status: :accepted)
         materialize_derived_pieces!

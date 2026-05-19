@@ -75,3 +75,16 @@ def test_split_not_feasible_when_usable_bin_is_empty() -> None:
     assert result.feasible is False
     assert result.reason == "split_not_feasible"
     assert result.children == []
+
+
+def test_plan_split_is_reason_agnostic() -> None:
+    """[REQ-FIT-SPLIT-001] Planner uses geometry only; orphan reason labels do not affect outcome."""
+    piece = box(0, 0, 200, 80)
+    stocks = [SheetStockSpec(width_mm=100, height_mm=100, quantity=None, sort_order=0)]
+
+    oversized_result = plan_split(piece, stocks, margin_mm=0.0)
+    capacity_result = plan_split(piece, stocks, margin_mm=0.0)
+
+    assert oversized_result.feasible is True
+    assert capacity_result.feasible is True
+    assert len(oversized_result.children) == len(capacity_result.children)
