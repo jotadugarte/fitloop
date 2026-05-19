@@ -91,3 +91,19 @@ Stack and boundary requirements are tracked in `docs/core/SPEC.md` as `REQ-FIT-A
 4. **Inter-sheet search** — `_inter_sheet_local_search`: repack from sparse later sheets onto earlier same-size sheets.
 
 Shapely in `nest_placement.py` is used for per-piece fallback, whole-sheet scoring (`score_sheet_layout`, `_layout_better_than`), and largest-free-area tie-breaks—not for the primary multi-bin fill path.
+
+---
+
+## 8. Sheet inventory & consumption order (normative)
+
+| Layer | Module / service | Responsibility |
+|-------|------------------|----------------|
+| **Rails UI** | Stimulus `sheet_inventory_controller.js` + SortableJS | Priority column, drag reorder, pin unlimited (∞) row last, block second ∞ in composer |
+| **Rails domain** | `SheetStocks::NormalizeConsumptionOrder` | Dense `sort_order` `0..n-1`: all finite stocks first (stable prior order), then the single unlimited stock |
+| **Rails domain** | `SheetStocks::SyncInventory` | Form is source of truth: destroy sheet stocks omitted from nested attributes |
+| **Rails domain** | `SheetStocks::InvalidateNestingOutputs` | Purge stale `nested_dxf` / `placements_json` when inventory changes after a terminal nest |
+| **Rails validation** | `Project#at_most_one_unlimited_sheet_stock` | At most one `SheetStock` with `quantity: nil` per project |
+| **CLI contract** | `nesting_engine/sheet_stocks_config.py` | Parse and validate `config.json` `sheet_stocks` (one ∞ max; ∞ must have highest `sort_order` when multiple stocks) |
+| **Engine** | `nest_libnest2d.stocks_in_consumption_order` | Consume finite stocks before unlimited regardless of mis-ordered client `sort_order` |
+
+**Requirement detail:** `REQ-FIT-UI-001`, `REQ-FIT-DOM-001`, `REQ-FIT-NEST-002`, `REQ-FIT-CLI-001` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § SheetStock.

@@ -1,14 +1,14 @@
 <agent_state>
 
-  <active_task_pointer></active_task_pointer>
+  <active_task_pointer>[NONE]</active_task_pointer>
 
   <execution_context>
 
-    <active_skill>finish-branch</active_skill>
+    <active_skill>[NONE]</active_skill>
 
-    <current_phase>2 — Compliance & Traceability Audit</current_phase>
+    <current_phase>[NONE]</current_phase>
 
-    <current_step>2.2 — compliance fixes applied (await user)</current_step>
+    <current_step>[NONE]</current_step>
 
   </execution_context>
 
