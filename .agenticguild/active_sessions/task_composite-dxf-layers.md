@@ -209,7 +209,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Pipeline passes `CompositePiece` through `nest_multi_bin`; placements carry decoration payloads to output writer.
 </step>
 
-<step id="12">
+<step id="12" status="complete">
 **Test:** `spec/services/dxf/piece_counter_spec.rb` — counts only primary layer polygons when `layer_role` primary set. Tag `[REQ-FIT-DXF-002]`.
 **Implement:** `Dxf::PieceCounter` / readiness path uses primary layer only (not auxiliary).
 </step>

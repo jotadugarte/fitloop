@@ -100,5 +100,30 @@ RSpec.describe ProjectReadinessValidator do
       expect(result.ok?).to be(true)
       expect(result.errors).to be_empty
     end
+
+    it "counts only primary layer contours when primary and auxiliary are included" do
+      composite_fixture = Rails.root.join("nesting_engine/tests/fixtures/composite-piece-count.dxf")
+      project.input_dxf.attach(
+        io: File.open(composite_fixture),
+        filename: "composite-piece-count.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      attachment_id = project.input_dxf_attachments.first!.id
+      cut = project.project_layers.find_by!(
+        layer_name: "CORTE",
+        active_storage_attachment_id: attachment_id
+      )
+      ProjectLayer::SetPrimary.call(cut)
+      project.project_layers.find_by!(
+        layer_name: "GRABADO",
+        active_storage_attachment_id: attachment_id
+      ).update!(included: true, layer_role: :auxiliary)
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(true)
+      expect(result.errors).to be_empty
+    end
   end
 end

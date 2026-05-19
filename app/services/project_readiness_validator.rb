@@ -63,7 +63,7 @@ class ProjectReadinessValidator
   end
 
   def count_with_union_layers
-    layer_names = @project.project_layers.where(included: true).pluck(:layer_name)
+    layer_names = Dxf::PieceCounter.layer_names_for_count(@project.project_layers)
     return 0 if layer_names.empty?
 
     with_downloaded_dxf_paths do |paths|
@@ -76,9 +76,9 @@ class ProjectReadinessValidator
   def count_with_per_file_layers
     total = 0
     @project.input_dxf_attachments.each do |attachment|
-      layer_names = @project.project_layers
-        .where(included: true, active_storage_attachment_id: attachment.id)
-        .pluck(:layer_name)
+      layer_names = Dxf::PieceCounter.layer_names_for_count(
+        @project.project_layers.where(active_storage_attachment_id: attachment.id)
+      )
       next if layer_names.empty?
 
       total += with_downloaded_path(attachment) do |path|
