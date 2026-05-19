@@ -16,7 +16,11 @@ from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, nest_multi_bin  # noqa: E402
 from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
 from nesting_engine.sheet_stocks_config import parse_sheet_stocks_from_config  # noqa: E402
-from nesting_engine.composite_extract import CompositePiece, partition_decorations  # noqa: E402
+from nesting_engine.composite_extract import (  # noqa: E402
+    CompositePiece,
+    DecorationEntity,
+    partition_decorations,
+)
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -164,7 +168,14 @@ def run_plan_splits_from_config(config: dict) -> dict:
     piece_keys = list(config.get("piece_keys") or [])[:_MAX_PLAN_PIECES]
     for piece_key in piece_keys:
         proposals.append(
-            _plan_split_for_key(piece_key, pieces, stocks, margin_mm=margin_mm, plan_by_key=plan_by_key)
+            _plan_split_for_key(
+                piece_key,
+                pieces,
+                stocks,
+                margin_mm=margin_mm,
+                plan_by_key=plan_by_key,
+                config=config,
+            )
         )
 
     preview = {"proposals": proposals, "warnings": warnings}
@@ -177,15 +188,72 @@ def _plan_polygons_by_key(config: dict) -> dict[str, Polygon]:
     polygons: dict[str, Polygon] = {}
     for entry in config.get("plan_pieces") or []:
         key = str(entry.get("piece_key", "")).strip()
-        rings = entry.get("rings") or []
-        if not key or not rings:
-            continue
-        exterior = rings[0]
-        holes = rings[1:] if len(rings) > 1 else []
-        polygon = Polygon(exterior, holes)
-        if not polygon.is_empty:
+        polygon = _polygon_from_plan_piece_entry(entry)
+        if key and polygon is not None:
             polygons[key] = polygon
     return polygons
+
+
+def _polygon_from_plan_piece_entry(entry: dict) -> Polygon | None:
+    rings = entry.get("rings") or []
+    if not rings:
+        return None
+    exterior = rings[0]
+    holes = rings[1:] if len(rings) > 1 else []
+    polygon = Polygon(exterior, holes)
+    if polygon.is_empty:
+        return None
+    return polygon
+
+
+def _composite_mother_for_plan_piece(
+    piece_key: str,
+    polygon: Polygon,
+    pieces: list,
+    config: dict,
+) -> CompositePiece | None:
+    for entry in config.get("plan_pieces") or []:
+        if str(entry.get("piece_key", "")).strip() != piece_key:
+            continue
+        decorations = _decorations_from_plan_piece_entry(entry)
+        if decorations:
+            primary_layer = str(entry.get("primary_layer_name") or "")
+            return CompositePiece(
+                polygon=polygon,
+                decorations=decorations,
+                primary_layer_name=primary_layer,
+            )
+
+    index = _piece_index_from_key(piece_key)
+    if index is None or index < 0 or index >= len(pieces):
+        return None
+    source = pieces[index]
+    if not isinstance(source, CompositePiece) or not source.decorations:
+        return None
+    return CompositePiece(
+        polygon=polygon,
+        decorations=list(source.decorations),
+        piece_index=index,
+        primary_layer_name=source.primary_layer_name,
+    )
+
+
+def _decorations_from_plan_piece_entry(entry: dict) -> list[DecorationEntity]:
+    decorations: list[DecorationEntity] = []
+    for row in entry.get("decorations") or []:
+        layer_name = row.get("layer_name")
+        geometry_type = row.get("geometry_type")
+        payload = row.get("payload")
+        if not layer_name or not geometry_type or not isinstance(payload, dict):
+            continue
+        decorations.append(
+            DecorationEntity(
+                layer_name=str(layer_name),
+                geometry_type=str(geometry_type),
+                payload=dict(payload),
+            )
+        )
+    return decorations
 
 
 def _plan_split_for_key(
@@ -195,12 +263,23 @@ def _plan_split_for_key(
     *,
     margin_mm: float,
     plan_by_key: dict[str, Polygon] | None = None,
+    config: dict | None = None,
 ) -> dict:
     key = str(piece_key)
     plan_by_key = plan_by_key or {}
+    config = config or {}
     if key in plan_by_key:
-        result = plan_split(plan_by_key[key], stocks, margin_mm=margin_mm)
-        return _split_proposal_dict(key, result)
+        polygon = plan_by_key[key]
+        mother = _composite_mother_for_plan_piece(key, polygon, pieces, config)
+        result = plan_split(polygon, stocks, margin_mm=margin_mm)
+        composite_children = None
+        if mother is not None and result.feasible:
+            composite_children = partition_decorations(
+                mother,
+                result.children,
+                result.cut_segments,
+            )
+        return _split_proposal_dict(key, result, composite_children=composite_children)
 
     index = _piece_index_from_key(piece_key)
     if index is None or index < 0 or index >= len(pieces):

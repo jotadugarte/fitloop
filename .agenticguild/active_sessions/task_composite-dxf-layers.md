@@ -234,7 +234,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `partition_decorations(mother, split_children, cut_segments)` in `composite_extract.py` or `split_planner.py` helper; call from split plan pipeline when mother has decorations.
 </step>
 
-<step id="17">
+<step id="17" status="complete">
 **Test:** `nesting_engine/tests/test_cli_plan_splits_composite.py` — `plan_splits` for composite orphan → `split_preview.json` child geometries include `decorations[]` per child. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-DXF-002]`.
 **Implement:** `nest.py` plan mode loads mother as `CompositePiece`; preview + `child_piece_geometries` carry decoration payloads.
 </step>
