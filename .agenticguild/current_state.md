@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Step 10 complete; ready for step 11 (ConfigBuilder split)</current_step>
+    <current_step>3.1 — Step 11 complete; ready for step 12 (nest pipeline derived)</current_step>
 
   </execution_context>
 

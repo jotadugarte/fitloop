@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from shapely.geometry import Polygon
+
 from nesting_engine.extract import extract_closed_contours
 
 
@@ -47,11 +49,36 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
                     warnings=warnings,
                 )
                 pieces.extend(contours)
+    else:
+        pieces = load_pieces(
+            config.get("input_dxf_paths", []),
+            config.get("included_layers", []),
+            curve_tolerance_mm=curve_tolerance_mm,
+            warnings=warnings,
+        )
+
+    pieces = _without_excluded_pieces(pieces, config)
+    pieces.extend(_derived_pieces_from_config(config))
+    return pieces
+
+
+def _without_excluded_pieces(pieces: list, config: dict) -> list:
+    excluded = {str(key) for key in config.get("excluded_piece_keys") or []}
+    if not excluded:
         return pieces
 
-    return load_pieces(
-        config.get("input_dxf_paths", []),
-        config.get("included_layers", []),
-        curve_tolerance_mm=curve_tolerance_mm,
-        warnings=warnings,
-    )
+    return [piece for index, piece in enumerate(pieces) if str(index) not in excluded]
+
+
+def _derived_pieces_from_config(config: dict) -> list:
+    derived: list = []
+    for entry in config.get("derived_pieces") or []:
+        rings = entry.get("rings") or []
+        if not rings:
+            continue
+        exterior = rings[0]
+        holes = rings[1:] if len(rings) > 1 else []
+        polygon = Polygon(exterior, holes)
+        if not polygon.is_empty:
+            derived.append(polygon)
+    return derived

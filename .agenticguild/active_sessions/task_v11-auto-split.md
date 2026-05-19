@@ -283,7 +283,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="10" status="complete">**Test:** Request spec — accept creates `DerivedPiece`, excludes mother `piece_key`, logs session event. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; invalidate drafts on sheet stock change (G32).</step>
 
-<step id="11" status="pending">**Test:** `spec/services/nesting/config_builder_split_spec.rb` — `excluded_piece_keys`, `derived_pieces` in payload. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::ConfigBuilder` + extractor skip/inject derived polygons.</step>
+<step id="11" status="complete">**Test:** `spec/services/nesting/config_builder_split_spec.rb` — `excluded_piece_keys`, `derived_pieces` in payload. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::ConfigBuilder` + extractor skip/inject derived polygons.</step>
 
 <step id="12" status="pending">**Test:** `nesting_engine/tests/test_nest_pipeline.py` — nest with `derived_pieces`; cut lines + labels in nested DXF. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Engine merges derived pieces; cut lines in `nested.dxf`; labels Pieza-Na/Nb.</step>
 

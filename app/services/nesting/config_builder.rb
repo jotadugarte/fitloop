@@ -26,6 +26,7 @@ module Nesting
         output_dir: output_dir.to_s
       }
       merge_input_layer_config!(payload)
+      merge_split_config!(payload)
       payload
     end
 
@@ -63,6 +64,29 @@ module Nesting
 
     def included_layer_names
       @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)
+    end
+
+    def merge_split_config!(payload)
+      derived = derived_pieces_payload
+      return if derived.empty?
+
+      payload[:excluded_piece_keys] = excluded_piece_keys
+      payload[:derived_pieces] = derived
+    end
+
+    def excluded_piece_keys
+      @project.derived_pieces.order(:parent_piece_key).distinct.pluck(:parent_piece_key)
+    end
+
+    def derived_pieces_payload
+      @project.derived_pieces.order(:sort_order).map do |piece|
+        {
+          parent_piece_key: piece.parent_piece_key,
+          label: piece.label,
+          sort_order: piece.sort_order,
+          rings: piece.geometry_json.fetch("rings")
+        }
+      end
     end
 
     def sheet_stock_payload
