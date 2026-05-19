@@ -30,6 +30,28 @@ RSpec.describe Nesting::JobRunner do
       expect(project.progress_message).to eq(I18n.t("nesting.cancelled"))
     end
 
+    it "[REQ-FIT-SPLIT-001] invalidates draft split proposals when nesting is cancelled" do
+      resolution = OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :system_split
+      )
+      draft = resolution.split_proposals.create!(
+        status: :draft,
+        version: 1,
+        feasible: true,
+        child_piece_geometries: [ { "label" => "a", "rings" => [] } ],
+        cut_segments: [],
+        labels: [ "a" ]
+      )
+
+      nesting_run.update!(cancel_requested_at: Time.current)
+      described_class.call(nesting_run: nesting_run)
+
+      expect(SplitProposal.exists?(draft.id)).to be(false)
+    end
+
     it "marks partial and shows time limit notice when the time limit is exceeded" do
       allow(Timeout).to receive(:timeout).and_raise(Timeout::Error)
 

@@ -293,7 +293,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="15" status="complete">**Test:** `test_split_planner.py` — any reason → planner runs; `split_not_feasible` in preview (J40). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** Surface in `split_preview.json` + orphan card error state.</step>
 
-<step id="16" status="pending">**Test:** Job spec — cancel nesting invalidates draft `SplitProposal` (J42). Tag `[REQ-FIT-JOB-001]`. **Implement:** Cancel hook on `Nesting::JobRunner` clears stale drafts.</step>
+<step id="16" status="complete">**Test:** Job spec — cancel nesting invalidates draft `SplitProposal` (J42). Tag `[REQ-FIT-JOB-001]`. **Implement:** Cancel hook on `Nesting::JobRunner` clears stale drafts.</step>
 
 <step id="17" status="pending">**Test:** Targeted RSpec + `pytest nesting_engine/tests -q -m "not slow"`. **Implement:** Mark ROADMAP v1.1 auto-split done; optional ADR `0002-auto-split.md`.</step>
 
