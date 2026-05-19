@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_19_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_041000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,10 +85,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_19_120000) do
     t.datetime "created_at", null: false
     t.boolean "included", default: false, null: false
     t.string "layer_name", null: false
+    t.string "layer_role"
     t.bigint "project_id", null: false
     t.datetime "updated_at", null: false
     t.index ["active_storage_attachment_id"], name: "index_project_layers_on_active_storage_attachment_id"
     t.index ["project_id", "active_storage_attachment_id", "layer_name"], name: "index_project_layers_on_project_attachment_and_name", unique: true
+    t.index ["project_id", "active_storage_attachment_id"], name: "index_project_layers_one_primary_per_attachment", unique: true, where: "((layer_role)::text = 'primary'::text)"
     t.index ["project_id"], name: "index_project_layers_on_project_id"
   end
 
