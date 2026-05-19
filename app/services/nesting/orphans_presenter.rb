@@ -36,9 +36,14 @@ module Nesting
       end
 
       def split_preview_available?
-        split_proposal&.draft? &&
-          split_proposal.feasible? &&
-          split_proposal.child_piece_geometries.present?
+        return false unless split_proposal&.draft? && split_proposal.feasible?
+
+        Array(split_proposal.child_piece_geometries).any? { |child| split_child_exportable?(child) }
+      end
+
+      def split_child_exportable?(child)
+        rings = Array(child["rings"])
+        rings.present? && rings.any? { |ring| Array(ring).size >= 3 }
       end
 
       def split_plan_failed?
@@ -51,6 +56,17 @@ module Nesting
 
       def split_accepted?
         split_proposal&.accepted?
+      end
+
+      # [REQ-FIT-SPLIT-001] Resolved via accept; keep visible until user re-nests with derived pieces.
+      def split_applied?
+        resolution_state == "resolved" && split_accepted?
+      end
+
+      def split_applied_preview_available?
+        return false unless split_applied?
+
+        Array(split_proposal.child_piece_geometries).any? { |child| split_child_exportable?(child) }
       end
 
       def manual_resolution?
@@ -120,7 +136,7 @@ module Nesting
       piece_index = row.fetch("piece_index").to_i
       piece_key = row["piece_key"].presence || piece_index.to_s
       resolution = resolutions_by_key[piece_key]
-      return if resolution&.resolved?
+      return if resolution&.resolved? && !split_applied_card?(resolution)
 
       Orphan.new(
         piece_index: piece_index,
@@ -152,6 +168,10 @@ module Nesting
 
     def latest_report
       @project.nesting_runs.order(created_at: :desc).pick(:report_json)
+    end
+
+    def split_applied_card?(resolution)
+      @project.derived_pieces.exists?(parent_piece_key: resolution.piece_key)
     end
   end
 end

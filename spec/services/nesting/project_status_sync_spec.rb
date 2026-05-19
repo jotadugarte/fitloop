@@ -35,6 +35,28 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project.progress_percent).to eq(3)
   end
 
+  it "does not complete a new run while stale placements_json from a prior nest remain [REQ-FIT-JOB-001] [REQ-FIT-SPLIT-001]" do
+    project.placements_json.attach(
+      io: StringIO.new('{"placements":[]}'),
+      filename: "placements.json",
+      content_type: "application/json"
+    )
+    project.update!(
+      status: :partial,
+      progress_percent: 100,
+      progress_message: I18n.t("nesting.partial")
+    )
+    project.nesting_runs.create!(status: "processing", started_at: Time.current, params_snapshot: { "nest_updated_pieces" => true })
+    project.update!(status: :processing, progress_percent: 3, progress_message: I18n.t("nesting.queued"))
+
+    described_class.call(project: project)
+
+    project.reload
+    expect(project).to be_processing
+    expect(project.progress_percent).to eq(3)
+    expect(project.progress_message).to eq(I18n.t("nesting.queued"))
+  end
+
   it "reconciles an abandoned processing run with no work_dir output [REQ-FIT-JOB-001]" do
     run = project.nesting_runs.create!(status: "processing", started_at: 3.minutes.ago)
 

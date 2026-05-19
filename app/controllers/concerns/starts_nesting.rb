@@ -7,6 +7,12 @@ module StartsNesting
   private
 
   def start_nesting_for!(project, nest_updated_pieces: false)
+    # [REQ-FIT-JOB-001] Drop prior nest artifacts so ProjectStatusSync does not treat stale
+    # placements_json as proof the new processing run already finished.
+    if project.nested_dxf.attached? || project.placements_json.attached?
+      SheetStocks::InvalidateNestingOutputs.call(project)
+    end
+
     snapshot = {}
     snapshot["nest_updated_pieces"] = true if nest_updated_pieces
     nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: snapshot)

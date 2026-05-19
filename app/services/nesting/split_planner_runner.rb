@@ -60,7 +60,21 @@ module Nesting
         "mode" => "plan_splits",
         "piece_keys" => [ @orphan_resolution.piece_key ]
       )
+      plan_piece = plan_piece_geometry
+      config["plan_pieces"] = [ plan_piece ] if plan_piece
       File.write(work_dir.join("config.json"), JSON.pretty_generate(config))
+    end
+
+    def plan_piece_geometry
+      orphan = Nesting::OrphansPresenter.for(@project).items.find do |item|
+        item.piece_key == @orphan_resolution.piece_key
+      end
+      return nil unless orphan&.exportable?
+
+      {
+        "piece_key" => @orphan_resolution.piece_key,
+        "rings" => orphan.rings.map { |ring| ring.map { |x, y| [ x, y ] } }
+      }
     end
 
     def run_cli!(work_dir)

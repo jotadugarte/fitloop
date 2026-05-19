@@ -52,10 +52,21 @@ export default class extends Controller {
     document.querySelector("[data-testid='setup-dxf-upload']")?.setAttribute("open", "")
     document.querySelector("[data-testid='source-dxf-detail']")?.setAttribute("open", "")
 
-    const target =
+    // Turbo stream DOM is synchronous; wait one frame so <details open> layout settles.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => this.scrollToLayers())
+    })
+  }
+
+  scrollToLayers() {
+    const layersPanel = document.querySelector("[data-testid='dxf-files-layers']")
+    const expandedEntry =
       document.querySelector("[data-testid='dxf-file-entry'][open]") ||
       document.querySelector("[data-testid='dxf-file-entry']:last-of-type")
 
-    target?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    const target = layersPanel || expandedEntry
+    if (!target) return
+
+    target.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" })
   }
 }

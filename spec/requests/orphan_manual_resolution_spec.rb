@@ -79,14 +79,16 @@ RSpec.describe "Orphan manual resolution", type: :request do
       )
     end
 
-    it "[REQ-FIT-SPLIT-001] shows manual 3-step copy and confirm button" do
+    it "[REQ-FIT-SPLIT-001] shows manual instructions without confirm button" do
       get project_path(project)
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="orphan-manual-flow"')
       expect(response.body).to include(I18n.t("nesting.split.manual.step_1", piece_number: 1))
-      expect(response.body).to include(I18n.t("nesting.split.manual.no_dedup"))
-      expect(response.body).to include(I18n.t("nesting.split.manual.confirm"))
+      expect(response.body).to include(I18n.t("nesting.split.manual.step_2"))
+      expect(response.body).not_to include(I18n.t("nesting.split.manual.no_dedup"))
+      expect(response.body).not_to include('data-testid="confirm-manual-orphan"')
+      expect(response.body).not_to include(I18n.t("nesting.split.manual.confirm"))
     end
 
     it "[REQ-FIT-SPLIT-001] disables system split when rings are missing" do

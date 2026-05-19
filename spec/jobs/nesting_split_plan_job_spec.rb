@@ -51,11 +51,14 @@ RSpec.describe Nesting::SplitPlanJob, type: :job do
 
   describe "#perform [REQ-FIT-SPLIT-001] [REQ-FIT-JOB-001]" do
     it "[REQ-FIT-SPLIT-001] invokes SplitPlannerRunner and stores a draft SplitProposal" do
+      allow(Nesting::SplitWorkflowBroadcaster).to receive(:call)
+
       described_class.perform_now(orphan_resolution.id)
 
       expect(Nesting::SplitPlannerRunner).to have_received(:call).with(
         orphan_resolution: orphan_resolution
       )
+      expect(Nesting::SplitWorkflowBroadcaster).to have_received(:call).with(project: project)
 
       proposal = orphan_resolution.split_proposals.reload.sole
       expect(proposal.status).to eq("draft")

@@ -159,13 +159,32 @@ def run_plan_splits_from_config(config: dict) -> dict:
     margin_mm = float(config.get("margin_mm", 0.0))
 
     proposals: list[dict] = []
+    plan_by_key = _plan_polygons_by_key(config)
     piece_keys = list(config.get("piece_keys") or [])[:_MAX_PLAN_PIECES]
     for piece_key in piece_keys:
-        proposals.append(_plan_split_for_key(piece_key, pieces, stocks, margin_mm=margin_mm))
+        proposals.append(
+            _plan_split_for_key(piece_key, pieces, stocks, margin_mm=margin_mm, plan_by_key=plan_by_key)
+        )
 
     preview = {"proposals": proposals, "warnings": warnings}
     (output_dir / "split_preview.json").write_text(json.dumps(preview, indent=2), encoding="utf-8")
     return preview
+
+
+def _plan_polygons_by_key(config: dict) -> dict[str, Polygon]:
+    """Orphan geometry from placements (plan_pieces); avoids wrong piece after index shifts."""
+    polygons: dict[str, Polygon] = {}
+    for entry in config.get("plan_pieces") or []:
+        key = str(entry.get("piece_key", "")).strip()
+        rings = entry.get("rings") or []
+        if not key or not rings:
+            continue
+        exterior = rings[0]
+        holes = rings[1:] if len(rings) > 1 else []
+        polygon = Polygon(exterior, holes)
+        if not polygon.is_empty:
+            polygons[key] = polygon
+    return polygons
 
 
 def _plan_split_for_key(
@@ -174,7 +193,14 @@ def _plan_split_for_key(
     stocks: list,
     *,
     margin_mm: float,
+    plan_by_key: dict[str, Polygon] | None = None,
 ) -> dict:
+    key = str(piece_key)
+    plan_by_key = plan_by_key or {}
+    if key in plan_by_key:
+        result = plan_split(plan_by_key[key], stocks, margin_mm=margin_mm)
+        return _split_proposal_dict(key, result)
+
     index = _piece_index_from_key(piece_key)
     if index is None or index < 0 or index >= len(pieces):
         return _split_proposal_dict(piece_key, SplitPlanResult(False, "split_not_feasible", [], []))
@@ -222,12 +248,8 @@ def _write_outputs(
             "cut_segment_count": len(cut_segments),
         }
 
-    write_nested_dxf(
-        output_dir / "nested.dxf",
-        result.sheets,
-        cut_segments=cut_segments,
-        piece_labels=piece_labels,
-    )
+    # Manufacturing DXF: sheet outlines + piece contours only (no split cut guides or labels).
+    write_nested_dxf(output_dir / "nested.dxf", result.sheets)
     placements = {
         "sheets": [
             {

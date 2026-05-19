@@ -246,6 +246,8 @@ en:
       oversized_for_sheet: "Too large for any sheet in inventory"
       no_sheet_capacity: "Fits a sheet size but no sheet was available"
       unknown: "Could not be placed"
+    derived_piece:
+      title: "Piece %{piece_number} — %{suffix}"
     orphan_preview:
       piece_title: "Piece %{piece_number}"
       label: "Unplaced piece %{piece_number}"
@@ -263,15 +265,15 @@ en:
       reject: "Reject"
       regenerate: "Regenerate"
       accepted: "Split accepted — ready to re-nest with updated pieces."
+      accepted_pending_nest: "Split accepted. Child pieces are ready — use Nest with updated pieces in Actions."
       not_feasible: "Fitloop could not split this piece to fit your sheet inventory. Try manual resolution or add larger sheets."
       not_feasible_accept: "This split preview is not feasible and cannot be accepted."
       manual_mother_still_present: "The original piece geometry is still in your DXF. Remove it in CAD, upload the updated file, then try again."
       manual:
-        intro: "Resolve this piece outside Fitloop:"
-        step_1: "Download piece %{piece_number} (button above) and open it in your CAD."
-        step_2: "Remove piece %{piece_number} from the source DXF or replace it with corrected geometry."
-        step_3: "Upload the updated DXF in Source files below, then confirm."
-        no_dedup: "Fitloop does not edit your source DXF or remove duplicates for you."
+        intro: "Fix this piece in your CAD, your way:"
+        step_1: "Open the original DXF and replace or split piece %{piece_number} however works best for you."
+        step_2: "Upload the updated file in DXF detail (above) and run nesting again."
+        no_dedup: "Fitloop does not edit your file for you — you make the changes in your design software."
         confirm: "I updated my DXF"
         resolved: "Manual resolution confirmed — this orphan is resolved."
         not_manual_state: "This orphan is not in manual resolution."
@@ -281,6 +283,7 @@ en:
         system_split: "System split"
         manual: "Manual"
         resolved: "Resolved"
+        split_applied: "Split accepted"
 
   project_readiness:
     heading: "Cannot start nesting yet"

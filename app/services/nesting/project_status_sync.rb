@@ -49,7 +49,6 @@ module Nesting
 
     def stale_processing_run?(run)
       return true if run.cancel_requested_at.present?
-      return true if @project.placements_json.attached?
       return true if terminal_report(run).present?
 
       false
@@ -68,8 +67,6 @@ module Nesting
 
       report = terminal_report(run)
       return report["status"].to_s if report
-
-      return "completed" if @project.placements_json.attached?
 
       nil
     end

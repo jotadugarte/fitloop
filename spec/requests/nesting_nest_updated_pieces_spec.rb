@@ -49,10 +49,30 @@ RSpec.describe "Nest with updated pieces", type: :request do
       end.to have_enqueued_job(NestingJob)
 
       expect(response).to redirect_to(project_path(project))
-      expect(flash[:notice]).to eq(I18n.t("nesting.nest_updated_pieces_started"))
+      expect(flash[:notice]).to be_nil
 
       run = project.nesting_runs.order(created_at: :desc).first
       expect(run.params_snapshot).to include("nest_updated_pieces" => true)
+    end
+
+    it "[REQ-FIT-JOB-001] [REQ-FIT-SPLIT-001] purges stale nest outputs and shows processing progress on redirect" do
+      project.placements_json.attach(
+        io: StringIO.new('{"placements":[]}'),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+
+      post project_nesting_runs_path(project), params: { nest_updated_pieces: true }
+
+      project.reload
+      expect(project).to be_processing
+      expect(project.placements_json).not_to be_attached
+      expect(project.progress_message).to eq(I18n.t("nesting.queued"))
+
+      follow_redirect!
+      expect(response.body).to include('data-testid="nesting-progress"')
+      expect(response.body).to include(I18n.t("nesting.queued"))
+      expect(response.body).not_to include(I18n.t("nesting.completed"))
     end
 
     it "[REQ-FIT-SPLIT-001] rejects nest_updated_pieces without derived pieces" do

@@ -25,15 +25,7 @@ class NestingRunsController < ApplicationController
     end
 
     start_nesting_for!(@project, nest_updated_pieces: nest_updated_pieces)
-    notice =
-      if nest_updated_pieces
-        I18n.t("nesting.nest_updated_pieces_started")
-      elsif renesting?(@project)
-        I18n.t("nesting.renest_started")
-      else
-        I18n.t("nesting.started")
-      end
-    redirect_to @project, notice: notice
+    redirect_to @project
   end
 
   def cancel

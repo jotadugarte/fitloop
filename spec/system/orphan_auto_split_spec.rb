@@ -95,6 +95,7 @@ RSpec.describe "Orphan auto split", type: :system do
     project.reload
     expect(project.derived_pieces.count).to eq(2)
     expect(OrphanResolution.find_by!(project: project, piece_key: "0").resolution_state).to eq("resolved")
-    expect(page).to have_no_css('[data-testid="orphan-card"]')
+    expect(page).to have_css('[data-testid="orphan-split-applied"]')
+    expect(page).to have_css('[data-testid="nest-updated-pieces"]')
   end
 end

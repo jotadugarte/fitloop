@@ -45,13 +45,16 @@ def write_nested_dxf(
     assert sheets is not None, "sheets required"
 
     doc = ezdxf.new("R2010")
-    _ensure_output_layers(doc)
+    labels = piece_labels or {}
+    cuts = cut_segments or []
+    include_split_annotations = bool(labels or cuts)
+    _ensure_output_layers(doc, include_split_annotations=include_split_annotations)
     msp = doc.modelspace()
 
-    labels = piece_labels or {}
-    sheet_offset_x = sheets[0].offset_x_mm if sheets else 0.0
-    for segment in cut_segments or []:
-        _add_cut_segment(msp, segment, sheet_offset_x=sheet_offset_x)
+    if include_split_annotations:
+        sheet_offset_x = sheets[0].offset_x_mm if sheets else 0.0
+        for segment in cuts:
+            _add_cut_segment(msp, segment, sheet_offset_x=sheet_offset_x)
 
     for sheet in sheets:
         _add_sheet_outline(msp, sheet)
@@ -64,8 +67,11 @@ def write_nested_dxf(
     doc.saveas(path)
 
 
-def _ensure_output_layers(doc: ezdxf.document.Drawing) -> None:
-    for layer_name in ("SHEETS", "PIECES", "SPLIT_CUTS", "SPLIT_LABELS"):
+def _ensure_output_layers(doc: ezdxf.document.Drawing, *, include_split_annotations: bool) -> None:
+    layer_names = ["SHEETS", "PIECES"]
+    if include_split_annotations:
+        layer_names.extend(["SPLIT_CUTS", "SPLIT_LABELS"])
+    for layer_name in layer_names:
         if layer_name not in doc.layers:
             doc.layers.add(layer_name)
 

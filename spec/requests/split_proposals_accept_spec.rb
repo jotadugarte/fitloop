@@ -85,5 +85,49 @@ RSpec.describe "Split proposal accept", type: :request do
       expect(response.body).to include(I18n.t("nesting.nest_updated_pieces"))
       expect(response.body).to include('data-testid="nest-updated-pieces"')
     end
+
+    it "[REQ-FIT-SPLIT-001] shows derived piece titles and bounding dimensions after accept" do
+      project.update!(status: :partial)
+      project.placements_json.attach(
+        io: StringIO.new(
+          {
+            sheets: [],
+            orphans: [
+              {
+                piece_index: 0,
+                piece_key: "0",
+                reason: "oversized_for_sheet",
+                width_mm: 200.0,
+                height_mm: 50.0,
+                offset_x_mm: 0.0,
+                offset_y_mm: 0.0,
+                rings: [ [ [ 0.0, 0.0 ], [ 200.0, 0.0 ], [ 200.0, 50.0 ], [ 0.0, 50.0 ] ] ]
+              }
+            ]
+          }.to_json
+        ),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+
+      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+
+      get project_path(project)
+
+      expect(response.body).to include(
+        I18n.t("nesting.derived_piece.title", piece_number: 1, suffix: "A")
+      )
+      expect(response.body).to include(
+        I18n.t("nesting.derived_piece.title", piece_number: 1, suffix: "B")
+      )
+      expect(response.body).to include(
+        I18n.t(
+          "nesting.orphan_preview.dimensions",
+          width: "100",
+          height: "50"
+        )
+      )
+      expect(response.body).to include('data-testid="orphan-derived-dimensions"')
+    end
   end
 end

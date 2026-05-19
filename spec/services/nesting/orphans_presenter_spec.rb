@@ -114,7 +114,7 @@ RSpec.describe Nesting::OrphansPresenter do
       expect(items.find { |row| row.piece_index == 1 }.resolution_state).to eq("system_split")
     end
 
-    it "[REQ-FIT-SPLIT-001] excludes resolved OrphanResolution rows" do
+    it "[REQ-FIT-SPLIT-001] excludes resolved orphans without derived pieces" do
       attach_orphan_placements!(
         [
           {
@@ -136,6 +136,48 @@ RSpec.describe Nesting::OrphansPresenter do
       )
 
       expect(described_class.for(project).items).to be_empty
+    end
+
+    it "[REQ-FIT-SPLIT-001] keeps split-applied orphans visible until re-nest" do
+      attach_orphan_placements!(
+        [
+          {
+            piece_index: 0,
+            reason: "oversized_for_sheet",
+            width_mm: 100.0,
+            height_mm: 50.0,
+            offset_x_mm: 0.0,
+            offset_y_mm: 0.0,
+            rings: [ [ [ 0.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 50.0 ], [ 0.0, 50.0 ] ] ]
+          }
+        ]
+      )
+      resolution = OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :resolved
+      )
+      resolution.split_proposals.create!(
+        status: :accepted,
+        version: 1,
+        feasible: true,
+        child_piece_geometries: [
+          { "label" => "a", "rings" => [ [ [ 0.0, 0.0 ], [ 50.0, 0.0 ], [ 50.0, 30.0 ], [ 0.0, 30.0 ] ] ] }
+        ],
+        cut_segments: [],
+        labels: [ "a" ]
+      )
+      project.derived_pieces.create!(
+        parent_piece_key: "0",
+        label: "Pieza-1a",
+        geometry_json: { "rings" => [ [ [ 0.0, 0.0 ], [ 50.0, 0.0 ], [ 50.0, 30.0 ], [ 0.0, 30.0 ] ] ] },
+        sort_order: 0
+      )
+
+      orphan = described_class.for(project).items.sole
+
+      expect(orphan.split_applied?).to be(true)
     end
 
     it "[REQ-FIT-SPLIT-001] disables system_split when rings are not exportable" do

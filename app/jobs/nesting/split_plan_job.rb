@@ -11,6 +11,7 @@ module Nesting
 
       payload = SplitPlannerRunner.call(orphan_resolution: orphan_resolution)
       persist_draft_proposal!(orphan_resolution, payload)
+      SplitWorkflowBroadcaster.call(project: orphan_resolution.project)
     end
 
     private

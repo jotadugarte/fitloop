@@ -22,7 +22,13 @@ class SplitProposalsController < ApplicationController
       orphan_resolution: @orphan_resolution,
       proposal: proposal
     )
-    redirect_to @project
+    @project.reload
+    Nesting::SplitWorkflowBroadcaster.call(project: @project)
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to @project }
+    end
   end
 
   def reject
