@@ -229,7 +229,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Optional ADR `docs/core/ADRs/0003-composite-dxf-layers.md`; update `nesting_engine/README.md` CLI schema; ROADMAP v1.2 item.
 </step>
 
-<step id="16">
+<step id="16" status="complete">
 **Test:** `nesting_engine/tests/test_split_composite.py` — mother `CompositePiece` with grabado line in each half → `plan_split` + `partition_decorations` yields two children; each child decoration count correct; clip on cut boundary. Tags `[REQ-FIT-DXF-002]`, `[REQ-FIT-SPLIT-001]`.
 **Implement:** `partition_decorations(mother, split_children, cut_segments)` in `composite_extract.py` or `split_planner.py` helper; call from split plan pipeline when mother has decorations.
 </step>

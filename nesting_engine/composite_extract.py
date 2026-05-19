@@ -295,3 +295,81 @@ def _line_parts(geometry: object) -> list[LineString]:
             if isinstance(part, LineString) and part.length >= _MIN_CLIP_LENGTH_MM
         ]
     return []
+
+
+def partition_decorations(
+    mother: CompositePiece,
+    split_children: list[object],
+    cut_segments: list[tuple[tuple[float, float], tuple[float, float]]] | None = None,
+) -> list[CompositePiece]:
+    """[REQ-FIT-DXF-002] [REQ-FIT-SPLIT-001] Assign mother decorations to split child polygons."""
+    assert mother is not None, "mother is required"
+    assert split_children is not None, "split_children is required"
+    _ = cut_segments
+
+    children = [
+        CompositePiece(
+            polygon=child.polygon,
+            decorations=[],
+            primary_layer_name=mother.primary_layer_name,
+        )
+        for child in split_children
+    ]
+    for decoration in mother.decorations:
+        _partition_decoration(decoration, children)
+    return children
+
+
+def _partition_decoration(
+    decoration: DecorationEntity,
+    children: list[CompositePiece],
+) -> None:
+    if decoration.geometry_type == "line":
+        _partition_line_decoration(decoration, children)
+        return
+    if decoration.geometry_type in ("text", "insert"):
+        _partition_point_decoration(decoration, children)
+
+
+def _partition_line_decoration(
+    decoration: DecorationEntity,
+    children: list[CompositePiece],
+) -> None:
+    coordinates = decoration.payload.get("coordinates") or []
+    if len(coordinates) < 2:
+        return
+
+    line = LineString(coordinates)
+    if line.is_empty or line.length < _MIN_CLIP_LENGTH_MM:
+        return
+
+    for child in children:
+        clipped = _append_clipped_line_parts(line, decoration.layer_name, child)
+        if clipped:
+            continue
+        if _line_in_hole_interior(line, child.polygon):
+            _append_line_decoration(child, decoration.layer_name, line)
+
+
+def _partition_point_decoration(
+    decoration: DecorationEntity,
+    children: list[CompositePiece],
+) -> None:
+    insert = decoration.payload.get("insert")
+    if not insert or len(insert) < 2:
+        return
+
+    point = Point(float(insert[0]), float(insert[1]))
+    for child in children:
+        if not _point_associates_with_piece(point, child.polygon):
+            continue
+        child.decorations.append(_copy_decoration(decoration))
+        return
+
+
+def _copy_decoration(decoration: DecorationEntity) -> DecorationEntity:
+    return DecorationEntity(
+        layer_name=decoration.layer_name,
+        geometry_type=decoration.geometry_type,
+        payload=dict(decoration.payload),
+    )

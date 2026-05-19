@@ -16,6 +16,7 @@ from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, nest_multi_bin  # noqa: E402
 from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
 from nesting_engine.sheet_stocks_config import parse_sheet_stocks_from_config  # noqa: E402
+from nesting_engine.composite_extract import CompositePiece, partition_decorations  # noqa: E402
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -205,8 +206,17 @@ def _plan_split_for_key(
     if index is None or index < 0 or index >= len(pieces):
         return _split_proposal_dict(piece_key, SplitPlanResult(False, "split_not_feasible", [], []))
 
-    result = plan_split(pieces[index], stocks, margin_mm=margin_mm)
-    return _split_proposal_dict(piece_key, result)
+    source = pieces[index]
+    polygon = source.polygon if isinstance(source, CompositePiece) else source
+    result = plan_split(polygon, stocks, margin_mm=margin_mm)
+    composite_children = None
+    if isinstance(source, CompositePiece) and result.feasible:
+        composite_children = partition_decorations(
+            source,
+            result.children,
+            result.cut_segments,
+        )
+    return _split_proposal_dict(piece_key, result, composite_children=composite_children)
 
 
 def _piece_index_from_key(piece_key: str) -> int | None:
@@ -216,19 +226,42 @@ def _piece_index_from_key(piece_key: str) -> int | None:
     return int(text)
 
 
-def _split_proposal_dict(piece_key: str, result: SplitPlanResult) -> dict:
+def _split_proposal_dict(
+    piece_key: str,
+    result: SplitPlanResult,
+    *,
+    composite_children: list[CompositePiece] | None = None,
+) -> dict:
+    children_payload: list[dict] = []
+    for index, child in enumerate(result.children):
+        entry: dict = {
+            "label": child.label,
+            "rings": _polygon_rings(child.polygon),
+        }
+        if composite_children is not None and index < len(composite_children):
+            entry["decorations"] = [
+                _decoration_entity_dict(decoration)
+                for decoration in composite_children[index].decorations
+            ]
+        children_payload.append(entry)
+
     return {
         "piece_key": piece_key,
         "feasible": result.feasible,
         "reason": result.reason,
-        "children": [
-            {"label": child.label, "rings": _polygon_rings(child.polygon)}
-            for child in result.children
-        ],
+        "children": children_payload,
         "cut_segments": [
             [[float(start[0]), float(start[1])], [float(end[0]), float(end[1])]]
             for start, end in result.cut_segments
         ],
+    }
+
+
+def _decoration_entity_dict(decoration) -> dict:
+    return {
+        "layer_name": decoration.layer_name,
+        "geometry_type": decoration.geometry_type,
+        "payload": decoration.payload,
     }
 
 
