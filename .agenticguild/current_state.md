@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 7 next (composite entity handlers)</current_step>
+    <current_step>3.1 — Failing test for plan step 7 (entity handlers)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 6 complete (composite_extract load_composite_pieces). Next: step 7 entity handlers.</note>
+  <note>Plan step 7 pytest extensions written (red). Awaiting approval before ARC/CIRCLE/INSERT handlers.</note>
 
 </agent_state>
