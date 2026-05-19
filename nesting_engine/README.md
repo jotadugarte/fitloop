@@ -59,6 +59,44 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
 | `time_limit_sec` | integer | yes | Safety time cap for nesting |
 | `output_dir` | string | yes | Directory for engine output files |
 
+### Composite layers per file (`input_files`) — v1.2
+
+When the user sets a **primary layer** per DXF file (`REQ-FIT-DXF-002`), Rails emits `input_files[]` instead of top-level `input_dxf_paths` + `included_layers`. Legacy projects without a primary layer keep the flat fields above.
+
+```json
+{
+  "project_id": "42",
+  "input_files": [
+    {
+      "path": "/abs/path/to/inputs/panel.dxf",
+      "primary_layer": "CORTE",
+      "auxiliary_layers": ["GRABADO", "TEXTO"]
+    }
+  ],
+  "sheet_stocks": [{ "width_mm": 1220.0, "height_mm": 2440.0, "quantity": 1, "sort_order": 0 }],
+  "kerf_mm": 2.0,
+  "margin_mm": 5.0,
+  "curve_tolerance_mm": 0.25,
+  "sheet_gap_mm": 15.0,
+  "time_limit_sec": 600,
+  "output_dir": "/abs/path/to/output"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `input_files` | object[] | yes (composite) | One entry per input DXF |
+| `input_files[].path` | string | yes | Absolute path to the DXF |
+| `input_files[].primary_layer` | string | yes (composite) | Layer name for cut outlines |
+| `input_files[].auxiliary_layers` | string[] | no | Engraving/mark layers clipped to primary polygons |
+| `input_files[].included_layers` | string[] | yes (legacy per file) | Used when `primary_layer` is omitted |
+
+**Extract:** `composite_extract.load_composite_pieces` builds `CompositePiece` (primary polygon + `decorations[]`). `piece_loader` uses this path when `primary_layer` is present.
+
+**Nest output:** Primary rings and decorations are written to **original layer names** in `nested.dxf` (not forced `PIECES`). Nesting optimizer uses primary geometry only; kerf/margin unchanged.
+
+**Source preview:** `dxf_preview.py` accepts the same per-file `input_files` shape (via JSON config `input_files`) to render clipped auxiliary polylines in the browser preview.
+
 ## Split plan mode (`mode`: `"plan_splits"`)
 
 v1.1 auto-split preview (see `REQ-FIT-SPLIT-001`). Same `config.json` base fields plus:

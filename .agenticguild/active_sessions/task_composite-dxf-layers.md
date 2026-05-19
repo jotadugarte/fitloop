@@ -224,7 +224,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** System spec + any Stimulus/CSS for grouped layer UI (`data-testid` primary-layer-radio).
 </step>
 
-<step id="15">
+<step id="15" status="complete">
 **Test:** `test/architecture/` or doc test — REQ-FIT-DXF-002 referenced. Tag `[REQ-FIT-ARCH-001]`.
 **Implement:** Optional ADR `docs/core/ADRs/0003-composite-dxf-layers.md`; update `nesting_engine/README.md` CLI schema; ROADMAP v1.2 item.
 </step>

@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-19 — v1.1 auto-split shipped (`REQ-FIT-SPLIT-001`, ADR-0002).
+**Last audit:** 2026-05-18 — v1.2 composite DXF layers core shipped (`REQ-FIT-DXF-002`, ADR-0003).
 
-**Next action:** Pending — nesting progress/status bar UX; or optional FastAPI wrapper.
+**Next action:** v1.2 composite + auto-split integration (steps 16–19); or nesting progress/status bar UX.
 
 ---
 
@@ -20,7 +20,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 | P3 | Nesting pipeline | **Complete** |
 | P4 | UX completion & ship | **Complete** |
 | Docs | Core reference docs | **Complete** |
-| P5 / Backlog | v1.1+ | **In progress** (auto-split shipped) |
+| P5 / Backlog | v1.1+ | **In progress** (auto-split + composite core shipped) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
 
@@ -80,6 +80,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 - [x] **Full-sheet libnest2d placement (kerf + obstacles)** — `nest_sheet_with_obstacles`, batch fill in `_place_on_one_sheet`, `_consolidate_sheets` repack, `_inter_sheet_local_search`; invariant tests (REQ-FIT-NEST-002, ADR-0001) — 2026-05-18 — Session: `task_full-sheet-libnest2d-epic.md`
 - [x] **Intra-sheet repack (void closure)** — `_intra_sheet_repack_search` (×2 post-fill/post-consolidate), `score_sheet_layout` / `_layout_better_than`, opportunistic pull from later sheets; peluo DXF fixture + `@pytest.mark.slow` (REQ-FIT-NEST-002, ADR-0001) — 2026-05-17 — Session: `task_intra-sheet-repack.md`
 - [x] **v1.1 — Auto-split** — opt-in orphan resolution (`OrphanResolution`, `SplitProposal`, `DerivedPiece`), `split_planner.py`, `plan_splits` CLI, ephemeral UI, manual CAD path, nest-with-updated-pieces CTA, `split_not_feasible`, cancel/sheet invalidation (REQ-FIT-SPLIT-001, ADR-0002) — 2026-05-19 — Session: `task_v11-auto-split.md`
+- [x] **v1.2 — Composite DXF layers (core)** — `layer_role` primary/auxiliary per file, `composite_extract`, clipped aux in preview, layer-preserved `nested.dxf`, primary-only piece count (REQ-FIT-DXF-002, ADR-0003) — 2026-05-18 — Session: `task_composite-dxf-layers.md`
 
 ---
 
@@ -99,7 +100,7 @@ _(none)_
 
 ### Nesting engine
 
-_(no pending engine items)_
+- [ ] **v1.2 — Composite + auto-split** — `partition_decorations`, derived `decorations_json`, composite `plan_splits` preview and nest of split children (REQ-FIT-DXF-002, REQ-FIT-SPLIT-001) — Depends on: composite core (shipped)
 
 ---
 

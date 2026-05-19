@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 15 next (ADR/README/ROADMAP docs)</current_step>
+    <current_step>3.1 — Plan step 16 next (split composite partition_decorations)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 14 complete (composite layers system smoke). Next: step 15 docs/ADR.</note>
+  <note>Plan step 15 complete (ADR-0003, README, ROADMAP, architecture doc test). Next: step 16 split composite.</note>
 
 </agent_state>
