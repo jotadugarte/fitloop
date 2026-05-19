@@ -199,7 +199,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `nesting_engine/decoration_transform.py` — apply same `rotate(centroid)` + `translate` as primary polygon to each decoration primitive.
 </step>
 
-<step id="10">
+<step id="10" status="pending">
 **Test:** `nesting_engine/tests/test_dxf_output_composite.py` — nested DXF contains original layer names (`CORTE`, `GRABADO`); no forced `PIECES` for composite runs; SHEETS unchanged. Tag `[REQ-FIT-DXF-002]`.
 **Implement:** Extend `dxf_output.write_nested_dxf` / `_add_piece` to emit primary rings on **source primary layer name** + write decoration entities on their layers; ensure layers exist in output doc.
 </step>
