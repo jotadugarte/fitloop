@@ -174,7 +174,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Group layers by attachment in `project_layers/index` (and setup form if shared); radio `primary_layer_id` + auxiliary checkboxes; `ProjectLayerSelection` / controller permit `layer_role`; tooltip ES/EN locked copy.
 </step>
 
-<step id="5">
+<step id="5" status="pending">
 **Test:** `spec/services/nesting/config_builder_spec.rb` — `input_files[]` emits `primary_layer` + `auxiliary_layers`; legacy `included_layers` when no primary. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-DXF-002]`.
 **Implement:** `Nesting::ConfigBuilder#input_files_payload` + union fallback.
 </step>
