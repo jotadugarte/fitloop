@@ -58,11 +58,32 @@ RSpec.describe "Split proposal accept", type: :request do
       post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       project.reload
-      expect(project.session_workflow_log.last).to include(
-        "event" => "split_accepted",
+      accepted_event = project.session_workflow_log.find { |entry| entry["event"] == "split_accepted" }
+      expect(accepted_event).to include(
         "piece_key" => "0",
         "split_proposal_id" => proposal.id
       )
+    end
+
+    it "[REQ-FIT-SPLIT-001] logs splits_ready_for_nest and exposes nest CTA after accept" do
+      project.update!(status: :partial)
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+
+      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+
+      project.reload
+      expect(project.session_workflow_log.last).to include(
+        "event" => "splits_ready_for_nest",
+        "derived_piece_count" => 2
+      )
+
+      get project_path(project)
+      expect(response.body).to include(I18n.t("nesting.nest_updated_pieces"))
+      expect(response.body).to include('data-testid="nest-updated-pieces"')
     end
   end
 end

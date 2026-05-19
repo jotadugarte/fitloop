@@ -10,6 +10,15 @@
                         nested_dxf_project_path(project),
                         class: "btn btn-primary",
                         data: { turbo: false, turbo_frame: "_top", testid: "download-nested-dxf" } %>
+            <% if project.nest_with_updated_pieces_available? %>
+              <%= button_to t("nesting.nest_updated_pieces"),
+                            project_nesting_runs_path(project),
+                            method: :post,
+                            params: { nest_updated_pieces: true },
+                            class: "btn btn-primary",
+                            form: { data: { turbo_frame: "_top" } },
+                            data: { testid: "nest-updated-pieces" } %>
+            <% end %>
             <%= button_to t("nesting.renest"),
                             project_nesting_runs_path(project),
                             method: :post,

@@ -48,6 +48,11 @@ class Project < ApplicationRecord
     BCrypt::Password.new(pin_digest) == candidate.to_s
   end
 
+  # [REQ-FIT-SPLIT-001] Show dedicated re-nest CTA after accepted splits materialize derived pieces.
+  def nest_with_updated_pieces_available?
+    derived_pieces.exists? && (completed? || partial?)
+  end
+
   def self.valid_pin_format?(value)
     value.to_s.match?(/\A\d{6}\z/)
   end

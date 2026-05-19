@@ -253,6 +253,9 @@ es:
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a anidar"
     renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
+    nest_updated_pieces: "Anidar con piezas actualizadas"
+    nest_updated_pieces_started: "Anidado iniciado con las piezas actualizadas de las divisiones aceptadas."
+    nest_updated_pieces_unavailable: "Aún no hay piezas derivadas de divisiones aceptadas para anidar."
     orphans_heading: "Piezas no colocadas"
     orphan_reason:
       oversized_for_sheet: "Demasiado grande para cualquier lámina del inventario"

@@ -51,6 +51,12 @@ module Nesting
         "split_proposal_id" => @proposal.id,
         "at" => Time.current.iso8601
       }
+      log << {
+        "event" => "splits_ready_for_nest",
+        "piece_key" => @orphan_resolution.piece_key,
+        "derived_piece_count" => @project.derived_pieces.count,
+        "at" => Time.current.iso8601
+      }
       @project.update!(session_workflow_log: log)
     end
   end

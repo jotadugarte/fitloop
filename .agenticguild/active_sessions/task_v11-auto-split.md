@@ -285,9 +285,9 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="11" status="complete">**Test:** `spec/services/nesting/config_builder_split_spec.rb` — `excluded_piece_keys`, `derived_pieces` in payload. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::ConfigBuilder` + extractor skip/inject derived polygons.</step>
 
-<step id="12" status="pending">**Test:** `nesting_engine/tests/test_nest_pipeline.py` — nest with `derived_pieces`; cut lines + labels in nested DXF. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Engine merges derived pieces; cut lines in `nested.dxf`; labels Pieza-Na/Nb.</step>
+<step id="12" status="complete">**Test:** `nesting_engine/tests/test_nest_pipeline.py` — nest with `derived_pieces`; cut lines + labels in nested DXF. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Engine merges derived pieces; cut lines in `nested.dxf`; labels Pieza-Na/Nb.</step>
 
-<step id="13" status="pending">**Test:** Request spec — “Anidar con piezas actualizadas” auto-enqueues `NestingJob` (G30). Tags `[REQ-FIT-NEST-004]`, `[REQ-FIT-SPLIT-001]`. **Implement:** CTA + `NestingRunsController` flag from accept handler.</step>
+<step id="13" status="complete">**Test:** Request spec — “Anidar con piezas actualizadas” auto-enqueues `NestingJob` (G30). Tags `[REQ-FIT-NEST-004]`, `[REQ-FIT-SPLIT-001]`. **Implement:** CTA + `NestingRunsController` flag from accept handler.</step>
 
 <step id="14" status="pending">**Test:** System/request — manual 3-step copy (F24); “He actualizado mis DXF” → readiness → `resolved`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-VAL-001]`. **Implement:** i18n `en`/`es`; disabled system button without rings (B5).</step>
 

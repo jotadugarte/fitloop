@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (TDD)</current_phase>
 
-    <current_step>3.1 — Step 12 complete; ready for step 13 (nest CTA auto-enqueue)</current_step>
+    <current_step>3.1 — Step 13 complete; ready for step 14 (manual resolution flow)</current_step>
 
   </execution_context>
 

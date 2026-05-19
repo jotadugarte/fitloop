@@ -18,8 +18,22 @@ class NestingRunsController < ApplicationController
       return
     end
 
-    start_nesting_for!(@project)
-    redirect_to @project
+    nest_updated_pieces = ActiveModel::Type::Boolean.new.cast(params[:nest_updated_pieces])
+    if nest_updated_pieces && @project.derived_pieces.none?
+      redirect_to @project, alert: I18n.t("nesting.nest_updated_pieces_unavailable")
+      return
+    end
+
+    start_nesting_for!(@project, nest_updated_pieces: nest_updated_pieces)
+    notice =
+      if nest_updated_pieces
+        I18n.t("nesting.nest_updated_pieces_started")
+      elsif renesting?(@project)
+        I18n.t("nesting.renest_started")
+      else
+        I18n.t("nesting.started")
+      end
+    redirect_to @project, notice: notice
   end
 
   def cancel

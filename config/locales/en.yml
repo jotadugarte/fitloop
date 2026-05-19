@@ -238,6 +238,9 @@ en:
     time_limit_notice: "Time limit reached. Showing the best result so far."
     renest: "Re-nest"
     renest_started: "Re-nesting started. Previous runs are kept in history."
+    nest_updated_pieces: "Nest with updated pieces"
+    nest_updated_pieces_started: "Nesting started with updated pieces from accepted splits."
+    nest_updated_pieces_unavailable: "No accepted split pieces are available to nest yet."
     orphans_heading: "Pieces not placed"
     orphan_reason:
       oversized_for_sheet: "Too large for any sheet in inventory"

@@ -6,8 +6,10 @@ module StartsNesting
 
   private
 
-  def start_nesting_for!(project)
-    nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
+  def start_nesting_for!(project, nest_updated_pieces: false)
+    snapshot = {}
+    snapshot["nest_updated_pieces"] = true if nest_updated_pieces
+    nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: snapshot)
     project.update!(
       status: :processing,
       progress_percent: 3,
