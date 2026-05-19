@@ -263,89 +263,38 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <implementation_plan>
 
-<step id="1">
-**Test:** Add `spec/models/orphan_resolution_spec.rb` — `OrphanResolution` belongs to ephemeral project; states `pending|system_split|manual|resolved`; unique `piece_key`. Tag `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-DOM-001]`.
-**Implement:** Migration + models `OrphanResolution`, `SplitProposal`, `DerivedPiece`; `projects.session_workflow_log` jsonb default `[]`.
-</step>
+<step id="1" status="complete">**Test:** `spec/models/orphan_resolution_spec.rb` — `OrphanResolution` on ephemeral project; states `pending|system_split|manual|resolved`; unique `piece_key`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-DOM-001]`. **Implement:** Migration + models `OrphanResolution`, `SplitProposal`, `DerivedPiece`; `projects.session_workflow_log` jsonb default `[]`.</step>
 
-<step id="2">
-**Test:** Add `spec/services/nesting/piece_key_builder_spec.rb` — stable key from attachment id + extractor piece id / geometry fingerprint. Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** `Nesting::PieceKeyBuilder` used when persisting orphan rows after nest.
-</step>
+<step id="2" status="pending">**Test:** `spec/services/nesting/piece_key_builder_spec.rb` — stable key from attachment id + extractor piece id / geometry fingerprint. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::PieceKeyBuilder` when persisting orphan rows after nest.</step>
 
-<step id="3">
-**Test:** Expand `docs/core/SPEC.md` — full **REQ-FIT-SPLIT-001** (opt-in orphans, states, ephemeral session, manual copy, CLI modes, `split_not_feasible`). Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** SPEC + workflow note in `DATA_FLOW_MAP.md` (split plan job → accept → nest); ROADMAP unchanged until ship.
-</step>
+<step id="3" status="pending">**Test:** Expand `docs/core/SPEC.md` — full **REQ-FIT-SPLIT-001** (opt-in orphans, states, ephemeral session, manual copy, CLI modes, `split_not_feasible`). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** SPEC + `DATA_FLOW_MAP.md` workflow (split plan job → accept → nest).</step>
 
-<step id="4">
-**Test:** Add `nesting_engine/tests/test_split_planner.py` — rectangle oversized → 2 parts fit largest stock; hole preserved; recursive re-split when child still oversized; failure → `split_not_feasible`. Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** `nesting_engine/split_planner.py` (Shapely; straight cuts any angle; minimize piece count; hole-aware).
-</step>
+<step id="4" status="pending">**Test:** `nesting_engine/tests/test_split_planner.py` — rectangle oversized → 2 parts fit largest stock; hole preserved; recursive re-split; failure → `split_not_feasible`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `nesting_engine/split_planner.py` (Shapely; straight cuts any angle; minimize piece count; hole-aware).</step>
 
-<step id="5">
-**Test:** Add `nesting_engine/tests/test_cli_plan_splits.py` — `config.json` `mode: "plan_splits"` + `piece_keys` → `split_preview.json` with cuts, child rings, labels. Tag `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`.
-**Implement:** Extend `nesting_engine/nest.py` (or `split_cli.py`) for plan mode; document schema in `nesting_engine/README.md`.
-</step>
+<step id="5" status="pending">**Test:** `nesting_engine/tests/test_cli_plan_splits.py` — `mode: "plan_splits"` + `piece_keys` → `split_preview.json`. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Plan mode in `nest.py` or `split_cli.py`; schema in `nesting_engine/README.md`.</step>
 
-<step id="6">
-**Test:** Add `spec/services/nesting/orphans_presenter_spec.rb` — merges latest report orphans with unresolved `OrphanResolution`; excludes `resolved`; disables system_split without rings. Tag `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`.
-**Implement:** Update `Nesting::OrphansPresenter` + presenter structs for `resolution_state`, `system_split_enabled?`.
-</step>
+<step id="6" status="pending">**Test:** `spec/services/nesting/orphans_presenter_spec.rb` — merge report orphans + unresolved `OrphanResolution`; exclude `resolved`; disable system_split without rings. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-NEST-003]`. **Implement:** `Nesting::OrphansPresenter` + `resolution_state`, `system_split_enabled?`.</step>
 
-<step id="7">
-**Test:** Add `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH state `system_split` / `manual` / `pending`; requires workspace session. Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** `OrphanResolutionsController` (or nested under projects) + routes; append `session_workflow_log` events (J43).
-</step>
+<step id="7" status="pending">**Test:** `spec/requests/orphan_resolutions_spec.rb` (ephemeral workspace) — PATCH `system_split` / `manual` / `pending`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `OrphanResolutionsController` + routes; `session_workflow_log` events (J43).</step>
 
-<step id="8">
-**Test:** Add `spec/jobs/nesting_split_plan_job_spec.rb` — enqueues CLI plan mode; stores `SplitProposal` draft with preview geometry. Tag `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`.
-**Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner` (CLI invocation 1); Turbo broadcast preview frame.
-</step>
+<step id="8" status="pending">**Test:** `spec/jobs/nesting_split_plan_job_spec.rb` — CLI plan mode; `SplitProposal` draft with preview geometry. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-JOB-001]`. **Implement:** `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner`; Turbo preview frame.</step>
 
-<step id="9">
-**Test:** Add failing system spec `spec/system/orphan_auto_split_spec.rb` — partial nest → orphan card → choose “Dividir con Fitloop” → preview visible → Aceptar. Tag `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`.
-**Implement:** Extend `_nesting_orphans.html.erb` — badges, per-card toggles, inline SVG preview, Aceptar/Rechazar/Regenerar; Stimulus if needed.
-</step>
+<step id="9" status="pending">**Test:** `spec/system/orphan_auto_split_spec.rb` — partial nest → card → “Dividir con Fitloop” → preview → Aceptar. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-UI-002]`. **Implement:** `_nesting_orphans.html.erb` — badges, toggles, inline SVG, Aceptar/Rechazar/Regenerar.</step>
 
-<step id="10">
-**Test:** Request spec — Aceptar split creates `DerivedPiece` rows, sets mother `piece_key` excluded, marks resolution `resolved` for accepted path / keeps `system_split` until accept; logs session event. Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; materialize children; invalidate drafts on sheet stock change (G32).
-</step>
+<step id="10" status="pending">**Test:** Request spec — accept creates `DerivedPiece`, excludes mother `piece_key`, logs session event. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `SplitProposalsController#accept` / `#reject` / `#regenerate`; invalidate drafts on sheet stock change (G32).</step>
 
-<step id="11">
-**Test:** Add `spec/services/nesting/config_builder_split_spec.rb` — payload includes `excluded_piece_keys`, `derived_pieces` geometry. Tag `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`.
-**Implement:** Extend `Nesting::ConfigBuilder` + extractor pipeline to skip excluded mothers and inject derived polygons.
-</step>
+<step id="11" status="pending">**Test:** `spec/services/nesting/config_builder_split_spec.rb` — `excluded_piece_keys`, `derived_pieces` in payload. Tags `[REQ-FIT-CLI-001]`, `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::ConfigBuilder` + extractor skip/inject derived polygons.</step>
 
-<step id="12">
-**Test:** Extend `nesting_engine/tests/test_nest_pipeline.py` — nest with `derived_pieces` places children; cut lines + labels in nested DXF output keys. Tag `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`.
-**Implement:** Engine nest path merges derived pieces; emit cut lines in `nested.dxf`; labels Pieza-Na/Nb in report/placements metadata.
-</step>
+<step id="12" status="pending">**Test:** `nesting_engine/tests/test_nest_pipeline.py` — nest with `derived_pieces`; cut lines + labels in nested DXF. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`. **Implement:** Engine merges derived pieces; cut lines in `nested.dxf`; labels Pieza-Na/Nb.</step>
 
-<step id="13">
-**Test:** Request spec — after accept, POST “Anidar con piezas actualizadas” enqueues `NestingJob` automatically (G30). Tag `[REQ-FIT-NEST-004]`, `[REQ-FIT-SPLIT-001]`.
-**Implement:** CTA + `NestingRunsController` flag; wire from accept handler when pending splits cleared.
-</step>
+<step id="13" status="pending">**Test:** Request spec — “Anidar con piezas actualizadas” auto-enqueues `NestingJob` (G30). Tags `[REQ-FIT-NEST-004]`, `[REQ-FIT-SPLIT-001]`. **Implement:** CTA + `NestingRunsController` flag from accept handler.</step>
 
-<step id="14">
-**Test:** System/request spec — manual card shows explicit 3-step copy (F24); “He actualizado mis DXF” runs readiness; mother absent → `resolved`. Tag `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-VAL-001]`.
-**Implement:** i18n `en`/`es` for manual path, disabled system button without rings (B5), duplicate-geometry optional warning copy.
-</step>
+<step id="14" status="pending">**Test:** System/request — manual 3-step copy (F24); “He actualizado mis DXF” → readiness → `resolved`. Tags `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-VAL-001]`. **Implement:** i18n `en`/`es`; disabled system button without rings (B5).</step>
 
-<step id="15">
-**Test:** `nesting_engine/tests/test_split_planner.py` — mark any reason → planner runs; `split_not_feasible` in preview response (J40). Tag `[REQ-FIT-SPLIT-001]`.
-**Implement:** Surface `split_not_feasible` in `split_preview.json` + orphan card error state (J41 allowed).
-</step>
+<step id="15" status="pending">**Test:** `test_split_planner.py` — any reason → planner runs; `split_not_feasible` in preview (J40). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** Surface in `split_preview.json` + orphan card error state.</step>
 
-<step id="16">
-**Test:** Job spec — cancel nesting invalidates draft `SplitProposal` for that run (J42). Tag `[REQ-FIT-JOB-001]`.
-**Implement:** `Nesting::JobRunner` cancel hook clears stale drafts tied to `nesting_run_id`.
-</step>
+<step id="16" status="pending">**Test:** Job spec — cancel nesting invalidates draft `SplitProposal` (J42). Tag `[REQ-FIT-JOB-001]`. **Implement:** Cancel hook on `Nesting::JobRunner` clears stale drafts.</step>
 
-<step id="17">
-**Test:** Run targeted RSpec + `pytest nesting_engine/tests -q -m "not slow"`; architecture doc test if SPEC anchors added.
-**Implement:** Mark `docs/ROADMAP.md` v1.1 auto-split done when merged; optional ADR `docs/core/ADRs/0002-auto-split.md` if split algorithm needs normative record.
-</step>
+<step id="17" status="pending">**Test:** Targeted RSpec + `pytest nesting_engine/tests -q -m "not slow"`. **Implement:** Mark ROADMAP v1.1 auto-split done; optional ADR `0002-auto-split.md`.</step>
 
 </implementation_plan>

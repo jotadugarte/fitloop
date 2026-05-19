@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_17_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_140000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "derived_pieces", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "geometry_json", default: {}, null: false
+    t.string "label", null: false
+    t.string "parent_piece_key", null: false
+    t.bigint "project_id", null: false
+    t.integer "sort_order", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_derived_pieces_on_project_id"
+  end
+
   create_table "nesting_runs", force: :cascade do |t|
     t.datetime "cancel_requested_at"
     t.datetime "created_at", null: false
@@ -53,6 +64,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_140000) do
     t.string "status", default: "processing", null: false
     t.datetime "updated_at", null: false
     t.index ["project_id"], name: "index_nesting_runs_on_project_id"
+  end
+
+  create_table "orphan_resolutions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "last_nesting_run_id"
+    t.string "piece_key", null: false
+    t.bigint "project_id", null: false
+    t.string "reason"
+    t.string "resolution_state", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["last_nesting_run_id"], name: "index_orphan_resolutions_on_last_nesting_run_id"
+    t.index ["project_id", "piece_key"], name: "index_orphan_resolutions_on_project_id_and_piece_key", unique: true
+    t.index ["project_id"], name: "index_orphan_resolutions_on_project_id"
   end
 
   create_table "project_layers", force: :cascade do |t|
@@ -79,6 +103,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_140000) do
     t.string "pin_digest"
     t.string "progress_message"
     t.integer "progress_percent"
+    t.jsonb "session_workflow_log", default: [], null: false
     t.float "sheet_gap_mm", default: 15.0, null: false
     t.string "status", default: "draft", null: false
     t.string "title", null: false
@@ -96,9 +121,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_17_140000) do
     t.index ["project_id"], name: "index_sheet_stocks_on_project_id"
   end
 
+  create_table "split_proposals", force: :cascade do |t|
+    t.jsonb "child_piece_geometries", default: [], null: false
+    t.datetime "created_at", null: false
+    t.jsonb "cut_segments", default: [], null: false
+    t.jsonb "labels", default: [], null: false
+    t.bigint "orphan_resolution_id", null: false
+    t.string "status", default: "draft", null: false
+    t.datetime "updated_at", null: false
+    t.integer "version", default: 1, null: false
+    t.index ["orphan_resolution_id"], name: "index_split_proposals_on_orphan_resolution_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "derived_pieces", "projects"
   add_foreign_key "nesting_runs", "projects"
+  add_foreign_key "orphan_resolutions", "nesting_runs", column: "last_nesting_run_id"
+  add_foreign_key "orphan_resolutions", "projects"
   add_foreign_key "project_layers", "projects"
   add_foreign_key "sheet_stocks", "projects"
+  add_foreign_key "split_proposals", "orphan_resolutions"
 end

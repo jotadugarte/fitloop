@@ -11,6 +11,8 @@ class Project < ApplicationRecord
   accepts_nested_attributes_for :sheet_stocks, allow_destroy: true
   has_many :project_layers, dependent: :destroy, inverse_of: :project
   has_many :nesting_runs, dependent: :destroy, inverse_of: :project
+  has_many :orphan_resolutions, dependent: :destroy, inverse_of: :project
+  has_many :derived_pieces, dependent: :destroy, inverse_of: :project
   has_many_attached :input_dxf
   has_one_attached :nested_dxf
   has_one_attached :placements_json
