@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 18 next (derived decorations_json Rails)</current_step>
+    <current_step>3.1 — Plan step 19 next (nest pipeline derived composite e2e)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 17 complete (CLI plan_splits composite decorations). Next: step 18 derived decorations_json.</note>
+  <note>Plan step 18 complete (derived decorations_json). Next: step 19 nest pipeline derived composite.</note>
 
 </agent_state>

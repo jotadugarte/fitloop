@@ -108,12 +108,17 @@ module Nesting
 
     def derived_pieces_payload
       @project.derived_pieces.order(:sort_order).map do |piece|
-        {
+        payload = {
           parent_piece_key: piece.parent_piece_key,
           label: piece.label,
           sort_order: piece.sort_order,
           rings: piece.geometry_json.fetch("rings")
         }
+        decorations = Array(piece.decorations_json)
+        payload[:decorations] = decorations if decorations.any?
+        primary_layer = piece.geometry_json["primary_layer_name"]
+        payload[:primary_layer_name] = primary_layer if primary_layer.present?
+        payload
       end
     end
 

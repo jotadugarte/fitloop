@@ -64,6 +64,54 @@ RSpec.describe Nesting::ConfigBuilder do
       expect(payload.fetch(:split_cut_segments)).to eq([ [ [ 80.0, 0.0 ], [ 80.0, 40.0 ] ] ])
     end
 
+    it "[REQ-FIT-DXF-002] [REQ-FIT-SPLIT-001] includes decorations and primary_layer_name for derived pieces" do
+      project = Project.create!(
+        ephemeral: true,
+        status: :ready,
+        title: "Split config composite",
+        kerf_mm: 0,
+        margin_mm: 5,
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
+        }
+      )
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :resolved
+      )
+      project.derived_pieces.create!(
+        parent_piece_key: "0",
+        label: "Pieza-1a",
+        geometry_json: {
+          "rings" => [ [ [ 0.0, 0.0 ], [ 80.0, 0.0 ], [ 80.0, 40.0 ], [ 0.0, 40.0 ] ] ],
+          "primary_layer_name" => "CORTE"
+        },
+        decorations_json: [
+          {
+            "layer_name" => "GRABADO",
+            "geometry_type" => "line",
+            "payload" => { "coordinates" => [ [ 5.0, 20.0 ], [ 75.0, 20.0 ] ] }
+          }
+        ],
+        sort_order: 0
+      )
+
+      payload = described_class.build(
+        project: project,
+        work_dir: Rails.root.join("tmp/test_config_builder_split_decorations"),
+        input_paths: []
+      )
+
+      derived = payload.fetch(:derived_pieces).sole
+      expect(derived.fetch(:primary_layer_name)).to eq("CORTE")
+      expect(derived.fetch(:decorations).sole).to include(
+        "layer_name" => "GRABADO",
+        "geometry_type" => "line"
+      )
+    end
+
     it "[REQ-FIT-SPLIT-001] omits split keys when no derived pieces exist" do
       project = Project.create!(
         ephemeral: true,

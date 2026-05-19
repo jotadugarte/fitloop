@@ -28,16 +28,28 @@ module Nesting
 
     def materialize_derived_pieces!
       @project.derived_pieces.where(parent_piece_key: @orphan_resolution.piece_key).delete_all
+      primary_layer = mother_primary_layer_name
 
       Array(@proposal.child_piece_geometries).each_with_index do |child, index|
         suffix = child["label"].presence || @proposal.labels.fetch(index)
+        geometry_json = { "rings" => child.fetch("rings") }
+        geometry_json["primary_layer_name"] = primary_layer if primary_layer.present?
+
         @project.derived_pieces.create!(
           parent_piece_key: @orphan_resolution.piece_key,
           label: piece_label(suffix),
-          geometry_json: { "rings" => child.fetch("rings") },
+          geometry_json: geometry_json,
+          decorations_json: Array(child["decorations"]),
           sort_order: index
         )
       end
+    end
+
+    def mother_primary_layer_name
+      @mother_primary_layer_name ||= @project.project_layers.find_by(
+        included: true,
+        layer_role: :primary
+      )&.layer_name.to_s.presence
     end
 
     def piece_label(suffix)

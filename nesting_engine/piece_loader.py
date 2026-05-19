@@ -6,7 +6,11 @@ from pathlib import Path
 
 from shapely.geometry import Polygon
 
-from nesting_engine.composite_extract import CompositePiece, load_composite_pieces
+from nesting_engine.composite_extract import (
+    CompositePiece,
+    DecorationEntity,
+    load_composite_pieces,
+)
 from nesting_engine.extract import extract_closed_contours
 from nesting_engine.nest_placement import Placement
 from nesting_engine.nest_types import PlacedPiece
@@ -133,6 +137,37 @@ def _derived_pieces_from_config(config: dict) -> list:
         exterior = rings[0]
         holes = rings[1:] if len(rings) > 1 else []
         polygon = Polygon(exterior, holes)
-        if not polygon.is_empty:
+        if polygon.is_empty:
+            continue
+
+        decorations = _decorations_from_config_entry(entry)
+        primary_layer = str(entry.get("primary_layer_name") or "")
+        if decorations or primary_layer:
+            derived.append(
+                CompositePiece(
+                    polygon=polygon,
+                    decorations=decorations,
+                    primary_layer_name=primary_layer,
+                )
+            )
+        else:
             derived.append(polygon)
     return derived
+
+
+def _decorations_from_config_entry(entry: dict) -> list[DecorationEntity]:
+    decorations: list[DecorationEntity] = []
+    for row in entry.get("decorations") or []:
+        layer_name = row.get("layer_name")
+        geometry_type = row.get("geometry_type")
+        payload = row.get("payload")
+        if not layer_name or not geometry_type or not isinstance(payload, dict):
+            continue
+        decorations.append(
+            DecorationEntity(
+                layer_name=str(layer_name),
+                geometry_type=str(geometry_type),
+                payload=dict(payload),
+            )
+        )
+    return decorations

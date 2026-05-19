@@ -39,6 +39,60 @@ RSpec.describe "Split proposal accept", type: :request do
       )
     end
 
+    it "[REQ-FIT-DXF-002] [REQ-FIT-SPLIT-001] persists decorations_json from split preview children" do
+      project.project_layers.create!(
+        layer_name: "CORTE",
+        included: true,
+        layer_role: :primary
+      )
+      proposal.update!(
+        child_piece_geometries: [
+          {
+            "label" => "a",
+            "rings" => [ [ [ 0.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 50.0 ], [ 0.0, 50.0 ] ] ],
+            "decorations" => [
+              {
+                "layer_name" => "GRABADO",
+                "geometry_type" => "line",
+                "payload" => { "coordinates" => [ [ 10.0, 25.0 ], [ 90.0, 25.0 ] ] }
+              }
+            ]
+          },
+          {
+            "label" => "b",
+            "rings" => [ [ [ 100.0, 0.0 ], [ 200.0, 0.0 ], [ 200.0, 50.0 ], [ 100.0, 50.0 ] ] ],
+            "decorations" => [
+              {
+                "layer_name" => "GRABADO",
+                "geometry_type" => "line",
+                "payload" => { "coordinates" => [ [ 110.0, 25.0 ], [ 190.0, 25.0 ] ] }
+              }
+            ]
+          }
+        ]
+      )
+
+      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+
+      derived = project.derived_pieces.order(:sort_order)
+      expect(derived.map(&:decorations_json)).to all(be_present)
+      expect(derived.first.decorations_json.first).to include(
+        "layer_name" => "GRABADO",
+        "geometry_type" => "line"
+      )
+      expect(derived.first.geometry_json["primary_layer_name"]).to eq("CORTE")
+
+      payload = Nesting::ConfigBuilder.build(
+        project: project.reload,
+        work_dir: Rails.root.join("tmp/test_split_accept_decorations"),
+        input_paths: []
+      )
+      expect(payload.fetch(:derived_pieces).first).to include(
+        primary_layer_name: "CORTE"
+      )
+      expect(payload.fetch(:derived_pieces).first.fetch(:decorations)).to be_present
+    end
+
     it "[REQ-FIT-SPLIT-001] materializes DerivedPiece rows and resolves the mother orphan" do
       post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
