@@ -48,11 +48,37 @@ module Nesting
     def input_files_payload
       attachments = @project.input_dxf_attachments.to_a
       @input_paths.map(&:to_s).zip(attachments).map do |path, attachment|
-        {
-          path: path,
-          included_layers: included_layers_for(attachment)
-        }
+        file_entry = { path: path }
+        merge_layer_config_for_file!(file_entry, attachment)
+        file_entry
       end
+    end
+
+    def merge_layer_config_for_file!(file_entry, attachment)
+      primary = primary_layer_for(attachment)
+      if primary
+        file_entry[:primary_layer] = primary.layer_name
+        auxiliary = auxiliary_layers_for(attachment)
+        file_entry[:auxiliary_layers] = auxiliary if auxiliary.any?
+        return
+      end
+
+      file_entry[:included_layers] = included_layers_for(attachment)
+    end
+
+    def primary_layer_for(attachment)
+      @project.project_layers.find_by(
+        active_storage_attachment_id: attachment.id,
+        included: true,
+        layer_role: :primary
+      )
+    end
+
+    def auxiliary_layers_for(attachment)
+      @project.project_layers
+        .where(included: true, active_storage_attachment_id: attachment.id, layer_role: :auxiliary)
+        .order(:layer_name)
+        .pluck(:layer_name)
     end
 
     def included_layers_for(attachment)

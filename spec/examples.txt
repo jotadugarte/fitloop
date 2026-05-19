@@ -121,11 +121,11 @@ example_id                                                              | status
 ./spec/services/nesting/apply_cancel_split_previews_spec.rb[1:1:1]      | passed  | 0.25396 seconds |
 ./spec/services/nesting/apply_cancel_split_previews_spec.rb[1:1:2]      | passed  | 0.21743 seconds |
 ./spec/services/nesting/cli_runner_spec.rb[1:1:1]                       | failed  | 0.10566 seconds |
-./spec/services/nesting/config_builder_spec.rb[1:1:1]                   | failed  | 0.4881 seconds  |
-./spec/services/nesting/config_builder_spec.rb[1:1:2]                   | passed  | 0.78326 seconds |
-./spec/services/nesting/config_builder_spec.rb[1:2]                     | unknown |                 |
-./spec/services/nesting/config_builder_split_spec.rb[1:1:1]             | passed  | 0.06084 seconds |
-./spec/services/nesting/config_builder_split_spec.rb[1:1:2]             | passed  | 0.02108 seconds |
+./spec/services/nesting/config_builder_spec.rb[1:1:1]                   | passed  | 0.60085 seconds |
+./spec/services/nesting/config_builder_spec.rb[1:1:2]                   | passed  | 0.6908 seconds  |
+./spec/services/nesting/config_builder_spec.rb[1:2]                     | passed  | 0.3351 seconds  |
+./spec/services/nesting/config_builder_split_spec.rb[1:1:1]             | passed  | 0.32416 seconds |
+./spec/services/nesting/config_builder_split_spec.rb[1:1:2]             | passed  | 0.01007 seconds |
 ./spec/services/nesting/confirm_manual_orphan_resolution_spec.rb[1:1]   | passed  | 1.96 seconds    |
 ./spec/services/nesting/job_runner_spec.rb[1:1:1]                       | passed  | 0.21878 seconds |
 ./spec/services/nesting/job_runner_spec.rb[1:1:2]                       | passed  | 0.24727 seconds |
