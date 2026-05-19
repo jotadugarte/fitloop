@@ -244,7 +244,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** Migration `derived_pieces.decorations_json` (jsonb default `[]`); `MaterializeSplitProposal`; `ConfigBuilder#derived_pieces_payload`; `piece_loader._derived_pieces_from_config` attaches decorations.
 </step>
 
-<step id="19">
+<step id="19" status="complete">
 **Test:** `nesting_engine/tests/test_nest_pipeline_composite.py` (extend) — nest with derived composite children post-split; nested DXF has per-child aux on original layers after placement. Tags `[REQ-FIT-NEST-002]`, `[REQ-FIT-SPLIT-001]`, `[REQ-FIT-DXF-002]`.
 **Implement:** End-to-end split → accept → nest updated pieces; invariant tests only.
 </step>

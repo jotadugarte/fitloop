@@ -94,3 +94,120 @@ def test_run_from_config_nests_composite_pieces_with_original_layers(tmp_path: P
 
     grabado_entities = [entity for entity in modelspace if entity.dxf.layer == GRABADO]
     assert len(grabado_entities) >= 3
+
+
+def _write_oversized_mother_dxf(path: Path) -> None:
+    doc = ezdxf.new("R2010")
+    msp = doc.modelspace()
+    msp.add_lwpolyline(
+        [(0, 0), (200, 0), (200, 80), (0, 80)],
+        close=True,
+        dxfattribs={"layer": CORTE},
+    )
+    msp.add_line((10, 40), (190, 40), dxfattribs={"layer": GRABADO})
+    doc.saveas(path)
+
+
+def test_nest_with_derived_composite_children_preserves_auxiliary_layers(tmp_path: Path) -> None:
+    """[REQ-FIT-NEST-002] [REQ-FIT-SPLIT-001] [REQ-FIT-DXF-002] Post-split derived children keep layer names."""
+    dxf_path = tmp_path / "mother-oversized.dxf"
+    output_dir = tmp_path / "output"
+    _write_oversized_mother_dxf(dxf_path)
+
+    run_from_config(
+        {
+            "project_id": "composite-derived",
+            "curve_tolerance_mm": 0.25,
+            "input_files": [
+                {
+                    "path": str(dxf_path),
+                    "primary_layer": CORTE,
+                    "auxiliary_layers": [GRABADO],
+                }
+            ],
+            "excluded_piece_keys": ["0"],
+            "derived_pieces": [
+                {
+                    "parent_piece_key": "0",
+                    "label": "Pieza-1a",
+                    "sort_order": 0,
+                    "primary_layer_name": CORTE,
+                    "rings": [
+                        [
+                            [0.0, 0.0],
+                            [100.0, 0.0],
+                            [100.0, 80.0],
+                            [0.0, 80.0],
+                        ]
+                    ],
+                    "decorations": [
+                        {
+                            "layer_name": GRABADO,
+                            "geometry_type": "line",
+                            "payload": {
+                                "coordinates": [[10.0, 40.0], [90.0, 40.0]],
+                            },
+                        }
+                    ],
+                },
+                {
+                    "parent_piece_key": "0",
+                    "label": "Pieza-1b",
+                    "sort_order": 1,
+                    "primary_layer_name": CORTE,
+                    "rings": [
+                        [
+                            [100.0, 0.0],
+                            [200.0, 0.0],
+                            [200.0, 80.0],
+                            [100.0, 80.0],
+                        ]
+                    ],
+                    "decorations": [
+                        {
+                            "layer_name": GRABADO,
+                            "geometry_type": "line",
+                            "payload": {
+                                "coordinates": [[110.0, 40.0], [190.0, 40.0]],
+                            },
+                        }
+                    ],
+                },
+            ],
+            "sheet_stocks": [
+                {"width_mm": 250.0, "height_mm": 120.0, "quantity": 1, "sort_order": 0}
+            ],
+            "kerf_mm": 2.0,
+            "margin_mm": 5.0,
+            "sheet_gap_mm": 15.0,
+            "time_limit_sec": 60,
+            "output_dir": str(output_dir),
+        }
+    )
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "completed"
+    assert placements["orphans"] == []
+    assert len(placements["sheets"]) == 1
+    assert len(placements["sheets"][0]["pieces"]) == 2
+
+    placed_labels = {
+        piece["label"]
+        for piece in placements["sheets"][0]["pieces"]
+        if "label" in piece
+    }
+    assert placed_labels == {"Pieza-1a", "Pieza-1b"}
+
+    doc = ezdxf.readfile(output_dir / "nested.dxf")
+    layer_names = {layer.dxf.name for layer in doc.layers}
+    assert CORTE in layer_names
+    assert GRABADO in layer_names
+    assert "PIECES" not in layer_names
+
+    modelspace = list(doc.modelspace())
+    grabado_entities = [entity for entity in modelspace if entity.dxf.layer == GRABADO]
+    corte_entities = [entity for entity in modelspace if entity.dxf.layer == CORTE]
+    assert len(corte_entities) >= 2
+    assert len(grabado_entities) >= 2
