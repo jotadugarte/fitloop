@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 8 next (piece_loader composite)</current_step>
+    <current_step>3.1 — Failing test for plan step 8 (piece_loader composite)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 7 complete (ARC/CIRCLE/INSERT/hole handlers). Next: step 8 piece_loader.</note>
+  <note>Plan step 8 piece_loader pytest written (red). Awaiting approval before wiring composite_extract.</note>
 
 </agent_state>
