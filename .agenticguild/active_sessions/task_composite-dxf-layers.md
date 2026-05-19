@@ -219,7 +219,7 @@ A single DXF can have **n layers** with different roles: cut polygons (nesting p
 **Implement:** `dxf_preview.py` + Rails preview builder: include clipped aux geometry per included attachment.
 </step>
 
-<step id="14">
+<step id="14" status="complete">
 **Test:** `spec/system/project_layers_composite_spec.rb` — select primary + aux → nest → download nested DXF; layers preserved (smoke). Tags `[REQ-FIT-DXF-002]`, `[REQ-FIT-UI-001]`.
 **Implement:** System spec + any Stimulus/CSS for grouped layer UI (`data-testid` primary-layer-radio).
 </step>

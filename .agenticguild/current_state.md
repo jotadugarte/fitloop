@@ -4,16 +4,16 @@
 
   <execution_context>
 
-    <active_skill>roadmap-manage</active_skill>
+    <active_skill>start-task</active_skill>
 
-    <current_phase>1 — Manage Roadmap</current_phase>
+    <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>1.2 — Roadmap updated (complete)</current_step>
+    <current_step>3.1 — Plan step 15 next (ADR/README/ROADMAP docs)</current_step>
 
   </execution_context>
 
-  <roadmap_item>Remove PIN from app (Pending)</roadmap_item>
+  <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Added pending item to docs/ROADMAP.md. Prior start-task context: v1.2 composite DXF layers.</note>
+  <note>Plan step 14 complete (composite layers system smoke). Next: step 15 docs/ADR.</note>
 
 </agent_state>
