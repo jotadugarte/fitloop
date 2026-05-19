@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 3 next (ProjectReadinessValidator)</current_step>
+    <current_step>3.1 — Failing test for plan step 3 (readiness primary required)</current_step>
 
   </execution_context>
 
   <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
 
-  <note>Plan step 2 complete (SPEC REQ-FIT-DXF-002 + DATA_FLOW_MAP §9). Next: step 3 readiness validator.</note>
+  <note>Plan step 3 readiness specs written (red). Awaiting approval before validator + i18n.</note>
 
 </agent_state>
