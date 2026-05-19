@@ -121,7 +121,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
 | **REQ-FIT-UI-005** | Locale switcher in layout: EN/ES toggle; `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
-| **REQ-FIT-SPLIT-001** | Auto-split oversized pieces (v1.1 backlog) | P5 |
+| **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 
 ### REQ-FIT-AUTH-001 (detail)
 
@@ -154,7 +154,41 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **`completed`:** all extractable pieces placed within time limit.
 - **`partial`:** time cap reached or some orphans; best-so-far nested DXF + orphan list in report.
 - **`failed`:** unrecoverable error (e.g. validation, CLI crash, no usable geometry).
-- v1: oversized-for-sheet pieces → **orphans** (no auto-split).
+- v1: oversized-for-sheet pieces → **orphans** (no auto-split). v1.1 adds opt-in resolution per `REQ-FIT-SPLIT-001`.
+
+### REQ-FIT-SPLIT-001 (detail)
+
+**Scope:** v1.1 feature for **ephemeral** workspace projects (`Project#ephemeral?`). After a `partial` nest (or when unresolved orphans remain visible in-session), the user resolves each orphan **opt-in** via per-card actions—no automatic splitting.
+
+**Identity:** `Nesting::PieceKey` (stable string, e.g. `{blob_id}:piece-{index}` or `{blob_id}:fp-{fingerprint}`) keys `OrphanResolution#piece_key` across re-nests; do not rely on `piece_index` alone.
+
+**Rails models:**
+
+- **`OrphanResolution`** (`project_id`, `piece_key`, `resolution_state`, `reason` snapshot, optional `last_nesting_run_id`). States: `pending`, `system_split`, `manual`, `resolved`. One active row per `piece_key` per project. `resolved` orphans do not reappear in later runs for the same key.
+- **`SplitProposal`** (belongs to `OrphanResolution`): `draft` | `accepted` | `rejected`; JSON `cut_segments`, `child_piece_geometries`, `labels`; `version` for regenerate-after-reject.
+- **`DerivedPiece`** (`project_id`, `parent_piece_key`, `label` e.g. Pieza-3a, `geometry_json`, `sort_order`): nestable children after accept.
+- **`Project#session_workflow_log`**: append-only JSON array for in-session audit (`splits_applied`, `split_rejected`); not a multi-day history product.
+
+**User workflow (post-job UI on `project#show`):**
+
+1. Orphan cards show badge + choice: leave **`pending`**, **Dividir con Fitloop** (`system_split`), or **Resolver manualmente** (`manual`). User may change mind before materializing.
+2. **`system_split`:** enqueue split plan job → mandatory **preview** (inline SVG from engine geometry) → **Aceptar** / **Rechazar** / **Regenerar** per orphan. Accept materializes `DerivedPiece` rows and excludes the mother from nest input.
+3. **`manual`:** explicit copy—edit CAD off-app, remove mother geometry, upload corrected DXF; **“He actualizado mis DXF”** runs pre-flight; auto-`resolved` when mother no longer extracts.
+4. When all targeted splits are accepted (or user is ready), CTA **“Anidar con piezas actualizadas”** auto-enqueues a normal nest (not only generic re-nest).
+5. System split offered for `oversized_for_sheet` and `no_sheet_capacity` when exportable `rings` exist; disabled without rings. No “add sheet” shortcut from orphan UI—user edits `SheetStock` inventory and re-nests. Sheet inventory changes invalidate draft `SplitProposal` rows.
+
+**Engine (`nesting_engine/split_planner.py`):** straight cuts at any angle; preserve holes; minimize sub-piece count; recursive re-split until each child fits largest applicable stock or emit **`split_not_feasible`**. Kerf applies only during nest placement, **not** on the split cut plane. Cut lines and labels (Pieza-Na/Nb) appear in **`nested.dxf`** on successful nest with derived pieces.
+
+**CLI (two invocations, same `config.json` schema extensions):**
+
+| Mode | `config.json` | Output |
+|------|---------------|--------|
+| Plan | `"mode": "plan_splits"`, `piece_keys[]` (and piece geometry refs as needed) | `split_preview.json` (cuts, child outlines, labels; may include `split_not_feasible` per key) |
+| Nest | normal nest fields + `excluded_piece_keys[]`, `derived_pieces[]` | `nested.dxf`, `placements.json`, `report.json` |
+
+Rails: `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner` for plan mode; `Nesting::ConfigBuilder` merges exclusions and derived geometry for nest mode. Cancel of an in-flight nesting run invalidates draft proposals tied to that run.
+
+**Out of v1.1:** in-app DXF editing, bulk orphan actions, PIN changes for split, persistent cross-session orphan history UI.
 
 ---
 
@@ -193,7 +227,6 @@ Full JSON schema to be maintained in `nesting_engine/README.md` when the package
 
 ## Out of scope (v1)
 
-- Auto-split oversized pieces → v1.1 (`REQ-FIT-SPLIT-001`)
 - FastAPI microservice wrapper
 - Hard caps on file size / piece count
 - User PIN recovery flow

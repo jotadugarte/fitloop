@@ -141,6 +141,38 @@ No Action Cable caching layer; HTML fragments are source of truth after each bro
 
 ---
 
+## 8. Auto-split workflow (W6)
+
+Post-`partial` nest, ephemeral workspace users resolve orphans before the next nest. State persists in PostgreSQL keyed by `Nesting::PieceKey`.
+
+```
+project#show (orphan cards, post-job)
+  → PATCH OrphanResolution (pending | system_split | manual)
+  → [system_split] POST enqueue Nesting::SplitPlanJob
+       → Nesting::SplitPlannerRunner → CLI mode plan_splits
+       → split_preview.json → SplitProposal (draft) + Turbo preview SVG
+  → POST SplitProposals#accept | #reject | #regenerate (per orphan)
+       → accept: DerivedPiece rows, mother piece_key in excluded_piece_keys, OrphanResolution → resolved
+       → append projects.session_workflow_log
+  → POST “Anidar con piezas actualizadas”
+       → NestingRunsController#create (auto-enqueue)
+       → Nesting::ConfigBuilder adds excluded_piece_keys, derived_pieces
+       → Nesting::JobRunner → normal nest CLI
+       → nested.dxf includes cut lines + child labels when splits applied
+```
+
+| Entity | Lifecycle notes |
+|--------|-----------------|
+| `OrphanResolution` | Created/updated when user chooses resolution; `resolved` suppresses re-reporting same `piece_key` |
+| `SplitProposal` | `draft` during preview; `accepted`/`rejected` terminal; invalidated on sheet stock change or nest cancel |
+| `DerivedPiece` | Materialized on accept; fed into extractor/nest; mother geometry skipped via `excluded_piece_keys` |
+
+**Manual path:** user downloads guidance, edits CAD off-app, uploads new DXF, clicks readiness CTA → `ProjectReadinessValidator` → `resolved` when mother no longer in extract set.
+
+**Forbidden:** auto-split without user opt-in; nest with accepted splits but mother still in extract set; plan_splits math in Ruby.
+
+---
+
 ## 7. Forbidden Shortcuts
 
 - Do not write to `nested.dxf` from Rails — CLI only.

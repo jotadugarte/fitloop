@@ -267,7 +267,7 @@ Tras un nest con huérfanos, el usuario revisa tarjetas por pieza y elige **spli
 
 <step id="2" status="complete">**Test:** `spec/services/nesting/piece_key_builder_spec.rb` — stable key from attachment id + extractor piece id / geometry fingerprint. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `Nesting::PieceKeyBuilder` when persisting orphan rows after nest.</step>
 
-<step id="3" status="pending">**Test:** Expand `docs/core/SPEC.md` — full **REQ-FIT-SPLIT-001** (opt-in orphans, states, ephemeral session, manual copy, CLI modes, `split_not_feasible`). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** SPEC + `DATA_FLOW_MAP.md` workflow (split plan job → accept → nest).</step>
+<step id="3" status="complete">**Test:** Expand `docs/core/SPEC.md` — full **REQ-FIT-SPLIT-001** (opt-in orphans, states, ephemeral session, manual copy, CLI modes, `split_not_feasible`). Tag `[REQ-FIT-SPLIT-001]`. **Implement:** SPEC + `DATA_FLOW_MAP.md` workflow (split plan job → accept → nest).</step>
 
 <step id="4" status="pending">**Test:** `nesting_engine/tests/test_split_planner.py` — rectangle oversized → 2 parts fit largest stock; hole preserved; recursive re-split; failure → `split_not_feasible`. Tag `[REQ-FIT-SPLIT-001]`. **Implement:** `nesting_engine/split_planner.py` (Shapely; straight cuts any angle; minimize piece count; hole-aware).</step>
 
