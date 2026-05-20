@@ -189,7 +189,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `CliRunner#run_cli!` polls `work_dir/output/progress.json` each iteration; call `ProgressSync`; respect `cancel_check`.
 </step>
 
-<step id="7">
+<step id="7" status="complete">
 **Test:** Extend `spec/services/nesting/job_runner_spec.rb` — pre-CLI phases use new i18n keys (`nesting.phase.preparing`, `nesting.phase.starting`); no duplicate stale 5%/15% only. Tag `[REQ-FIT-JOB-001]`.
 **Implement:** Adjust `JobRunner` progress calls to align with D1; remove conflicting percent jumps.
 </step>

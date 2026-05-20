@@ -101,6 +101,39 @@ RSpec.describe Nesting::JobRunner do
       described_class.call(nesting_run: nesting_run)
     end
 
+    it "uses pre-CLI phase label before invoking the CLI [REQ-FIT-JOB-001]" do
+      allow(Nesting::CliRunner).to receive(:call)
+      project.update!(progress_percent: 8, progress_message: I18n.t("nesting.phase.preparing"))
+      runner = described_class.new(nesting_run: nesting_run)
+      allow(runner).to receive(:update_progress!).and_call_original
+
+      runner.call
+
+      expect(runner).to have_received(:update_progress!).with(
+        percent: 12,
+        message: I18n.t("nesting.phase.starting")
+      )
+    end
+
+    it "does not leave stale 5%/15% pre-CLI progress ticks" do
+      allow(Nesting::CliRunner).to receive(:call)
+      runner = described_class.new(nesting_run: nesting_run)
+      allow(runner).to receive(:update_progress!).and_call_original
+
+      runner.call
+
+      expect(runner).to have_received(:update_progress!).with(
+        percent: 12,
+        message: I18n.t("nesting.phase.starting")
+      )
+      expect(runner).not_to have_received(:update_progress!).with(
+        hash_including(message: I18n.t("nesting.preparing"))
+      )
+      expect(runner).not_to have_received(:update_progress!).with(
+        hash_including(message: I18n.t("nesting.running"))
+      )
+    end
+
     it "throttles cancel_requested_at DB reads during CLI polling" do
       allow(Nesting::CliRunner).to receive(:call) do |cancel_check:, **|
         20.times { cancel_check.call }

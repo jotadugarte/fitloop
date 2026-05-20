@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 6 complete (CliRunner poll); next step 7 JobRunner phases</current_step>
+    <current_step>3.2 — Step 7 complete (JobRunner phases); next step 8 enqueue ETA</current_step>
 
   </execution_context>
 
