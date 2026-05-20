@@ -19,16 +19,11 @@ RSpec.describe "projects/nesting_progress", type: :view do
     )
   end
   let(:active_run) { project.nesting_runs.create!(status: "processing", params_snapshot: {}) }
-  let(:time_remaining) { Nesting::TimeRemainingMessage.for(project) }
-
   before do
     active_run
     I18n.backend.store_translations(
       :en,
-      nesting: {
-        phase: { fill: "Placing pieces on sheets" },
-        time_remaining: { one: "About 1 min left", other: "About %{count} min left" }
-      }
+      nesting: { phase: { fill: "Placing pieces on sheets" } }
     )
   end
 
@@ -37,18 +32,14 @@ RSpec.describe "projects/nesting_progress", type: :view do
            locals: Nesting::ProgressLocals.for(project).merge(extra_locals)
   end
 
-  it "includes cancel, time remaining, and aria-valuetext while processing [REQ-FIT-JOB-001] [REQ-FIT-UI-003]" do
+  it "includes cancel and aria-valuetext while processing [REQ-FIT-JOB-001] [REQ-FIT-UI-003]" do
     render_progress
 
     expect(rendered).to include('data-testid="nesting-progress"')
     expect(rendered).to include('data-testid="cancel-nesting"')
-    expect(rendered).to include('data-testid="time-remaining"')
+    expect(rendered).not_to include('data-testid="time-remaining"')
     expect(rendered).to include(I18n.t("nesting.cancel"))
-    expect(rendered).to include(time_remaining)
-    expect(rendered).to include(
-      'aria-valuetext="Placing pieces on sheets, 42%, '
-    )
-    expect(rendered).to include(time_remaining)
+    expect(rendered).to include('aria-valuetext="Placing pieces on sheets, 42%"')
   end
 
   it "omits cancel when there is no active processing run" do

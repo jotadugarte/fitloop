@@ -29,11 +29,6 @@ RSpec.describe "Nesting phase i18n labels [REQ-FIT-UI-003]" do
         end
       end
 
-      it "defines nesting.time_remaining for singular and plural counts" do
-        expect(I18n.t("nesting.time_remaining", count: 1)).to be_present
-        expect(I18n.t("nesting.time_remaining", count: 4)).to be_present
-      end
-
       it "matches ProgressSnapshot phase i18n keys" do
         Nesting::ProgressSnapshot::PHASE_I18N_KEYS.each_value do |i18n_key|
           label = I18n.t(i18n_key)

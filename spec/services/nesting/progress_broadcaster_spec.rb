@@ -98,7 +98,7 @@ RSpec.describe Nesting::ProgressBroadcaster do
       )
     end
 
-    it "includes active_run and time_remaining locals while processing [REQ-FIT-JOB-001]" do
+    it "includes active_run locals while processing [REQ-FIT-JOB-001]" do
       project.update!(
         status: :processing,
         progress_percent: 42,
@@ -106,7 +106,6 @@ RSpec.describe Nesting::ProgressBroadcaster do
         estimated_finished_at: 8.minutes.from_now
       )
       active_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
-      time_remaining = Nesting::TimeRemainingMessage.for(project)
       allow(project).to receive(:processing?).and_return(true)
       allow(project).to receive(:broadcast_replace_to)
 
@@ -119,7 +118,6 @@ RSpec.describe Nesting::ProgressBroadcaster do
         locals: hash_including(
           project: project,
           active_run: active_run,
-          time_remaining: time_remaining,
           eta_overrun: false,
           time_limit_notice: false
         )

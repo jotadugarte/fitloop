@@ -260,9 +260,6 @@ es:
       consolidating: "Consolidando láminas…"
       refining: "Afinando la colocación…"
       writing_outputs: "Generando archivos anidados…"
-    time_remaining:
-      one: "Queda cerca de 1 min"
-      other: "Quedan unos %{count} min"
     completed: "Anidado completado."
     partial: "Anidado terminado con huérfanos."
     failed: "Anidado fallido."

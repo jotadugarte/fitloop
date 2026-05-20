@@ -1,9 +1,8 @@
 <%= turbo_frame_tag dom_id(project, :nesting_progress) do %>
   <% active_run = local_assigns.fetch(:active_run) { Nesting::ProgressLocals.active_processing_run(project) } %>
-  <% time_remaining = local_assigns.fetch(:time_remaining) { Nesting::TimeRemainingMessage.for(project) } %>
   <% if project.processing? %>
     <% percent = project.progress_percent.to_i %>
-    <% aria_valuetext = nesting_progress_aria_valuetext(project, percent, time_remaining: time_remaining) %>
+    <% aria_valuetext = nesting_progress_aria_valuetext(project, percent) %>
     <section class="nesting-progress panel panel--chrome fit-section" data-testid="nesting-progress">
       <h2 class="fit-section__legend"><%= t("nesting.progress_heading") %></h2>
       <div class="fit-section__content">
@@ -26,9 +25,6 @@
             <% end %>
             <%= project.progress_message %>
           </p>
-          <% if time_remaining.present? %>
-            <p class="nesting-progress__time-remaining" data-testid="time-remaining"><%= time_remaining %></p>
-          <% end %>
           <% if eta_overrun %>
             <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
           <% end %>

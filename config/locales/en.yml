@@ -245,9 +245,6 @@ en:
       consolidating: "Consolidating sheets…"
       refining: "Refining placement…"
       writing_outputs: "Writing nested outputs…"
-    time_remaining:
-      one: "About 1 min left"
-      other: "About %{count} min left"
     completed: "Nesting completed."
     partial: "Nesting finished with orphans."
     failed: "Nesting failed."

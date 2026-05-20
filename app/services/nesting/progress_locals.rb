@@ -10,8 +10,7 @@ module Nesting
         project: project,
         active_run: active_processing_run(project),
         eta_overrun: eta_overrun?(project),
-        time_limit_notice: time_limit_notice,
-        time_remaining: TimeRemainingMessage.for(project)
+        time_limit_notice: time_limit_notice
       }
     end
 

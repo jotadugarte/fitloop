@@ -17,16 +17,14 @@ RSpec.describe Nesting::ProgressLocals do
   end
 
   describe ".for [REQ-FIT-JOB-001]" do
-    it "returns active_run, time_remaining, and eta_overrun for processing projects" do
+    it "returns active_run and eta_overrun for processing projects" do
       active_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
-      time_remaining = Nesting::TimeRemainingMessage.for(project)
 
       locals = described_class.for(project)
 
       expect(locals).to include(
         project: project,
         active_run: active_run,
-        time_remaining: time_remaining,
         time_limit_notice: false
       )
       expect(locals[:eta_overrun]).to be(false)

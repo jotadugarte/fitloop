@@ -224,7 +224,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** SPEC + `nesting_engine/README.md` cross-link; mark `docs/ROADMAP.md` item done when shipped.
 </step>
 
-<step id="14">
+<step id="14" status="complete">
 **Test:** Run targeted `bundle exec rspec` (nesting services, system nesting_progress) + `pytest nesting_engine/tests/test_progress_reporter.py nesting_engine/tests/test_nest_progress.py -q`.
 **Implement:** Fix regressions; no commit from agent unless user asks.
 </step>
