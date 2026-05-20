@@ -296,10 +296,6 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_progress_locals
-    {
-      project: @project,
-      eta_overrun: @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at,
-      time_limit_notice: @time_limit_notice
-    }
+    Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice)
   end
 end

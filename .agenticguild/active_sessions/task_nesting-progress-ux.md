@@ -199,7 +199,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `StartsNesting#start_nesting_for!` ETA baseline.
 </step>
 
-<step id="9">
+<step id="9" status="complete">
 **Test:** Add `spec/views/projects/nesting_progress_spec.rb` (or request spec) — processing template includes cancel button (`data-testid="cancel-nesting"`), time remaining copy, `aria-valuetext` with phase + percent. Tag `[REQ-FIT-JOB-001]`, `[REQ-FIT-UI-003]`.
 **Implement:** `_nesting_progress.html.erb` — co-locate cancel (needs `active_run` local), `time_remaining` / `eta_overrun`; improve `aria-valuetext`. Remove duplicate cancel from `_show_actions` during `processing?` OR keep both in sync via broadcaster.
 </step>

@@ -30,7 +30,7 @@
           <% end %>
 
           <% active_run = project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>
-          <% if active_run %>
+          <% if active_run && !project.processing? %>
             <%= button_to t("nesting.cancel"),
                             cancel_project_nesting_run_path(project, active_run),
                             method: :post,

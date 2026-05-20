@@ -29,10 +29,7 @@
   <%= render "show_actions", project: @project %>
 
   <section class="project-show__progress">
-    <%= render "nesting_progress",
-               project: @project,
-               eta_overrun: false,
-               time_limit_notice: @time_limit_notice %>
+    <%= render "nesting_progress", **Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice) %>
   </section>
 
   <%= render "nesting_parameters", project: @project %>

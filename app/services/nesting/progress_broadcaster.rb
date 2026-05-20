@@ -25,15 +25,14 @@ module Nesting
     private
 
     def broadcast_progress!
+      locals = ProgressLocals.for(@project, time_limit_notice: @time_limit_notice).merge(
+        eta_overrun: @eta_overrun
+      )
       @project.broadcast_replace_to(
         @project,
         target: ActionView::RecordIdentifier.dom_id(@project, :nesting_progress),
         partial: "projects/nesting_progress",
-        locals: {
-          project: @project,
-          eta_overrun: @eta_overrun,
-          time_limit_notice: @time_limit_notice
-        }
+        locals: locals
       )
     end
 
