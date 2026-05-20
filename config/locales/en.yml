@@ -30,6 +30,8 @@
 en:
   application:
     name: "Fitloop"
+    dialog_title: "Fitloop"
+    dialog_accept: "OK"
 
   locale:
     switcher_label: "Language"
@@ -116,6 +118,14 @@ en:
       empty: "No saved projects. Use Start on the home page."
     setup:
       missing_dxf: "Upload at least one DXF file before continuing."
+      welcome:
+        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        steps_title: "On this screen"
+        steps:
+          - "Add your sheets: width, height, and how many you have of each size. Leave quantity blank for unlimited sheets of that size."
+          - "Optional: open “Nesting parameters” to adjust piece spacing and sheet edge margin."
+          - "Upload your DXF files and pick the cut layer (primary) and auxiliary layers (engraving, marks…)."
+          - "Click “Continue” to run nesting and see the result."
     access:
       prompt: "Enter the project PIN to continue."
       pin_label: "Project PIN"
@@ -151,6 +161,7 @@ en:
       source_dxf_detail_meta: "%{files} files · %{selected} of %{total} layers"
       source_dxf_detail_empty: "Upload a DXF file to see layers and preview."
       dxf_file_layers_meta: "%{selected} of %{total} layers"
+      dxf_file_layers_meta_template: "%{selected} of %{total} layers"
       remove_dxf: "Remove"
       remove_dxf_confirm: "Remove %{filename}?"
       apply_layers: "Apply layers"
@@ -184,7 +195,7 @@ en:
         other: "%{count} errors prevented saving"
       sheet_stocks_legend: "Sheet inventory"
       consumption_priority: "Priority"
-      consumption_order_legend: "The nesting engine consumes sheet types from top to bottom."
+      consumption_order_legend: "The nesting engine consumes sheet types by priority."
       reorder_sheet: "Drag to reorder"
       sort_finite_first: "Sort: finite first"
       alert_single_unlimited: "Only one unlimited sheet type is allowed per project."
@@ -199,6 +210,7 @@ en:
       alert_quantity: "Enter a quantity of at least 1, or leave the field blank for unlimited sheets."
       dxf_upload_legend: "DXF files"
       dxf_upload_label: "DXF files"
+      dxf_upload_choose: "Choose DXF files"
       dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
       dxf_upload_setup_hint: "When you choose files they appear here with layers to select."
       dxf_upload_failed: "Could not upload DXF files. Try again."
@@ -293,13 +305,15 @@ en:
 
   project_layers:
     layer_name: "Layer"
+    section_note: "Choose the primary layer for outlines to nest. Engraving, marks, text, and other auxiliary layers move with the piece that contains them."
     primary_layer:
       label: "Primary layer"
       short: "Primary"
       tooltip: "Outlines to nest; other geometry stays inside each piece."
+      selection_hint: "The primary layer defines each piece outline to nest. Anything on auxiliary layers (engraving, marks, text…) moves with the piece that contains it."
     auxiliary_layers:
       label: "Associated layers"
-      short: "Assoc."
+      short: "Auxiliary"
       helper: "Engraving, marks, text… move with the piece that contains them."
     updated: "Layer selection saved."
     upload:

@@ -81,6 +81,7 @@ RSpec.describe "Project layers", type: :request do
       expect(response.body).to include('data-testid="primary-layer-radio"')
       expect(response.body).to include(I18n.t("project_layers.primary_layer.short"))
       expect(response.body).to include(I18n.t("project_layers.auxiliary_layers.short"))
+      expect(response.body).to include('data-testid="dxf-file-layers-meta"')
       expect(response.body).not_to include(I18n.t("project_layers.primary_layer.tooltip"))
     end
 

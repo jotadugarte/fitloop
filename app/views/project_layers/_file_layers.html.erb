@@ -4,10 +4,7 @@
 
 <section class="dxf-file-layers panel panel--inset"
          data-testid="dxf-file-layers"
-         data-attachment-id="<%= attachment.id %>"
-         data-controller="layer-roles">
-  <h3 class="dxf-file-layers__title"><%= attachment.filename %></h3>
-
+         data-attachment-id="<%= attachment.id %>">
   <% if layers.any? %>
     <ul class="layer-list layer-list--visual layer-list--roles">
       <li class="layer-list__item layer-list__item--header" aria-hidden="true">
@@ -56,7 +53,6 @@
         </li>
       <% end %>
     </ul>
-    <p class="layer-roles-hint"><%= t("project_layers.auxiliary_layers.helper") %></p>
   <% else %>
     <p><%= t("project_layers.index.empty") %></p>
   <% end %>

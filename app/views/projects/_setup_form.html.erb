@@ -29,7 +29,7 @@
     </div>
   <% end %>
 
-  <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {} %>
+  <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {}, show_welcome: true %>
 
   <details class="collapsible-panel panel panel--chrome fit-section project-setup__section">
     <%= render "projects/fit_section_summary",
@@ -50,16 +50,16 @@
     <%= render "projects/fit_section_summary",
                title: t("projects.form.dxf_upload_legend"),
                meta: t("projects.show.dxf_files_meta", count: project.input_dxf_attachments.size) %>
-    <div class="collapsible-panel__body fit-section__content">
+    <div class="collapsible-panel__body fit-section__content project-dxf-upload-section">
+      <div class="panel panel--inset project-dxf-upload__hint-card" data-testid="dxf-upload-setup-hint">
+        <p class="project-dxf-upload__hint"><%= t("projects.form.dxf_upload_setup_hint") %></p>
+      </div>
       <div class="panel panel--inset project-dxf-upload"
            data-controller="dxf-upload"
            data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: "setup") %>"
            data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
         <div class="field">
-          <label for="setup_dxf_files">
-            <%= t("projects.form.dxf_upload_label") %>
-            <span class="field__hint"><%= t("projects.form.dxf_upload_setup_hint") %></span>
-          </label>
+          <label for="setup_dxf_files" class="visually-hidden"><%= t("projects.form.dxf_upload_choose") %></label>
           <%= file_field_tag "files[]",
                 multiple: true,
                 accept: ".dxf,application/dxf",

@@ -2,7 +2,15 @@ import { Controller } from "@hotwired/stimulus"
 
 // Keeps primary (radio) and auxiliary (checkbox) mutually exclusive per layer row.
 export default class extends Controller {
-  static targets = ["row", "primary", "auxiliary"]
+  static targets = ["row", "primary", "auxiliary", "meta"]
+  static values = {
+    metaTemplate: String,
+    total: Number
+  }
+
+  connect() {
+    this.updateSelectionCount()
+  }
 
   primaryChanged(event) {
     if (!event.target.checked) return
@@ -18,6 +26,7 @@ export default class extends Controller {
 
     this.#enableAuxiliaryOnOtherRows(row)
     this.#enablePrimaryOnRow(row)
+    this.updateSelectionCount()
   }
 
   auxiliaryChanged(event) {
@@ -33,6 +42,20 @@ export default class extends Controller {
     } else {
       primary.disabled = false
     }
+
+    this.updateSelectionCount()
+  }
+
+  updateSelectionCount() {
+    if (!this.hasMetaTarget || !this.metaTemplateValue) return
+
+    let selected = 0
+    if (this.primaryTargets.some((input) => input.checked)) selected += 1
+    selected += this.auxiliaryTargets.filter((input) => input.checked).length
+
+    this.metaTarget.textContent = this.metaTemplateValue
+      .replace("%{selected}", String(selected))
+      .replace("%{total}", String(this.totalValue))
   }
 
   #enableAuxiliaryOnOtherRows(activeRow) {

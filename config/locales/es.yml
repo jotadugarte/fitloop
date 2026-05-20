@@ -1,6 +1,8 @@
 es:
   application:
     name: "Fitloop"
+    dialog_title: "Fitloop"
+    dialog_accept: "Aceptar"
 
   locale:
     switcher_label: "Idioma"
@@ -131,6 +133,14 @@ es:
       empty: "No hay proyectos guardados. Pulsa Empezar en la página de inicio."
     setup:
       missing_dxf: "Sube al menos un archivo DXF antes de continuar."
+      welcome:
+        intro: "FitLoop coloca tus piezas de corte (archivos DXF) sobre las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        steps_title: "En esta pantalla"
+        steps:
+          - "Añade tus láminas: ancho, alto y cuántas tienes de cada tamaño. Si dejas la cantidad en blanco, ese tipo de lámina será ilimitado."
+          - "Opcional: abre «Parámetros de anidado» para ajustar la separación entre piezas y el margen del borde."
+          - "Sube tus DXF y elige la capa de corte (principal) y las auxiliares (grabado, marcas…)."
+          - "Pulsa «Continuar» para pasar al anidado y ver el resultado."
     access:
       prompt: "Introduce el PIN del proyecto para continuar."
       pin_label: "PIN del proyecto"
@@ -166,6 +176,7 @@ es:
       source_dxf_detail_meta: "%{files} archivos · %{selected} de %{total} capas"
       source_dxf_detail_empty: "Sube un archivo DXF para ver capas y vista previa."
       dxf_file_layers_meta: "%{selected} de %{total} capas"
+      dxf_file_layers_meta_template: "%{selected} de %{total} capas"
       remove_dxf: "Eliminar"
       remove_dxf_confirm: "¿Eliminar %{filename}?"
       apply_layers: "Aplicar capas"
@@ -199,7 +210,7 @@ es:
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
       consumption_priority: "Prioridad"
-      consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
+      consumption_order_legend: "El motor de anidado consume los tipos de lámina según su prioridad."
       reorder_sheet: "Arrastrar para reordenar"
       sort_finite_first: "Ordenar: finitos primero"
       alert_single_unlimited: "Solo se permite un tipo de lámina ilimitado por proyecto."
@@ -214,6 +225,7 @@ es:
       alert_quantity: "Introduce una cantidad de al menos 1, o deja el campo vacío para láminas ilimitadas."
       dxf_upload_legend: "Archivos DXF"
       dxf_upload_label: "Archivos DXF"
+      dxf_upload_choose: "Elegir archivos DXF"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
       dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
@@ -308,13 +320,15 @@ es:
 
   project_layers:
     layer_name: "Capa"
+    section_note: "Elige la capa principal para el contorno a anidar. Grabado, marcas, texto y otras capas auxiliares se desplazan con la pieza que las contiene."
     primary_layer:
       label: "Capa principal"
       short: "Principal"
       tooltip: "Contornos a anidar; el resto queda dentro de cada pieza."
+      selection_hint: "La capa principal define el contorno de cada pieza a anidar. Todo lo dibujado en capas auxiliares (grabado, marcas, texto…) se desplaza junto con la pieza que lo contiene."
     auxiliary_layers:
       label: "Capas asociadas"
-      short: "Asoc."
+      short: "Auxiliares"
       helper: "Grabado, marcas, texto… se mueven con la pieza que los contiene."
     updated: "Selección de capas guardada."
     upload:

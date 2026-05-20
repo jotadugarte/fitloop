@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { fitloopAlert } from "fitloop_dialog"
 
 export default class extends Controller {
   static targets = ["input"]
@@ -36,7 +37,7 @@ export default class extends Controller {
         this.inputTarget.value = ""
       })
       .catch(() => {
-        window.alert(this.uploadFailedMessage)
+        fitloopAlert(this.uploadFailedMessage)
       })
   }
 

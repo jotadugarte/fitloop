@@ -27,9 +27,11 @@ class ProjectInputDxfFilesController < ApplicationController
   end
 
   def destroy
-    attachment = @project.input_dxf_attachments.find(params[:id])
-    attachment.purge
-    Dxf::LayerSyncPerFile.call(@project)
+    attachment = @project.input_dxf_attachments.find_by(id: params[:id])
+    if attachment
+      attachment.purge
+      Dxf::LayerSyncPerFile.call(@project)
+    end
     @expand_layers = false
     @expanded_attachment_ids = []
 
@@ -76,20 +78,22 @@ class ProjectInputDxfFilesController < ApplicationController
 
   def render_dxf_stream
     @project.reload
-    streams = [
-      turbo_stream.replace(
-        dom_id(@project, :dxf_files_layers),
-        partial: "projects/dxf_files_layers",
-        locals: { project: @project, context: setup_context? ? "setup" : "show" }.merge(layer_expand_locals)
-      )
-    ]
-
-    unless setup_context?
-      streams << turbo_stream.replace(
-        dom_id(@project, :source_dxf_detail),
-        partial: "projects/show_source_dxf_detail",
-        locals: { project: @project }.merge(layer_expand_locals)
-      )
+    streams = if setup_context?
+      [
+        turbo_stream.replace(
+          dom_id(@project, :dxf_files_layers),
+          partial: "projects/dxf_files_layers",
+          locals: { project: @project, context: "setup" }.merge(layer_expand_locals)
+        )
+      ]
+    else
+      [
+        turbo_stream.replace(
+          dom_id(@project, :source_dxf_detail),
+          partial: "projects/show_source_dxf_detail",
+          locals: { project: @project }.merge(layer_expand_locals)
+        )
+      ]
     end
 
     render turbo_stream: streams

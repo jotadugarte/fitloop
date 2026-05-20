@@ -1,0 +1,12 @@
+<aside class="setup-welcome panel panel--inset" data-testid="setup-welcome">
+  <%= image_tag "/images/logo.png",
+                alt: t("application.name"),
+                class: "setup-welcome__logo" %>
+  <p class="setup-welcome__intro"><%= t("projects.setup.welcome.intro") %></p>
+  <h2 class="setup-welcome__steps-title"><%= t("projects.setup.welcome.steps_title") %></h2>
+  <ol class="setup-welcome__steps">
+    <% Array(t("projects.setup.welcome.steps")).each do |step| %>
+      <li><%= step %></li>
+    <% end %>
+  </ol>
+</aside>

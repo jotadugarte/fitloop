@@ -303,6 +303,10 @@ h3 {
   padding-top: 1.5rem;
 }
 
+.sheet-inventory-fieldset--setup {
+  width: 100%;
+}
+
 .sheet-inventory-fieldset > legend,
 .fit-section__legend {
   padding: 0 0.45rem;
@@ -1124,6 +1128,79 @@ h3.fit-section__legend {
   color: var(--fit-text-muted);
 }
 
+.project-dxf-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.project-dxf-upload__hint-card,
+.project-dxf-upload-section > .project-dxf-upload {
+  margin-bottom: 0;
+  padding: 1.25rem 1.35rem;
+}
+
+.project-dxf-upload__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
+.project-dxf-upload-section > .project-dxf-upload .field {
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fitloop-dialog {
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0;
+  border: 1px solid var(--fit-border-strong, #c5d0dc);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgb(21 42 69 / 22%);
+}
+
+.fitloop-dialog::backdrop {
+  background: rgb(21 42 69 / 45%);
+}
+
+.fitloop-dialog__panel {
+  padding: 1.25rem 1.35rem 1.1rem;
+  margin: 0;
+}
+
+.fitloop-dialog__title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fit-navy, #152a45);
+}
+
+.fitloop-dialog__message {
+  margin: 0 0 1.1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--fit-text, #1a2332);
+}
+
+.fitloop-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+  margin: 0;
+}
+
 .field input[type="text"],
 .field input[type="password"],
 .field input[type="number"],
@@ -1201,11 +1278,38 @@ h3.fit-section__legend {
 }
 
 .dxf-files-layers {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
   margin-top: 1rem;
   scroll-margin-top: 1.25rem;
+  align-items: start;
+}
+
+.dxf-layers-section-notes {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--fit-muted, #5c6b7a);
+  background: color-mix(in srgb, var(--fit-navy, #152a45) 4%, var(--fit-surface, #fff));
+  border: 1px solid var(--fit-border);
+  border-radius: 4px;
+}
+
+.dxf-layers-section-notes p {
+  margin: 0;
+}
+
+@media (max-width: 40rem) {
+  .dxf-files-layers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dxf-layers-section-notes {
+    padding-inline: 1rem;
+  }
 }
 
 .dxf-file-entry[open] {
@@ -1344,14 +1448,9 @@ h3.fit-section__legend {
   gap: 0.75rem;
 }
 
-.dxf-files-layers {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
 .dxf-file-entry-wrap {
   margin-bottom: 0;
+  min-width: 0;
 }
 
 .dxf-file-entry-wrap .dxf-file-entry {
@@ -1427,6 +1526,177 @@ h3.fit-section__legend {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+}
+
+.sheet-inventory__layout--setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 1fr);
+  gap: 1.25rem;
+  align-items: stretch;
+  width: 100%;
+}
+
+.sheet-inventory__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory__composer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1.25rem 1.35rem 1.35rem;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory__composer-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory__composer-fields .field:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory__composer .btn-primary {
+  align-self: flex-start;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory__table {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 10rem;
+  padding: 0.85rem 1rem 1rem;
+  overflow-x: visible;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table {
+  width: 100%;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__col-priority {
+  width: 20%;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__col-dim {
+  width: 19%;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__col-qty {
+  width: 17%;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__col-actions {
+  width: 25%;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table thead th,
+.sheet-inventory__layout--setup .sheet-inventory-table tbody td {
+  padding-left: 0.85rem;
+  padding-right: 0.85rem;
+  overflow: hidden;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__priority-head,
+.sheet-inventory__layout--setup .sheet-inventory-table__priority {
+  min-width: 6.5rem;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__actions {
+  min-width: 0;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__action-buttons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sheet-inventory__layout--setup .sheet-inventory-table__action-buttons .btn {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.setup-welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 1.25rem 1.35rem 1.35rem;
+  box-sizing: border-box;
+}
+
+.setup-welcome__logo {
+  width: min(9.5rem, 85%);
+  height: auto;
+  margin: 0 auto 0.15rem;
+}
+
+.setup-welcome__intro {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--fit-text);
+}
+
+.setup-welcome__steps-title {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--fit-navy, #152a45);
+}
+
+.setup-welcome__steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
+.setup-welcome__steps li + li {
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 56rem) {
+  .sheet-inventory__layout--setup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheet-inventory__layout--setup .sheet-inventory__composer-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sheet-inventory__layout--setup .sheet-inventory__composer-fields .field:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .sheet-inventory__layout--setup .setup-welcome {
+    height: auto;
+  }
+
+  .sheet-inventory__layout--setup .sheet-inventory-table__col-actions {
+    width: 34%;
+  }
+
+  .setup-welcome__logo {
+    width: min(8rem, 60%);
+  }
 }
 
 .sheet-inventory__composer-fields {
@@ -1652,20 +1922,25 @@ h3.fit-section__legend {
 
 .layer-list--roles .layer-list__row {
   display: grid;
-  grid-template-columns: 2.75rem 2.75rem auto 1fr;
-  gap: 0.65rem;
+  grid-template-columns: minmax(4.5rem, auto) minmax(5.75rem, auto) auto 1fr;
+  gap: 0.5rem 0.65rem;
   align-items: center;
   padding: 0.6rem 0.25rem;
 }
 
 .layer-list--roles .layer-list__item--header .layer-list__row {
   padding: 0.35rem 0.25rem 0.5rem;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--fit-muted, #5c6b7a);
   border-bottom: 1px solid var(--fit-border);
+}
+
+.layer-list--roles .layer-list__item--header .layer-list__col--primary,
+.layer-list--roles .layer-list__item--header .layer-list__col--auxiliary {
+  white-space: nowrap;
 }
 
 .layer-list--roles .layer-list__col--primary,
@@ -1676,12 +1951,6 @@ h3.fit-section__legend {
 
 .layer-list--roles .layer-list__col--name {
   cursor: pointer;
-}
-
-.layer-roles-hint {
-  margin: 0.75rem 0 0;
-  font-size: 0.85rem;
-  color: var(--fit-muted, #5c6b7a);
 }
 
 .readiness-errors ul {
@@ -1806,6 +2075,11 @@ h3.fit-section__legend {
 
   .panel {
     padding: 0.85rem 1rem;
+  }
+
+  .project-dxf-upload__hint-card,
+  .project-dxf-upload-section > .project-dxf-upload {
+    padding: 1rem;
   }
 
   .landing-hero {

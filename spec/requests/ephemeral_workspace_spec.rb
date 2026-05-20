@@ -9,6 +9,8 @@ RSpec.describe "Ephemeral workspace", type: :request do
     get start_project_path
     follow_redirect!
     expect(response.body).to include(I18n.t("projects.new.setup_title"))
+    expect(response.body).to include(I18n.t("projects.setup.welcome.intro"))
+    expect(response.body).to include('data-testid="setup-welcome"')
     expect(response.body).to include(I18n.t("projects.form.continue"))
     expect(response.body).not_to include('name="project[pin]"')
     expect(response.body).not_to include('name="project[title]"')
