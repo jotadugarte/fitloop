@@ -168,6 +168,32 @@ def nest_sheet_with_obstacles(
     return ObstacleAwareSheetResult(placements=placements, unplaced_indices=unplaced)
 
 
+def _fill_phase_percent(pieces_placed: int, pieces_total: int) -> int:
+    assert pieces_total >= 0 and pieces_placed >= 0
+    if pieces_total <= 0:
+        return 12
+    ratio = min(1.0, pieces_placed / pieces_total)
+    return min(55, 12 + int(43 * ratio))
+
+
+def _report_pipeline_progress(
+    progress_reporter,
+    phase_id: str,
+    percent: int,
+    *,
+    pieces_total: int | None = None,
+    pieces_placed: int | None = None,
+) -> None:
+    if progress_reporter is None:
+        return
+    progress_reporter.report(
+        phase_id,
+        percent,
+        pieces_total=pieces_total,
+        pieces_placed=pieces_placed,
+    )
+
+
 def nest_multi_bin(
     pieces: list[Polygon],
     sheet_stocks: list[SheetStockSpec],
@@ -176,6 +202,7 @@ def nest_multi_bin(
     kerf_mm: float,
     sheet_gap_mm: float,
     time_limit_sec: float | None = _DEFAULT_TIME_LIMIT_SEC,
+    progress_reporter=None,
 ) -> MultiBinResult:
     assert margin_mm >= 0 and kerf_mm >= 0 and sheet_gap_mm >= 0, "non-negative job parameters"
     assert sheet_stocks, "at least one sheet stock required"
@@ -185,7 +212,15 @@ def nest_multi_bin(
     deadline = _time_limit_deadline(time_limit_sec)
     remaining_indices = _indices_by_descending_area(pieces)
     stocks = stocks_in_consumption_order(sheet_stocks)
+    total_pieces = len(pieces)
 
+    _report_pipeline_progress(
+        progress_reporter,
+        "fill",
+        12,
+        pieces_total=total_pieces,
+        pieces_placed=0,
+    )
     sheets, remaining_indices, warnings = _nest_across_stocks(
         pieces,
         remaining_indices,
@@ -195,6 +230,16 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         time_limit_sec=time_limit_sec,
         deadline=deadline,
+        progress_reporter=progress_reporter,
+        pieces_total=total_pieces,
+    )
+    placed_count = total_pieces - len(remaining_indices)
+    _report_pipeline_progress(
+        progress_reporter,
+        "fill",
+        55,
+        pieces_total=total_pieces,
+        pieces_placed=placed_count,
     )
     sheets = _run_post_fill_phases(
         sheets,
@@ -204,6 +249,9 @@ def nest_multi_bin(
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
+        progress_reporter=progress_reporter,
+        pieces_total=total_pieces,
+        pieces_placed=placed_count,
     )
     orphans = _orphans_for_remaining(
         pieces,
@@ -225,8 +273,18 @@ def _run_post_fill_phases(
     kerf_mm: float,
     sheet_gap_mm: float,
     deadline: float | None,
+    progress_reporter=None,
+    pieces_total: int = 0,
+    pieces_placed: int = 0,
 ) -> list[NestedSheet]:
     """[REQ-FIT-NEST-002] Intra repack (×2), consolidate, then inter-sheet search under one deadline."""
+    _report_pipeline_progress(
+        progress_reporter,
+        "optimizing",
+        58,
+        pieces_total=pieces_total,
+        pieces_placed=pieces_placed,
+    )
     sheets = _intra_sheet_repack_search(
         sheets,
         pieces,
@@ -235,6 +293,13 @@ def _run_post_fill_phases(
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
+    )
+    _report_pipeline_progress(
+        progress_reporter,
+        "consolidating",
+        72,
+        pieces_total=pieces_total,
+        pieces_placed=pieces_placed,
     )
     sheets = _consolidate_sheets(
         sheets,
@@ -244,6 +309,13 @@ def _run_post_fill_phases(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
+    _report_pipeline_progress(
+        progress_reporter,
+        "refining",
+        82,
+        pieces_total=pieces_total,
+        pieces_placed=pieces_placed,
+    )
     sheets = _intra_sheet_repack_search(
         sheets,
         pieces,
@@ -253,7 +325,7 @@ def _run_post_fill_phases(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
-    return _inter_sheet_local_search(
+    sheets = _inter_sheet_local_search(
         sheets,
         pieces,
         stocks,
@@ -262,6 +334,14 @@ def _run_post_fill_phases(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
+    _report_pipeline_progress(
+        progress_reporter,
+        "refining",
+        90,
+        pieces_total=pieces_total,
+        pieces_placed=pieces_placed,
+    )
+    return sheets
 
 
 def _nest_across_stocks(
@@ -274,6 +354,8 @@ def _nest_across_stocks(
     sheet_gap_mm: float,
     time_limit_sec: float | None,
     deadline: float | None,
+    progress_reporter=None,
+    pieces_total: int = 0,
 ) -> tuple[list[NestedSheet], list[int], list[str]]:
     warnings: list[str] = []
     sheets: list[NestedSheet] = []
@@ -312,6 +394,16 @@ def _nest_across_stocks(
                 )
                 offset_x += stock.width_mm + sheet_gap_mm
                 sheets_used += 1
+                if pieces_total > 0:
+                    placed_count = pieces_total - len(remaining_indices)
+                    percent = _fill_phase_percent(placed_count, pieces_total)
+                    _report_pipeline_progress(
+                        progress_reporter,
+                        "fill",
+                        percent,
+                        pieces_total=pieces_total,
+                        pieces_placed=placed_count,
+                    )
 
             if _time_limit_exceeded(deadline):
                 warnings.append(_time_limit_warning(time_limit_sec))

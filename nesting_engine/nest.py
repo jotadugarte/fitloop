@@ -23,6 +23,7 @@ from nesting_engine.composite_extract import (  # noqa: E402
 )
 from nesting_engine.decoration_transform import transform_decorations  # noqa: E402
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
+from nesting_engine.progress_reporter import ProgressReporter  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
 _MAX_PLAN_PIECES = 128
@@ -121,14 +122,17 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
 
     output_dir = Path(config["output_dir"])
     output_dir.mkdir(parents=True, exist_ok=True)
+    progress = ProgressReporter(output_dir / "progress.json")
 
     warnings: list[str] = list(config.get("warnings") or [])
     pieces = load_pieces_from_config(config, warnings=warnings)
+    progress.report("extracting", 10, pieces_total=len(pieces))
 
     stocks = parse_sheet_stocks_from_config(config)
 
     if not pieces:
         report = {"status": "failed", "orphans": [], "warnings": warnings + ["no_extractable_pieces"]}
+        progress.report("writing_outputs", 99)
         _write_outputs(
             output_dir,
             MultiBinResult(sheets=[], orphans=[], warnings=warnings),
@@ -145,6 +149,7 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         kerf_mm=float(config.get("kerf_mm", 0.0)),
         sheet_gap_mm=float(config.get("sheet_gap_mm", 15.0)),
         time_limit_sec=float(config.get("time_limit_sec", 600)),
+        progress_reporter=progress,
     )
     merged_warnings = warnings + list(result.warnings)
     result = MultiBinResult(
@@ -159,7 +164,9 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
         "warnings": merged_warnings,
     }
+    progress.report("writing_outputs", 96, pieces_total=len(pieces))
     _write_outputs(output_dir, result, report, pieces=pieces, config=config)
+    progress.report("writing_outputs", 99, pieces_total=len(pieces))
     return result
 
 
