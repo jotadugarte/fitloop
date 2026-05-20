@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 10 complete (broadcaster/sync locals); next step 11 system spec</current_step>
+    <current_step>3.2 — Step 11 complete (system live progress); next step 12 i18n smoke</current_step>
 
   </execution_context>
 

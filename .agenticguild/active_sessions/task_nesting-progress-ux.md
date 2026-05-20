@@ -209,7 +209,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `ProgressBroadcaster`, `ProjectsController#nesting_progress_locals`, `nesting_sync_streams` — pass `active_run`, `time_remaining`, ensure poll path refreshes ETA.
 </step>
 
-<step id="11">
+<step id="11" status="complete">
 **Test:** Extend `spec/system/nesting_progress_spec.rb` — with cli_mock or stub progress file, assert phase message changes and percent increases during processing (not stuck at 15%). Tag `[REQ-FIT-JOB-001]`, `[REQ-FIT-QA-001]`.
 **Implement:** Any Stimulus/sync tweaks if needed; do not assert golden coordinates.
 </step>
