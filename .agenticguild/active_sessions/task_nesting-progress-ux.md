@@ -184,7 +184,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `app/services/nesting/progress_sync.rb` + `Nesting::ProgressEta` helper (private or small class).
 </step>
 
-<step id="6">
+<step id="6" status="complete">
 **Test:** Extend `spec/services/nesting/cli_runner_spec.rb` — invoke stub that writes `progress.json` mid-run; expect `ProgressSync` (or project DB) updates during `run_cli!` loop. Tag `[REQ-FIT-CLI-001]`, `[REQ-FIT-JOB-001]`.
 **Implement:** `CliRunner#run_cli!` polls `work_dir/output/progress.json` each iteration; call `ProgressSync`; respect `cancel_check`.
 </step>
