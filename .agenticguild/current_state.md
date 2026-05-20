@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 4 complete (ProgressSnapshot); next step 5 ProgressSync</current_step>
+    <current_step>3.2 — Step 5 complete (ProgressSync); next step 6 CliRunner poll</current_step>
 
   </execution_context>
 

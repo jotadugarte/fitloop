@@ -179,7 +179,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `app/services/nesting/progress_snapshot.rb`.
 </step>
 
-<step id="5">
+<step id="5" status="complete">
 **Test:** Add `spec/services/nesting/progress_sync_spec.rb` — given snapshot, updates `project.progress_percent` / `progress_message`; computes `estimated_finished_at` from pieces ratio + elapsed; does not increase percent above snapshot; broadcasts when changed. Tag `[REQ-FIT-JOB-001]`.
 **Implement:** `app/services/nesting/progress_sync.rb` + `Nesting::ProgressEta` helper (private or small class).
 </step>
