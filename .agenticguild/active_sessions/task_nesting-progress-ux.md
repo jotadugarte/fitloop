@@ -214,7 +214,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** Any Stimulus/sync tweaks if needed; do not assert golden coordinates.
 </step>
 
-<step id="12">
+<step id="12" status="complete">
 **Test:** Locale keys exist in `spec/i18n/nesting_phase_labels_spec.rb` (or i18n smoke) — all `nesting.phase.*` and `nesting.time_remaining` in `en` and `es`. Tag `[REQ-FIT-UI-003]`.
 **Implement:** `config/locales/en.yml`, `config/locales/es.yml` — professional copy for queued, preparing, starting, extracting, placing, optimizing, consolidating, refining, writing_outputs.
 </step>
