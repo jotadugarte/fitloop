@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 10 next: full regression + grep stragglers</current_step>
+    <current_step>Complete — all plan steps 1–10 done; ready for finish-branch / PR</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–9 complete. Docs sweep done. Next: step 10 full regression + grep.</note>
+  <note>remove-pin task complete. RSpec 203/0; pytest 121 passed (not slow). Grep clean in app/config/locales.</note>
 
 </agent_state>

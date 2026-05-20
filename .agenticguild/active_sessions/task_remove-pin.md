@@ -142,7 +142,7 @@
 **Implement:** Update `docs/core/SPEC.md` (W5, Project fields, REQ-FIT-AUTH-001 detail), `SYSTEM_ARCHITECTURE.md` (stack blurb, secrets §4), `DATA_FLOW_MAP.md` (access flow), `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md`, `docs/DEPLOY.md`, `docs/QA_MANUAL_CHECKLIST.md`; mark roadmap item in `docs/ROADMAP.md` when shipped.
 </step>
 
-<step id="10" status="pending">
+<step id="10" status="complete">
 **Test:** Full regression — `bundle exec rspec`, `pytest nesting_engine/tests`, tag slow system spec `golden_nesting_e2e` if feasible. Tags `[REQ-FIT-QA-001]`.
 **Implement:** Fix any stragglers; grep repo for `pin_digest`, `verify_pin`, `ProjectAccess`, `pin_gate`, `admin_pin` — zero hits outside ADR/history.
 </step>
