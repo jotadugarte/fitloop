@@ -74,6 +74,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 19. [x] Download nested DXF; workspace start redirect (no saved-project list); session-bound show; functional UI + `en`/`es` locale files (REQ-FIT-UI-003) — 2026-05-16 (access model updated 2026-05-19, ADR-0004)
 21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
 18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
+- [x] **Modo Arquitecto en Pánico** (`:es_panic`) — joke locale YAML, 2+1 switcher (📐 PÁNICO), key parity + request/i18n specs (REQ-FIT-UI-005) — 2026-05-19 — Session: `task_es-panic-locale.md`
 20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
 - [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
 - [x] **libnest2d integration** — `nest_libnest2d` + `python-libnest2d==0.1.3`; DEPLOY native deps; CI `nesting_engine` job (REQ-FIT-NEST-001, REQ-FIT-NEST-002, REQ-FIT-QA-001) — 2026-05-17 — Session: `task_libnest2d-integration.md`

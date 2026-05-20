@@ -1,7 +1,7 @@
 # Task: Modo Arquitecto en Pánico (`:es_panic`)
 
 **Opened:** 2026-05-19  
-**Status:** Spec locked (explore-task complete → start-task)  
+**Status:** Implementation complete (start-task Phase 3 done)  
 **Classification:** Feature (UX / i18n easter egg)  
 **Related REQ:** REQ-FIT-UI-005 (locale switcher — extend for third locale)
 
@@ -258,9 +258,9 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Implement:** `docs/core/SPEC.md` REQ-FIT-UI-005 — document optional joke locale `:es_panic`. `docs/core/SYSTEM_ARCHITECTURE.md` §1 i18n — `en`, `es`, `es_panic` (easter egg). `TESTING_STRATEGY_MATRIX.md` updated.
 </step>
 
-<step id="9" status="pending">
+<step id="9" status="complete">
 **Test:** Run `bundle exec rspec spec/requests/locale_spec.rb spec/i18n/ spec/requests/i18n_views_spec.rb` (adjust only if brittle on panic strings).
-**Implement:** Fix regressions; optional `docs/ROADMAP.md` line for es_panic locale.
+**Implement:** No regressions (20 examples, 0 failures); `docs/ROADMAP.md` entry added.
 </step>
 
 </implementation_plan>
