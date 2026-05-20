@@ -172,7 +172,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** Update `nesting_engine/cli_mock.py` to write progress steps; document `progress.json` in `nesting_engine/README.md`.
 </step>
 
-<step id="4">
+<step id="4" status="complete">
 **Test:** Add `spec/services/nesting/progress_snapshot_spec.rb` — parses `progress.json` from work dir; maps `phase_id` → i18n key; rejects regressing percent; handles missing file. Tag `[REQ-FIT-JOB-001]`.
 **Pre:** `Nesting::ProgressSnapshot.from_hash` / `.read(path)`.
 **Post:** Returns struct with `percent`, `message`, `pieces_total`, `pieces_placed`.
