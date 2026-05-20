@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 7 next: remove dead project views + i18n</current_step>
+    <current_step>3.1 — Plan step 8 next: spec factory sweep + remove unlock helper</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–6 complete. Ephemeral-only update path; foreign bind spec. Next: step 7 views/i18n.</note>
+  <note>Steps 1–7 complete. Dead views/i18n removed. Next: step 8 spec factory sweep.</note>
 
 </agent_state>

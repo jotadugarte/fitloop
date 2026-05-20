@@ -54,7 +54,6 @@ en:
     attributes:
       project:
         title: "Title"
-        pin: "PIN (6 digits)"
       sheet_stock:
         width_mm: "Width (mm)"
         height_mm: "Height (mm)"
@@ -64,8 +63,6 @@ en:
       models:
         project:
           attributes:
-            pin:
-              invalid_format: "must be exactly 6 digits"
             title:
               blank: "can't be blank"
             base:
@@ -111,11 +108,6 @@ en:
     created: "Project created."
     updated: "Project updated."
     nesting_parameters_updated: "Nesting parameters updated."
-    index:
-      title: "Projects"
-      tagline: "Nesting jobs are temporary and discarded when you leave the app."
-      new: "Start"
-      empty: "No saved projects. Use Start on the home page."
     setup:
       missing_dxf: "Upload at least one DXF file before continuing."
       welcome:
@@ -126,13 +118,6 @@ en:
           - "Optional: open “Nesting parameters” to adjust piece spacing and sheet edge margin."
           - "Upload your DXF files and pick the cut layer (primary) and auxiliary layers (engraving, marks…)."
           - "Click “Continue” to run nesting and see the result."
-    access:
-      prompt: "Enter the project PIN to continue."
-      pin_label: "Project PIN"
-      unlock: "Unlock project"
-      granted: "Access granted."
-      denied: "Incorrect PIN. Try again."
-      back_to_list: "Back to all projects"
     new:
       title: "New project"
       setup_title: "Initial parameters"

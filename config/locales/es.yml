@@ -69,7 +69,6 @@ es:
     attributes:
       project:
         title: "Título"
-        pin: "PIN (6 dígitos)"
       sheet_stock:
         width_mm: "Ancho (mm)"
         height_mm: "Alto (mm)"
@@ -79,8 +78,6 @@ es:
       models:
         project:
           attributes:
-            pin:
-              invalid_format: "debe tener exactamente 6 dígitos"
             title:
               blank: "no puede estar en blanco"
             base:
@@ -126,11 +123,6 @@ es:
     created: "Proyecto creado."
     updated: "Proyecto actualizado."
     nesting_parameters_updated: "Parámetros de anidado actualizados."
-    index:
-      title: "Proyectos"
-      tagline: "Los trabajos de anidado son temporales: al salir de la app se descartan."
-      new: "Empezar"
-      empty: "No hay proyectos guardados. Pulsa Empezar en la página de inicio."
     setup:
       missing_dxf: "Sube al menos un archivo DXF antes de continuar."
       welcome:
@@ -141,13 +133,6 @@ es:
           - "Opcional: abre «Parámetros de anidado» para ajustar la separación entre piezas y el margen del borde."
           - "Sube tus DXF y elige la capa de corte (principal) y las auxiliares (grabado, marcas…)."
           - "Pulsa «Continuar» para pasar al anidado y ver el resultado."
-    access:
-      prompt: "Introduce el PIN del proyecto para continuar."
-      pin_label: "PIN del proyecto"
-      unlock: "Desbloquear proyecto"
-      granted: "Acceso concedido."
-      denied: "PIN incorrecto. Inténtalo de nuevo."
-      back_to_list: "Volver a todos los proyectos"
     new:
       title: "Nuevo proyecto"
       setup_title: "Parámetros iniciales"

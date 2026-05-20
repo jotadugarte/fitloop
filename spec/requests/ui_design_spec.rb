@@ -16,7 +16,7 @@ RSpec.describe "Architecture-studio UI", type: :request do
     end
   end
 
-  describe "GET /projects [REQ-FIT-UI-004]" do
+  describe "GET /projects [REQ-FIT-UI-003] [REQ-FIT-UI-004]" do
     it "redirects to empezar (ephemeral workspace; no saved list)" do
       get projects_path
 

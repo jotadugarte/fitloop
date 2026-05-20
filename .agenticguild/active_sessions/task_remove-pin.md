@@ -127,7 +127,7 @@
 **Implement:** Controllers: drop redundant `grant_project_access!` / `require_project_access!` callbacks; use `SetsWorkspaceProject` + bind check only; remove saved-project `update` branch and `project_params :pin`.
 </step>
 
-<step id="7" status="pending">
+<step id="7" status="complete">
 **Test:** Adjust `spec/requests/i18n_views_spec.rb` and `spec/requests/ui_design_spec.rb` — no PIN strings; `projects_path` still redirects to start. Tags `[REQ-FIT-UI-003]`, `[REQ-FIT-UI-005]`.
 **Implement:** Delete `app/views/projects/index.html.erb`, `_project_card.html.erb`, `_form.html.erb` (if unused), `edit` non-ephemeral branch; remove `projects.index.*` and `projects.access.*` / `activerecord.attributes.project.pin` i18n keys; keep `projects#index` as redirect-only.
 </step>
