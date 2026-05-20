@@ -8,7 +8,7 @@
 
 Fitloop is a web application for **DXF sheet nesting**: users start an **ephemeral workspace** (one in-browser session per visit), attach multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
 
-Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`).
+Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`, optional joke locale `es_panic`).
 
 ---
 
@@ -126,7 +126,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
 | **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
 | **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
-| **REQ-FIT-UI-005** | Locale switcher in layout: EN/ES toggle; `set_locale`; cookie/session persistence | P4 |
+| **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 
@@ -214,7 +214,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### REQ-FIT-JOB-001 (detail)
 
-**Scope:** Friendly nesting progress while `Project#status == processing` — phased labels, engine-driven percent, visible cancel and time-remaining copy (`en`/`es`). See `nesting_engine/README.md` § `progress.json`.
+**Scope:** Friendly nesting progress while `Project#status == processing` — phased labels, engine-driven percent, visible cancel and time-remaining copy (`en` / `es` / optional `es_panic`). See `nesting_engine/README.md` § `progress.json`.
 
 **Python (`nesting_engine/progress_reporter.py`):**
 
@@ -232,6 +232,21 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).
 
 **Tests:** `nesting_engine/tests/test_progress_reporter.py`, `test_nest_progress.py`, `test_cli_mock.py`; `spec/services/nesting/progress_*_spec.rb`, `cli_runner_spec.rb`, `spec/system/nesting_progress_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`.
+
+### REQ-FIT-UI-005 (detail)
+
+**Scope:** Layout locale switcher and persistence for product locales `en` and `es`, plus optional joke locale **`es_panic`** (“Modo Arquitecto en Pánico”) — humorous Spanish copy across the main workflow; not a fourth production language.
+
+**Rails:**
+
+- `config.i18n.available_locales` includes `:es_panic`.
+- `config/locales/es_panic.yml` mirrors the `es.yml` key tree (no runtime fallback to `:es`).
+- `LocaleSwitchable` + `LocalesController#update` persist `fitloop_locale` cookie (string `"es_panic"`).
+- `shared/_locale_switcher`: row 1 `EN` | `ES`; row 2 full-width **📐 PÁNICO** via `locale.labels.*` (never `locale.to_s.upcase` for `es_panic`).
+
+**Non-goals:** parallel `fitloop.*` namespace; percent-band progress strings (use existing `nesting.phase.*` keys).
+
+**Tests:** `spec/requests/locale_spec.rb`, `spec/i18n/locale_key_parity_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`, `spec/lib/fitloop_home_verifier_spec.rb`.
 
 ### REQ-FIT-SPLIT-001 (detail)
 

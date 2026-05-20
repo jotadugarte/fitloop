@@ -57,7 +57,7 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | REQ-FIT-UI-002 | `spec/requests/project_preview_spec.rb`, `spec/services/nesting/preview_presenter_spec.rb` |
 | REQ-FIT-UI-003 | `spec/requests/workspace_access_spec.rb`, `spec/requests/i18n_views_spec.rb` |
 | REQ-FIT-UI-004 | `spec/requests/ui_design_spec.rb` |
-| REQ-FIT-UI-005 | `spec/requests/locale_spec.rb` |
+| REQ-FIT-UI-005 | `spec/requests/locale_spec.rb`, `spec/i18n/locale_key_parity_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`, `spec/lib/fitloop_home_verifier_spec.rb` |
 | REQ-FIT-DXF-001 | `spec/requests/project_layers_spec.rb` |
 | REQ-FIT-DXF-002 | `spec/models/project_layer_spec.rb`, `spec/requests/project_layers_spec.rb`, `spec/services/nesting/config_builder_spec.rb`, `spec/services/dxf/piece_counter_spec.rb`, `spec/requests/project_source_preview_spec.rb`, `spec/system/project_layers_composite_spec.rb`, `test/spec/composite_dxf_spec_doc_test.rb`, `test/architecture/composite_dxf_architecture_doc_test.rb`, `nesting_engine/tests/test_composite_extract.py`, `nesting_engine/tests/test_piece_loader_composite.py`, `nesting_engine/tests/test_decoration_transform.py`, `nesting_engine/tests/test_dxf_output_composite.py`, `nesting_engine/tests/test_nest_pipeline_composite.py`, `nesting_engine/tests/test_dxf_preview_composite.py` |
 | REQ-FIT-VAL-001 | `spec/services/project_readiness_validator_spec.rb`, `spec/requests/project_readiness_spec.rb` |

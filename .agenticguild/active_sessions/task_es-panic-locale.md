@@ -254,8 +254,8 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Test:** `spec/lib/fitloop_home_verifier_spec.rb` — `#check_i18n` includes `es_panic`.
 </step>
 
-<step id="8" status="pending">
-**Implement:** `docs/core/SPEC.md` REQ-FIT-UI-005 — document optional joke locale `:es_panic`. `docs/core/SYSTEM_ARCHITECTURE.md` §1 i18n — `en`, `es`, `es_panic` (easter egg).
+<step id="8" status="complete">
+**Implement:** `docs/core/SPEC.md` REQ-FIT-UI-005 — document optional joke locale `:es_panic`. `docs/core/SYSTEM_ARCHITECTURE.md` §1 i18n — `en`, `es`, `es_panic` (easter egg). `TESTING_STRATEGY_MATRIX.md` updated.
 </step>
 
 <step id="9" status="pending">
