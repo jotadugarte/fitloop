@@ -194,7 +194,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** Adjust `JobRunner` progress calls to align with D1; remove conflicting percent jumps.
 </step>
 
-<step id="8">
+<step id="8" status="complete">
 **Test:** Extend `spec/requests/nesting_runs_spec.rb` or `starts_nesting` concern spec — `estimated_finished_at` set to `started_at + nesting_time_limit_sec` (not 30s). Tag `[REQ-FIT-JOB-001]`.
 **Implement:** `StartsNesting#start_nesting_for!` ETA baseline.
 </step>
