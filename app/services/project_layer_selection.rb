@@ -47,7 +47,7 @@ class ProjectLayerSelection
         layer = find_layer(attachment_key, layer_key)
         next unless layer
 
-        apply_layer_role_attrs!(layer, layer_params)
+        apply_layer_role_attrs!(layer, layer_params, primary_id: primary_id)
       end
 
       apply_primary!(attachment_key, primary_id) if primary_id.present?
@@ -71,10 +71,12 @@ class ProjectLayerSelection
     )
   end
 
-  def apply_layer_role_attrs!(layer, layer_params)
+  def apply_layer_role_attrs!(layer, layer_params, primary_id: nil)
     params = layer_params.stringify_keys
 
     if params["auxiliary"] == "1"
+      return if primary_id.present? && layer.id.to_s == primary_id.to_s
+
       layer.update!(layer_role: :auxiliary, included: true)
       return
     end

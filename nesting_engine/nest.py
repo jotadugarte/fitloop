@@ -14,13 +14,14 @@ from shapely.geometry import Polygon  # noqa: E402
 
 from nesting_engine.dxf_output import write_nested_dxf  # noqa: E402
 from nesting_engine.nest_bin import MultiBinResult, PlacedPiece, nest_multi_bin  # noqa: E402
-from nesting_engine.piece_loader import load_pieces_from_config  # noqa: E402
+from nesting_engine.piece_loader import load_pieces_from_config, piece_polygon  # noqa: E402
 from nesting_engine.sheet_stocks_config import parse_sheet_stocks_from_config  # noqa: E402
 from nesting_engine.composite_extract import (  # noqa: E402
     CompositePiece,
     DecorationEntity,
     partition_decorations,
 )
+from nesting_engine.decoration_transform import transform_decorations  # noqa: E402
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -54,6 +55,15 @@ def _piece_placement_dict(placed: PlacedPiece, *, label: str | None = None) -> d
         "height_mm": float(maxy - miny),
         "rings": _polygon_rings(world),
     }
+    if placed.primary_layer_name:
+        payload["primary_layer_name"] = placed.primary_layer_name
+    if placed.decorations:
+        transformed = transform_decorations(
+            list(placed.decorations),
+            placed.polygon,
+            placed.placement,
+        )
+        payload["decorations"] = [_decoration_entity_dict(row) for row in transformed]
     if label:
         payload["label"] = label
     return payload
@@ -377,7 +387,10 @@ def _write_outputs(
             }
             for sheet in result.sheets
         ],
-        "orphans": [_orphan_piece_dict(orphan, pieces[orphan.piece_index]) for orphan in result.orphans],
+        "orphans": [
+            _orphan_piece_dict(orphan, piece_polygon(pieces[orphan.piece_index]))
+            for orphan in result.orphans
+        ],
     }
     (output_dir / "placements.json").write_text(json.dumps(placements, indent=2), encoding="utf-8")
     (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")

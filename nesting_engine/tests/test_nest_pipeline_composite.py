@@ -95,6 +95,51 @@ def test_run_from_config_nests_composite_pieces_with_original_layers(tmp_path: P
     grabado_entities = [entity for entity in modelspace if entity.dxf.layer == GRABADO]
     assert len(grabado_entities) >= 3
 
+    placed = placements["sheets"][0]["pieces"][0]
+    assert placed["primary_layer_name"] == CORTE
+    assert placed["decorations"]
+    assert {row["layer_name"] for row in placed["decorations"]} == {GRABADO}
+
+
+def test_run_from_config_composite_partial_serializes_orphan_bounds(tmp_path: Path) -> None:
+    """[REQ-FIT-DXF-002] Orphan placements use CompositePiece.polygon, not the dataclass itself."""
+    dxf_path = tmp_path / "composite-nest.dxf"
+    output_dir = tmp_path / "output"
+    _write_composite_nest_fixture(dxf_path)
+
+    run_from_config(
+        {
+            "project_id": "composite-partial",
+            "curve_tolerance_mm": 0.25,
+            "input_files": [
+                {
+                    "path": str(dxf_path),
+                    "primary_layer": CORTE,
+                    "auxiliary_layers": [GRABADO],
+                }
+            ],
+            "sheet_stocks": [
+                {"width_mm": 50.0, "height_mm": 50.0, "quantity": 1, "sort_order": 0}
+            ],
+            "kerf_mm": 2.0,
+            "margin_mm": 5.0,
+            "sheet_gap_mm": 15.0,
+            "time_limit_sec": 60,
+            "output_dir": str(output_dir),
+        }
+    )
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "partial"
+    assert placements["orphans"]
+    for orphan in placements["orphans"]:
+        assert orphan["rings"]
+        assert orphan["width_mm"] > 0
+        assert orphan["height_mm"] > 0
+        assert orphan["reason"]
+
 
 def _write_oversized_mother_dxf(path: Path) -> None:
     doc = ezdxf.new("R2010")

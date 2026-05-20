@@ -79,8 +79,9 @@ RSpec.describe "Project layers", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="dxf-file-layers"')
       expect(response.body).to include('data-testid="primary-layer-radio"')
-      expect(response.body).to include(I18n.t("project_layers.primary_layer.label"))
-      expect(response.body).to include(I18n.t("project_layers.primary_layer.tooltip"))
+      expect(response.body).to include(I18n.t("project_layers.primary_layer.short"))
+      expect(response.body).to include(I18n.t("project_layers.auxiliary_layers.short"))
+      expect(response.body).not_to include(I18n.t("project_layers.primary_layer.tooltip"))
     end
 
     it "PATCH sets exclusive primary and auxiliary roles per attachment" do
@@ -107,6 +108,26 @@ RSpec.describe "Project layers", type: :request do
       expect(response).to redirect_to(project_path(project))
       expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
       expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true)
+    end
+
+    it "PATCH ignores auxiliary when the same layer is chosen as primary" do
+      attachment = attach_per_file_dxf!
+      cut = project.project_layers.find_by!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment.id
+      )
+
+      patch project_layers_path(project), params: {
+        project_layers: {
+          attachment.id.to_s => {
+            primary_layer_id: cut.id.to_s,
+            cut.id.to_s => { auxiliary: "1" }
+          }
+        }
+      }
+
+      expect(response).to redirect_to(project_path(project))
+      expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
     end
 
     it "PATCH switching primary clears the previous primary on the same attachment" do
