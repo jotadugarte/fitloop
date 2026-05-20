@@ -167,7 +167,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** Wire `ProgressReporter` in `nest.py` (`run_from_config`) and phase hooks in `nest_libnest2d.py` (`nest_multi_bin`, `_nest_across_stocks` piece counts, `_run_post_fill_phases` boundaries). No placement algorithm changes.
 </step>
 
-<step id="3">
+<step id="3" status="complete">
 **Test:** Extend `nesting_engine/tests/test_cli_mock.py` (or add) — mock CLI emits stepped `progress.json` for bridge tests. Tag `[REQ-FIT-CLI-001]`.
 **Implement:** Update `nesting_engine/cli_mock.py` to write progress steps; document `progress.json` in `nesting_engine/README.md`.
 </step>

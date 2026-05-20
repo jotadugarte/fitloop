@@ -132,6 +132,7 @@ When `feasible` is `false`, `reason` is `split_not_feasible` and `children` is e
 | `nested.dxf` | Combined nested DXF; sheets offset +X by `sheet_gap_mm` |
 | `placements.json` | Piece placements per sheet (preview) |
 | `report.json` | Status hint, orphans, warnings |
+| `progress.json` | Live nesting progress for Rails UI poll (REQ-FIT-JOB-001) |
 | `split_preview.json` | Split plan preview (`plan_splits` mode only) |
 
 ### `report.json` (minimum)
@@ -150,11 +151,37 @@ When `feasible` is `false`, `reason` is `split_not_feasible` and `children` is e
 | `partial` | Time cap or orphans; best-so-far nested DXF |
 | `failed` | Unrecoverable error |
 
+### `progress.json` (v1)
+
+Written atomically by `progress_reporter.py` during `nest.py` (and stepped by `cli_mock.py` in tests). Rails `Nesting::CliRunner` polls this file every ~0.2s while the subprocess runs.
+
+```json
+{
+  "version": 1,
+  "phase_id": "fill",
+  "percent": 42,
+  "pieces_total": 120,
+  "pieces_placed": 48,
+  "message_key": null
+}
+```
+
+| Field | Type | Notes |
+|-------|------|--------|
+| `version` | int | Schema version (`1`) |
+| `phase_id` | string | `extracting`, `fill`, `optimizing`, `consolidating`, `refining`, `writing_outputs` |
+| `percent` | int | Authoritative bar fill, 0–100, monotonic within a run |
+| `pieces_total` | int? | Set after extract; used for ETA heuristics in Rails |
+| `pieces_placed` | int? | Updated during fill when cheap to compute |
+| `message_key` | string? | Optional i18n override; else Rails maps `nesting.phase.{phase_id}` |
+
+Updates are throttled (≥1s or ≥1% delta) to limit disk churn. Partial files are never visible (write temp + rename).
+
 ## CLI entry points (v1)
 
 | Script | Purpose |
 |--------|---------|
-| `cli_mock.py` | Test/dev mock: writes stub outputs (P3 bridge tests) |
+| `cli_mock.py` | Test/dev mock: stepped `progress.json` + stub outputs (P3 bridge tests) |
 | `read_layers.py` | Layer name discovery |
 | `count_pieces.py` | Pre-flight piece count |
 | `nest.py` | Full nest pipeline (multi-bin, outputs) |

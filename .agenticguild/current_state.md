@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 2 complete (nest pipeline progress hooks); next step 3</current_step>
+    <current_step>3.2 — Step 3 complete (cli_mock progress); next step 4 Rails ProgressSnapshot</current_step>
 
   </execution_context>
 
