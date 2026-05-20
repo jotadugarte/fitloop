@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 9 complete (progress panel UI); next step 10 broadcaster</current_step>
+    <current_step>3.2 — Step 10 complete (broadcaster/sync locals); next step 11 system spec</current_step>
 
   </execution_context>
 

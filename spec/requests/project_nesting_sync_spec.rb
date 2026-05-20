@@ -30,6 +30,28 @@ RSpec.describe "Project nesting sync", type: :request do
     expect(project).to be_completed
   end
 
+  it "GET /projects/:id/nesting_sync includes cancel and time remaining while processing [REQ-FIT-JOB-001]" do
+    project.nesting_runs.destroy_all
+    project.update!(
+      status: :processing,
+      progress_percent: 42,
+      progress_message: I18n.t("nesting.phase.fill"),
+      estimated_finished_at: 8.minutes.from_now,
+      nesting_time_limit_sec: 600
+    )
+    project.nesting_runs.create!(status: "processing", params_snapshot: {})
+    time_remaining = Nesting::TimeRemainingMessage.for(project)
+
+    get nesting_sync_project_path(project), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="nesting-progress"')
+    expect(response.body).to include('data-testid="cancel-nesting"')
+    expect(response.body).to include('data-testid="time-remaining"')
+    expect(response.body).to include(time_remaining)
+    expect(response.body).not_to include('data-testid="nesting-result"')
+  end
+
   it "GET /projects/:id reconciles a finished job on show [REQ-FIT-JOB-001]" do
     get project_path(project)
 

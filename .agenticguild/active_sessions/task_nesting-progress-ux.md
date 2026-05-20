@@ -204,7 +204,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `_nesting_progress.html.erb` — co-locate cancel (needs `active_run` local), `time_remaining` / `eta_overrun`; improve `aria-valuetext`. Remove duplicate cancel from `_show_actions` during `processing?` OR keep both in sync via broadcaster.
 </step>
 
-<step id="10">
+<step id="10" status="complete">
 **Test:** Extend `spec/services/nesting/progress_broadcaster_spec.rb` — processing broadcasts include progress partial with `active_run` and ETA locals. Tag `[REQ-FIT-JOB-001]`.
 **Implement:** `ProgressBroadcaster`, `ProjectsController#nesting_progress_locals`, `nesting_sync_streams` — pass `active_run`, `time_remaining`, ensure poll path refreshes ETA.
 </step>
