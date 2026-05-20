@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nesting phase i18n labels [REQ-FIT-UI-003]" do
+RSpec.describe "Nesting phase i18n labels [REQ-FIT-UI-003] [REQ-FIT-UI-005] [REQ-FIT-JOB-001]" do
   PHASE_KEYS = %w[
     queued
     preparing
@@ -15,7 +15,7 @@ RSpec.describe "Nesting phase i18n labels [REQ-FIT-UI-003]" do
     writing_outputs
   ].freeze
 
-  %i[en es].each do |locale|
+  %i[en es es_panic].each do |locale|
     context "when locale is #{locale}" do
       around do |example|
         I18n.with_locale(locale) { example.run }

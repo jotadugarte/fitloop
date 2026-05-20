@@ -229,13 +229,14 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Implement:** `_locale_switcher` grid 2+1, `locale.labels.*` in en/es/es_panic, CSS row/wide.
 </step>
 
-<step id="3" status="pending">
+<step id="3" status="complete">
 **Test:** Extend `spec/i18n/nesting_phase_labels_spec.rb` — include `es_panic` context for all `nesting.phase.*` keys. Tag `[REQ-FIT-UI-005]`, `[REQ-FIT-JOB-001]`.
-**Implement:** (none yet)
+**Implement:** (none — es_panic.yml already had phase keys from step 1)
 </step>
 
-<step id="4" status="pending">
+<step id="4" status="complete">
 **Implement:** Add `config/locales/es_panic.yml` from user batch 3; apply fixes in `es_panic_preimplement_fixes.md` (reindent `project_layers`, `split.badge`, `orphan_preview.download_dxf`, missing ~20 keys, `%{piece_number}`).
+**Note:** Done in step 1 implementation pass.
 </step>
 
 <step id="5" status="complete">
