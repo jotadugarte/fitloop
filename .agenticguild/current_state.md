@@ -4,16 +4,16 @@
 
   <execution_context>
 
-    <active_skill>explore-task</active_skill>
+    <active_skill>start-task</active_skill>
 
-    <current_phase>2 — The Handoff (Finalize & Kickoff)</current_phase>
+    <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>2.1 — Spec locked; handoff to start-task</current_step>
+    <current_step>3.1 — Plan step 3 next: workspace_spec + simplify Workspace.resolve!</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Decisions D1–D5 locked. Implementation plan written to task_remove-pin.md (10 steps, Refactor).</note>
+  <note>Steps 1–2 complete. ADR-0004 on disk. Next: failing workspace_spec then resolve! impl.</note>
 
 </agent_state>
