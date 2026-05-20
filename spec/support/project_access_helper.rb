@@ -6,7 +6,8 @@ module ProjectAccessHelper
     _ = pin
     raise ArgumentError, "unlock_project_for_spec! requires an ephemeral project" unless project.ephemeral?
 
-    if respond_to?(:session) && session
+    if respond_to?(:get)
+      get rails_health_check_path
       session[Workspace::SESSION_KEY] = project.id
     end
 

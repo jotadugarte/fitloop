@@ -58,7 +58,7 @@ class ProjectsController < ApplicationController
 
   def edit
     @composer_draft = {}
-    render(:new) if @project.ephemeral?
+    render :new
   end
 
   def update
@@ -66,15 +66,7 @@ class ProjectsController < ApplicationController
     sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
     @project.assign_attributes(attributes)
     normalize_sheet_stock_consumption_order!(@project)
-
-    if @project.ephemeral?
-      finish_ephemeral_setup
-    elsif @project.save
-      redirect_to @project, notice: t("projects.updated")
-    else
-      @composer_draft = composer_draft_params
-      render(:edit, status: :unprocessable_content)
-    end
+    finish_ephemeral_setup
   end
 
   def nesting_parameters
@@ -200,7 +192,6 @@ class ProjectsController < ApplicationController
   def project_params
     params.require(:project).permit(
       :title,
-      :pin,
       :kerf_mm,
       :margin_mm,
       sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]

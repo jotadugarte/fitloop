@@ -43,7 +43,7 @@ RSpec.configure do |config|
       return unless project.ephemeral?
       return unless respond_to?(:get)
 
-      get start_project_path
+      get rails_health_check_path
       session[Workspace::SESSION_KEY] = project.id
     end
   end)

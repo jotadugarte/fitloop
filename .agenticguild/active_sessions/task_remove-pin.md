@@ -122,7 +122,7 @@
 **Implement:** Migration `remove_pin_digest_from_projects`; remove PIN methods/validations/`scope :saved` from `Project`; default `ephemeral: true` if not already; delete `spec/models/project_pin_spec.rb`, `spec/services/project_access_spec.rb`.
 </step>
 
-<step id="6" status="pending">
+<step id="6" status="complete">
 **Test:** `spec/requests/ephemeral_workspace_spec.rb` — unchanged green; add assertion foreign `project_path(other_ephemeral_id)` fails without bind. Tag `[REQ-FIT-AUTH-001]`.
 **Implement:** Controllers: drop redundant `grant_project_access!` / `require_project_access!` callbacks; use `SetsWorkspaceProject` + bind check only; remove saved-project `update` branch and `project_params :pin`.
 </step>

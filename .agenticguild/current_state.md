@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 6 next: ephemeral_workspace + controller cleanup</current_step>
+    <current_step>3.1 — Plan step 7 next: remove dead project views + i18n</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–5 complete. pin_digest dropped; Project PIN code removed. Next: step 6 controllers.</note>
+  <note>Steps 1–6 complete. Ephemeral-only update path; foreign bind spec. Next: step 7 views/i18n.</note>
 
 </agent_state>
