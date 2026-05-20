@@ -42,6 +42,7 @@
   --fit-glass-shadow: 0 1px 3px color-mix(in srgb, var(--fit-navy-dark) 6%, transparent);
   --fit-glass-blur: 8px;
   --fit-input-glass-bg: color-mix(in srgb, var(--fit-surface) 85%, transparent);
+  --fit-choice-size: 1.125rem;
 }
 
 *,
@@ -2013,6 +2014,76 @@ h3.fit-section__legend {
 
 .layer-list--roles .layer-list__col--name {
   cursor: pointer;
+}
+
+/* Consistent primary (radio) and auxiliary (checkbox) controls — setup, show DXF detail, layers page */
+.layer-list--roles input[type="radio"],
+.layer-list--roles input[type="checkbox"],
+.layer-list--visual input[type="checkbox"] {
+  box-sizing: border-box;
+  width: var(--fit-choice-size);
+  height: var(--fit-choice-size);
+  min-width: var(--fit-choice-size);
+  min-height: var(--fit-choice-size);
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.layer-list--roles input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--fit-border-strong);
+  border-radius: 50%;
+  background-color: var(--fit-surface);
+}
+
+.layer-list--roles input[type="radio"]:checked {
+  border-color: var(--fit-navy);
+  box-shadow: inset 0 0 0 0.1875rem var(--fit-navy);
+}
+
+.layer-list--roles input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-color: var(--fit-border);
+}
+
+.layer-list--roles input[type="checkbox"],
+.layer-list--visual input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  position: relative;
+  border: 2px solid var(--fit-border-strong);
+  border-radius: 0.2rem;
+  background-color: var(--fit-surface);
+}
+
+.layer-list--roles input[type="checkbox"]:checked,
+.layer-list--visual input[type="checkbox"]:checked {
+  border-color: var(--fit-navy);
+  background-color: var(--fit-navy);
+}
+
+.layer-list--roles input[type="checkbox"]:checked::after,
+.layer-list--visual input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 0.3rem;
+  height: 0.55rem;
+  border: solid var(--fit-surface);
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.layer-list--roles input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .readiness-errors ul {
