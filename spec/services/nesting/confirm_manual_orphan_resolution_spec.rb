@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Nesting::ConfirmManualOrphanResolution do
-  let(:project) { create_project_for_spec!(title: "Manual confirm", pin: "112233") }
+  let(:project) { create_project_for_spec!(title: "Manual confirm") }
 
   def attach_orphan!(rings:)
     project.nesting_runs.create!(

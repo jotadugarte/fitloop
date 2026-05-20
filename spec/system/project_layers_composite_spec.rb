@@ -13,10 +13,7 @@ RSpec.describe "Composite DXF layers nesting", type: :system do
   let(:composite_fixture) { Rails.root.join("nesting_engine/tests/fixtures/composite-nest-smoke.dxf") }
 
   it "[REQ-FIT-DXF-002] [REQ-FIT-UI-001] nests with primary and auxiliary layers and preserves layer names in nested DXF" do
-    project = Project.create!(
-      title: "Composite layers smoke",
-      pin: "778899",
-      sheet_stocks_attributes: {
+    project = create_project_for_spec!(title: "Composite layers bench", sheet_stocks_attributes: {
         "0" => { width_mm: 250, height_mm: 120, quantity: 1, sort_order: 0 }
       }
     )
@@ -35,10 +32,6 @@ RSpec.describe "Composite DXF layers nesting", type: :system do
       layer_name: "GRABADO",
       active_storage_attachment_id: attachment.id
     )
-
-    visit project_path(project)
-    fill_in I18n.t("projects.access.pin_label"), with: "778899"
-    click_button I18n.t("projects.access.unlock")
 
     visit project_layers_path(project)
     expect(page).to have_css('[data-testid="primary-layer-radio"]')

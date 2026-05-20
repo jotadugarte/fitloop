@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Nesting::OrphansPresenter do
-  let(:project) { create_project_for_spec!(title: "Orphans bench", pin: "887766") }
+  let(:project) { create_project_for_spec!(title: "Orphans bench") }
 
   describe ".for [REQ-FIT-NEST-003]" do
     it "builds preview data from placements.json orphan geometry" do

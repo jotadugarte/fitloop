@@ -3,19 +3,11 @@
 require "rails_helper"
 
 RSpec.describe "Project source DXF detail", type: :request do
-  let(:project) do
-    create_project_for_spec!(
-      title: "Source DXF detail bench",
-      pin: "556677",
-      ephemeral: false,
-      bind_workspace: false
-    )
-  end
+  let(:project) { create_project_for_spec!(title: "Source DXF detail bench") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:id" do
     it "renders Detalle DXF without per-file SVG preview (same as setup)" do
-      unlock_project_for_spec!(project, pin: "556677")
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),

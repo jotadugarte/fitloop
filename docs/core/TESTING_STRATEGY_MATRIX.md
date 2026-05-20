@@ -81,7 +81,7 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | **External APIs** | No live HTTP in tests |
 | **Nesting CLI** | Use `nesting_engine/cli_mock.py` or stub `Nesting::CliRunner.call` unless explicitly integration (`nesting_job_integration_spec`) |
 | **Active Storage** | Use `attach` with `StringIO` / fixture files in request specs |
-| **PIN session** | `ProjectAccessHelper#unlock_project_for_spec!` in request/system specs |
+| **Workspace session** | `bind_workspace_session!` / `create_project_for_spec!` (default bind) in request/system specs |
 | **Time** | Prefer fixed timestamps in assertions; job timeout tests stub/limit duration where possible |
 | **Randomness** | RSpec `randomized with seed` logged; pytest deterministic fixtures |
 | **Database** | Default `use_transactional_fixtures = true`; opt out only when necessary (`home_spec`, `locale_spec`, `ui_design_spec` with explicit cleanup) |

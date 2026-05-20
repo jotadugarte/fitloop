@@ -4,18 +4,12 @@ require "rails_helper"
 
 RSpec.describe "Project nesting sync", type: :request do
   let(:project) do
-    create_project_for_spec!(
-      title: "Nesting sync bench",
-      pin: "667788",
-      ephemeral: false,
-      bind_workspace: false
-    ).tap do |record|
+    create_project_for_spec!(title: "Nesting sync bench").tap do |record|
       record.update!(status: :processing, progress_percent: 3, progress_message: I18n.t("nesting.queued"))
     end
   end
 
   before do
-    unlock_project_for_spec!(project, pin: "667788")
     project.nesting_runs.create!(
       status: "completed",
       started_at: 2.seconds.ago,

@@ -13,10 +13,7 @@ RSpec.describe "Nesting progress UI", type: :system do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   it "[REQ-FIT-JOB-001] starts nesting and shows completed progress on the project page" do
-    project = Project.create!(
-      title: "Turbo progress bench",
-      pin: "445577",
-      sheet_stocks_attributes: {
+    project = create_project_for_spec!(title: "Turbo progress bench", sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
       }
     )
@@ -28,8 +25,6 @@ RSpec.describe "Nesting progress UI", type: :system do
     project.project_layers.create!(layer_name: "PIECES", included: true)
 
     visit project_path(project)
-    fill_in I18n.t("projects.access.pin_label"), with: "445577"
-    click_button I18n.t("projects.access.unlock")
     click_button I18n.t("nesting.start")
 
     expect(page).to have_css('[data-testid="nesting-result"]')

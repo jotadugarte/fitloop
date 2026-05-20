@@ -132,7 +132,7 @@
 **Implement:** Delete `app/views/projects/index.html.erb`, `_project_card.html.erb`, `_form.html.erb` (if unused), `edit` non-ephemeral branch; remove `projects.index.*` and `projects.access.*` / `activerecord.attributes.project.pin` i18n keys; keep `projects#index` as redirect-only.
 </step>
 
-<step id="8" status="pending">
+<step id="8" status="complete">
 **Test:** Update `spec/support/project_spec_factory.rb` — `create_project_for_spec!` always ephemeral, no `pin:` kwarg; remove `spec/support/project_access_helper.rb` and all `unlock_project_for_spec!` call sites (grep-driven sweep). Tags `[REQ-FIT-QA-001]`.
 **Implement:** Factory + system/request specs use `bind_workspace_session!` only.
 </step>

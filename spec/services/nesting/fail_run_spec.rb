@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe Nesting::FailRun do
   let(:project) do
-    create_project_for_spec!(title: "Fail run bench", pin: "112233", bind_workspace: false, ephemeral: false)
+    create_project_for_spec!(title: "Fail run bench", bind_workspace: false)
   end
   let(:nesting_run) { project.nesting_runs.create!(status: "processing", params_snapshot: {}) }
 

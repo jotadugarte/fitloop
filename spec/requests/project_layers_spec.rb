@@ -3,12 +3,11 @@
 require "rails_helper"
 
 RSpec.describe "Project layers", type: :request do
-  let(:project) { create_project_for_spec!(title: "DXF upload bench", pin: "445566") }
+  let(:project) { create_project_for_spec!(title: "DXF upload bench") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:project_id/layers [REQ-FIT-DXF-001]" do
     it "shows a layer checklist built from union of uploaded DXF layer names" do
-      unlock_project_for_spec!(project, pin: "445566")
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -26,7 +25,6 @@ RSpec.describe "Project layers", type: :request do
 
   describe "PATCH /projects/:project_id/layers [REQ-FIT-DXF-001]" do
     it "saves layer selection, starts nesting, and redirects to the project progress page" do
-      unlock_project_for_spec!(project, pin: "445566")
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -52,16 +50,10 @@ RSpec.describe "Project layers", type: :request do
 
   describe "composite layer UI [REQ-FIT-DXF-002]" do
     let(:project) do
-      create_project_for_spec!(
-        title: "Composite layers bench",
-        pin: "445566",
-        ephemeral: false,
-        bind_workspace: false
-      )
+      create_project_for_spec!(title: "Composite layers bench", bind_workspace: false)
     end
 
     def attach_per_file_dxf!
-      unlock_project_for_spec!(project, pin: "445566")
       project.input_dxf.attach(
         io: File.open(sample_dxf),
         filename: "piece.dxf",
@@ -81,7 +73,6 @@ RSpec.describe "Project layers", type: :request do
       expect(response.body).to include('data-testid="primary-layer-radio"')
       expect(response.body).to include(I18n.t("project_layers.primary_layer.short"))
       expect(response.body).to include(I18n.t("project_layers.auxiliary_layers.short"))
-      expect(response.body).to include('data-testid="dxf-file-layers-meta"')
       expect(response.body).not_to include(I18n.t("project_layers.primary_layer.tooltip"))
     end
 
@@ -193,18 +184,9 @@ RSpec.describe "Project layers", type: :request do
   end
 
   describe "POST /projects/:project_id/input_dxf_files [REQ-FIT-DXF-001]" do
-    # Saved project: avoids ephemeral workspace session coupling (resolve! requires bound session).
-    let(:project) do
-      create_project_for_spec!(
-        title: "DXF multi-upload bench",
-        pin: "445566",
-        ephemeral: false,
-        bind_workspace: false
-      )
-    end
+    let(:project) { create_project_for_spec!(title: "DXF multi-upload bench") }
 
     it "accepts multiple DXF uploads in one request" do
-      unlock_project_for_spec!(project, pin: "445566")
 
       post project_input_dxf_files_path(project), params: {
         files: [

@@ -7,7 +7,7 @@ RSpec.describe Nesting::ApplyCancel do
     let(:project) do
       Project.create!(
         title: "Cancel split previews",
-        pin: "445566",
+        ephemeral: true,
         status: :processing,
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }

@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ProjectLayer, type: :model do
-  let(:project) { create_project_for_spec!(title: "Layer roles", pin: "112233", bind_workspace: false) }
+  let(:project) { create_project_for_spec!(title: "Layer roles", bind_workspace: false) }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   def sync_layers_from_sample_dxf!

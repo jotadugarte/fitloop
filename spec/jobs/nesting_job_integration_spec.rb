@@ -9,7 +9,7 @@ RSpec.describe NestingJob, "integration with nest.py", type: :job do
     it "marks partial and records oversized orphans when the piece does not fit the sheet" do
       project = Project.create!(
         title: "Oversized integration",
-        pin: "221100",
+        ephemeral: true,
         sheet_stocks_attributes: {
           "0" => { width_mm: 50, height_mm: 50, quantity: 1, sort_order: 0 }
         }
@@ -38,7 +38,7 @@ RSpec.describe NestingJob, "integration with nest.py", type: :job do
     it "marks completed when the piece fits the sheet via the real CLI" do
       project = Project.create!(
         title: "Fits integration",
-        pin: "110022",
+        ephemeral: true,
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
         }

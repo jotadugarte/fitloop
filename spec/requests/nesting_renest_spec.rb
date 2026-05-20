@@ -4,9 +4,8 @@ require "rails_helper"
 
 RSpec.describe "Re-nesting", type: :request do
   let(:project) do
-    Project.create!(
+    create_project_for_spec!(
       title: "Re-nest bench",
-      pin: "889900",
       status: :completed,
       sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
@@ -33,7 +32,6 @@ RSpec.describe "Re-nesting", type: :request do
       started_at: 2.hours.ago,
       finished_at: 1.hour.ago
     )
-    unlock_project_for_spec!(project, pin: "889900")
   end
 
   describe "POST /projects/:project_id/nesting_runs [REQ-FIT-NEST-004]" do

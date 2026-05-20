@@ -6,7 +6,7 @@ RSpec.describe Nesting::CliRunner do
   let(:project) do
     Project.create!(
       title: "CLI runner bench",
-      pin: "556677",
+        ephemeral: true,
       sheet_stocks_attributes: {
         "0" => { width_mm: 500, height_mm: 500, quantity: nil, sort_order: 0 }
       }

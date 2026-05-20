@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 8 next: spec factory sweep + remove unlock helper</current_step>
+    <current_step>3.1 — Plan step 9 next: update core docs (SPEC, architecture, deploy)</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–7 complete. Dead views/i18n removed. Next: step 8 spec factory sweep.</note>
+  <note>Steps 1–8 complete. RSpec 203 examples, 0 failures. Next: step 9 doc sweep.</note>
 
 </agent_state>

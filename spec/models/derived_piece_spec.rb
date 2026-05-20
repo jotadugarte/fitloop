@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe DerivedPiece do
-  let(:project) { create_project_for_spec!(title: "Derived", pin: "112233") }
+  let(:project) { create_project_for_spec!(title: "Derived") }
 
   describe "#display_suffix [REQ-FIT-SPLIT-001]" do
     it "uppercases the letter suffix from Pieza-Nx labels" do

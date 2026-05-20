@@ -4,10 +4,8 @@ require "rails_helper"
 
 RSpec.describe Nesting::JobRunner do
   let(:project) do
-    Project.create!(
-      title: "Job runner bench",
-      pin: "667788",
-      nesting_time_limit_sec: 600,
+    Project.create!(title: "Job runner bench",
+            nesting_time_limit_sec: 600,
       estimated_finished_at: 1.second.ago,
       sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }

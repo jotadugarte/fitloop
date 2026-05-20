@@ -8,7 +8,7 @@ RSpec.describe Dxf::PieceCounter do
   end
 
   describe ".layer_names_for_count [REQ-FIT-DXF-002]" do
-    let(:project) { create_project_for_spec!(title: "Piece count", pin: "112233", bind_workspace: false) }
+    let(:project) { create_project_for_spec!(title: "Piece count", bind_workspace: false) }
 
     def layers_for(attachment_id)
       project.project_layers.where(
