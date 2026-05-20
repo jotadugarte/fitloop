@@ -1,6 +1,6 @@
 # Data Flow & Side-Effect Map — Fitloop
 
-**Purpose:** Maps how entities mutate and propagate throughout Fitloop. AI agents must consult this document to avoid orphan blobs, stale project status, or bypassing PIN / pre-flight gates.
+**Purpose:** Maps how entities mutate and propagate throughout Fitloop. AI agents must consult this document to avoid orphan blobs, stale project status, or bypassing workspace bind / pre-flight gates.
 
 **Anchors:** `docs/core/SPEC.md` (workflows W1–W5), `docs/core/SYSTEM_ARCHITECTURE.md` (stack boundaries).
 
@@ -44,7 +44,7 @@ Browser (project#show)
 
 | Stage | Trigger | DB / storage changes |
 |-------|---------|----------------------|
-| Create | `ProjectsController#create` | Row + `sheet_stocks`; `pin_digest` from 6-digit PIN; session `project_access` granted to creator |
+| Create | `Workspace.create!` / `find_or_create!` via `ProjectsController#start` / `#new` | `Project(ephemeral: true)` row; `session[:workspace_project_id]` via `Workspace.bind!` |
 | Draft | Default after create | `status: draft`; may have `input_dxf` attachments |
 | Ready | Layers selected + pieces extractable (implicit or explicit) | User can start nesting when `ProjectReadinessValidator` passes |
 | Processing | `NestingRunsController#create` | `status: processing`; progress fields updated by `JobRunner` |
@@ -92,7 +92,7 @@ Blobs use standard `active_storage_*` tables; deleting a project does **not** au
 
 | Trigger | Required side effect | Mechanism |
 |---------|---------------------|-----------|
-| Project created with valid PIN | Creator session unlock | `grant_project_access!` in `ProjectsController#create` |
+| Workspace start / bind | Session key set | `Workspace.bind!` after ephemeral `Project` create |
 | DXF files uploaded | Layer rows synced | `Dxf::LayerSync` after attach |
 | Nesting run created | Job enqueued; project → processing | `NestingJob.perform_later` |
 | CLI success (completed/partial) | Attach outputs; update statuses | `Nesting::CliRunner` + `StatusMapper` |
@@ -106,15 +106,20 @@ Blobs use standard `active_storage_*` tables; deleting a project does **not** au
 ## 4. Access Control Flow (W5)
 
 ```
-GET /projects/:id
-  → ProjectsController#show
-  → project_access_granted? (session flag per project id)
-  → if false: render pin_gate (minimal layout)
-  → POST verify_pin → ProjectAccess.granted? (user PIN or admin credentials PIN)
-  → grant_project_access! → redirect show
+GET /empezar (start)
+  → Workspace.discard!(session)  [prior workspace]
+  → redirect new_project_path
+  → Workspace.find_or_create!(session) → ephemeral Project
+  → Workspace.bind!(session, project)
+
+GET /projects/:id (and nested routes using SetsWorkspaceProject)
+  → Workspace.resolve!(session, id)
+  → if session[:workspace_project_id] != id or project discarded:
+       Workspace.discard!(session) → redirect start with workspace.expired
+  → else: controller action (show, edit, nesting, layers, …)
 ```
 
-**Edit/update** require `require_project_access!` (same session flag).
+**No PIN gate.** Foreign ephemeral project IDs are not reachable without session bind (ADR-0004).
 
 ---
 
@@ -133,7 +138,7 @@ No Action Cable caching layer; HTML fragments are source of truth after each bro
 | Layer | Strategy |
 |-------|----------|
 | HTTP / ETag | `stale_when_importmap_changes` on `ApplicationController` |
-| Session | `project_access`, `locale` — invalidate by key change only |
+| Session | `workspace_project_id`, `locale` — invalidate on discard or key change |
 | Active Storage | Blob `key` immutable; replacing attachment creates new blob |
 | Python tmp dirs | Per-run folder under `tmp/nesting_runs/`; not shared across runs |
 
@@ -220,5 +225,5 @@ orphan CompositePiece (mother has decorations)
 
 - Do not write to `nested.dxf` from Rails — CLI only.
 - Do not skip `ProjectReadinessValidator` before enqueueing `NestingJob`.
-- Do not store plaintext PIN — only `pin_digest`.
+- Do not bypass `Workspace.resolve!` for user-facing project routes that use `SetsWorkspaceProject`.
 - Do not assume `NestingRun` holds the downloadable DXF — it lives on `Project#nested_dxf`.

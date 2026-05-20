@@ -21,7 +21,7 @@
 | **Python engine** | pytest | `nesting_engine/tests/` | Unit/integration on extract, nest, CLI outputs; no network; fixture DXFs in `tests/fixtures/` | All engine modules covered |
 | **Domain / services** | RSpec | `spec/services/`, `spec/models/` | Mock external I/O; real DB for models | 100% service branches |
 | **Jobs** | RSpec | `spec/jobs/` | Mock CLI or use `cli_mock` / real `nest.py` in integration example | Happy + partial + failed paths |
-| **HTTP / requests** | RSpec | `spec/requests/` | Status codes, auth/PIN gate, i18n copy, attachment headers | All routes with business rules |
+| **HTTP / requests** | RSpec | `spec/requests/` | Status codes, workspace session bind, i18n copy, attachment headers | All routes with business rules |
 | **System / E2E** | RSpec + Capybara | `spec/system/` | Golden DXF flow, CRUD, progress UI (`rack_test` driver) | Critical user flows only |
 | **Doc / scaffold guards** | Minitest | `test/app/`, `test/architecture/`, `test/spec/` | Verifiers for home, architecture doc, SPEC presence | CI gate on docs |
 
@@ -52,10 +52,10 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | REQ-FIT-ARCH-001 | `test/architecture/system_architecture_doc_test.rb` |
 | REQ-FIT-SPEC-001 | `test/spec/spec_doc_test.rb` |
 | REQ-FIT-DOM-001 | `spec/models/project*_spec.rb`, `spec/models/sheet_stock_spec.rb` |
-| REQ-FIT-AUTH-001 | `spec/models/project_pin_spec.rb`, `spec/services/project_access_spec.rb` |
+| REQ-FIT-AUTH-001 | `spec/services/workspace_spec.rb`, `spec/requests/workspace_access_spec.rb`, `spec/requests/ephemeral_workspace_spec.rb` |
 | REQ-FIT-UI-001 | `spec/system/projects_spec.rb` |
 | REQ-FIT-UI-002 | `spec/requests/project_preview_spec.rb`, `spec/services/nesting/preview_presenter_spec.rb` |
-| REQ-FIT-UI-003 | `spec/requests/project_access_gate_spec.rb` |
+| REQ-FIT-UI-003 | `spec/requests/workspace_access_spec.rb`, `spec/requests/i18n_views_spec.rb` |
 | REQ-FIT-UI-004 | `spec/requests/ui_design_spec.rb` |
 | REQ-FIT-UI-005 | `spec/requests/locale_spec.rb` |
 | REQ-FIT-DXF-001 | `spec/requests/project_layers_spec.rb` |

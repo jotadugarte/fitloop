@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Fitloop is a web application for **DXF sheet nesting**: users create projects with multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, protect projects with a **6-digit PIN**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
+Fitloop is a web application for **DXF sheet nesting**: users start an **ephemeral workspace** (one in-browser session per visit), attach multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
 
 Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`).
 
@@ -16,7 +16,8 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 | Term | Definition | In code / UX |
 |------|------------|----------------|
-| **Project** | A nesting workspace: title, parameters, PIN, inputs, sheet stocks, selected layers, job state | `Project` model |
+| **Project** | Ephemeral nesting workspace: title, parameters, inputs, sheet stocks, selected layers, job state | `Project` model (`ephemeral: true`) |
+| **Workspace** | Session-bound aggregate: at most one ephemeral `Project` per browser session | `Workspace` service, `session[:workspace_project_id]` |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
 | **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
 | **CompositePiece** | One nestable unit: primary polygon (+ holes) + attached decoration entities (Python) | `composite_extract` |
@@ -26,8 +27,6 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **Orphan** | Piece not placed; listed in `report.json` with reason code | Report only |
 | **Kerf** | Cut width offset between pieces (default 0 mm) | `Project#kerf_mm` |
 | **Margin** | Inset from sheet edge (default 5 mm) | `Project#margin_mm` |
-| **PIN (user)** | 6-digit code chosen at project create; bcrypt digest stored | `Pin6` |
-| **Admin PIN** | 10-digit master PIN in Rails credentials; unlocks any project | `AdminPin10` |
 | **Job status** | Terminal nesting outcome: `completed`, `partial`, or `failed` | `NestingRun#status` |
 
 ---
@@ -36,10 +35,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### Project
 
-- **Fields:** `title`, `pin_digest`, `kerf_mm` (default 0), `margin_mm` (5), `curve_tolerance_mm` (0.1), `sheet_gap_mm` (15), `nesting_time_limit_sec` (600), `status` (`draft` \| `ready` \| `processing` \| `completed` \| `partial` \| `failed`), `progress_percent`, `progress_message`, timestamps
+- **Fields:** `title`, `ephemeral` (default `true`), `kerf_mm` (default 0), `margin_mm` (5), `curve_tolerance_mm` (0.1), `sheet_gap_mm` (15), `nesting_time_limit_sec` (600), `status` (`draft` \| `ready` \| `processing` \| `completed` \| `partial` \| `failed`), `progress_percent`, `progress_message`, `session_workflow_log` (JSON), timestamps
 - **Attachments (Active Storage):** many `input_dxf`; one `nested_dxf` when job succeeds or is partial
 - **Associations:** `has_many :sheet_stocks`, `has_many :project_layers`, `has_many :nesting_runs`
-- **Invariants:** title present; ≥1 `SheetStock`; ≥1 `ProjectLayer` with `included: true`; valid 6-digit PIN at create; on `completed`/`partial`, nested DXF attached unless validation-only failure
+- **Invariants:** all user-facing rows are `ephemeral: true`; title present when setup completes; ≥1 `SheetStock`; ≥1 `ProjectLayer` with `included: true`; on `completed`/`partial`, nested DXF attached unless validation-only failure
 
 ### SheetStock
 
@@ -68,12 +67,13 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W1 — Create project and sheet inventory
 
-1. User enters title and chooses a **6-digit PIN** (saved projects) or uses the ephemeral setup flow.
-2. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
-3. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
-4. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
-5. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
-6. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
+1. User starts workspace (`GET /empezar`) → `Workspace` creates/binds an ephemeral `Project` in `session[:workspace_project_id]`.
+2. User completes setup (title, sheet stocks, DXF, layers) via the ephemeral setup form.
+3. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
+4. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
+5. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
+6. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
+7. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
 
 ### W2 — Upload DXFs and select layers
 
@@ -93,10 +93,12 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 1. User triggers new **NestingRun** on same project (“Volver a anidar”).
 2. Previous downloadable result replaced; run history retained.
 
-### W5 — Access without account
+### W5 — Ephemeral session access (no accounts)
 
-1. Project list/history visible without login.
-2. Opening a project requires user **PIN** or **admin PIN** (`ProjectAccess` service).
+1. No user accounts or saved-project list in v1; `GET /projects` redirects to workspace start (`/empezar`).
+2. Access to a `Project` requires the browser session cookie and matching `session[:workspace_project_id]` (`Workspace.resolve!`).
+3. Opening another ephemeral project ID without bind → redirect to start with `workspace.expired` (HTML) or `RecordNotFound` (internal).
+4. Returning home or explicit discard → `Workspace.discard!` destroys the project and clears the session key.
 
 ---
 
@@ -110,7 +112,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-EXT-001** | Python package; extract ≥1 closed contour from sample DXF | P0 |
 | **REQ-FIT-NEST-001** | Nesting library spike (libnest2d or ADR fallback) | P0 |
 | **REQ-FIT-DOM-001** | Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` with defaults | P1 |
-| **REQ-FIT-AUTH-001** | User **6-digit PIN** at create (bcrypt); admin **10-digit** master PIN from credentials; `ProjectAccess` | P1 |
+| **REQ-FIT-AUTH-001** | Ephemeral **workspace session bind** via `Workspace`; no PIN; `resolve!` for project access | P1 |
 | **REQ-FIT-UI-001** | Project CRUD; ordered sheet inventory UI (finite + ∞) | P1 |
 | **REQ-FIT-DXF-001** | Multi-DXF upload; union layers; **layer checklist** (i18n) | P2 |
 | **REQ-FIT-DXF-002** | **Primary layer per file** + **auxiliary** layers clipped to primary polygons; composite nest + output | v1.2 |
@@ -122,7 +124,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-JOB-001** | Turbo progress, 600s cap → partial + notice, cancel | P3 |
 | **REQ-FIT-UI-002** | Browser preview from `placements.json` | P4 |
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
-| **REQ-FIT-UI-003** | Download nested DXF; list without login; PIN gate on show | P4 |
+| **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
 | **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
 | **REQ-FIT-UI-005** | Locale switcher in layout: EN/ES toggle; `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
@@ -130,10 +132,14 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### REQ-FIT-AUTH-001 (detail)
 
-- User selects a **6-digit PIN** at project creation; validate format; store `pin_digest` (bcrypt).
-- Admin **10-digit PIN** in `Rails.application.credentials`; grants access to any project.
-- No end-user PIN recovery in v1.
-- Rate-limit admin PIN attempts.
+**Supersedes pre-2026-05-19 PIN model** — see `docs/core/ADRs/0004-ephemeral-session-access.md`.
+
+- **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!` sets `session[:workspace_project_id]`.
+- **Read / mutate:** Controllers use `Workspace.resolve!(session, id)` — returns the project only when the session is bound to that ephemeral id.
+- **Foreign ID:** Unbound request for another project → `ActiveRecord::RecordNotFound` or redirect to `/empezar` with `workspace.expired`.
+- **Leave:** `HomeController` / `Workspace.discard!` destroys the project, cancels active nesting, clears session key.
+- **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
+- **Non-goals:** cross-session sharing, PIN recovery, admin override via app UI.
 
 ### REQ-FIT-DOM-001 (detail)
 
@@ -238,7 +244,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 Rails: `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner` for plan mode; `Nesting::ConfigBuilder` merges exclusions and derived geometry for nest mode. Cancel of an in-flight nesting run invalidates draft proposals tied to that run.
 
-**Out of v1.1:** in-app DXF editing, bulk orphan actions, PIN changes for split, persistent cross-session orphan history UI.
+**Out of v1.1:** in-app DXF editing, bulk orphan actions, persistent cross-session orphan history UI.
 
 ---
 
@@ -279,4 +285,4 @@ Full JSON schema to be maintained in `nesting_engine/README.md` when the package
 
 - FastAPI microservice wrapper
 - Hard caps on file size / piece count
-- User PIN recovery flow
+- Cross-session project resume (accounts, share links, export/import)

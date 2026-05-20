@@ -1,6 +1,6 @@
 # Schema Reference — Fitloop
 
-**Source of truth:** `db/schema.rb` (version `2026_05_17_120000`). Regenerate this doc when migrations change.
+**Source of truth:** `db/schema.rb` (version `2026_05_21_025640`). Regenerate this doc when migrations change.
 
 **ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (+ Active Storage attachments on `Project`).
 
@@ -8,14 +8,15 @@
 
 ## `projects`
 
-Nesting workspace: parameters, job status, progress UI fields, PIN digest.
+Ephemeral nesting workspace: parameters, job status, progress UI fields.
 
 | Column | Type | Null | Default | Notes |
 |--------|------|------|---------|-------|
 | `id` | bigint | PK | | |
 | `title` | string | no | | Display name |
-| `pin_digest` | string | yes | | bcrypt of 6-digit user PIN |
+| `ephemeral` | boolean | no | `true` | User-facing projects are session-scoped only (ADR-0004) |
 | `status` | string | no | `draft` | `draft`, `ready`, `processing`, `completed`, `partial`, `failed` |
+| `session_workflow_log` | jsonb | no | `[]` | Append-only in-session audit (e.g. split actions) |
 | `kerf_mm` | float | no | `0.0` | |
 | `margin_mm` | float | no | `5.0` | |
 | `curve_tolerance_mm` | float | no | `0.1` | Tessellation tolerance |

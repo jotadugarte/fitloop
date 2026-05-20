@@ -8,7 +8,7 @@ Single host (VM or container) running:
 
 | Component | Role |
 |-----------|------|
-| **Rails 8** (Puma) | HTTP, PIN gate, Active Storage, Solid Queue worker |
+| **Rails 8** (Puma) | HTTP, workspace session access, Active Storage, Solid Queue worker |
 | **PostgreSQL** | Primary database |
 | **Python 3 venv** (`.venv`) | `nesting_engine` CLI invoked from `NestingJob` |
 
@@ -74,7 +74,7 @@ Copy `.env.example` to `.env` and set:
 | Variable | Purpose |
 |----------|---------|
 | `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection (see `config/database.yml`) |
-| `RAILS_MASTER_KEY` | Decrypt `config/credentials.yml.enc` (admin master PIN, secrets) |
+| `RAILS_MASTER_KEY` | Decrypt `config/credentials.yml.enc` (Rails secrets) |
 
 `Dxf::Python.executable` prefers `Rails.root.join(".venv/bin/python")`; falls back to `python3` on `PATH`.
 

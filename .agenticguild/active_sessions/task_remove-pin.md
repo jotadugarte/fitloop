@@ -137,7 +137,7 @@
 **Implement:** Factory + system/request specs use `bind_workspace_session!` only.
 </step>
 
-<step id="9" status="pending">
+<step id="9" status="complete">
 **Test:** `lib/spec_doc_verifier.rb` / architecture doc test still pass after doc edits. Tags `[REQ-FIT-ARCH-001]`, `[REQ-FIT-AUTH-001]`.
 **Implement:** Update `docs/core/SPEC.md` (W5, Project fields, REQ-FIT-AUTH-001 detail), `SYSTEM_ARCHITECTURE.md` (stack blurb, secrets §4), `DATA_FLOW_MAP.md` (access flow), `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md`, `docs/DEPLOY.md`, `docs/QA_MANUAL_CHECKLIST.md`; mark roadmap item in `docs/ROADMAP.md` when shipped.
 </step>
