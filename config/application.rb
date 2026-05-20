@@ -39,7 +39,7 @@ module Fitloop
     # Don't generate system test files.
     config.generators.system_tests = nil
 
-    config.i18n.available_locales = %i[en es]
+    config.i18n.available_locales = %i[en es es_panic]
     config.i18n.default_locale = :en
   end
 end

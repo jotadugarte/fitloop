@@ -1,6 +1,8 @@
 example_id                                                              | status | run_time        |
 ----------------------------------------------------------------------- | ------ | --------------- |
 ./spec/helpers/orphans_preview_helper_spec.rb[1:1:1]                    | passed | 0.00517 seconds |
+./spec/i18n/locale_key_parity_spec.rb[1:1]                              | passed | 0.19464 seconds |
+./spec/i18n/locale_key_parity_spec.rb[1:2]                              | passed | 0.03469 seconds |
 ./spec/i18n/nesting_phase_labels_spec.rb[1:1:1]                         | passed | 0.0023 seconds  |
 ./spec/i18n/nesting_phase_labels_spec.rb[1:1:2]                         | passed | 0.00325 seconds |
 ./spec/i18n/nesting_phase_labels_spec.rb[1:2:1]                         | passed | 0.00193 seconds |
