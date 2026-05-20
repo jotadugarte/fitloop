@@ -107,7 +107,7 @@
 **Test:** N/A (documentation gate). **Implement:** Add `docs/core/ADRs/0004-ephemeral-session-access.md` (Accepted) — replaces PIN model: one ephemeral `Project` per session via `Workspace`; no saved projects; no `pin_digest`; access by session bind only. Tags `[REQ-FIT-AUTH-001]`.
 </step>
 
-<step id="3" status="pending">
+<step id="3" status="complete">
 **Test:** Rewrite `spec/services/workspace_spec.rb` — `resolve!` returns project only when `session[:workspace_project_id]` matches and project is ephemeral; unknown ID or non-bound ephemeral → `RecordNotFound`; remove examples for `ephemeral: false` by ID. Tag `[REQ-FIT-AUTH-001]`.
 **Implement:** Simplify `Workspace.resolve!` (drop non-ephemeral public lookup branch).
 </step>
