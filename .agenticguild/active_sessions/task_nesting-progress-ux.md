@@ -155,7 +155,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 
 <implementation_plan>
 
-<step id="1" status="in_progress">
+<step id="1" status="complete">
 **Test:** Add `nesting_engine/tests/test_progress_reporter.py` — atomic write to temp path; monotonic `percent`; throttle skips writes within 1s unless percent delta ≥ 1; invalid phase ignored. Tag `[REQ-FIT-JOB-001]`.
 **Pre:** `ProgressReporter.report(phase_id, percent, **kwargs)` validates `0 <= percent <= 100`.
 **Post:** File on disk is valid JSON schema v1; corrupt partial never visible (rename).

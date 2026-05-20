@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Step 1 failing test written (progress_reporter)</current_step>
+    <current_step>3.2 — Step 1 complete (ProgressReporter); next step 2 test</current_step>
 
   </execution_context>
 
