@@ -30,7 +30,9 @@ RSpec.describe "I18n view copy", type: :request do
       expect(response.body).to include(I18n.t("projects.form.dxf_upload_legend", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
+      expect(response.body).to include(I18n.t("projects.form.kerf_mm", locale: :es))
       expect(response.body).not_to include("Unlimited quantity")
+      expect(response.body).not_to include("Kerf")
     end
   end
 

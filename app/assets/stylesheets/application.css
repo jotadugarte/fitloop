@@ -797,15 +797,10 @@ h3.fit-section__legend {
 }
 
 .nesting-preview--empty {
-  padding: 2rem 1rem;
+  padding: 1.25rem 1rem;
   text-align: center;
   background: var(--fit-surface);
   border: 1px solid var(--fit-border);
-}
-
-.nesting-preview--empty .preview-placeholder--cad {
-  max-width: 20rem;
-  margin: 0 auto 1rem;
 }
 
 .nesting-preview--empty p {
@@ -1151,6 +1146,15 @@ h3.fit-section__legend {
   margin: 0;
 }
 
+.project-dxf-upload__layers {
+  margin-top: 1rem;
+}
+
+.project-dxf-upload .source-dxf-detail__layers-form .form-actions--inline {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1477,16 +1481,6 @@ h3.fit-section__legend {
   gap: 0.5rem;
 }
 
-.source-dxf-detail__upload.panel--inset {
-  margin-top: 0;
-}
-
-.project-dxf-upload--inline {
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
 .project-setup__section {
   margin-bottom: 1rem;
 }
@@ -1628,7 +1622,60 @@ h3.fit-section__legend {
   text-align: center;
 }
 
-.setup-welcome {
+.project-show__hero {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.project-show__hero-status {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.onboarding-welcome {
+  box-sizing: border-box;
+}
+
+.onboarding-welcome--hero {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11.5rem) minmax(0, 1fr);
+  gap: 0.75rem 2rem;
+  align-items: start;
+  width: 100%;
+  min-width: 0;
+  padding: 0 5.5rem 0 0;
+  text-align: left;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__brand {
+  align-self: start;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__logo {
+  width: min(10.5rem, 100%);
+  margin: 0;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__copy {
+  max-width: none;
+  width: 100%;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__intro {
+  margin-inline: 0;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__steps-title {
+  text-align: left;
+}
+
+.onboarding-welcome--hero .onboarding-welcome__steps {
+  margin-inline: 0;
+}
+
+.onboarding-welcome--compact {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -1636,23 +1683,22 @@ h3.fit-section__legend {
   min-width: 0;
   height: 100%;
   padding: 1.25rem 1.35rem 1.35rem;
-  box-sizing: border-box;
 }
 
-.setup-welcome__logo {
+.onboarding-welcome__logo {
   width: min(9.5rem, 85%);
   height: auto;
   margin: 0 auto 0.15rem;
 }
 
-.setup-welcome__intro {
+.onboarding-welcome__intro {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--fit-text);
 }
 
-.setup-welcome__steps-title {
+.onboarding-welcome__steps-title {
   margin: 0.35rem 0 0;
   font-size: 0.78rem;
   font-weight: 600;
@@ -1661,7 +1707,7 @@ h3.fit-section__legend {
   color: var(--fit-navy, #152a45);
 }
 
-.setup-welcome__steps {
+.onboarding-welcome__steps {
   margin: 0;
   padding-left: 1.2rem;
   font-size: 0.85rem;
@@ -1669,7 +1715,7 @@ h3.fit-section__legend {
   color: var(--fit-text-muted);
 }
 
-.setup-welcome__steps li + li {
+.onboarding-welcome__steps li + li {
   margin-top: 0.4rem;
 }
 
@@ -1686,7 +1732,7 @@ h3.fit-section__legend {
     grid-column: auto;
   }
 
-  .sheet-inventory__layout--setup .setup-welcome {
+  .sheet-inventory__layout--setup .onboarding-welcome--compact {
     height: auto;
   }
 
@@ -1694,8 +1740,24 @@ h3.fit-section__legend {
     width: 34%;
   }
 
-  .setup-welcome__logo {
+  .onboarding-welcome--compact .onboarding-welcome__logo {
     width: min(8rem, 60%);
+  }
+
+  .onboarding-welcome--hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    padding-right: 0;
+  }
+
+  .onboarding-welcome--hero .onboarding-welcome__logo {
+    width: min(8.5rem, 55vw);
+  }
+
+  .project-show__hero-status {
+    position: static;
+    margin-bottom: 0.5rem;
+    text-align: right;
   }
 }
 

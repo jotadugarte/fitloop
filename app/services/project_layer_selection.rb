@@ -38,19 +38,44 @@ class ProjectLayerSelection
       next unless attachment_params.is_a?(Hash)
 
       attrs = attachment_params.stringify_keys
-      primary_id = attrs["primary_layer_id"]
+      primary_id = attrs["primary_layer_id"].presence
+      auxiliary_ids = auxiliary_layer_ids_from(attrs)
 
-      attrs.each do |layer_key, layer_params|
-        next if layer_key == "primary_layer_id"
-        next unless layer_params.is_a?(Hash)
-
-        layer = find_layer(attachment_key, layer_key)
-        next unless layer
-
-        apply_layer_role_attrs!(layer, layer_params, primary_id: primary_id)
+      if primary_id.present?
+        apply_primary!(attachment_key, primary_id)
+      else
+        clear_primaries_on_attachment!(attachment_key)
       end
 
-      apply_primary!(attachment_key, primary_id) if primary_id.present?
+      layers_on_attachment(attachment_key).find_each do |layer|
+        layer_id = layer.id.to_s
+        next if layer_id == primary_id.to_s
+
+        if auxiliary_ids.include?(layer_id)
+          layer.update!(layer_role: :auxiliary, included: true)
+        else
+          layer.update!(layer_role: nil, included: false)
+        end
+      end
+    end
+  end
+
+  def auxiliary_layer_ids_from(attrs)
+    attrs.each_with_object([]) do |(layer_key, layer_params), ids|
+      next if layer_key == "primary_layer_id"
+      next unless layer_params.is_a?(Hash)
+
+      ids << layer_key.to_s if layer_params.stringify_keys["auxiliary"] == "1"
+    end
+  end
+
+  def layers_on_attachment(attachment_key)
+    @project.project_layers.where(active_storage_attachment_id: attachment_key)
+  end
+
+  def clear_primaries_on_attachment!(attachment_key)
+    layers_on_attachment(attachment_key).where(layer_role: :primary).find_each do |layer|
+      layer.update!(layer_role: nil, included: false)
     end
   end
 

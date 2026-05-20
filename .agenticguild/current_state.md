@@ -1,19 +1,19 @@
 <agent_state>
 
-  <active_task_pointer>task_composite-dxf-layers.md</active_task_pointer>
+  <active_task_pointer>task_remove-pin.md</active_task_pointer>
 
   <execution_context>
 
-    <active_skill>start-task</active_skill>
+    <active_skill>explore-task</active_skill>
 
-    <current_phase>3 — Execution (Iterative TDD)</current_phase>
+    <current_phase>2 — The Handoff (Finalize & Kickoff)</current_phase>
 
-    <current_step>3.2 — Task complete; use finish-branch for PR</current_step>
+    <current_step>2.1 — Spec locked; handoff to start-task</current_step>
 
   </execution_context>
 
-  <roadmap_item>v1.2 — Composite DXF layers (REQ-FIT-DXF-002)</roadmap_item>
+  <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Plan step 20 complete (regression sweep green). All 20 implementation steps done.</note>
+  <note>Decisions D1–D5 locked. Implementation plan written to task_remove-pin.md (10 steps, Refactor).</note>
 
 </agent_state>

@@ -155,6 +155,15 @@ es:
       title: "Editar %{title}"
     show:
       session_title: "Tu anidado"
+      welcome:
+        intro: "FitLoop coloca tus piezas de corte (archivos DXF) sobre las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        steps_title: "En esta pantalla"
+        steps:
+          - "Inventario de láminas: comprueba tamaños y cantidades, reordena la prioridad de uso y pulsa «Guardar láminas» si cambias algo."
+          - "Detalle DXF: sube archivos, elige la capa principal de corte y las auxiliares (grabado, marcas…), luego «Aplicar capas»."
+          - "Vistas previas y piezas no colocadas: tras anidar, revisa cómo quedaron las piezas en cada lámina y cuáles no entraron en las láminas disponibles."
+          - "Acciones de anidado: inicia el anidado, vuelve a anidar o cancela el proceso según el estado del proyecto."
+          - "Parámetros de anidado: ajusta la separación entre piezas y el margen del borde de la lámina cuando lo necesites."
       nesting_parameters_title: "Parámetros de anidado"
       nesting_parameters_hint: "Ajusta la separación entre piezas y el margen del borde de la lámina."
       apply_nesting_parameters: "Aplicar"
@@ -164,7 +173,7 @@ es:
         other: "%{count} láminas"
       collapsible_hint: "Pulsa para desplegar"
       preview_zone_title: "Vistas previas y piezas no colocadas"
-      nesting_parameters_meta: "Kerf %{kerf} mm · Margen %{margin} mm"
+      nesting_parameters_meta: "Separación %{kerf} mm · Margen %{margin} mm"
       dxf_files_meta:
         zero: "Sin archivos"
         one: "1 archivo"
@@ -233,7 +242,7 @@ es:
       dxf_layers_empty: "No se encontraron capas en este archivo."
       dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
       nesting_settings_legend: "Parámetros de anidado"
-      kerf_mm: "Separación máxima entre piezas (mm)"
+      kerf_mm: "Separación entre piezas (mm)"
       kerf_mm_hint: "Holgura mínima entre contornos de piezas en la misma lámina. Por defecto 0 mm."
       margin_mm: "Margen del borde de la lámina (mm)"
       margin_mm_hint: "Distancia mínima entre el contorno exterior de las piezas y el borde de la lámina. Por defecto 5 mm."

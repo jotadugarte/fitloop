@@ -52,6 +52,7 @@ RSpec.describe "Project DXF upload", type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("source_dxf_detail_project_#{project.id}")
+    expect(response.body).to include('data-testid="dxf-upload-show-hint"')
     expect(response.body).not_to include("dxf_files_layers_project_#{project.id}")
     expect(project.reload.input_dxf_attachments.count).to eq(2)
   end

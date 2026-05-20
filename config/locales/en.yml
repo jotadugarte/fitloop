@@ -140,6 +140,15 @@ en:
       title: "Edit %{title}"
     show:
       session_title: "Your nesting"
+      welcome:
+        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        steps_title: "On this screen"
+        steps:
+          - "Sheet inventory: check sizes and quantities, reorder consumption priority, and click “Save sheets” if you change anything."
+          - "DXF detail: upload files, pick the primary cut layer and auxiliary layers (engraving, marks…), then “Apply layers”."
+          - "Previews and unplaced pieces: after nesting, review placements on each sheet and which pieces did not fit."
+          - "Nesting actions: start nesting, re-nest, or cancel the run depending on project status."
+          - "Nesting parameters: adjust piece separation and sheet edge margin when needed."
       nesting_parameters_title: "Nesting parameters"
       nesting_parameters_hint: "Adjust piece spacing and sheet edge margin."
       apply_nesting_parameters: "Apply"
@@ -149,7 +158,7 @@ en:
         other: "%{count} sheets"
       collapsible_hint: "Click to expand"
       preview_zone_title: "Previews and unplaced pieces"
-      nesting_parameters_meta: "Kerf %{kerf} mm · Margin %{margin} mm"
+      nesting_parameters_meta: "Separation %{kerf} mm · Margin %{margin} mm"
       dxf_files_meta:
         zero: "No files"
         one: "1 file"
@@ -218,8 +227,8 @@ en:
       dxf_layers_empty: "No layers found in this file."
       dxf_upload_resubmit_hint: "If you had selected DXF files, choose them again before saving."
       nesting_settings_legend: "Nesting parameters"
-      kerf_mm: "Maximum spacing between pieces (mm)"
-      kerf_mm_hint: "Minimum clearance between piece outlines on the same sheet. Default 0 mm."
+      kerf_mm: "Separation between pieces (mm)"
+      kerf_mm_hint: "Minimum separation between piece outlines on the same sheet. Default 0 mm."
       margin_mm: "Sheet edge margin (mm)"
       margin_mm_hint: "Minimum distance from piece outlines to the sheet edge. Default 5 mm."
       save_project: "Save project"

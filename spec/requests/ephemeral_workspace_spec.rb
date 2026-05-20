@@ -45,6 +45,8 @@ RSpec.describe "Ephemeral workspace", type: :request do
 
     expect(response).to redirect_to(project_path(project))
     follow_redirect!
+    expect(response.body).to include('data-testid="show-welcome"')
+    expect(response.body).to include(I18n.t("projects.show.welcome.intro"))
     expect(response.body).to include(I18n.t("projects.show.nesting_parameters_title"))
     expect(response.body).to include(I18n.t("projects.show.session_title"))
   end

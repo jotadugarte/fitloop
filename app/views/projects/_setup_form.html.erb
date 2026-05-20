@@ -50,29 +50,12 @@
     <%= render "projects/fit_section_summary",
                title: t("projects.form.dxf_upload_legend"),
                meta: t("projects.show.dxf_files_meta", count: project.input_dxf_attachments.size) %>
-    <div class="collapsible-panel__body fit-section__content project-dxf-upload-section">
-      <div class="panel panel--inset project-dxf-upload__hint-card" data-testid="dxf-upload-setup-hint">
-        <p class="project-dxf-upload__hint"><%= t("projects.form.dxf_upload_setup_hint") %></p>
-      </div>
-      <div class="panel panel--inset project-dxf-upload"
-           data-controller="dxf-upload"
-           data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: "setup") %>"
-           data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
-        <div class="field">
-          <label for="setup_dxf_files" class="visually-hidden"><%= t("projects.form.dxf_upload_choose") %></label>
-          <%= file_field_tag "files[]",
-                multiple: true,
-                accept: ".dxf,application/dxf",
-                id: "setup_dxf_files",
-                data: {
-                  dxf_upload_target: "input",
-                  action: "change->dxf-upload#upload",
-                  testid: "project-dxf-files"
-                } %>
-        </div>
-        <%= render "dxf_files_layers", project: project, context: "setup" %>
-      </div>
-    </div>
+    <%= render "projects/dxf_upload_section",
+               project: project,
+               context: "setup",
+               input_id: "setup_dxf_files",
+               testid: "project-dxf-files",
+               hint: t("projects.form.dxf_upload_setup_hint") %>
   </details>
 
   <div class="form-actions">

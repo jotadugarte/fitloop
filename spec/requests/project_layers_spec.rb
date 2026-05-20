@@ -131,6 +131,41 @@ RSpec.describe "Project layers", type: :request do
       expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
     end
 
+    it "PATCH clears auxiliary when the checkbox is unchecked" do
+      attachment = attach_per_file_dxf!
+      cut = project.project_layers.find_by!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment.id
+      )
+      gravado = project.project_layers.create!(
+        layer_name: "GRABADO",
+        active_storage_attachment_id: attachment.id,
+        included: false
+      )
+
+      patch project_layers_path(project), params: {
+        project_layers: {
+          attachment.id.to_s => {
+            primary_layer_id: cut.id.to_s,
+            gravado.id.to_s => { auxiliary: "1" }
+          }
+        }
+      }
+
+      expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true)
+
+      patch project_layers_path(project), params: {
+        project_layers: {
+          attachment.id.to_s => {
+            primary_layer_id: cut.id.to_s
+          }
+        }
+      }
+
+      expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
+      expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
+    end
+
     it "PATCH switching primary clears the previous primary on the same attachment" do
       attachment = attach_per_file_dxf!
       cut = project.project_layers.find_by!(
