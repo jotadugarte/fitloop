@@ -224,9 +224,9 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Implement:** `es_panic.yml` (232 keys, batch 3 + gap fillers), `available_locales` includes `:es_panic`.
 </step>
 
-<step id="2" status="pending">
+<step id="2" status="complete">
 **Test:** Extend `spec/requests/locale_spec.rb` — `PATCH /locale` with `es_panic` persists cookie; `GET /` with cookie shows panic tagline; layout includes `.locale-switcher__row--panic` with `📐 PÁNICO` (not `ES_PANIC`). Tag `[REQ-FIT-UI-005]`.
-**Implement:** (none yet)
+**Implement:** `_locale_switcher` grid 2+1, `locale.labels.*` in en/es/es_panic, CSS row/wide.
 </step>
 
 <step id="3" status="pending">
@@ -238,13 +238,14 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Implement:** Add `config/locales/es_panic.yml` from user batch 3; apply fixes in `es_panic_preimplement_fixes.md` (reindent `project_layers`, `split.badge`, `orphan_preview.download_dxf`, missing ~20 keys, `%{piece_number}`).
 </step>
 
-<step id="5" status="pending">
+<step id="5" status="complete">
 **Implement:** `config/application.rb` — `available_locales` includes `:es_panic`. `config/locales/en.yml` and `es.yml` — add `locale.labels.en` / `es` for switcher parity.
 </step>
 
-<step id="6" status="pending">
+<step id="6" status="complete">
 **Test:** Request or view spec — `.locale-switcher` has two rows; row 1 contains EN+ES; row 2 contains panic button when `:es_panic` enabled. Tag `[REQ-FIT-UI-005]`.
 **Implement:** `shared/_locale_switcher.html.erb` — grid 2+1 per § Locale switcher UI; `application.css` — `.locale-switcher__row`, `__btn--wide`, column layout; labels `t("locale.labels.#{locale}", default: locale.to_s.upcase)`.
+**Note:** Covered by step 2 locale_spec (row--panic, EN/ES/PÁNICO).
 </step>
 
 <step id="7" status="pending">

@@ -35,6 +35,10 @@ en:
 
   locale:
     switcher_label: "Language"
+    labels:
+      en: "EN"
+      es: "ES"
+      es_panic: "📐 PÁNICO"
 
   date:
     formats:

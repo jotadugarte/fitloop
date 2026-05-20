@@ -6,6 +6,10 @@ es:
 
   locale:
     switcher_label: "Idioma"
+    labels:
+      en: "EN"
+      es: "ES"
+      es_panic: "📐 PÁNICO"
 
   date:
     abbr_day_names:

@@ -27,6 +27,21 @@ RSpec.describe "Locale switcher", type: :request do
       expect(response.body).to include("EN")
       expect(response.body).to include("ES")
     end
+
+    it "renders panic copy when the locale cookie is set" do
+      cookies[:fitloop_locale] = "es_panic"
+      get root_path
+
+      expect(response.body).to include("Tetris de supervivencia DXF")
+    end
+
+    it "renders the panic locale row with PÁNICO label, not ES_PANIC" do
+      get root_path
+
+      expect(response.body).to include("locale-switcher__row--panic")
+      expect(response.body).to include("📐 PÁNICO")
+      expect(response.body).not_to include("ES_PANIC")
+    end
   end
 
   describe "PATCH /locale [REQ-FIT-UI-005]" do
@@ -37,6 +52,15 @@ RSpec.describe "Locale switcher", type: :request do
       expect(cookies[:fitloop_locale]).to eq("es")
       follow_redirect!
       expect(response.body).to include("Anidado de láminas DXF")
+    end
+
+    it "persists es_panic in cookie and session then redirects back" do
+      patch locale_path, params: { locale: "es_panic" }, headers: { "HTTP_REFERER" => root_url }
+
+      expect(response).to redirect_to(root_url)
+      expect(cookies[:fitloop_locale]).to eq("es_panic")
+      follow_redirect!
+      expect(response.body).to include("Tetris de supervivencia DXF")
     end
 
     it "ignores unsupported locales" do

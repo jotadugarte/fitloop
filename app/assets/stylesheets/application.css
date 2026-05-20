@@ -508,11 +508,22 @@ h3.fit-section__legend {
 
 .locale-switcher {
   display: flex;
+  flex-direction: column;
   gap: 0.25rem;
 }
 
+.locale-switcher__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.locale-switcher__row--panic {
+  grid-template-columns: 1fr;
+}
+
 .locale-switcher__form {
-  display: inline;
+  display: block;
   margin: 0;
 }
 
@@ -533,6 +544,10 @@ h3.fit-section__legend {
   color: #fff;
   background: var(--fit-navy);
   border-color: var(--fit-navy-dark);
+}
+
+.locale-switcher__btn--wide {
+  width: 100%;
 }
 
 .layout-minimal .locale-switcher__btn {
