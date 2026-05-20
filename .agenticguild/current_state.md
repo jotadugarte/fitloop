@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Step 12 complete (i18n smoke); next step 13 SPEC</current_step>
+    <current_step>3.2 — Step 13 complete (SPEC/ROADMAP); next step 14 regression sweep</current_step>
 
   </execution_context>
 

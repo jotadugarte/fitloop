@@ -153,7 +153,7 @@ When `feasible` is `false`, `reason` is `split_not_feasible` and `children` is e
 
 ### `progress.json` (v1)
 
-Written atomically by `progress_reporter.py` during `nest.py` (and stepped by `cli_mock.py` in tests). Rails `Nesting::CliRunner` polls this file every ~0.2s while the subprocess runs.
+Normative contract: **`docs/core/SPEC.md` § REQ-FIT-JOB-001**. Written atomically by `progress_reporter.py` during `nest.py` (and stepped by `cli_mock.py` in tests). Rails `Nesting::CliRunner` polls this file every ~0.2s while the subprocess runs.
 
 ```json
 {

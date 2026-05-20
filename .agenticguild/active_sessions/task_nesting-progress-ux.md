@@ -219,7 +219,7 @@ Today `ProgressBroadcaster` skips `show_actions` when `processing?` — acceptab
 **Implement:** `config/locales/en.yml`, `config/locales/es.yml` — professional copy for queued, preparing, starting, extracting, placing, optimizing, consolidating, refining, writing_outputs.
 </step>
 
-<step id="13">
+<step id="13" status="complete">
 **Test:** Amend `docs/core/SPEC.md` REQ-FIT-JOB-001 bullet — CLI `progress.json`, live percent, ETA copy, cancel in progress panel. Tag `[REQ-FIT-JOB-001]`, `[REQ-FIT-SPEC-001]`.
 **Implement:** SPEC + `nesting_engine/README.md` cross-link; mark `docs/ROADMAP.md` item done when shipped.
 </step>

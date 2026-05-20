@@ -121,7 +121,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-CLI-001** | CLI contract documented; `NestingJob` + `Nesting::CliRunner` | P3 |
 | **REQ-FIT-NEST-002** | Multi-bin nest; outputs nested DXF + `placements.json` + `report.json` | P3 |
 | **REQ-FIT-NEST-003** | Map job status **`completed`** \| **`partial`** \| **`failed`** from report; orphans in v1 | P3 |
-| **REQ-FIT-JOB-001** | Turbo progress, 600s cap → partial + notice, cancel | P3 |
+| **REQ-FIT-JOB-001** | Live CLI `progress.json`, phased Turbo UI, ETA/cancel in progress panel, 600s cap | P3 |
 | **REQ-FIT-UI-002** | Browser preview from `placements.json` | P4 |
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
 | **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
@@ -211,6 +211,27 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **`partial`:** time cap reached or some orphans; best-so-far nested DXF + orphan list in report.
 - **`failed`:** unrecoverable error (e.g. validation, CLI crash, no usable geometry).
 - v1: oversized-for-sheet pieces → **orphans** (no auto-split). v1.1 adds opt-in resolution per `REQ-FIT-SPLIT-001`.
+
+### REQ-FIT-JOB-001 (detail)
+
+**Scope:** Friendly nesting progress while `Project#status == processing` — phased labels, engine-driven percent, visible cancel and time-remaining copy (`en`/`es`). See `nesting_engine/README.md` § `progress.json`.
+
+**Python (`nesting_engine/progress_reporter.py`):**
+
+- Writes `{output_dir}/progress.json` (schema v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- `phase_id` values: `extracting`, `fill`, `optimizing`, `consolidating`, `refining`, `writing_outputs`.
+- Hooked in `nest.py` / `nest_libnest2d.py` at pipeline boundaries **without** changing placement algorithms.
+
+**Rails orchestration:**
+
+- **Enqueue:** `StartsNesting` sets `progress_message` to `nesting.phase.queued` (3%) and `estimated_finished_at` to `now + nesting_time_limit_sec` (not a fixed 30s stub).
+- **Pre-CLI:** `NestingJob` → `nesting.phase.preparing` (8%); `Nesting::JobRunner` → `nesting.phase.starting` (12%) before `CliRunner`.
+- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by time limit).
+- **UI:** `projects/_nesting_progress` shows progress bar (`aria-valuetext` = phase + percent + optional time remaining), **Cancel** (`data-testid="cancel-nesting"`), `nesting.time_remaining`, and `nesting.eta_overrun`. Cancel is **not** duplicated in `show_actions` while processing.
+- **Broadcast / poll:** `Nesting::ProgressBroadcaster` and `ProjectsController#nesting_sync` use `Nesting::ProgressLocals` (`active_run`, `time_remaining`, `eta_overrun`).
+- **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).
+
+**Tests:** `nesting_engine/tests/test_progress_reporter.py`, `test_nest_progress.py`, `test_cli_mock.py`; `spec/services/nesting/progress_*_spec.rb`, `cli_runner_spec.rb`, `spec/system/nesting_progress_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`.
 
 ### REQ-FIT-SPLIT-001 (detail)
 

@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-19 — ephemeral session access shipped (`REQ-FIT-AUTH-001`, ADR-0004); PIN removed from app.
 
-**Next action:** Nesting progress/status bar UX; or optional FastAPI wrapper.
+**Next action:** Optional FastAPI wrapper; or hard file/piece caps.
 
 ---
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -97,7 +97,7 @@ _(none)_
 ### Product / UX
 
 - [x] **Sheet stock consumption priority** — Priority column, drag reorder, finite-first button, ∞ auto-last, max one ∞ per project; server + CLI + engine alignment (REQ-FIT-UI-001, REQ-FIT-DOM-001, REQ-FIT-NEST-002) — 2026-05-17
-- [ ] **Nesting progress / status bar UX** — During `processing`, the bar mostly shows only coarse percentages (e.g. 5%, 15%) with little phase context for most of the run; make feedback friendlier: clearer step labels (queued → preparing → engine → finishing), smoother or engine-driven progress where possible, visible cancel/ETA copy, and accessible status text in `en`/`es` (REQ-FIT-JOB-001)
+- [x] **Nesting progress / status bar UX** — CLI `progress.json`, phased labels (queued → preparing → starting → engine phases → writing outputs), live percent via `CliRunner` poll, cancel + time remaining in progress panel, `en`/`es` copy (REQ-FIT-JOB-001) — 2026-05-20 — Session: `task_nesting-progress-ux.md`
 ### Nesting engine
 
 _(no pending engine items)_
