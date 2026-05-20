@@ -1922,6 +1922,70 @@ h3.fit-section__legend {
   display: none !important;
 }
 
+/* es_panic: long joke copy — two-line headers/cells and side-by-side action buttons */
+html:lang(es_panic) .sheet-inventory-table thead th {
+  white-space: normal;
+  line-height: 1.25;
+  vertical-align: bottom;
+  overflow-wrap: anywhere;
+}
+
+html:lang(es_panic) .sheet-inventory-table__priority-head,
+html:lang(es_panic) .sheet-inventory-table__priority,
+html:lang(es_panic) .sheet-inventory-table__qty-head,
+html:lang(es_panic) .sheet-inventory-table__qty,
+html:lang(es_panic) .sheet-inventory-table__actions-head,
+html:lang(es_panic) .sheet-inventory-table__actions {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+html:lang(es_panic) .sheet-inventory-table__action-buttons {
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+}
+
+html:lang(es_panic) .sheet-inventory-table__action-buttons .btn {
+  display: inline-flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: calc(50% - 0.2rem);
+  padding: 0.35rem 0.35rem;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table thead th,
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table tbody td {
+  overflow: visible;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table__col-priority {
+  width: 18%;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table__col-dim {
+  width: 17%;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table__col-qty {
+  width: 21%;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table__col-actions {
+  width: 27%;
+}
+
+html:lang(es_panic) .sheet-inventory__layout--setup .sheet-inventory-table__action-buttons .btn {
+  white-space: normal;
+  line-height: 1.2;
+}
+
 .btn--small {
   padding: 0.3rem 0.55rem;
   font-size: 0.75rem;
