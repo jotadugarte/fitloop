@@ -6,7 +6,6 @@ class NestingRunsController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
 
   def create
     @project.reload

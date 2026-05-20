@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 4 next: workspace_access_spec + remove PIN gate</current_step>
+    <current_step>3.1 — Plan step 5 next: remove pin_digest migration + Project model</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–3 complete. resolve! bind-only. Next: workspace_access_spec + delete ProjectAccess gate.</note>
+  <note>Steps 1–4 complete. PIN gate removed; workspace_access_spec green. Next: pin_digest migration.</note>
 
 </agent_state>

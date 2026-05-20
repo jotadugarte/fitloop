@@ -6,7 +6,6 @@ class ProjectLayersController < ApplicationController
   include StartsNesting
 
   before_action :set_project
-  before_action -> { require_project_access!(@project) }
 
   def index
     sync_layers!

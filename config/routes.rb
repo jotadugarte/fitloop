@@ -17,7 +17,6 @@ Rails.application.routes.draw do
 
   resources :projects, except: :destroy do
     member do
-      post :verify_pin
       patch :nesting_parameters
       patch :workspace
       get :nesting_sync

@@ -2,11 +2,9 @@
 
 # [REQ-FIT-SPLIT-001] Accept, reject, or regenerate split previews for an orphan.
 class SplitProposalsController < ApplicationController
-  include ProjectAccessGate
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
   before_action :ensure_ephemeral_workspace!
   before_action :set_orphan_resolution
 

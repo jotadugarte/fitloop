@@ -5,7 +5,6 @@ class ProjectInputDxfFilesController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
 
   def create
     files = dxf_files_param

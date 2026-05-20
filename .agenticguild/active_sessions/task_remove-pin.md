@@ -112,7 +112,7 @@
 **Implement:** Simplify `Workspace.resolve!` (drop non-ephemeral public lookup branch).
 </step>
 
-<step id="4" status="pending">
+<step id="4" status="complete">
 **Test:** Replace `spec/requests/project_access_gate_spec.rb` with `spec/requests/workspace_access_spec.rb` — GET `project_path` without session bind → redirect to `start` with `workspace.expired` (or 404); bound session → show without pin-gate markup. Remove `verify_pin` examples. Tags `[REQ-FIT-AUTH-001]`, `[REQ-FIT-UI-003]`.
 **Implement:** Delete `ProjectAccess`, `ProjectAccessGate` (or replace with thin `WorkspaceAccess` that only checks bind), `verify_pin` action/route, `pin_gate.html.erb`; remove `session[:project_access]` usage; simplify `ProjectsController` show/nested_dxf/nesting_sync (no gate renders).
 </step>

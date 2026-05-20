@@ -43,12 +43,8 @@ RSpec.configure do |config|
       return unless project.ephemeral?
       return unless respond_to?(:get)
 
-      start_setup_session!
-      stale_id = session[Workspace::SESSION_KEY]
-      Project.find_by(id: stale_id)&.destroy! if stale_id.present? && stale_id != project.id
+      get start_project_path
       session[Workspace::SESSION_KEY] = project.id
-      session[:project_access] ||= {}
-      session[:project_access][project.id.to_s] = true
     end
   end)
 end

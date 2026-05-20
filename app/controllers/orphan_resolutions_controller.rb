@@ -2,11 +2,9 @@
 
 # [REQ-FIT-SPLIT-001] Update per-orphan resolution state in the ephemeral workspace.
 class OrphanResolutionsController < ApplicationController
-  include ProjectAccessGate
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
   before_action :ensure_ephemeral_workspace!
 
   def update
