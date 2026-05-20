@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -98,12 +98,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_120000) do
   create_table "projects", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.float "curve_tolerance_mm", default: 0.1, null: false
-    t.boolean "ephemeral", default: false, null: false
+    t.boolean "ephemeral", default: true, null: false
     t.datetime "estimated_finished_at"
     t.float "kerf_mm", default: 0.0, null: false
     t.float "margin_mm", default: 5.0, null: false
     t.integer "nesting_time_limit_sec", default: 600, null: false
-    t.string "pin_digest"
     t.string "progress_message"
     t.integer "progress_percent"
     t.jsonb "session_workflow_log", default: [], null: false

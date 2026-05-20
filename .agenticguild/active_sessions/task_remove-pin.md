@@ -117,7 +117,7 @@
 **Implement:** Delete `ProjectAccess`, `ProjectAccessGate` (or replace with thin `WorkspaceAccess` that only checks bind), `verify_pin` action/route, `pin_gate.html.erb`; remove `session[:project_access]` usage; simplify `ProjectsController` show/nested_dxf/nesting_sync (no gate renders).
 </step>
 
-<step id="5" status="pending">
+<step id="5" status="complete">
 **Test:** `spec/models/project_spec.rb` (or migrate from `project_pin_spec`) — ephemeral project has no PIN validations; `pin_digest` absent from schema after migration. Tag `[REQ-FIT-DOM-001]`, `[REQ-FIT-AUTH-001]`.
 **Implement:** Migration `remove_pin_digest_from_projects`; remove PIN methods/validations/`scope :saved` from `Project`; default `ephemeral: true` if not already; delete `spec/models/project_pin_spec.rb`, `spec/services/project_access_spec.rb`.
 </step>

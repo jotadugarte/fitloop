@@ -8,12 +8,12 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Plan step 5 next: remove pin_digest migration + Project model</current_step>
+    <current_step>3.1 — Plan step 6 next: ephemeral_workspace + controller cleanup</current_step>
 
   </execution_context>
 
   <roadmap_item>Eliminar todo rastro del uso de PIN en la app</roadmap_item>
 
-  <note>Steps 1–4 complete. PIN gate removed; workspace_access_spec green. Next: pin_digest migration.</note>
+  <note>Steps 1–5 complete. pin_digest dropped; Project PIN code removed. Next: step 6 controllers.</note>
 
 </agent_state>

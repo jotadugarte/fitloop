@@ -12,7 +12,6 @@ RSpec.describe Workspace do
       Project.create!(
         ephemeral: false,
         title: "Saved",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
 
@@ -30,7 +29,6 @@ RSpec.describe Workspace do
       Project.create!(
         ephemeral: false,
         title: "B",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
 
@@ -90,7 +88,6 @@ RSpec.describe Workspace do
       saved = Project.create!(
         ephemeral: false,
         title: "Saved",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
       session = { described_class::SESSION_KEY => saved.id }

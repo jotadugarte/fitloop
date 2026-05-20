@@ -10,15 +10,15 @@ module ProjectSpecFactory
 
   module_function
 
-  def create!(title:, pin: nil, sheet_stocks_attributes: nil, ephemeral: true, **attrs)
-    record_attrs = {
+  def create!(title:, sheet_stocks_attributes: nil, ephemeral: true, **attrs)
+    attrs.delete(:pin)
+
+    Project.create!(
       title: title,
       ephemeral: ephemeral,
       sheet_stocks_attributes: sheet_stocks_attributes || { "0" => DEFAULT_SHEET_STOCK.dup },
       **attrs
-    }
-    record_attrs[:pin] = pin if pin.present?
-    Project.create!(record_attrs)
+    )
   end
 end
 
