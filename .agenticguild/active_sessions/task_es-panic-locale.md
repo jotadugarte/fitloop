@@ -249,8 +249,9 @@ Stored verbatim for implementer — **do not treat key paths as final** until na
 **Note:** Covered by step 2 locale_spec (row--panic, EN/ES/PÁNICO).
 </step>
 
-<step id="7" status="pending">
+<step id="7" status="complete">
 **Implement:** `lib/fitloop_home_verifier.rb` — expect `config/locales/es_panic.yml`.
+**Test:** `spec/lib/fitloop_home_verifier_spec.rb` — `#check_i18n` includes `es_panic`.
 </step>
 
 <step id="8" status="pending">
