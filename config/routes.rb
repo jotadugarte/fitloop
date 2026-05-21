@@ -11,6 +11,15 @@ Rails.application.routes.draw do
 
   root "home#index"
 
+  devise_for :users, path: "", path_names: {
+    sign_in: "iniciar-sesion",
+    sign_out: "cerrar-sesion",
+    sign_up: "crear-cuenta",
+    password: "contrasena",
+    confirmation: "confirmacion",
+    edit: "mi-cuenta"
+  }
+
   resource :locale, only: :update, controller: "locales"
 
   get "empezar", to: "projects#start", as: :start_project

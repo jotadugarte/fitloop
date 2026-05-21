@@ -55,8 +55,8 @@ RSpec.describe User, "[REQ-FIT-AUTH-002]" do
 
   describe "password [REQ-FIT-AUTH-002]" do
     it "[REQ-FIT-AUTH-002] rejects passwords shorter than 12 characters" do
-      user.password = "short11chars"
-      user.password_confirmation = "short11chars"
+      user.password = "short10char"
+      user.password_confirmation = "short10char"
 
       expect(user).not_to be_valid
       expect(user.errors[:password]).to include(a_string_matching(/12/i))

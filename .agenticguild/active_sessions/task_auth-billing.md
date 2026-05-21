@@ -266,8 +266,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="3" status="complete">Update docs/core/SPEC.md (REQ-FIT-AUTH-002 detail, REQ-FIT-BILL-001..003), DATA_FLOW_MAP.md, SCHEMA_REFERENCE.md, docs/ROADMAP.md pending items P6 Auth / P7 Billing.</step>
 
     <!-- P1 — Fase A: Auth (Devise + OmniAuth) -->
-    <step id="4" status="pending">Write failing model spec User [REQ-FIT-AUTH-002]: email unique, name required, password min 12, terms_accepted_at+version, time_zone, email_confirmed_at gate, suspended_at.</step>
-    <step id="5" status="pending">Add gems (devise, omniauth-google-oauth2, omniauth-facebook, omniauth-apple); User migration; mount Devise routes under /iniciar-sesion /crear-cuenta (Spanish path names per D41).</step>
+    <step id="4" status="complete">Write failing model spec User [REQ-FIT-AUTH-002]: email unique, name required, password min 12, terms_accepted_at+version, time_zone, email_confirmed_at gate, suspended_at.</step>
+    <step id="5" status="complete">Add gems (devise, omniauth-google-oauth2, omniauth-facebook, omniauth-apple); User migration; mount Devise routes under /iniciar-sesion /crear-cuenta (Spanish path names per D41).</step>
     <step id="6" status="pending">Write failing request spec: registration email+password requires name, terms checkbox, sends confirmation; unconfirmed cannot access checkout routes.</step>
     <step id="7" status="pending">Implement Devise :confirmable (or custom mailer) for email verification link; i18n en/es for auth flash and forms.</step>
     <step id="8" status="pending">Write failing request spec: password reset flow (forgot → email → reset ≥12 chars).</step>

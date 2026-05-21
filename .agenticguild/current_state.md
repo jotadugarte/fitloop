@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing test written (plan step 4: User model spec); await approval</current_step>
+    <current_step>3.1 — Next: plan step 6 (registration request spec)</current_step>
 
   </execution_context>
 
