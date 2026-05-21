@@ -128,10 +128,10 @@ es_panic:
         intro: Bienvenido al milagro de la madrugada. Suba los vectores, ponga cuánto material le queda, y nosotros vemos cómo acomodar esas piezas para que no tenga que empeñar un riñón comprando más MDF.
         steps_title: 'Manual de supervivencia:'
         steps:
-        - 1. Suba el plano lleno de polilíneas (ojalá cerradas).
-        - 2. Seleccione la capa que pasa por la cortadora.
-        - 3. Haga inventario de lo que le queda en la mochila.
-        - 4. Cruce los dedos y dele a 'Anidar'.
+        - Suba el plano lleno de polilíneas (ojalá cerradas).
+        - Seleccione la capa que pasa por la cortadora.
+        - Haga inventario de lo que le queda en la mochila.
+        - Cruce los dedos y dele a 'Anidar'.
     new:
       title: Nueva entrega para sufrir
       setup_title: Configurar el caos
@@ -143,11 +143,11 @@ es_panic:
         intro: Ya casi corona la entrega. Revise bien esta vara antes de mandar a cortar y echar a perder el material.
         steps_title: 'Cómo salvar la tanda en 5 pasos:'
         steps:
-        - 1. Cuente cuántas láminas le quedan (Inventario).
-        - 2. Suba los archivos sin purgar (Detalle DXF).
-        - 3. Revise lo que va a escupir la máquina (Vistas Previas).
-        - 4. Toque el botón de pánico (Iniciar anidado).
-        - 5. Ajuste los márgenes por si la máquina le muerde el material.
+        - Cuente cuántas láminas le quedan (Inventario).
+        - Suba los archivos sin purgar (Detalle DXF).
+        - Revise lo que va a escupir la máquina (Vistas Previas).
+        - Toque el botón de pánico (Iniciar anidado).
+        - Ajuste los márgenes por si la máquina le muerde el material.
       nesting_parameters_title: Nivel de exigencia del profe
       nesting_parameters_hint: Ajuste qué tan pegadas van las piezas para no hacer carbón la maqueta.
       apply_nesting_parameters: Que sea lo que Dios quiera (Aplicar)

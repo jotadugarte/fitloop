@@ -34,4 +34,12 @@ RSpec.describe "Locale key parity for es_panic [REQ-FIT-UI-005]" do
       expect(translation).not_to start_with("translation missing")
     end
   end
+
+  it "does not prefix welcome steps with ordinals (rendered inside HTML ol)" do
+    %w[projects.setup.welcome.steps projects.show.welcome.steps].each do |key|
+      Array(I18n.t(key)).each do |step|
+        expect(step).not_to match(/\A\d+\.\s/)
+      end
+    end
+  end
 end
