@@ -1,13 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
-
-const STORAGE_KEY = "fitloop_workspace_tab_id"
-const HEADER_NAME = "X-Workspace-Tab-Id"
+import {
+  WORKSPACE_TAB_HEADER,
+  ensureWorkspaceTabId,
+  workspaceTabId
+} from "workspace_tab"
 
 export default class extends Controller {
   connect() {
-    if (!sessionStorage.getItem(STORAGE_KEY)) {
-      sessionStorage.setItem(STORAGE_KEY, crypto.randomUUID())
-    }
+    ensureWorkspaceTabId()
     this._onBeforeFetch = this._attachTabIdHeader.bind(this)
     document.addEventListener("turbo:before-fetch-request", this._onBeforeFetch)
   }
@@ -17,7 +17,7 @@ export default class extends Controller {
   }
 
   get tabId() {
-    return sessionStorage.getItem(STORAGE_KEY)
+    return workspaceTabId()
   }
 
   _attachTabIdHeader(event) {
@@ -26,9 +26,9 @@ export default class extends Controller {
 
     const headers = event.detail.fetchOptions.headers
     if (headers instanceof Headers) {
-      headers.set(HEADER_NAME, tabId)
+      headers.set(WORKSPACE_TAB_HEADER, tabId)
     } else {
-      event.detail.fetchOptions.headers = { ...headers, [HEADER_NAME]: tabId }
+      event.detail.fetchOptions.headers = { ...headers, [WORKSPACE_TAB_HEADER]: tabId }
     }
   }
 }

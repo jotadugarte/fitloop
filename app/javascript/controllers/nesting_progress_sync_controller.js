@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { withWorkspaceTabHeaders } from "workspace_tab"
 
 // Keeps nesting UI in sync when Turbo Streams are missed (fast jobs, late WebSocket connect).
 export default class extends Controller {
@@ -44,7 +45,7 @@ export default class extends Controller {
 
   async poll() {
     const response = await fetch(this.urlValue, {
-      headers: { Accept: "text/vnd.turbo-stream.html" },
+      headers: withWorkspaceTabHeaders({ Accept: "text/vnd.turbo-stream.html" }),
       credentials: "same-origin"
     })
 
