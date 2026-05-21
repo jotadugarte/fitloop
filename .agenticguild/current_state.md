@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing spec (plan step 22: billing.yml + Billing::Pricing)</current_step>
+    <current_step>3.2 — Implement (plan step 23: Billing::Pricing)</current_step>
 
   </execution_context>
 
