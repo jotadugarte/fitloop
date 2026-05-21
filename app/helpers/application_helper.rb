@@ -7,6 +7,14 @@ module ApplicationHelper
     public_send(Auth::OmniauthProviders.authorize_path_name(provider).to_sym)
   end
 
+  def auth_back_path
+    session[:workspace_return_to].presence || root_path
+  end
+
+  def auth_back_label
+    session[:workspace_return_to].present? ? t("auth.nav.back") : t("auth.nav.home")
+  end
+
   def sheet_stock_dimension_mm(value)
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)
   end

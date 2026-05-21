@@ -403,6 +403,8 @@ es_panic:
   auth:
     nav:
       label: Cuenta (drama incluido)
+      back: Volver
+      home: Inicio
       sign_in: Iniciar sesión
       sign_up: Crear cuenta
       account: Mi cuenta
@@ -423,6 +425,9 @@ es_panic:
       accepted: Cuentas fusionadas. Sesión abierta.
       expired: La oferta de fusión caducó. Vuelva a intentar.
       invalid_password: Contraseña incorrecta. El drama continúa.
+    shared:
+      or_email: O sigue con tu correo (sin OAuth si no quieres)
+      footer_nav: Enlaces de acceso
     oauth:
       google_oauth2: Entrar con Google (un clic y listo)
       facebook: Entrar con Facebook

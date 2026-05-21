@@ -1,38 +1,43 @@
-<h1><%= t("auth.registration.title") %></h1>
+<%= render "devise/shared/auth_page", title: t("auth.registration.title") do %>
+  <%= render "devise/shared/oauth_buttons" %>
 
-<%= render "devise/shared/oauth_buttons" %>
+  <p class="auth-page__divider"><%= t("auth.shared.or_email") %></p>
 
-<div data-testid="oauth-email" data-controller="timezone-capture">
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+  <section class="auth-page__email" data-testid="oauth-email" data-controller="timezone-capture">
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "auth-page__form" }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div>
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autocomplete: "email" %>
-  </div>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autocomplete: "email" %>
+      </div>
 
-  <div>
-    <%= f.label :name %><br />
-    <%= f.text_field :name, autocomplete: "name" %>
-  </div>
+      <div class="field">
+        <%= f.label :name %>
+        <%= f.text_field :name, autocomplete: "name" %>
+      </div>
 
-  <div>
-    <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
+      <div class="field">
+        <%= f.label :password %>
+        <%= f.password_field :password, autocomplete: "new-password" %>
+      </div>
 
-  <div>
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
+      <div class="field">
+        <%= f.label :password_confirmation %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+      </div>
 
-  <div>
-    <%= f.label :time_zone %><br />
-    <%= f.hidden_field :time_zone, data: { timezone_capture_target: "timeZone" } %>
-  </div>
+      <%= f.hidden_field :time_zone, data: { timezone_capture_target: "timeZone" } %>
 
-  <%= render "devise/shared/terms_acceptance", f: f %>
+      <%= render "devise/shared/terms_acceptance", f: f %>
 
-  <div><%= f.submit t("auth.registration.submit") %></div>
+      <div class="form-actions">
+        <%= f.submit t("auth.registration.submit"), class: "btn btn-primary" %>
+      </div>
+    <% end %>
+
+    <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+      <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "auth-page__link" %>
+    </nav>
+  </section>
 <% end %>
-</div>

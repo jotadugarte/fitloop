@@ -414,6 +414,8 @@ es:
   auth:
     nav:
       label: "Cuenta"
+      back: "Volver"
+      home: "Inicio"
       sign_in: "Iniciar sesión"
       sign_up: "Crear cuenta"
       account: "Mi cuenta"
@@ -434,6 +436,9 @@ es:
       accepted: "Cuentas fusionadas. Ya iniciaste sesión."
       expired: "Esta oferta de fusión expiró. Intenta iniciar sesión de nuevo."
       invalid_password: "La contraseña no es correcta."
+    shared:
+      or_email: "O continúa con tu correo"
+      footer_nav: "Enlaces de acceso"
     oauth:
       google_oauth2: "Continuar con Google"
       facebook: "Continuar con Facebook"

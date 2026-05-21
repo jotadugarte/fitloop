@@ -399,6 +399,8 @@ en:
   auth:
     nav:
       label: "Account"
+      back: "Back"
+      home: "Home"
       sign_in: "Sign in"
       sign_up: "Create account"
       account: "My account"
@@ -419,6 +421,9 @@ en:
       accepted: "Accounts merged. You are now signed in."
       expired: "This merge offer has expired. Try signing in again."
       invalid_password: "Password is incorrect."
+    shared:
+      or_email: "Or continue with email"
+      footer_nav: "Account links"
     oauth:
       google_oauth2: "Continue with Google"
       facebook: "Continue with Facebook"

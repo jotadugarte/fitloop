@@ -44,6 +44,8 @@ RSpec.describe "OmniAuth sign-in UI", type: :request do
         get send(path_name)
 
         expect(response).to have_http_status(:ok)
+        expect(response.body).to include('data-testid="auth-back"')
+        expect(response.body).to include('data-testid="auth-page"')
         expect_provider_order!(response.body)
       end
     end

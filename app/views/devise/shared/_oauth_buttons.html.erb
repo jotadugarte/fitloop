@@ -3,8 +3,8 @@
     <%= button_to t("auth.oauth.#{provider.key}"),
                   user_omniauth_authorize_path(provider),
                   method: :post,
-                  class: "oauth-providers__button",
+                  class: "btn btn-secondary oauth-providers__button",
                   data: { testid: provider.test_id, timezone_capture_target: "oauthLink" },
-                  form: { data: { turbo: false } } %>
+                  form: { class: "oauth-providers__form", data: { turbo: false } } %>
   <% end %>
 </div>
