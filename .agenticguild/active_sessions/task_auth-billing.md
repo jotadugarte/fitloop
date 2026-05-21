@@ -270,8 +270,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="5" status="complete">Add gems (devise, omniauth-google-oauth2, omniauth-facebook, omniauth-apple); User migration; mount Devise routes under /iniciar-sesion /crear-cuenta (Spanish path names per D41).</step>
     <step id="6" status="complete">Write failing request spec: registration email+password requires name, terms checkbox, sends confirmation; unconfirmed cannot access checkout routes.</step>
     <step id="7" status="complete">Implement Devise :confirmable (or custom mailer) for email verification link; i18n en/es for auth flash and forms.</step>
-    <step id="8" status="pending">Write failing request spec: password reset flow (forgot → email → reset ≥12 chars).</step>
-    <step id="9" status="pending">Implement password recovery; header links “Iniciar sesión” / “Crear cuenta” on all layouts; logged-in menu Mi cuenta / Mis pagos / Cerrar sesión.</step>
+    <step id="8" status="complete">Write failing request spec: password reset flow (forgot → email → reset ≥12 chars).</step>
+    <step id="9" status="complete">Implement password recovery; header links “Iniciar sesión” / “Crear cuenta” on all layouts; logged-in menu Mi cuenta / Mis pagos / Cerrar sesión.</step>
     <step id="10" status="pending">Write failing OmniAuth spec: Google provider (conditional on credentials); ordered buttons Google → Facebook → Apple → email on login/register pages.</step>
     <step id="11" status="pending">Implement OmniAuth callbacks; capture name, email; Stimulus `timezone_capture_controller` sets `users.time_zone` from `Intl.DateTimeFormat().resolvedOptions().timeZone` on register (D49); trusted-provider email marks confirmed when policy allows; register Facebook/Apple similarly when ENV set.</step>
     <step id="12" status="pending">Write failing spec: email collision → merge opt-in screen (no silent merge); declining leaves user on error path.</step>

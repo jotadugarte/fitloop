@@ -9,6 +9,7 @@ Devise.setup do |config|
   config.stretches = Rails.env.test? ? 1 : 12
   config.reconfirmable = true
   config.allow_unconfirmed_access_for = nil
+  config.sign_in_after_reset_password = false
   config.password_length = 12..128
   config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
   config.reset_password_within = 6.hours

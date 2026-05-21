@@ -358,6 +358,21 @@ es:
         other: "%{count} archivos DXF adjuntos"
 
   auth:
+    nav:
+      label: "Cuenta"
+      sign_in: "Iniciar sesión"
+      sign_up: "Crear cuenta"
+      account: "Mi cuenta"
+      payments: "Mis pagos"
+      sign_out: "Cerrar sesión"
+    password:
+      forgot_title: "¿Olvidaste tu contraseña?"
+      reset_title: "Nueva contraseña"
+      new_password: "Nueva contraseña"
+      send_reset: "Enviar instrucciones"
+      change_password: "Cambiar contraseña"
+      reset_sent: "Revisa tu correo para restablecer la contraseña."
+      updated: "Contraseña actualizada. Ya puedes iniciar sesión."
     registration:
       title: "Crear cuenta"
       terms_label: "Acepto los términos de servicio y la política de privacidad"

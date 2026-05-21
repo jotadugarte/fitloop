@@ -348,6 +348,21 @@ es_panic:
         other: "%{count} archivos flotando en el espacio"
 
   auth:
+    nav:
+      label: Cuenta (drama incluido)
+      sign_in: Iniciar sesión
+      sign_up: Crear cuenta
+      account: Mi cuenta
+      payments: Mis pagos
+      sign_out: Cerrar sesión
+    password:
+      forgot_title: ¿Olvidó la contraseña otra vez?
+      reset_title: Contraseña nueva (mínimo 12, sin excusas)
+      new_password: Nueva contraseña
+      send_reset: Mandar el salvavidas al correo
+      change_password: Cambiar contraseña
+      reset_sent: Revise el correo; ahí va el enlace de rescate.
+      updated: Contraseña cambiada. Puede entrar otra vez.
     registration:
       title: Crear cuenta (sin vuelta atrás)
       terms_label: Acepto el contrato letra chiquita y la política de privacidad

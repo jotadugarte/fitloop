@@ -343,6 +343,21 @@ en:
         other: "%{count} DXF files attached"
 
   auth:
+    nav:
+      label: "Account"
+      sign_in: "Sign in"
+      sign_up: "Create account"
+      account: "My account"
+      payments: "My payments"
+      sign_out: "Sign out"
+    password:
+      forgot_title: "Forgot your password?"
+      reset_title: "Set a new password"
+      new_password: "New password"
+      send_reset: "Send reset instructions"
+      change_password: "Change password"
+      reset_sent: "Check your email for password reset instructions."
+      updated: "Your password has been changed. You can sign in now."
     registration:
       title: "Create account"
       terms_label: "I accept the terms of service and privacy policy"
