@@ -39,6 +39,7 @@ Rails.application.routes.draw do
 
   get "confirmacion", to: "confirmations#show", as: :email_confirmation_pending
   get "planes", to: "planes#show"
+  post "planes/simular", to: "planes#simulate", as: :planes_simulate
   get "checkout", to: "checkout#show"
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
 

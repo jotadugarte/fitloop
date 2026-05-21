@@ -35,70 +35,72 @@
 | A22 | **Alertas** (email/Slack si conversión cae / fallos suben): **post-v1** (follow-up). |
 | A23 | **Faseamiento vs auth-billing:** ver sección *Phasing* — recomendación: **en paralelo** tras Fase A (User existe) o **justo después** de modelos billing; eventos de billing se activan cuando existan controllers. |
 | A24 | **v1 UX:** eventos + contadores + **gráficos** (no solo tablas). |
-| A25 | **Abuso:** detección de bots (patrones); rate limit en **escritura** de eventos (anti-spam a la tabla). |
+| A25 | **Abuso:** detección de bots (patrones en dashboard); rate limit en escritura (A32). **v1:** flag “sospechoso” + revisión manual; sin auto-suspender por bot. |
+| A26 | **Modelo datos:** tabla única `user_events` + `properties` jsonb por `event_type`. |
+| A27 | **Ingesta:** eventos **no críticos** → job async (Solid Queue); **críticos** → sync en request (nest terminal, pago, descarga, registro, borrado cuenta) para no perder si el proceso muere. |
+| A28 | **Idempotencia:** misma acción dos veces = **una** fila (`idempotency_key` único; ej. `download_completed` + `nesting_run_id` + `user_id`). |
+| A29 | **Bitácora ≠ fuente de verdad:** solo **consulta** / timeline / embudo; montos, planes y cupos vienen de tablas billing. |
+| A30 | **Umbrales UI (semáforo en pantalla):** sin email/Slack v1; en el dashboard, tarjetas/números/gráficos pasan a estilo **alerta (rojo)** cuando la métrica sale de un rango “sano” definido en `config/analytics.yml` (ej. conversión &lt; 15 %, fallos de pago &gt; 20 %, duración p95 nest &gt; 10 min). Es **solo visual** para que el admin note el problema al abrir la página — no envía notificaciones. |
+| A40 | **Gráficos v1:** estética **llamativa** (no tablas secas ni gráficos grises por defecto); barras/líneas/donas con color, animación suave al cargar, tipografía clara. **Propuesta técnica:** Chart.js v4 vía importmap + tema Fitloop (azul blueprint / acento coral en alertas); KPI cards grandes con icono. Chartkick solo si no alcanza el look — priorizar control visual. |
+| A31 | **Faseamiento:** **en paralelo** con auth-billing (User Fase A → admin + eventos taller; Fase B billing → eventos + KPIs pago). |
+| A32 | **Rate limit:** solo eventos **low_priority**; máx **300/hora** por `anonymous_session_key` o `user_id`; **exentos:** nest/split terminal, billing, auth, `download_completed`. Implementación: `Analytics::TrackEvent` rechaza o muestrea con log. |
+| A33 | **Archivo frío:** segunda base **PostgreSQL** solo lectura (`analytics_archive`); job trimestral/mensual copia filas >6 meses y purga de hot DB tras copia exitosa. |
+| A34 | **Primer admin:** email fijo del operador vía **`ENV["FITLOOP_ADMIN_EMAIL"]`** (o lista); seed/promoción al crear ese usuario; único operador plataforma. |
+| A35 | **País:** **MaxMind GeoLite2** local (`maxminddb` o `geocoder` + DB en repo/CI); fallback header **`CF-IPCountry`** si existe; si falla → `country_code` null. Sin API paga por request en v1. |
+| A36 | **Admin role v1:** `users.admin` boolean; `Admin::BaseController` exige admin; no-admin → **404** en `/admin/*`. |
+| A37 | **Embudo v1:** `workspace_started` → `first_dxf_uploaded` → `nest_completed` → `paywall_viewed` → `payment_succeeded` → `download_completed`. |
+| A38 | **Borrar cuenta:** usuario ve cuenta borrada; **solo admin** ve identidad histórica (email/nombre en evento `account_deleted` + timeline; cuenta activa anonimizada). |
+| A39 | **Drill-down:** listado usuarios + timeline cronológico por usuario (UX amigable para consulta). |
 
 ---
 
-## Phasing (recommendation — pending user confirm)
+## Phasing (locked)
 
-| Opción | Significado |
-|--------|-------------|
-| **Antes** | Implementar bitácora antes de terminar auth/billing — más eventos “huérfanos” sin `user_id` real hasta que exista User. |
-| **En paralelo** | Misma ventana de desarrollo: Fase A User + rol admin + esqueleto `UserEvent`; billing añade eventos y KPIs de pago cuando mergee Fase B. **Recomendado.** |
-| **Después** | Bitácora solo cuando auth+billing estén en `main` — menos rework, KPIs completos desde día 1 del admin. |
+**En paralelo con auth-billing (A31):**
 
-_User dijo “no sé” en 23 — marcar TBD hasta confirmar._
+1. Tras migración `User`: `users.admin`, `FITLOOP_ADMIN_EMAIL`, `/admin` skeleton.
+2. `user_events` + trackers de taller (upload, nest, split) — pueden usar `anonymous_session_key` antes de login.
+3. Cuando mergee billing: instrumentar paywall, checkout, `download_completed`; KPIs monetarios desde tablas billing.
+4. Archive DB + job cuando volumen lo justifique (puede ser sub-paso post-MVP admin si hace falta).
 
 ---
 
 ## Open questions (remaining)
 
-### Archivo cold (A12)
-- [ ] ¿Formato del repositorio aparte? (S3 bucket, parquet en disco, segunda DB Postgres read-only, dump gzip a `storage/archive/`)
-- [ ] ¿Job mensual automático o manual con rake task?
-
-### Admin role (A2)
-- [ ] ¿Un solo flag `users.admin` boolean o tabla `roles`?
-- [ ] ¿Primer admin por seed/ENV o consola one-off?
-
-### País (A11)
-- [ ] ¿GeoIP en app (gem MaxMind) o solo país si CDN/proxy lo envía (`CF-IPCountry`)?
-
-### Idempotencia (reintentos)
-- [ ] ¿Clave `idempotency_key` por (user, event_type, nesting_run_id, occurred_at bucket minute) para no duplicar doble-click en descargar?
-
-### Rate limit
-- [ ] ¿Límite por IP/sesión ej. 200 eventos/hora para eventos no críticos; eventos de billing/nest siempre permitidos?
-
-### Bot detection (A25)
-- [ ] ¿Solo flag en dashboard o auto-`suspended_at` sugerido? (probable: flag + review manual v1)
-
-### Embudo — pasos exactos
-- [ ] Confirmar pasos: `workspace_start` → `first_upload` → `nest_success` → `paywall_view` → `payment_success` → `download_complete`
+### Umbrales semáforo (A30)
+- [ ] Valores iniciales en `config/analytics.yml` (propuesta en plan: 3 métricas con defaults razonables; editables sin redeploy en dev).
 
 ### Legal
-- [ ] Política de privacidad debe mencionar IP/UA/país y retención 6m+cold — FU-LEGAL-003
+- [ ] FU-LEGAL-003: privacidad debe citar IP/UA/país, retención 6m + archivo Postgres frío, acceso solo admin.
 
 ---
 
 ## Domain Model (draft)
 
 ### UserEvent
-- **Responsibility:** Append-only fact log for admin analytics; one row per meaningful action or outcome.
-- **Invariants:** no blob columns; `occurred_at` UTC; `user_id` nullable until linked; `anonymous_session_key` stable pre-login; after 6 months hot → row copied/archived and removed from hot table (TBD mechanics).
-- **Fields (conceptual):** `event_type` (enum/string), `properties` (jsonb metadata), `user_id`, `anonymous_session_key`, `tab_id`, `project_id`, `nesting_run_id`, `ip`, `user_agent`, `country_code`, `locale`, `idempotency_key` (optional unique).
-- **Value objects:** `EventType`, `AnonymousSessionKey`, `CountryCode`, `EventProperties` (jsonb schema per type).
+- **Responsibility:** Append-only fact log for **admin consultation only** (A29); not billing source of truth.
+- **Invariants:** no blob columns; `occurred_at` UTC; `user_id` nullable until linked; `anonymous_session_key` stable pre-login; `idempotency_key` unique when present (A28); after 6 months hot → copy to archive DB then delete from hot (A33).
+- **Fields (conceptual):** `event_type`, `priority` (`critical`|`low`), `properties` jsonb, `user_id`, `anonymous_session_key`, `tab_id`, `project_id`, `nesting_run_id`, `ip`, `user_agent`, `country_code`, `locale`, `idempotency_key`.
+- **Value objects:** `EventType`, `AnonymousSessionKey`, `CountryCode`, `EventProperties`, `IdempotencyKey`.
+
+### Analytics::TrackEvent (service)
+- **Responsibility:** Single entry for recording; enforces idempotency, rate limit (A32), priority → sync vs `TrackEventJob`.
+- **Invariants:** critical events never dropped by rate limit; duplicate `idempotency_key` → no-op success.
 
 ### ProjectSnapshot (or embedded in first/last project event)
 - **Responsibility:** Preserve project metadata after `Project` destroyed.
 - **Invariants:** created on `project_discarded` or last event; no geometry; includes sheet stock summary, layer config, kerf/margin settings.
 
-### AdminUser / Role
-- **Responsibility:** Gate `/admin/*`.
-- **Invariants:** at least one admin in prod via seed; non-admin receives 404 (no leak).
+### Admin (users.admin)
+- **Responsibility:** Gate `/admin/*` (A36).
+- **Invariants:** `FITLOOP_ADMIN_EMAIL` promoted on create/find; non-admin 404; at least one admin in prod.
 
-### ArchivedEventBatch (TBD)
-- **Responsibility:** Pointer to cold storage chunk (period, path, row count).
+### AnalyticsArchive (second PostgreSQL)
+- **Responsibility:** Read-only consultas históricas >6 meses (A33).
+- **Invariants:** Rails `connects_to` secondary; writes only via archive job from primary; same schema as `user_events`.
+
+### AccountDeletionRecord (in event or snapshot)
+- **Responsibility:** Preserve `historical_email`, `historical_name` for admin-only timeline after user row anonymized (A38).
 
 ---
 
@@ -123,11 +125,24 @@ See explore-task step 1.2 response for plain-language explanations of: admin vs 
 
 - `session_workflow_log` en Project ≠ producto bitácora (in-session only, SPEC).
 - Auth-billing session stays locked; link REQ-FIT-ANALYTICS-001 (TBD) in SPEC when plan locks.
-- Gráficos v1: Chartkick/Chart.js o CSS simple — ADR if new asset pipeline.
+- Gráficos v1: Chart.js themed (A40); KPI cards `metric--alert` cuando threshold breached (A30). Stimulus `admin_chart_controller` monta canvas por página.
+- GeoLite2: documentar actualización mensual de DB en DEPLOY; licencia MaxMind attribution.
+- Rate limit: si se excede, **no** error al usuario — drop silencioso + `Rails.logger` contador (solo low_priority).
+
+---
+
+## Follow-ups
+
+| ID | Topic |
+|----|--------|
+| FU-LEGAL-003 | Privacidad: IP, UA, país, retención 6m + archivo |
+| FU-ANALYTICS-001 | Valores default umbrales rojos (3 métricas) |
 
 ---
 
 ## Decisions log
 
 - **2026-05-20 — NEW-TASK:** Sesión separada `task_user-analytics.md` (user confirmed).
-- **2026-05-20 — A1–A25:** Ver tabla Agreed.
+- **2026-05-20 — A1–A25:** Primera ronda discovery.
+- **2026-05-20 — A26–A39:** Admin app role, user_events+jsonb, sync/async, idempotency, bitácora consulta only, umbrales rojos sin push, paralelo auth, rate limit, archive PG, ENV admin email, GeoLite2+CF fallback, embudo, identidad histórica admin-only.
+- **2026-05-20 — A40:** Gráficos llamativos (Chart.js + tema Fitloop); A30 aclarado = semáforo visual en dashboard, sin notificaciones.

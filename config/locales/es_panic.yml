@@ -116,7 +116,11 @@ es_panic:
       back_to_project: Volver al proyecto
     single_download:
       retention_24h: Tras pagar, el archivo queda en Mis pagos 24 h aunque cierres el taller.
+    suspended: Cuenta suspendida. Sin pagos ni descargas.
+    download:
+      plan_included: Incluido en tu plan
     planes:
+      success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)
       tier_1: Plan 1 mes
       tier_2: Plan 2 meses

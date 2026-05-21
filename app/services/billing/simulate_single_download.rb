@@ -4,8 +4,8 @@ module Billing
   # [REQ-FIT-BILL-001] Simulated single-download checkout (D37).
   class SimulateSingleDownload
     METHODS = {
-      "card_usd" => { payment_method: "card_usd", currency: "usd", amount: -> { Pricing.single_download_usd } },
-      "sinpe_crc" => { payment_method: "sinpe_crc", currency: "crc", amount: -> { Pricing.single_download_sinpe_crc } }
+      "card_usd" => { payment_method: "card_usd", currency: "usd", full: -> { Pricing.single_download_usd }, overage: -> { Pricing.single_download_overage_usd } },
+      "sinpe_crc" => { payment_method: "sinpe_crc", currency: "crc", full: -> { Pricing.single_download_sinpe_crc }, overage: -> { Pricing.single_download_overage_sinpe_crc } }
     }.freeze
 
     def self.call(user:, nesting_run:, payment_method:, outcome:)
@@ -20,6 +20,7 @@ module Billing
     end
 
     def call
+      raise ArgumentError, "user suspended" unless @user.operationally_active?
       raise ArgumentError, "unknown payment_method" unless METHODS.key?(@payment_method)
       raise ArgumentError, "nested_dxf missing" unless @nesting_run.project.nested_dxf.attached?
       return record_failure! if @outcome == "failure"
@@ -33,6 +34,17 @@ module Billing
       METHODS.fetch(@payment_method)
     end
 
+    def unit_amount
+      plan_quota_exhausted? ? config[:overage].call : config[:full].call
+    end
+
+    def plan_quota_exhausted?
+      subscription = Subscription.active_at.find_by(user_id: @user.id)
+      return false unless subscription
+
+      QuotaCounter.for(subscription).exhausted?
+    end
+
     def record_failure!
       Payment.create!(
         user: @user,
@@ -40,7 +52,7 @@ module Billing
         status: "failed",
         payment_method: config[:payment_method],
         currency: config[:currency],
-        amount: config[:amount].call,
+        amount: unit_amount,
         purpose: "single_download"
       )
       :failed
@@ -54,7 +66,7 @@ module Billing
         status: "succeeded",
         payment_method: config[:payment_method],
         currency: config[:currency],
-        amount: config[:amount].call,
+        amount: unit_amount,
         purpose: "single_download",
         paid_at: paid_at
       )

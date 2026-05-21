@@ -121,8 +121,12 @@ es:
       back_to_project: "Volver al proyecto"
     single_download:
       retention_24h: "Tras pagar, el archivo estará en Mis pagos durante 24 horas aunque cierres el taller."
+    suspended: "Tu cuenta está suspendida. No puedes pagar ni descargar."
+    download:
+      plan_included: "Incluido en tu plan"
     planes:
       title: "Planes"
+      success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."
       tier_1: "Plan 1 mes"
       tier_2: "Plan 2 meses"
       tier_4: "Plan 4 meses"

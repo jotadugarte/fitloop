@@ -21,6 +21,7 @@ class ProjectsController < ApplicationController
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
+    @plan_download_included = Billing::PlanDownloadAvailability.plan_included?(user: current_user)
   end
 
   def nested_dxf
@@ -285,7 +286,8 @@ class ProjectsController < ApplicationController
         locals: {
           project: @project,
           preview: @nesting_preview,
-          orphans: @nesting_orphans
+          orphans: @nesting_orphans,
+          plan_download_included: Billing::PlanDownloadAvailability.plan_included?(user: current_user)
         }
       )
     end

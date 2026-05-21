@@ -1,11 +1,44 @@
-<div data-controller="timezone-capture" data-testid="planes-checkout">
-  <%= hidden_field_tag :time_zone, "", data: { timezone_capture_target: "timeZone" } %>
+<article data-controller="timezone-capture" data-testid="planes-checkout">
+  <%= hidden_field_tag :time_zone, current_user&.time_zone, data: { timezone_capture_target: "timeZone" } %>
 
-<h1><%= t("billing.planes.title") %></h1>
+  <p class="checkout-demo-badge" data-testid="checkout-demo" role="status">
+    <%= t("billing.checkout.demo_badge") %>
+  </p>
 
-<ul data-testid="planes-pricing">
-  <li><%= t("billing.planes.tier_1") %>: USD <%= Billing::Pricing.plan_1_month_card_usd %> / CRC <%= Billing::Pricing.plan_1_month_sinpe_crc %></li>
-  <li><%= t("billing.planes.tier_2") %>: USD <%= Billing::Pricing.plan_2_months_card_usd %> / CRC <%= Billing::Pricing.plan_2_months_sinpe_crc %></li>
-  <li><%= t("billing.planes.tier_4") %>: USD <%= Billing::Pricing.plan_4_months_card_usd %> / CRC <%= Billing::Pricing.plan_4_months_sinpe_crc %></li>
-</ul>
-</div>
+  <h1><%= t("billing.planes.title") %></h1>
+
+  <% project_id = @project&.id %>
+
+  <% [[1, "tier_1", Billing::Pricing.plan_1_month_card_usd, Billing::Pricing.plan_1_month_sinpe_crc],
+     [2, "tier_2", Billing::Pricing.plan_2_months_card_usd, Billing::Pricing.plan_2_months_sinpe_crc],
+     [4, "tier_4", Billing::Pricing.plan_4_months_card_usd, Billing::Pricing.plan_4_months_sinpe_crc]].each do |months, label_key, usd, crc| %>
+    <section data-testid="planes-tier-<%= months %>">
+      <h2><%= t("billing.planes.#{label_key}") %></h2>
+      <p>USD <%= usd %> / CRC <%= crc %></p>
+
+      <div data-testid="checkout-pay-card-usd">
+        <%= form_with url: planes_simulate_path, method: :post, data: { turbo: false } do %>
+          <%= hidden_field_tag :project_id, project_id %>
+          <%= hidden_field_tag :tier_months, months %>
+          <%= hidden_field_tag :payment_method, "card_usd" %>
+          <%= button_tag t("billing.checkout.simulate_success"), name: "outcome", value: "success", class: "btn btn-primary btn--small", data: { testid: "checkout-simulate-success" } %>
+          <%= button_tag t("billing.checkout.simulate_failure"), name: "outcome", value: "failure", class: "btn btn-secondary btn--small", data: { testid: "checkout-simulate-failure" } %>
+        <% end %>
+      </div>
+
+      <div data-testid="checkout-pay-sinpe-crc">
+        <%= form_with url: planes_simulate_path, method: :post, data: { turbo: false } do %>
+          <%= hidden_field_tag :project_id, project_id %>
+          <%= hidden_field_tag :tier_months, months %>
+          <%= hidden_field_tag :payment_method, "sinpe_crc" %>
+          <%= button_tag t("billing.checkout.simulate_success"), name: "outcome", value: "success", class: "btn btn-primary btn--small", data: { testid: "checkout-simulate-success" } %>
+          <%= button_tag t("billing.checkout.simulate_failure"), name: "outcome", value: "failure", class: "btn btn-secondary btn--small", data: { testid: "checkout-simulate-failure" } %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @project %>
+    <p><%= link_to t("billing.paywall.back_to_project"), project_path(@project) %></p>
+  <% end %>
+</article>

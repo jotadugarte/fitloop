@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Implement (plan step 32: plan checkout)</current_step>
+    <current_step>3.2 — Implement (plan step 33: re-download spec RED)</current_step>
 
   </execution_context>
 
