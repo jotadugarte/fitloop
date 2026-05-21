@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing request spec (plan step 26: paywall redirect)</current_step>
+    <current_step>3.2 — Implement (plan step 27–28: paywall + remove orphan download)</current_step>
 
   </execution_context>
 

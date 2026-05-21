@@ -294,7 +294,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="25" status="complete">Implement models + services: Billing::Entitlement, Billing::PlanPeriod (ends_at end-of-day in user.time_zone), Billing::QuotaCounter, Billing::RetainNestedDxf (copy blob on single purchase success, D54).</step>
 
     <!-- P4 — Fase B: Paywall & simulated checkout -->
-    <step id="26" status="pending">Write failing request spec: nested DXF download without grant/plan → redirect paywall D42; preview still allowed; email unconfirmed blocked (D22).</step>
+    <step id="26" status="complete">Write failing request spec: nested DXF download without grant/plan → redirect paywall D42; preview still allowed; email unconfirmed blocked (D22).</step>
     <step id="27" status="pending">Remove orphan DXF download button from UI (D23); keep manual path only.</step>
     <step id="28" status="pending">Implement paywall page: options pay this run / planes / iniciar-sesion; guest must register before pay (D40).</step>
     <step id="29" status="pending">Write failing checkout spec: simulate card USD and SINPE CRC success/fail buttons (D37); creates Payment + DownloadGrant on success.</step>
