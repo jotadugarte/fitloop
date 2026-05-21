@@ -152,7 +152,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!(session, project, tab_id:)` sets `session[:workspaces][tab_id]`.
 - **Read / mutate:** Controllers use `Workspace.resolve!(session, id, tab_id:)` — returns the project only when the tab's bind matches the ephemeral id.
 - **Multi-tab:** Each browser tab has a UUID `tab_id` (Stimulus `workspace_tab_controller`); independent ephemeral projects per tab.
-- **Tab-close TTL:** On `pagehide`, client sets `fitloop_workspace_tab_left_at` cookie; **>120s** after leaving without logout → expire bind on return with `workspace.tab_closed_expired`. No idle expiry while the page stays open.
+- **Tab-close TTL:** On real tab close (`pagehide` without in-app Turbo visit), client sets `fitloop_workspace_tab_left_at` cookie; **>120s** after closing the tab without logout → expire bind on return with `workspace.tab_closed_expired`. Navigating within Fitloop (planes, Mis pagos, paywall) does not start the timer. No idle expiry while the tab stays open.
 - **Foreign ID:** Unbound request for another project → `ActiveRecord::RecordNotFound` or redirect to `/empezar` with `workspace.expired`.
 - **Leave:** `HomeController` / `Workspace.discard!` destroys the project, cancels active nesting, clears session key.
 - **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
