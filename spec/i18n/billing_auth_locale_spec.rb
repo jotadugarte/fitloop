@@ -25,7 +25,7 @@ RSpec.describe "Billing and auth locale keys", "[REQ-FIT-BILL-001] [REQ-FIT-BILL
     auth.nav.sign_up
     auth.nav.payments
     auth.registration.terms_label
-    workspace.activity_expired
+    workspace.tab_closed_expired
   ].freeze
 
   LOCALES = %i[en es es_panic].freeze

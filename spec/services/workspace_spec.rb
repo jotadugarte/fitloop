@@ -149,35 +149,31 @@ RSpec.describe Workspace do
     end
   end
 
-  describe "activity TTL [REQ-FIT-AUTH-001]" do
+  describe "tab-close TTL [REQ-FIT-AUTH-001]" do
     let(:tab_id) { "33333333-3333-4333-8333-333333333333" }
     let(:session) { {} }
 
-    it "[REQ-FIT-AUTH-001] treats projects idle longer than 120 seconds as expired (D20)" do
-      project = Project.create!(ephemeral: true, title: "Idle", status: :draft, last_activity_at: 121.seconds.ago)
+    it "[REQ-FIT-AUTH-001] does not expire projects based on last_activity_at idle time (D20)" do
+      project = Project.create!(
+        ephemeral: true,
+        title: "Idle",
+        status: :draft,
+        last_activity_at: 10.minutes.ago
+      )
       described_class.bind!(session, project, tab_id: tab_id)
 
-      expect(described_class.activity_expired?(project)).to be(true)
-      expect do
-        described_class.resolve!(session, project.id, tab_id: tab_id)
-      end.to raise_error(ActiveRecord::RecordNotFound, /expired/)
-    end
-
-    it "[REQ-FIT-AUTH-001] keeps projects active within 120 seconds (D20)" do
-      project = Project.create!(ephemeral: true, title: "Fresh", status: :draft, last_activity_at: 30.seconds.ago)
-      described_class.bind!(session, project, tab_id: tab_id)
-
-      expect(described_class.activity_expired?(project)).to be(false)
       expect(described_class.resolve!(session, project.id, tab_id: tab_id)).to eq(project)
+      expect(Project.exists?(project.id)).to be(true)
     end
 
-    it "[REQ-FIT-AUTH-001] refreshes last_activity_at on touch_activity!" do
-      project = Project.create!(ephemeral: true, title: "Touch", status: :draft, last_activity_at: 5.minutes.ago)
+    it "[REQ-FIT-AUTH-001] expires tab bind via expire_tab_after_closure! (D20)" do
+      project = Project.create!(ephemeral: true, title: "Leave", status: :draft)
+      described_class.bind!(session, project, tab_id: tab_id)
 
-      described_class.touch_activity!(project)
+      described_class.expire_tab_after_closure!(session, tab_id: tab_id)
 
-      expect(project.reload.last_activity_at).to be_within(2.seconds).of(Time.current)
-      expect(described_class.activity_expired?(project)).to be(false)
+      expect(Project.exists?(project.id)).to be(false)
+      expect(session.dig(described_class::WORKSPACES_KEY, tab_id)).to be_nil
     end
   end
 end

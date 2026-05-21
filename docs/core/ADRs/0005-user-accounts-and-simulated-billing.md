@@ -32,7 +32,7 @@ Fitloop v1 shipped **ephemeral workspace access only** (ADR-0004 / `REQ-FIT-AUTH
 | Concern | Rule |
 |---------|------|
 | **Workspace bind** | `session[:workspaces][tab_id] = project_id`; `Workspace.bind!(session, project, tab_id:)` / `resolve!(session, project_id, tab_id:)`. |
-| **TTL** | `last_activity_at` on project; **>120s** inactivity → expire with clear message; **≤120s** → same project. |
+| **TTL** | On `pagehide`, cookie `fitloop_workspace_tab_left_at`; **>120s** after closing the page without logout → expire with clear message; **≤120s** → same project. No idle expiry while the tab stays open. |
 | **Auth mid-flow** | Login/register **re-binds** the in-flight ephemeral `Project` (D18). |
 | **Logout** | `Workspace.discard!` for tab + user sign-out; warn if active project. |
 | **Download** | Nested DXF only; strict authorization via `DownloadGrant` / active plan quota; **signed URL** (~15 min). |

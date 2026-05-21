@@ -2,9 +2,9 @@
 
 require "fileutils"
 
-# Ephemeral in-browser workspace: projects per browser tab, discarded on leave or TTL.
+# Ephemeral in-browser workspace: projects per browser tab, discarded on leave or tab-close TTL.
 class Workspace
-  extend Activity
+  extend TabLeave
 
   SESSION_KEY = :workspace_project_id
   WORKSPACES_KEY = :workspaces
@@ -41,12 +41,6 @@ class Workspace
       project = find(session, tab_id: tid)
       raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} was discarded" unless project
 
-      if activity_expired?(project)
-        expire_project!(session, project, tab_id: tid)
-        raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} expired"
-      end
-
-      touch_activity!(project)
       project
     end
 

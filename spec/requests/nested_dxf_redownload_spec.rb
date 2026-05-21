@@ -29,18 +29,18 @@ RSpec.describe "Nested DXF re-download rules", type: :request do
   end
 
   describe "plan downloads require live workshop project [REQ-FIT-BILL-002]" do
-    it "[REQ-FIT-BILL-002] blocks download when workshop TTL expired despite active plan (D50)" do
+    it "[REQ-FIT-BILL-002] blocks download when workshop tab-close TTL expired despite active plan (D50)" do
       user = create_billing_user!
       project = begin_workspace_session!
       attach_nested_output!(project)
       create_active_subscription!(user: user)
       sign_in_user! user
-      project.update!(last_activity_at: 5.minutes.ago)
+      cookies[Workspace::TabLeave::TAB_LEFT_COOKIE] = (121.seconds.ago.to_f * 1000).to_i
 
       get nested_dxf_project_path(project)
 
       expect(response).to redirect_to(start_project_path)
-      expect(flash[:alert]).to eq(I18n.t("workspace.activity_expired"))
+      expect(flash[:alert]).to eq(I18n.t("workspace.tab_closed_expired"))
     end
 
     it "[REQ-FIT-BILL-002] blocks download after workspace discard even with plan_included grant (D50)" do

@@ -67,7 +67,7 @@ RSpec.describe "Auth billing 2:30 AM scenarios", type: :system do
       disposition = page.driver.response.headers["Content-Disposition"]
       expect(disposition.to_s).not_to include("attachment")
       expect(page).to have_content(I18n.t("workspace.expired"))
-        .or have_content(I18n.t("workspace.activity_expired"))
+        .or have_content(I18n.t("workspace.tab_closed_expired"))
     end
   end
 end

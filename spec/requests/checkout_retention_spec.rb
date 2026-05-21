@@ -63,7 +63,6 @@ RSpec.describe "Checkout nested DXF retention after workspace loss", type: :requ
       grant_id = DownloadGrant.find_by!(user: user, nesting_run: run).id
 
       travel_to(5.minutes.from_now) do
-        project.update!(last_activity_at: 6.minutes.ago)
         Workspace.discard!(session, tab_id: Workspace::DEFAULT_TAB_ID)
       end
 

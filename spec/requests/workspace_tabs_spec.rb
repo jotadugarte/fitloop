@@ -59,22 +59,33 @@ RSpec.describe "Workspace tab isolation", type: :request do
     end
   end
 
-  describe "activity TTL [REQ-FIT-AUTH-001]" do
-    it "[REQ-FIT-AUTH-001] expires project after 120s idle with explicit message (D20)" do
+  describe "tab-close TTL [REQ-FIT-AUTH-001]" do
+    it "[REQ-FIT-AUTH-001] expires project after 120s away with page closed message (D20)" do
       project = start_workspace_for_tab!(tab_a)
-      project.update!(last_activity_at: 121.seconds.ago)
+      cookies[Workspace::TabLeave::TAB_LEFT_COOKIE] = (121.seconds.ago.to_f * 1000).to_i
 
       get project_path(project), headers: tab_headers(tab_a)
 
       expect(response).to redirect_to(start_project_path)
-      expect(flash[:alert]).to eq(I18n.t("workspace.activity_expired"))
+      expect(flash[:alert]).to eq(I18n.t("workspace.tab_closed_expired"))
       expect(Project.exists?(project.id)).to be(false)
       expect(session.dig(Workspace::WORKSPACES_KEY, tab_a)).to be_nil
     end
 
-    it "[REQ-FIT-AUTH-001] keeps project within 120s idle (D20)" do
+    it "[REQ-FIT-AUTH-001] keeps project within 120s after closing the page (D20)" do
       project = start_workspace_for_tab!(tab_a)
-      project.update!(last_activity_at: 30.seconds.ago)
+      project.update!(last_activity_at: 10.minutes.ago)
+      cookies[Workspace::TabLeave::TAB_LEFT_COOKIE] = (30.seconds.ago.to_f * 1000).to_i
+
+      get project_path(project), headers: tab_headers(tab_a)
+
+      expect(response).to have_http_status(:ok)
+      expect(Project.exists?(project.id)).to be(true)
+    end
+
+    it "[REQ-FIT-AUTH-001] keeps project with no tab-left cookie regardless of last_activity_at (D20)" do
+      project = start_workspace_for_tab!(tab_a)
+      project.update!(last_activity_at: 10.minutes.ago)
 
       get project_path(project), headers: tab_headers(tab_a)
 
