@@ -36,7 +36,30 @@ Use after automated specs are green. Record date, tester, and environment.
 
 - [ ] Download nested DXF opens in CAD viewer; sheets offset on +X
 - [ ] SVG preview sheet count matches `placements.json`
-- [ ] Locales `en` / `es` show translated UI strings (spot-check)
+- [ ] Locales `en` / `es` / `es_panic` show translated UI strings (spot-check billing + auth nav)
+
+## Auth & accounts [REQ-FIT-AUTH-002]
+
+- [ ] Header shows **Iniciar sesión** / **Crear cuenta** when logged out (Spanish routes)
+- [ ] Register with name, terms checkbox, password ≥12 chars; confirmation email sent (or stub in dev)
+- [ ] Unconfirmed user can browse workshop but `GET /checkout` and `GET /planes` redirect to `/confirmacion`
+- [ ] Login mid-workflow returns to the same ephemeral project (`session[:workspaces]` tab bind)
+- [ ] Logout with active project shows confirm; discard clears workshop session
+- [ ] `/mi-cuenta` profile loads; link to **Mis pagos** works
+
+## Billing (simulated) [REQ-FIT-BILL-001..003]
+
+- [ ] Nested DXF download without grant/plan → paywall `/projects/:id/descarga-pago` with links to checkout, planes, login
+- [ ] Preview (`placements.json`, SVG) remains free without payment
+- [ ] `GET /checkout?nesting_run_id=…` shows demo badge and **Pago exitoso** / **Pago fallido** for Tarjeta (USD) and SINPE (CRC)
+- [ ] Successful single purchase auto-downloads nested DXF; flash mentions 24 h in Mis pagos
+- [ ] After closing workshop (>2 min idle or logout discard), `GET /mis-pagos` lists the purchase with **Descargar** while within 24 h
+- [ ] `GET /mis-pagos/descargas/:id` downloads retained DXF without workshop session bind
+- [ ] After `retained_until` passes, download returns 403 with retention-expired copy (no blob)
+- [ ] `GET /planes` shows tiers 1 / 2 / 4 months; simulated purchase redirects back to project show
+- [ ] Plan active + quota: project show shows “Incluido en tu plan”; download works while project bound
+- [ ] Plan download blocked after workshop TTL or discard (must re-nest)
+- [ ] Suspended user (`users.suspended_at`) cannot complete checkout or download
 
 ## Security & ops
 

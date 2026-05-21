@@ -1,14 +1,14 @@
 <agent_state>
 
-  <active_task_pointer>task_user-analytics.md</active_task_pointer>
+  <active_task_pointer>task_auth-billing.md</active_task_pointer>
 
   <execution_context>
 
-    <active_skill>explore-task</active_skill>
+    <active_skill>start-task</active_skill>
 
-    <current_phase>1 — The Whiteboard (Discovery Loop)</current_phase>
+    <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>1.2 — Memory updated (Cursor implementation hints + dashboard UX)</current_step>
+    <current_step>3.2 — Implement (plan step 37: 2:30 AM system spec RED)</current_step>
 
   </execution_context>
 
