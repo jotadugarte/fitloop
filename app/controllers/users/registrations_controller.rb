@@ -4,6 +4,7 @@ module Users
   # [REQ-FIT-AUTH-002] Sign-up with name, terms, time zone; 422 on validation errors.
   class RegistrationsController < Devise::RegistrationsController
     before_action :configure_sign_up_params, only: :create
+    before_action :configure_account_update_params, only: :update
 
     def create
       build_resource(sign_up_params)
@@ -21,6 +22,10 @@ module Users
 
     def configure_sign_up_params
       devise_parameter_sanitizer.permit(:sign_up, keys: %i[name time_zone terms_accepted])
+    end
+
+    def configure_account_update_params
+      devise_parameter_sanitizer.permit(:account_update, keys: %i[name time_zone])
     end
 
     def sign_up_params

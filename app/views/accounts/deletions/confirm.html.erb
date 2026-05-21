@@ -1,0 +1,23 @@
+<h1><%= t("auth.account_deletion.confirm_title") %></h1>
+
+<% if @active_plan %>
+  <p data-testid="account-deletion-active-plan-warning"><%= t("auth.account_deletion.active_plan_warning") %></p>
+<% end %>
+
+<%= form_with url: account_deletion_path, method: :delete do |f| %>
+  <p><%= t("auth.account_deletion.confirm_instructions", phrase: t("auth.account_deletion.confirm_phrase_expected")) %></p>
+
+  <div>
+    <%= label_tag "user_confirm_phrase", t("auth.account_deletion.confirm_phrase_label") %>
+    <%= text_field_tag "user[confirm_phrase]", nil, autocomplete: "off" %>
+  </div>
+
+  <div>
+    <%= label_tag "user_current_password", t("auth.account_deletion.current_password_label") %>
+    <%= password_field_tag "user[current_password]", nil, autocomplete: "current-password" %>
+  </div>
+
+  <div><%= f.submit t("auth.account_deletion.submit") %></div>
+<% end %>
+
+<p><%= link_to t("auth.account_deletion.cancel"), edit_user_registration_path %></p>

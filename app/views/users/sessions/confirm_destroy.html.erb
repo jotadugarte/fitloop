@@ -1,0 +1,11 @@
+<h1><%= t("auth.sign_out.confirm_title") %></h1>
+
+<p data-testid="sign-out-confirm-warning"><%= t("auth.sign_out.confirm_warning") %></p>
+
+<%= button_to t("auth.sign_out.confirm_submit"),
+              destroy_user_session_path,
+              method: :delete,
+              params: { confirm_workspace_discard: "1" },
+              data: { testid: "sign-out-confirm-submit" } %>
+
+<p><%= link_to t("auth.sign_out.cancel"), :back %></p>

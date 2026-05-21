@@ -27,6 +27,11 @@ class User < ApplicationRecord
     suspended_at.nil?
   end
 
+  # Billing (Fase B) will replace this stub; used for delete-account warning (D15).
+  def active_plan?
+    false
+  end
+
   def self.from_omniauth(auth, time_zone: nil)
     precondition!(auth.info.email.present?)
 

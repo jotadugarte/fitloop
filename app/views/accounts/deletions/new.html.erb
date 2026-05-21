@@ -1,0 +1,11 @@
+<h1><%= t("auth.account_deletion.title") %></h1>
+
+<p><%= t("auth.account_deletion.intro") %></p>
+
+<% if @active_plan %>
+  <p data-testid="account-deletion-active-plan-warning"><%= t("auth.account_deletion.active_plan_warning") %></p>
+<% end %>
+
+<%= button_to t("auth.account_deletion.continue"), account_deletion_path, method: :post %>
+
+<p><%= link_to t("auth.account_deletion.cancel"), edit_user_registration_path %></p>

@@ -355,6 +355,11 @@ es_panic:
       account: Mi cuenta
       payments: Mis pagos
       sign_out: Cerrar sesión
+    sign_out:
+      confirm_title: ¿Cerrar sesión o abandonar el taller en llamas?
+      confirm_warning: Hay un proyecto en curso. Si cierras sesión, ese trabajo se va al limbo (sin vuelta atrás).
+      confirm_submit: Cerrar sesión y tirar el proyecto
+      cancel: Volver al taller
     merge:
       offer_title: ¿Fusionar cuentas o seguir en guerra civil?
       offer_body: Ya hay una cuenta con %{email} y otro método de acceso. Ponga la contraseña para unificar bandos o rechace y siga la novela.
@@ -385,6 +390,28 @@ es_panic:
       title: Crear cuenta (sin vuelta atrás)
       terms_label: Acepto el contrato letra chiquita y la política de privacidad
       submit: Firmar el contrato
+    account:
+      title: Mi cuenta (el drama personal)
+      submit: Guardar cambios
+      new_password_hint: Nueva contraseña (en blanco = no tocar)
+      current_password_hint: Contraseña actual para confirmar que eres tú
+    account_deletion:
+      link: Eliminar cuenta (punto de no retorno)
+      title: Eliminar cuenta
+      intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
+      active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      continue: Continuar hacia el abismo
+      cancel: Cancelar y respirar
+      confirm_title: Confirmar eliminación
+      confirm_instructions: Escribe %{phrase} para sellar el destino.
+      confirm_phrase_label: Frase de confirmación
+      confirm_phrase_expected: ELIMINAR
+      current_password_label: Contraseña actual
+      submit: Eliminar mi cuenta para siempre
+      done: Cuenta eliminada. Fin del capítulo.
+      restart: Vuelve a empezar el proceso de eliminación.
+      invalid_password: Contraseña incorrecta.
+      invalid_phrase: La frase no coincide. El universo te da otra oportunidad.
 
   devise:
     failure:

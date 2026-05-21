@@ -350,6 +350,11 @@ en:
       account: "My account"
       payments: "My payments"
       sign_out: "Sign out"
+    sign_out:
+      confirm_title: "Sign out?"
+      confirm_warning: "You have a project in progress in the workshop. Signing out will discard that work."
+      confirm_submit: "Sign out and discard project"
+      cancel: "Back to workshop"
     merge:
       offer_title: "Merge accounts?"
       offer_body: "An account already exists for %{email} with a different sign-in method. Enter your password to link this sign-in, or decline to keep accounts separate."
@@ -380,6 +385,28 @@ en:
       title: "Create account"
       terms_label: "I accept the terms of service and privacy policy"
       submit: "Sign up"
+    account:
+      title: "My account"
+      submit: "Save changes"
+      new_password_hint: "New password (leave blank if unchanged)"
+      current_password_hint: "We need your current password to confirm changes"
+    account_deletion:
+      link: "Delete account"
+      title: "Delete account"
+      intro: "This action is permanent. You will lose access to your account and payment history."
+      active_plan_warning: "You have an active plan. Deleting your account forfeits any remaining plan benefit."
+      continue: "Continue"
+      cancel: "Cancel"
+      confirm_title: "Confirm deletion"
+      confirm_instructions: "Type %{phrase} to confirm."
+      confirm_phrase_label: "Confirmation phrase"
+      confirm_phrase_expected: "DELETE"
+      current_password_label: "Current password"
+      submit: "Permanently delete my account"
+      done: "Your account has been deleted."
+      restart: "Start the deletion process again."
+      invalid_password: "Password is incorrect."
+      invalid_phrase: "Confirmation phrase does not match."
 
   devise:
     failure:

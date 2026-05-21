@@ -19,10 +19,16 @@ Rails.application.routes.draw do
     confirmation: "confirmacion",
     edit: "mi-cuenta"
   }, controllers: {
+    sessions: "users/sessions",
     registrations: "users/registrations",
     passwords: "users/passwords",
     omniauth_callbacks: "users/omniauth_callbacks"
   }
+
+  get "eliminar-cuenta", to: "accounts/deletions#new", as: :account_deletion
+  post "eliminar-cuenta", to: "accounts/deletions#create"
+  get "eliminar-cuenta/confirmar", to: "accounts/deletions#confirm", as: :confirm_account_deletion
+  delete "eliminar-cuenta", to: "accounts/deletions#destroy"
 
   get "fusionar-cuenta", to: "accounts/merges#new", as: :fusionar_cuenta
   post "fusionar-cuenta", to: "accounts/merges#create"

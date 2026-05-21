@@ -1,0 +1,40 @@
+<h1><%= t("auth.account.title") %></h1>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+
+  <div>
+    <%= f.label :email %><br />
+    <%= f.email_field :email, autocomplete: "email" %>
+  </div>
+
+  <div>
+    <%= f.label :name %><br />
+    <%= f.text_field :name, autocomplete: "name" %>
+  </div>
+
+  <div>
+    <%= f.label :time_zone %><br />
+    <%= f.time_zone_select :time_zone, ActiveSupport::TimeZone.all, default: resource.time_zone %>
+  </div>
+
+  <div>
+    <%= f.label :password, t("auth.account.new_password_hint") %><br />
+    <%= f.password_field :password, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :current_password %><br />
+    <%= f.password_field :current_password, autocomplete: "current-password" %>
+    <em><%= t("auth.account.current_password_hint") %></em>
+  </div>
+
+  <div><%= f.submit t("auth.account.submit") %></div>
+<% end %>
+
+<p><%= link_to t("auth.account_deletion.link"), account_deletion_path %></p>
