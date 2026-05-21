@@ -350,6 +350,14 @@ en:
       account: "My account"
       payments: "My payments"
       sign_out: "Sign out"
+    oauth:
+      google_oauth2: "Continue with Google"
+      facebook: "Continue with Facebook"
+      apple: "Continue with Apple"
+      failure: "Could not sign in with that provider."
+    session:
+      sign_in_title: "Sign in"
+      submit: "Log in"
     password:
       forgot_title: "Forgot your password?"
       reset_title: "Set a new password"

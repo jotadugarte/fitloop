@@ -266,16 +266,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "name", default: "", null: false
+    t.string "provider"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.datetime "suspended_at"
     t.datetime "terms_accepted_at"
     t.string "terms_version"
     t.string "time_zone"
+    t.string "uid"
     t.string "unconfirmed_email"
     t.datetime "updated_at", null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 

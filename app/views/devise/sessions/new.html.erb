@@ -1,0 +1,24 @@
+<h1><%= t("auth.session.sign_in_title") %></h1>
+
+<%= render "devise/shared/oauth_buttons" %>
+
+<div data-testid="oauth-email">
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div>
+      <%= f.label :email %><br />
+      <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
+    </div>
+
+    <div>
+      <%= f.label :password %><br />
+      <%= f.password_field :password, autocomplete: "current-password" %>
+    </div>
+
+    <div><%= f.submit t("auth.session.submit") %></div>
+  <% end %>
+
+  <p><%= link_to t("auth.password.forgot_title"), new_user_password_path %></p>
+  <p><%= link_to t("auth.nav.sign_up"), new_user_registration_path %></p>
+</div>

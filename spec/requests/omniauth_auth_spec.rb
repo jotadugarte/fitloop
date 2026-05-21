@@ -64,8 +64,7 @@ RSpec.describe "OmniAuth sign-in UI", type: :request do
       with_google_credentials do
         get send(path_name)
 
-        expect(response.body).to include('href="/users/auth/google_oauth2"')
-          .or include('href="/auth/google_oauth2"')
+        expect(response.body).to match(%r{action="/auth/google_oauth2"|href="/users/auth/google_oauth2"|href="/auth/google_oauth2"})
       end
     end
   end

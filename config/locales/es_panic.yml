@@ -355,6 +355,14 @@ es_panic:
       account: Mi cuenta
       payments: Mis pagos
       sign_out: Cerrar sesión
+    oauth:
+      google_oauth2: Entrar con Google (un clic y listo)
+      facebook: Entrar con Facebook
+      apple: Entrar con Apple
+      failure: Ese proveedor nos dejó en visto. Intente otra vía.
+    session:
+      sign_in_title: Iniciar sesión
+      submit: Entrar al taller
     password:
       forgot_title: ¿Olvidó la contraseña otra vez?
       reset_title: Contraseña nueva (mínimo 12, sin excusas)

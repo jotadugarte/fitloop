@@ -365,6 +365,14 @@ es:
       account: "Mi cuenta"
       payments: "Mis pagos"
       sign_out: "Cerrar sesión"
+    oauth:
+      google_oauth2: "Continuar con Google"
+      facebook: "Continuar con Facebook"
+      apple: "Continuar con Apple"
+      failure: "No se pudo iniciar sesión con ese proveedor."
+    session:
+      sign_in_title: "Iniciar sesión"
+      submit: "Entrar"
     password:
       forgot_title: "¿Olvidaste tu contraseña?"
       reset_title: "Nueva contraseña"

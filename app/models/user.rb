@@ -3,7 +3,8 @@
 # [REQ-FIT-AUTH-002] Persistent user identity; projects remain ephemeral (ADR-0005).
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
-         :recoverable, :validatable, :confirmable
+         :recoverable, :validatable, :confirmable,
+         :omniauthable, omniauth_providers: %i[google_oauth2 facebook apple]
 
   alias_attribute :email_confirmed_at, :confirmed_at
 
@@ -26,7 +27,30 @@ class User < ApplicationRecord
     suspended_at.nil?
   end
 
+  def self.from_omniauth(auth, time_zone: nil)
+    precondition!(auth.info.email.present?)
+
+    user = find_or_initialize_by(provider: auth.provider, uid: auth.uid)
+    user.email = auth.info.email
+    user.name = auth.info.name.presence || user.email.to_s.split("@").first
+    user.time_zone = time_zone.presence || "America/Costa_Rica"
+    user.terms_accepted_at ||= Time.current
+    user.terms_version ||= TermsVersion.current
+    user.password = Devise.friendly_token[32] if user.new_record?
+    user.confirmed_at ||= Time.current if trusted_oauth_provider?(auth.provider)
+    user.save!
+    user
+  end
+
+  def self.trusted_oauth_provider?(provider)
+    %w[google_oauth2 facebook apple].include?(provider.to_s)
+  end
+
   private
+
+  def self.precondition!(condition)
+    raise ArgumentError, "precondition failed" unless condition
+  end
 
   def normalize_email
     self.email = email.to_s.strip.downcase
@@ -40,6 +64,8 @@ class User < ApplicationRecord
   end
 
   def password_required?
+    return false if provider.present?
+
     !persisted? || password.present? || password_confirmation.present?
   end
 

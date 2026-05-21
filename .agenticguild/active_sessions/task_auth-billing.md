@@ -272,8 +272,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="7" status="complete">Implement Devise :confirmable (or custom mailer) for email verification link; i18n en/es for auth flash and forms.</step>
     <step id="8" status="complete">Write failing request spec: password reset flow (forgot → email → reset ≥12 chars).</step>
     <step id="9" status="complete">Implement password recovery; header links “Iniciar sesión” / “Crear cuenta” on all layouts; logged-in menu Mi cuenta / Mis pagos / Cerrar sesión.</step>
-    <step id="10" status="pending">Write failing OmniAuth spec: Google provider (conditional on credentials); ordered buttons Google → Facebook → Apple → email on login/register pages.</step>
-    <step id="11" status="pending">Implement OmniAuth callbacks; capture name, email; Stimulus `timezone_capture_controller` sets `users.time_zone` from `Intl.DateTimeFormat().resolvedOptions().timeZone` on register (D49); trusted-provider email marks confirmed when policy allows; register Facebook/Apple similarly when ENV set.</step>
+    <step id="10" status="complete">Write failing OmniAuth spec: Google provider (conditional on credentials); ordered buttons Google → Facebook → Apple → email on login/register pages.</step>
+    <step id="11" status="complete">Implement OmniAuth callbacks; capture name, email; Stimulus `timezone_capture_controller` sets `users.time_zone` from `Intl.DateTimeFormat().resolvedOptions().timeZone` on register (D49); trusted-provider email marks confirmed when policy allows; register Facebook/Apple similarly when ENV set.</step>
     <step id="12" status="pending">Write failing spec: email collision → merge opt-in screen (no silent merge); declining leaves user on error path.</step>
     <step id="13" status="pending">Implement Accounts::Merge opt-in service; no post-login provider linking UI (D12).</step>
     <step id="14" status="pending">Write failing spec: login/register mid-workflow keeps Workspace project bind (D18); return_to project#show.</step>
