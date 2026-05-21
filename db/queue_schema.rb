@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_21_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -54,6 +54,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
     t.index ["project_id"], name: "index_derived_pieces_on_project_id"
   end
 
+  create_table "download_grants", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.bigint "nesting_run_id", null: false
+    t.datetime "retained_until"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["nesting_run_id"], name: "index_download_grants_on_nesting_run_id"
+    t.index ["user_id", "nesting_run_id"], name: "index_download_grants_on_user_id_and_nesting_run_id", unique: true
+    t.index ["user_id"], name: "index_download_grants_on_user_id"
+  end
+
   create_table "nesting_runs", force: :cascade do |t|
     t.datetime "cancel_requested_at"
     t.datetime "created_at", null: false
@@ -78,6 +90,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
     t.index ["last_nesting_run_id"], name: "index_orphan_resolutions_on_last_nesting_run_id"
     t.index ["project_id", "piece_key"], name: "index_orphan_resolutions_on_project_id_and_piece_key", unique: true
     t.index ["project_id"], name: "index_orphan_resolutions_on_project_id"
+  end
+
+  create_table "payments", force: :cascade do |t|
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.string "currency", null: false
+    t.bigint "nesting_run_id"
+    t.datetime "paid_at"
+    t.string "payment_method", null: false
+    t.string "purpose", null: false
+    t.string "status", default: "pending", null: false
+    t.bigint "subscription_id"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["nesting_run_id"], name: "index_payments_on_nesting_run_id"
+    t.index ["subscription_id"], name: "index_payments_on_subscription_id"
+    t.index ["user_id"], name: "index_payments_on_user_id"
+  end
+
+  create_table "plan_monthly_usages", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "downloads_used", default: 0, null: false
+    t.integer "period_month", null: false
+    t.integer "period_year", null: false
+    t.integer "quota_limit", default: 50, null: false
+    t.bigint "subscription_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subscription_id", "period_year", "period_month"], name: "index_plan_monthly_usages_on_subscription_period", unique: true
+    t.index ["subscription_id"], name: "index_plan_monthly_usages_on_subscription_id"
   end
 
   create_table "project_layers", force: :cascade do |t|
@@ -259,6 +300,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
     t.index ["orphan_resolution_id"], name: "index_split_proposals_on_orphan_resolution_id"
   end
 
+  create_table "subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "ends_at", null: false
+    t.datetime "starts_at", null: false
+    t.integer "tier_months", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_subscriptions_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "confirmation_sent_at"
     t.string "confirmation_token"
@@ -286,9 +337,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "derived_pieces", "projects"
+  add_foreign_key "download_grants", "nesting_runs"
+  add_foreign_key "download_grants", "users"
   add_foreign_key "nesting_runs", "projects"
   add_foreign_key "orphan_resolutions", "nesting_runs", column: "last_nesting_run_id"
   add_foreign_key "orphan_resolutions", "projects"
+  add_foreign_key "payments", "nesting_runs"
+  add_foreign_key "payments", "subscriptions"
+  add_foreign_key "payments", "users"
+  add_foreign_key "plan_monthly_usages", "subscriptions"
   add_foreign_key "project_layers", "projects"
   add_foreign_key "sheet_stocks", "projects"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
@@ -298,4 +355,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "split_proposals", "orphan_resolutions"
+  add_foreign_key "subscriptions", "users"
 end

@@ -8,6 +8,10 @@ class User < ApplicationRecord
 
   alias_attribute :email_confirmed_at, :confirmed_at
 
+  has_many :subscriptions, dependent: :destroy
+  has_many :payments, dependent: :destroy
+  has_many :download_grants, dependent: :destroy
+
   before_validation :normalize_email
 
   validates :name, presence: true
@@ -27,9 +31,8 @@ class User < ApplicationRecord
     suspended_at.nil?
   end
 
-  # Billing (Fase B) will replace this stub; used for delete-account warning (D15).
-  def active_plan?
-    false
+  def active_plan?(at: Time.current)
+    Subscription.active_at(at).exists?(user_id: id)
   end
 
   def self.from_omniauth(auth, time_zone: nil)

@@ -24,7 +24,12 @@ RSpec.describe DownloadGrant, "[REQ-FIT-BILL-003]" do
     end
 
     it "[REQ-FIT-BILL-003] enforces one grant per user and nesting_run" do
-      described_class.create!(user: user, nesting_run: nesting_run, kind: "single_purchase")
+      described_class.create!(
+        user: user,
+        nesting_run: nesting_run,
+        kind: "single_purchase",
+        retained_until: 24.hours.from_now
+      )
       duplicate = described_class.new(user: user, nesting_run: nesting_run, kind: "plan_included")
 
       expect(duplicate).not_to be_valid
