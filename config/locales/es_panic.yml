@@ -389,7 +389,21 @@ es_panic:
     registration:
       title: Crear cuenta (sin vuelta atrás)
       terms_label: Acepto el contrato letra chiquita y la política de privacidad
+      terms_prefix: Acepto los
+      terms_connector: y la
       submit: Firmar el contrato
+  legal:
+    placeholder_notice: Texto de relleno. El abogado llegará después (FU-LEGAL-001).
+    terms:
+      title: Términos de servicio (letra chiquita)
+      link: términos de servicio
+      version: 'Versión: %{version}'
+      body: Aquí irá el contrato real. Por ahora es un cartel de «obras en construcción».
+    privacy:
+      title: Política de privacidad
+      link: política de privacidad
+      version: 'Versión: %{version}'
+      body: Aquí irá qué hacemos con tus datos. Spoiler del futuro legal, no del presente.
     account:
       title: Mi cuenta (el drama personal)
       submit: Guardar cambios

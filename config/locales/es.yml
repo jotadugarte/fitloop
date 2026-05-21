@@ -399,7 +399,21 @@ es:
     registration:
       title: "Crear cuenta"
       terms_label: "Acepto los términos de servicio y la política de privacidad"
+      terms_prefix: "Acepto los"
+      terms_connector: "y la"
       submit: "Registrarse"
+  legal:
+    placeholder_notice: "Texto provisional. El contenido legal definitivo se publicará en una actualización posterior (FU-LEGAL-001)."
+    terms:
+      title: "Términos de servicio"
+      link: "términos de servicio"
+      version: "Versión: %{version}"
+      body: "Estos términos describirán el uso de Fitloop, descargas, planes y responsabilidades del usuario. Sustituya este párrafo cuando el equipo legal apruebe el documento final."
+    privacy:
+      title: "Política de privacidad"
+      link: "política de privacidad"
+      version: "Versión: %{version}"
+      body: "Esta política explicará qué datos recopilamos, cómo los usamos y sus derechos. Sustituya este párrafo cuando el equipo legal apruebe el documento final."
     account:
       title: "Mi cuenta"
       submit: "Guardar cambios"

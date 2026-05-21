@@ -384,7 +384,21 @@ en:
     registration:
       title: "Create account"
       terms_label: "I accept the terms of service and privacy policy"
+      terms_prefix: "I accept the"
+      terms_connector: "and"
       submit: "Sign up"
+  legal:
+    placeholder_notice: "Placeholder text. Final legal copy will ship in a later update (FU-LEGAL-001)."
+    terms:
+      title: "Terms of service"
+      link: "terms of service"
+      version: "Version: %{version}"
+      body: "These terms will describe how you may use Fitloop, downloads, plans, and user responsibilities. Replace this paragraph when legal approves the final document."
+    privacy:
+      title: "Privacy policy"
+      link: "privacy policy"
+      version: "Version: %{version}"
+      body: "This policy will explain what data we collect, how we use it, and your rights. Replace this paragraph when legal approves the final document."
     account:
       title: "My account"
       submit: "Save changes"

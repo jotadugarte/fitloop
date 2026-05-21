@@ -280,7 +280,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="15" status="complete">Implement auth return_to; Stimulus `workspace_tab_controller`: UUID per tab in sessionStorage; send `tab_id` on workspace requests for `session[:workspaces]` bind (D21).</step>
     <step id="16" status="complete">Write failing spec: logout runs Workspace.discard! with confirm when project active (D19).</step>
     <step id="17" status="complete">Implement logout + discard; /mi-cuenta profile; delete account multi-step confirm with active-plan warning (D15).</step>
-    <step id="18" status="pending">Placeholder pages /terminos and /privacidad + checkbox links; FU-LEGAL-001 copy TBD.</step>
+    <step id="18" status="complete">Placeholder pages /terminos and /privacidad + checkbox links; FU-LEGAL-001 copy TBD.</step>
 
     <!-- P2 — Workspace: multi-tab + 2 min TTL (REQ-FIT-AUTH-001 extension per ADR-0005) -->
     <step id="19" status="pending">Write failing Workspace spec [REQ-FIT-AUTH-001]: `session[:workspaces] = { tab_id => project_id }`; bind/resolve by tab_id; independent project per tab; last_activity_at TTL 120s expires project with flash (D20–D21); Turbo requests include tab_id so streams do not cross tabs.</step>

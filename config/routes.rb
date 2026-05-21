@@ -34,6 +34,9 @@ Rails.application.routes.draw do
   post "fusionar-cuenta", to: "accounts/merges#create"
   delete "fusionar-cuenta", to: "accounts/merges#destroy", as: :cancel_fusionar_cuenta
 
+  get "terminos", to: "legal#terms", as: :terminos
+  get "privacidad", to: "legal#privacy", as: :privacidad
+
   get "confirmacion", to: "confirmations#show", as: :email_confirmation_pending
   get "planes", to: "planes#show"
   get "checkout", to: "checkout#show"

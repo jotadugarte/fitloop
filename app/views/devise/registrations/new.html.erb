@@ -31,10 +31,7 @@
     <%= f.hidden_field :time_zone, data: { timezone_capture_target: "timeZone" } %>
   </div>
 
-  <div>
-    <%= f.check_box :terms_accepted, { checked: true }, "1", "0" %>
-    <%= f.label :terms_accepted, t("auth.registration.terms_label") %>
-  </div>
+  <%= render "devise/shared/terms_acceptance", f: f %>
 
   <div><%= f.submit t("auth.registration.submit") %></div>
 <% end %>
