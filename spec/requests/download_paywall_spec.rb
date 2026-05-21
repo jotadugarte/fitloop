@@ -1,0 +1,44 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe "Download paywall", type: :request do
+  def attach_nested_output!(project)
+    run = project.nesting_runs.create!(status: "completed")
+    project.update!(status: :completed)
+    project.nested_dxf.attach(
+      io: StringIO.new("NESTED"),
+      filename: "nested.dxf",
+      content_type: "application/dxf"
+    )
+    run
+  end
+
+  it "[REQ-FIT-BILL-001] omits duplicate sign-in buttons (header only)" do
+    project = begin_workspace_session!
+    attach_nested_output!(project)
+
+    get download_paywall_project_path(project)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('data-testid="paywall-sign-in"')
+    expect(response.body).not_to include('data-testid="paywall-sign-up"')
+    expect(response.body).to include('id="paywall-aside-title"')
+  end
+
+  it "[REQ-FIT-AUTH-002] returns guest to paywall after sign-in from header (D18)" do
+    project = begin_workspace_session!
+    attach_nested_output!(project)
+
+    get download_paywall_project_path(project)
+    expect(session[:workspace_return_to]).to eq(download_paywall_project_path(project))
+
+    get new_user_session_path
+    expect(session[:workspace_return_to]).to eq(download_paywall_project_path(project))
+
+    user = create_billing_user!(email: "paywall-return@example.com")
+    post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+
+    expect(response).to redirect_to(download_paywall_project_path(project))
+  end
+end

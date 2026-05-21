@@ -23,10 +23,12 @@
     <%= render "shared/bottom_nav" %>
     <div class="app-main">
       <header class="app-main__toolbar">
-        <%= render "shared/account_nav" %>
-        <%= render "shared/locale_switcher" %>
+        <div class="app-main__toolbar-actions" data-testid="app-toolbar-actions">
+          <%= render "shared/account_nav" %>
+          <%= render "shared/locale_switcher" %>
+        </div>
       </header>
-      <%= render "shared/flash" %>
+      <%= render "shared/flash" unless content_for?(:inline_flash) %>
       <%= render "shared/fitloop_dialog" %>
       <%= yield %>
     </div>

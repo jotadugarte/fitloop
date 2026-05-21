@@ -54,7 +54,7 @@ RSpec.describe "Locale switcher", type: :request do
     it "renders the panic locale row with PÁNICO label, not ES_PANIC" do
       get root_path
 
-      expect(response.body).to include("locale-switcher__row--panic")
+      expect(response.body).to include("locale-switcher__btn--panic")
       expect(response.body).to include("📐 PÁNICO")
       expect(response.body).not_to include("ES_PANIC")
     end

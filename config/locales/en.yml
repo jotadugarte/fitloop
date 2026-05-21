@@ -32,6 +32,7 @@ en:
     name: "Fitloop"
     dialog_title: "Fitloop"
     dialog_accept: "OK"
+    dialog_cancel: "Cancel"
 
   locale:
     switcher_label: "Language"
@@ -104,6 +105,12 @@ en:
       pay_this_download: "Pay for this download"
       view_plans: "View plans"
       back_to_project: "Back to project"
+      aside:
+        title: "Your nested DXF is ready"
+        lead: "Nesting finished. Choose how to unlock the download:"
+        benefit_ready: "One-time payment for this run"
+        benefit_plan: "Monthly plan with a download quota"
+        benefit_retention: "24 hours in My payments after a single purchase"
     single_download:
       retention_24h: "After payment, the file will be available in My payments for 24 hours even if you leave the workshop."
     suspended: "Your account is suspended. You cannot pay or download."

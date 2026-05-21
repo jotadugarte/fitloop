@@ -1,9 +1,20 @@
-<dialog id="fitloop-dialog" class="fitloop-dialog" data-testid="fitloop-dialog">
+<dialog id="fitloop-dialog"
+        class="fitloop-dialog"
+        data-testid="fitloop-dialog"
+        data-default-title="<%= t("application.dialog_title") %>">
   <form method="dialog" class="fitloop-dialog__panel">
     <p class="fitloop-dialog__title" data-fitloop-dialog-target="title"><%= t("application.dialog_title") %></p>
     <p class="fitloop-dialog__message" data-fitloop-dialog-target="message"></p>
     <menu class="fitloop-dialog__actions">
-      <button type="submit" class="btn btn-primary" value="ok"><%= t("application.dialog_accept") %></button>
+      <button type="submit"
+              class="btn btn-secondary fitloop-dialog__btn"
+              value="cancel"
+              data-fitloop-dialog-target="cancel"
+              hidden><%= t("application.dialog_cancel") %></button>
+      <button type="submit"
+              class="btn btn-primary fitloop-dialog__btn"
+              value="ok"
+              data-fitloop-dialog-target="accept"><%= t("application.dialog_accept") %></button>
     </menu>
   </form>
 </dialog>

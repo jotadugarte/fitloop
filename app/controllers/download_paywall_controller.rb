@@ -5,8 +5,17 @@ class DownloadPaywallController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
+  before_action :store_guest_paywall_return_to!, only: :show
 
   def show
-    @nesting_run = @project.nesting_runs.order(id: :desc).first
+    @nesting_run = @project.nesting_runs.where(status: "completed").order(id: :desc).first
+  end
+
+  private
+
+  def store_guest_paywall_return_to!
+    return if user_signed_in?
+
+    session[:workspace_return_to] = download_paywall_project_path(@project)
   end
 end

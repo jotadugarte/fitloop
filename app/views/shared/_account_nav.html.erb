@@ -1,10 +1,10 @@
 <nav class="account-nav" data-testid="account-nav" aria-label="<%= t("auth.nav.label") %>">
   <% if user_signed_in? %>
-    <%= link_to t("auth.nav.account"), edit_user_registration_path, class: "account-nav__link" %>
-    <%= link_to t("auth.nav.payments"), "/mis-pagos", class: "account-nav__link" %>
-    <%= button_to t("auth.nav.sign_out"), destroy_user_session_path, method: :delete, class: "account-nav__button" %>
+    <%= link_to t("auth.nav.account"), edit_user_registration_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
+    <%= link_to t("auth.nav.payments"), mis_pagos_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
+    <%= button_to t("auth.nav.sign_out"), destroy_user_session_path, method: :delete, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
   <% else %>
-    <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "account-nav__link" %>
-    <%= link_to t("auth.nav.sign_up"), new_user_registration_path, class: "account-nav__link" %>
+    <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
+    <%= link_to t("auth.nav.sign_up"), new_user_registration_path, class: "btn btn-primary btn--compact", data: { turbo_frame: "_top" } %>
   <% end %>
 </nav>

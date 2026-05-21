@@ -30,6 +30,22 @@ RSpec.describe "Workspace tab isolation", type: :request do
       )
     end
 
+    it "[REQ-FIT-AUTH-001] resolves nested DXF download with tab cookie when header is absent (D21)" do
+      project = start_workspace_for_tab!(tab_a)
+      run = project.nesting_runs.create!(status: "completed")
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+
+      cookies["fitloop_workspace_tab_id"] = tab_a
+      get nested_dxf_project_path(project)
+
+      expect(response).to redirect_to(%r{/descarga-pago\z})
+      expect(run.id).to be_present
+    end
+
     it "[REQ-FIT-AUTH-001] resolves show only with matching X-Workspace-Tab-Id" do
       project_a = start_workspace_for_tab!(tab_a)
       start_workspace_for_tab!(tab_b)

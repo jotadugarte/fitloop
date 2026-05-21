@@ -23,12 +23,6 @@
     </div>
   <% end %>
 
-  <% if flash[:alert].present? %>
-    <div class="form-errors" role="alert">
-      <p><%= flash[:alert] %></p>
-    </div>
-  <% end %>
-
   <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {}, show_welcome: true %>
 
   <details class="collapsible-panel panel panel--chrome fit-section project-setup__section">

@@ -30,7 +30,13 @@ module StoresWorkspaceReturnTo
   end
 
   def store_workspace_return_to!
-    project_id = session[Workspace::SESSION_KEY].presence || session.dig(Workspace::WORKSPACES_KEY)&.values&.first
+    return if session[:workspace_return_to].present?
+
+    project = Workspace.find(session, tab_id: workspace_tab_id)
+    project_id = project&.id || session[Workspace::SESSION_KEY].presence ||
+                 session.dig(Workspace::WORKSPACES_KEY)&.values&.first
+    return if project_id.blank?
+
     session[:workspace_return_to] = project_path(project_id)
   end
 end

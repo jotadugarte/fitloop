@@ -7,6 +7,11 @@ RSpec.describe "Billing and auth locale keys", "[REQ-FIT-BILL-001] [REQ-FIT-BILL
     billing.single_download.retention_24h
     billing.paywall.title
     billing.paywall.intro
+    billing.paywall.aside.title
+    billing.paywall.aside.lead
+    billing.paywall.aside.benefit_ready
+    billing.paywall.aside.benefit_plan
+    billing.paywall.aside.benefit_retention
     billing.checkout.demo_badge
     billing.checkout.success_retention
     billing.download.plan_included

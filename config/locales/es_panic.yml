@@ -4,6 +4,7 @@ es_panic:
     name: Fitloop
     dialog_title: El Oráculo del Láser
     dialog_accept: Diay, a jugársela
+    dialog_cancel: Mejor no
   locale:
     switcher_label: Nivel de Estrés
     switcher_row_primary: EN / ES (antes del pánico)
@@ -114,6 +115,12 @@ es_panic:
       pay_this_download: Pagar esta descarga
       view_plans: Ver planes
       back_to_project: Volver al proyecto
+      aside:
+        title: El DXF anidado ya está (no lo toques sin pagar)
+        lead: "El Tetris terminó. Desbloquea la bajada así:"
+        benefit_ready: Una vuelta, un pago, un DXF
+        benefit_plan: Plan con cupo mensual de descargas
+        benefit_retention: 24 h en Mis pagos si pagas suelto
     single_download:
       retention_24h: Tras pagar, el archivo queda en Mis pagos 24 h aunque cierres el taller.
     suspended: Cuenta suspendida. Sin pagos ni descargas.

@@ -3,6 +3,7 @@ es:
     name: "Fitloop"
     dialog_title: "Fitloop"
     dialog_accept: "Aceptar"
+    dialog_cancel: "Cancelar"
 
   locale:
     switcher_label: "Idioma"
@@ -119,6 +120,12 @@ es:
       pay_this_download: "Pagar esta descarga"
       view_plans: "Ver planes"
       back_to_project: "Volver al proyecto"
+      aside:
+        title: "Tu DXF anidado está listo"
+        lead: "El anidado terminó. Elige cómo desbloquear la descarga:"
+        benefit_ready: "Pago único para esta ejecución"
+        benefit_plan: "Plan mensual con cupo de descargas"
+        benefit_retention: "24 h en Mis pagos tras compra suelta"
     single_download:
       retention_24h: "Tras pagar, el archivo estará en Mis pagos durante 24 horas aunque cierres el taller."
     suspended: "Tu cuenta está suspendida. No puedes pagar ni descargar."
