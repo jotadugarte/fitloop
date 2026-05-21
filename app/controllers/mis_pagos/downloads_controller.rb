@@ -27,7 +27,7 @@ module MisPagos
     def require_operational_user!
       return if current_user.operationally_active?
 
-      redirect_to "/mi-cuenta", alert: t("billing.suspended")
+      redirect_to edit_user_registration_path, alert: t("billing.suspended")
     end
 
     def set_grant

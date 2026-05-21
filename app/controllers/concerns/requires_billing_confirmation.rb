@@ -15,7 +15,7 @@ module RequiresBillingConfirmation
     precondition!(current_user.present?)
     return if current_user.billing_ready?
 
-    redirect_to "/confirmacion", alert: t("devise.failure.unconfirmed")
+    redirect_to email_confirmation_pending_path, alert: t("devise.failure.unconfirmed")
   end
 
   def precondition!(condition)

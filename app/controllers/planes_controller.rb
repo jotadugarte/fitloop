@@ -8,13 +8,14 @@ class PlanesController < ApplicationController
   before_action :load_plan_context, only: %i[simulate]
 
   def show
-    @project = Project.find_by(id: params[:project_id])
+    return unless load_plan_project!
+
     render :show
   end
 
   def simulate
     unless current_user.operationally_active?
-      redirect_to "/mi-cuenta", alert: t("billing.suspended")
+      redirect_to edit_user_registration_path, alert: t("billing.suspended")
       return
     end
 
@@ -36,12 +37,17 @@ class PlanesController < ApplicationController
   private
 
   def load_plan_context
+    load_plan_project!
+  end
+
+  def load_plan_project!
     @project = Project.find_by(id: params[:project_id])
     return redirect_to(start_project_path, alert: t("workspace.expired")) unless @project
 
     bound = Workspace.find(session, tab_id: workspace_tab_id)
-    return if bound&.id == @project.id
+    return true if bound&.id == @project.id
 
     redirect_to start_project_path, alert: t("workspace.expired")
+    false
   end
 end

@@ -4,11 +4,11 @@
 
   <execution_context>
 
-    <active_skill>start-task</active_skill>
+    <active_skill>finish-branch</active_skill>
 
-    <current_phase>3 — Implementation</current_phase>
+    <current_phase>2 — Implementation & Verification Loop</current_phase>
 
-    <current_step>complete — all plan steps done; ready for finish-branch</current_step>
+    <current_step>2.1 — Code review fixes applied; awaiting verification</current_step>
 
   </execution_context>
 

@@ -4,10 +4,11 @@ require "fileutils"
 
 # Ephemeral in-browser workspace: projects per browser tab, discarded on leave or TTL.
 class Workspace
+  extend Activity
+
   SESSION_KEY = :workspace_project_id
   WORKSPACES_KEY = :workspaces
   DEFAULT_TAB_ID = "__default__"
-  ACTIVITY_TTL = 120.seconds
   NESTING_RUNS_DIR = Rails.root.join("tmp/nesting_runs").freeze
 
   class << self
@@ -57,16 +58,6 @@ class Workspace
         session.delete(SESSION_KEY)
         session.delete(WORKSPACES_KEY)
       end
-    end
-
-    def activity_expired?(project)
-      return false if project.last_activity_at.nil?
-
-      project.last_activity_at < ACTIVITY_TTL.ago
-    end
-
-    def touch_activity!(project)
-      project.update!(last_activity_at: Time.current)
     end
 
     def purge_all_ephemeral!

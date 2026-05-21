@@ -46,17 +46,36 @@ RSpec.describe "Nested DXF download paywall", type: :request do
     end
 
     context "with download entitlement" do
-      it "[REQ-FIT-BILL-001] serves nested DXF when user has a grant" do
+      it "[REQ-FIT-BILL-001] serves nested DXF when user has a single-purchase grant" do
         user = create_billing_user!
         project = begin_workspace_session!
         run = attach_nested_output!(project)
-        DownloadGrant.create!(user: user, nesting_run: run, kind: "plan_included")
+        DownloadGrant.create!(
+          user: user,
+          nesting_run: run,
+          kind: "single_purchase",
+          retained_until: 1.day.from_now
+        )
         sign_in_user! user
 
         get nested_dxf_project_path(project)
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("NESTED DXF CONTENT")
+      end
+
+      it "[REQ-FIT-BILL-002] serves nested DXF and consumes plan quota when user has active plan" do
+        user = create_billing_user!
+        create_active_subscription!(user: user)
+        project = begin_workspace_session!
+        attach_nested_output!(project)
+        sign_in_user! user
+
+        get nested_dxf_project_path(project)
+
+        expect(response).to have_http_status(:ok)
+        usage = PlanMonthlyUsage.find_by!(subscription: user.subscriptions.first)
+        expect(usage.downloads_used).to eq(1)
       end
     end
   end
@@ -97,7 +116,7 @@ RSpec.describe "Nested DXF download paywall", type: :request do
 
       get nested_dxf_project_path(project)
 
-      expect(response).to redirect_to("/confirmacion")
+      expect(response).to redirect_to(email_confirmation_pending_path)
     end
   end
 end

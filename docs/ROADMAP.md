@@ -84,13 +84,14 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 - [x] **v1.2 — Composite DXF layers (core)** — `layer_role` primary/auxiliary per file, `composite_extract`, clipped aux in preview, layer-preserved `nested.dxf`, primary-only piece count (REQ-FIT-DXF-002, ADR-0003) — 2026-05-18 — Session: `task_composite-dxf-layers.md`
 - [x] **v1.2 — Composite + auto-split** — `partition_decorations`, `decorations_json` on `DerivedPiece`, composite `plan_splits` preview, nest derived children with aux layers (REQ-FIT-DXF-002, REQ-FIT-SPLIT-001) — 2026-05-18 — Session: `task_composite-dxf-layers.md`
 - [x] **Remove PIN / saved-project access** — drop `pin_digest`, `ProjectAccess` / gate UI, ephemeral-only `Workspace.resolve!`; docs + ADR-0004 (REQ-FIT-AUTH-001) — 2026-05-19 — Session: `task_remove-pin.md`
+- [x] **P6 — User accounts (auth)** — Devise + OmniAuth; email verification; merge opt-in; Spanish routes; workspace re-bind on login (REQ-FIT-AUTH-002, ADR-0005) — 2026-05-21 — Session: `task_auth-billing.md`
+- [x] **P7 — Simulated billing** — paywall nested DXF; `config/billing.yml`; plans 1/2/4m; grants + 24h retention; `/mis-pagos` (REQ-FIT-BILL-001..003, ADR-0005) — 2026-05-21 — Session: `task_auth-billing.md`
 
 ---
 
 ## In Progress
 
-- [ ] **P6 — User accounts (auth)** — Devise + OmniAuth; email verification; merge opt-in; Spanish routes; workspace re-bind on login (REQ-FIT-AUTH-002, ADR-0005) — Session: `task_auth-billing.md`
-- [ ] **P7 — Simulated billing** — paywall nested DXF; `config/billing.yml`; plans 1/2/4m; grants + 24h retention; `/mis-pagos` (REQ-FIT-BILL-001..003, ADR-0005) — Depends on: P6 — Session: `task_auth-billing.md`
+_(none)_
 
 ---
 

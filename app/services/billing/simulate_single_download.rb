@@ -60,24 +60,28 @@ module Billing
 
     def record_success!
       paid_at = Time.current
-      payment = Payment.create!(
-        user: @user,
-        nesting_run: @nesting_run,
-        status: "succeeded",
-        payment_method: config[:payment_method],
-        currency: config[:currency],
-        amount: unit_amount,
-        purpose: "single_download",
-        paid_at: paid_at
-      )
-      grant = DownloadGrant.create!(
-        user: @user,
-        nesting_run: @nesting_run,
-        kind: "single_purchase",
-        retained_until: paid_at + RetainNestedDxf::RETENTION_HOURS.hours
-      )
-      RetainNestedDxf.call(grant: grant, nesting_run: @nesting_run, paid_at: paid_at)
-      { payment: payment, grant: grant, project: @nesting_run.project }
+      result = nil
+      ActiveRecord::Base.transaction do
+        payment = Payment.create!(
+          user: @user,
+          nesting_run: @nesting_run,
+          status: "succeeded",
+          payment_method: config[:payment_method],
+          currency: config[:currency],
+          amount: unit_amount,
+          purpose: "single_download",
+          paid_at: paid_at
+        )
+        grant = DownloadGrant.create!(
+          user: @user,
+          nesting_run: @nesting_run,
+          kind: "single_purchase",
+          retained_until: paid_at + RetainNestedDxf::RETENTION_HOURS.hours
+        )
+        RetainNestedDxf.call(grant: grant, nesting_run: @nesting_run, paid_at: paid_at)
+        result = { payment: payment, grant: grant, project: @nesting_run.project }
+      end
+      result
     end
   end
 end

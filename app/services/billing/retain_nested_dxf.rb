@@ -24,7 +24,7 @@ module Billing
         filename: source.filename.to_s,
         content_type: source.content_type
       )
-      @grant.update!(retained_until: @paid_at + RETENTION_HOURS.hours)
+      @grant.update!(retained_until: @paid_at + RETENTION_HOURS.hours) if @grant.retained_until.blank?
       @grant
     end
   end

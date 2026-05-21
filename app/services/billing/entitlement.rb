@@ -16,13 +16,11 @@ module Billing
     def can_download?
       return false unless @user.billing_ready? && @user.operationally_active?
 
-      grant? || plan_quota?
+      single_purchase_grant? || plan_quota?
     end
 
-    private
-
-    def grant?
-      DownloadGrant.exists?(user_id: @user.id, nesting_run_id: @nesting_run.id)
+    def single_purchase_grant?
+      DownloadGrant.single_purchase.exists?(user_id: @user.id, nesting_run_id: @nesting_run.id)
     end
 
     def plan_quota?

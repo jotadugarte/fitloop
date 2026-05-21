@@ -9,18 +9,22 @@ module RequiresNestedDownloadAuthorization
   def authorize_nested_download!
     return head(:not_found) unless @project.nested_dxf.attached?
 
-    run = @project.nesting_runs.order(id: :desc).first
-    return head(:not_found) unless run
+    @nesting_run = nesting_run_for_download
+    return head(:not_found) unless @nesting_run
 
     return redirect_to(download_paywall_project_path(@project)) if current_user.nil?
     unless current_user.billing_ready?
       return redirect_to(email_confirmation_pending_path, alert: t("devise.failure.unconfirmed"))
     end
 
-    return if valid_download_token?(run)
-    return if Billing::Entitlement.can_download?(user: current_user, nesting_run: run)
+    return if valid_download_token?(@nesting_run)
+    return if Billing::Entitlement.can_download?(user: current_user, nesting_run: @nesting_run)
 
     redirect_to download_paywall_project_path(@project)
+  end
+
+  def nesting_run_for_download
+    @project.nesting_runs.where(status: "completed").order(id: :desc).first
   end
 
   def valid_download_token?(run)

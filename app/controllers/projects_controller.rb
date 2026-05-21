@@ -25,6 +25,8 @@ class ProjectsController < ApplicationController
   end
 
   def nested_dxf
+    Billing::RecordPlanDownload.call(user: current_user, nesting_run: @nesting_run)
+
     attachment = @project.nested_dxf
     return head(:not_found) unless attachment.attached?
 

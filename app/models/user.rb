@@ -22,12 +22,12 @@ class User < ApplicationRecord
   validate :password_minimum_length, if: :password_required?
 
   def billing_ready?
-    precondition!(persisted?)
+    self.class.precondition!(persisted?)
     email_confirmed_at.present?
   end
 
   def operationally_active?
-    precondition!(persisted?)
+    self.class.precondition!(persisted?)
     suspended_at.nil?
   end
 
@@ -36,7 +36,7 @@ class User < ApplicationRecord
   end
 
   def self.from_omniauth(auth, time_zone: nil)
-    precondition!(auth.info.email.present?)
+    self.precondition!(auth.info.email.present?)
 
     user = find_or_initialize_by(provider: auth.provider.to_s, uid: auth.uid.to_s)
     user.email = auth.info.email
@@ -77,7 +77,4 @@ class User < ApplicationRecord
     !persisted? || password.present? || password_confirmation.present?
   end
 
-  def precondition!(condition)
-    raise ArgumentError, "precondition failed" unless condition
-  end
 end
