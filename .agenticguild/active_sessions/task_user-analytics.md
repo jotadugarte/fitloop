@@ -1,8 +1,8 @@
 # Task: User analytics & admin bitácora — discovery
 
 **Created:** 2026-05-20  
-**Status:** Discovery in progress (explore-task phase 1)  
-**Depends on:** `task_auth-billing.md` (User, billing tables — eventual; bitácora can scaffold events before billing ships)  
+**Status:** Spec locked — handoff to `start-task` (2026-05-20)  
+**Depends on:** `task_auth-billing.md` — Fase A `User` + `users.admin` hook; Fase B billing tables for monetization KPIs (instrument billing events when P7 steps land)  
 **Owner intent:** Bitácora y dashboard **solo para administradores internos**. Nunca visible al usuario final. Telemetría de negocio y operaciones sin guardar DXF/geometría/preview.
 
 ---
@@ -67,10 +67,7 @@
 
 ## Open questions (remaining)
 
-### Umbrales semáforo (A30)
-- [ ] Valores iniciales en `config/analytics.yml` (propuesta en plan: 3 métricas con defaults razonables; editables sin redeploy en dev).
-
-### Legal
+### Legal (non-blocking)
 - [ ] FU-LEGAL-003: privacidad debe citar IP/UA/país, retención 6m + archivo Postgres frío, acceso solo admin.
 
 ---
@@ -146,3 +143,111 @@ See explore-task step 1.2 response for plain-language explanations of: admin vs 
 - **2026-05-20 — A1–A25:** Primera ronda discovery.
 - **2026-05-20 — A26–A39:** Admin app role, user_events+jsonb, sync/async, idempotency, bitácora consulta only, umbrales rojos sin push, paralelo auth, rate limit, archive PG, ENV admin email, GeoLite2+CF fallback, embudo, identidad histórica admin-only.
 - **2026-05-20 — A40:** Gráficos llamativos (Chart.js + tema Fitloop); A30 aclarado = semáforo visual en dashboard, sin notificaciones.
+- **2026-05-20 — SPEC COMPLETO:** Implementation plan locked; REQ-FIT-ANALYTICS-001; ADR-0006; defaults umbrales en `config/analytics.yml`.
+
+---
+
+## ADR-0006 + REQ (proposed)
+
+### ADR-0006: Admin analytics & user event bitácora
+- **Single-tenant** operator; `users.admin` + `FITLOOP_ADMIN_EMAIL`; `/admin/*` returns 404 for non-admins.
+- **`user_events`** append-only jsonb; **not** billing source of truth; no DXF/geometry blobs in events.
+- **Ingestion:** `Analytics::TrackEvent` — critical sync, low async via `TrackEventJob`; idempotency_key unique; rate limit 300/h low only.
+- **Geo:** GeoLite2 local + `CF-IPCountry` fallback.
+- **Retention:** 6 months hot primary DB → copy to **`analytics_archive`** PostgreSQL (read-only connection) → delete from hot.
+- **Charts:** Chart.js v4 via importmap + Stimulus; themed KPI cards; threshold semáforo from `config/analytics.yml`.
+- **Parallel** with auth-billing; billing KPIs JOIN `payments`/`subscriptions` when present.
+
+### REQ-FIT-ANALYTICS-001
+| Area | Requirement |
+|------|-------------|
+| Events | Record reasonable user/project/nest/split/auth/billing actions with metadata (filename, counts, job duration_ms); forbid geometry/DXF paths |
+| Admin | Internal-only dashboard, user search, per-user timeline, funnel, CSV export, bot suspicion flag |
+| Privacy | IP, UA, country; 6m hot + archive DB; account delete anonymizes user row; admin retains historical identity in events |
+
+## Seed thresholds (`config/analytics.yml`)
+
+```yaml
+funnel_conversion_min_percent: 15
+payment_failure_rate_max_percent: 20
+nest_duration_p95_max_seconds: 600
+low_priority_events_per_hour: 300
+```
+
+---
+
+## Implementation plan
+
+<task_session>
+  <metadata>
+    <task_name>user-analytics</task_name>
+    <type>Feature</type>
+    <req_id>REQ-FIT-ANALYTICS-001</req_id>
+    <roadmap_item>Product &amp; platform — Admin analytics &amp; user bitácora</roadmap_item>
+    <phasing>Parallel with auth-billing: events after User migration; billing instrumentation when BILL models exist</phasing>
+  </metadata>
+
+  <implementation_plan>
+    <!-- P0 — Governance & anchors -->
+    <step id="1" status="pending">Write failing doc/architecture test for REQ-FIT-ANALYTICS-001 in docs/core/SPEC.md (extend existing doc verifier pattern).</step>
+    <step id="2" status="pending">Add docs/core/ADRs/0006-admin-analytics-and-user-events.md (user_events, TrackEvent, archive DB, Chart.js importmap, admin 404 gate, not billing SSOT).</step>
+    <step id="3" status="pending">Update docs/core/SPEC.md (REQ-FIT-ANALYTICS-001 detail), DATA_FLOW_MAP.md (event ingestion points), SCHEMA_REFERENCE.md (`user_events`, `users.admin`), docs/ROADMAP.md pending P8 Analytics.</step>
+
+    <!-- P1 — Event pipeline (can start before billing; user_id nullable) -->
+    <step id="4" status="pending">Write failing model spec UserEvent [REQ-FIT-ANALYTICS-001]: event_type, priority, properties jsonb, user_id nullable, anonymous_session_key, tab_id, project_id, nesting_run_id, ip, user_agent, country_code, locale, idempotency_key unique, occurred_at; no blob columns.</step>
+    <step id="5" status="pending">Migration `user_events` + indexes (`occurred_at`, `user_id`, `event_type`, unique `idempotency_key` where not null); add `config/analytics.yml` with Spanish comments and seed thresholds.</step>
+    <step id="6" status="pending">Write failing Analytics::Thresholds spec: loads YAML, hot-reload on mtime, breach detection for funnel %, payment failure %, nest p95 seconds.</step>
+    <step id="7" status="pending">Implement Analytics::Thresholds; implement Analytics::TrackEvent (idempotency no-op, rate limit low_priority 300/h, critical sync insert, low enqueue TrackEventJob).</step>
+    <step id="8" status="pending">Write failing TrackEventJob spec: low_priority persisted async; critical never dropped by rate limit.</step>
+    <step id="9" status="pending">Implement TrackEventJob; Analytics::ResolveCountry (GeoLite2 MMDB path ENV + CF-IPCountry fallback); document MMDB download in docs/DEPLOY.md.</step>
+    <step id="10" status="pending">Write failing Analytics::MergeAnonymousSession spec: on login/register, reassign `user_events` rows from `anonymous_session_key` to `user_id`.</step>
+    <step id="11" status="pending">Implement merge hook from SessionsController/Devise callbacks after auth-billing User exists.</step>
+
+    <!-- P2 — Workshop instrumentation -->
+    <step id="12" status="pending">Write failing spec: workspace_started, first_dxf_uploaded (filename + byte size + layer metadata, no blob), project_discarded snapshot in properties.</step>
+    <step id="13" status="pending">Instrument Workspace/ProjectsController/DXF upload: reasonable add/remove sheet/layer events (low_priority); project_discarded critical snapshot.</step>
+    <step id="14" status="pending">Write failing spec: nest_completed/partial/failed/cancelled with duration_ms, pieces_count, sheets_used, orphans_by_reason json; separate event per NestingRun (re-nest).</step>
+    <step id="15" status="pending">Instrument NestingJob terminal paths + split job terminals (auto-split accept/reject/regenerate) with nesting_run_id correlation.</step>
+
+    <!-- P3 — Admin gate (requires User from auth-billing) -->
+    <step id="16" status="pending">Write failing spec [REQ-FIT-ANALYTICS-001]: `users.admin` boolean; user matching FITLOOP_ADMIN_EMAIL promoted on create; non-admin GET /admin/analytics → 404.</step>
+    <step id="17" status="pending">Migration `users.admin`; Admin::BaseController; restrict routes namespace `admin`; seed/doc ENV FITLOOP_ADMIN_EMAIL.</step>
+
+    <!-- P4 — Dashboard UI -->
+    <step id="18" status="pending">Pin chart.js in importmap; add Stimulus admin_chart_controller + admin analytics CSS (blueprint theme, coral alert, animation on load).</step>
+    <step id="19" status="pending">Write failing request spec Admin::AnalyticsController: KPI cards, funnel counts from user_events, semáforo CSS class when threshold breached.</step>
+    <step id="20" status="pending">Implement GET /admin/analytics — near-real-time aggregates; daily/weekly toggle; filters date range, locale, payment_method, currency (billing JOIN when tables exist, else omit monetization widgets).</step>
+    <step id="21" status="pending">Write failing spec: monetization KPIs from Payment/Subscription tables (not event amounts) — paid downloads split single vs plan, active/sold plans by tier, 1m plan users quota exhausted — skip examples if billing not merged yet.</step>
+    <step id="22" status="pending">Implement billing KPI queries when REQ-FIT-BILL models present; bot_heuristic flag on users with excessive low_priority velocity.</step>
+
+    <!-- P5 — User list & timeline -->
+    <step id="23" status="pending">Write failing request spec Admin::UsersController#index search by email/name; show timeline ordered occurred_at desc.</step>
+    <step id="24" status="pending">Implement /admin/usuarios and /admin/usuarios/:id (timeline drill-down, human-readable event labels i18n es primary).</step>
+
+    <!-- P6 — Auth & account events (parallel auth-billing) -->
+    <step id="25" status="pending">Write failing spec: account_registered, account_logged_in/out, email_confirmed, account_deleted with historical_email/name in properties (admin-only display).</step>
+    <step id="26" status="pending">Instrument Devise/OmniAuth/delete-account flow; wire Accounts::Delete to emit account_deleted before anonymize.</step>
+
+    <!-- P7 — Billing events (when auth-billing P4 merged) -->
+    <step id="27" status="pending">Write failing spec: paywall_viewed, payment_succeeded/failed, download_completed (+ download_from_mis_pagos), idempotent double download click.</step>
+    <step id="28" status="pending">Instrument paywall, simulated checkout, signed download controllers; JOIN-only KPIs remain on Payment/Subscription.</step>
+
+    <!-- P8 — Export & archive -->
+    <step id="29" status="pending">Write failing spec: GET /admin/analytics/export.csv respects filters; admin only.</step>
+    <step id="30" status="pending">Implement CSV export (events + KPI summary sheets or single sheet TBD in impl).</step>
+    <step id="31" status="pending">Configure second database `analytics_archive` in database.yml; migration same `user_events` schema on archive DB.</step>
+    <step id="32" status="pending">Write failing Analytics::ArchiveEventsJob spec: copies rows older than 6 months, deletes from primary only after successful copy.</step>
+    <step id="33" status="pending">Implement ArchiveEventsJob + recurring schedule; admin historical queries union hot + archive when date &gt; 6 months.</step>
+
+    <!-- P9 — QA -->
+    <step id="34" status="pending">System spec: anonymous session events → login → merged user_id; admin sees funnel; threshold turns metric--alert red when seed breached in test.</step>
+    <step id="35" status="pending">Update docs/QA_MANUAL_CHECKLIST.md admin section; i18n admin event labels en/es; note FU-LEGAL-003 in follow-ups.</step>
+  </implementation_plan>
+
+  <working_notes>
+    Run in parallel with auth-billing: steps 16–17 need User model; steps 27–28 need billing models.
+    Chart.js only (no SPA); ADR required for importmap pin.
+    session_workflow_log on Project remains separate (in-session only).
+    Do not store DXF, SVG preview, geometry, or client absolute paths in properties.
+  </working_notes>
+</task_session>

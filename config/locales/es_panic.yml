@@ -119,6 +119,7 @@ es_panic:
     suspended: Cuenta suspendida. Sin pagos ni descargas.
     download:
       plan_included: Incluido en tu plan
+      retention_expired: La descarga retenida caducó. Ya no está el archivo.
     planes:
       success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)

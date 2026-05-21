@@ -124,6 +124,7 @@ es:
     suspended: "Tu cuenta está suspendida. No puedes pagar ni descargar."
     download:
       plan_included: "Incluido en tu plan"
+      retention_expired: "La descarga retenida expiró. El archivo ya no está disponible."
     planes:
       title: "Planes"
       success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."

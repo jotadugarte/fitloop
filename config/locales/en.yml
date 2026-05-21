@@ -109,6 +109,7 @@ en:
     suspended: "Your account is suspended. You cannot pay or download."
     download:
       plan_included: "Included in your plan"
+      retention_expired: "The retained download has expired. The file is no longer available."
     planes:
       title: "Plans"
       success: "Plan activated. You can download the nested DXF from your project."

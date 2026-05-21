@@ -1,15 +1,19 @@
 <agent_state>
 
-  <active_task_pointer>task_auth-billing.md</active_task_pointer>
+  <active_task_pointer>task_user-analytics.md</active_task_pointer>
 
   <execution_context>
 
-    <active_skill>start-task</active_skill>
+    <active_skill>explore-task</active_skill>
 
-    <current_phase>3 — Execution (Iterative TDD)</current_phase>
+    <current_phase>2 — The Handoff (Finalize &amp; Kickoff)</current_phase>
 
-    <current_step>3.2 — Implement (plan step 33: re-download spec RED)</current_step>
+    <current_step>2.1 — Spec locked; handoff to start-task required</current_step>
 
   </execution_context>
+
+  <related_sessions>
+    task_auth-billing.md — in progress (billing steps pending); analytics parallel after User exists
+  </related_sessions>
 
 </agent_state>
