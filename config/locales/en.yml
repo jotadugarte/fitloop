@@ -435,6 +435,11 @@ en:
     password:
       forgot_title: "Forgot your password?"
       reset_title: "Set a new password"
+      length_hint: "At least %{min} characters."
+      validation:
+        too_short: "Use at least %{min} characters."
+        mismatch: "Passwords do not match."
+        match: "Passwords match."
       new_password: "New password"
       send_reset: "Send reset instructions"
       change_password: "Change password"
@@ -483,7 +488,17 @@ en:
 
   devise:
     failure:
+      unauthenticated: "You need to sign in to continue."
       unconfirmed: "Confirm your email before paying or downloading."
+      invalid: "Invalid email or password."
+      timeout: "Your session expired. Please sign in again."
+      already_authenticated: "You are already signed in."
+      user:
+        unauthenticated: "You need to sign in to continue."
+        unconfirmed: "Confirm your email before paying or downloading."
+        invalid: "Invalid email or password."
+        timeout: "Your session expired. Please sign in again."
+        already_authenticated: "You are already signed in."
     registrations:
       signed_up: "Welcome! You signed up successfully."
       signed_up_but_unconfirmed: "Check your email for a confirmation link."

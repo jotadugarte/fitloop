@@ -15,6 +15,21 @@ module ApplicationHelper
     session[:workspace_return_to].present? ? t("auth.nav.back") : t("auth.nav.home")
   end
 
+  def auth_password_length_hint
+    t("auth.password.length_hint", min: Devise.password_length.begin)
+  end
+
+  def password_validation_form_data
+    min = Devise.password_length.begin
+    {
+      controller: "password-validation",
+      password_validation_min_value: min,
+      password_validation_too_short_value: t("auth.password.validation.too_short", min: min),
+      password_validation_mismatch_value: t("auth.password.validation.mismatch"),
+      password_validation_match_value: t("auth.password.validation.match")
+    }
+  end
+
   def sheet_stock_dimension_mm(value)
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)
   end

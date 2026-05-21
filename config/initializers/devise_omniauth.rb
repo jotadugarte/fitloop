@@ -5,8 +5,8 @@ Devise.setup do |config|
   google_secret = ENV["GOOGLE_OAUTH_CLIENT_SECRET"].presence
   if google_id && google_secret
     config.omniauth :google_oauth2, google_id, google_secret, scope: "email, profile"
-  elsif Rails.env.test?
-    config.omniauth :google_oauth2, "test-google-client-id", "test-google-client-secret",
+  elsif Rails.env.test? || Rails.env.development?
+    config.omniauth :google_oauth2, "dev-google-client-id", "dev-google-client-secret",
                     provider_ignores_state: true
   end
 

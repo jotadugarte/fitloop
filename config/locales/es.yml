@@ -450,6 +450,11 @@ es:
     password:
       forgot_title: "¿Olvidaste tu contraseña?"
       reset_title: "Nueva contraseña"
+      length_hint: "Mínimo %{min} caracteres."
+      validation:
+        too_short: "Usa al menos %{min} caracteres."
+        mismatch: "Las contraseñas no coinciden."
+        match: "Las contraseñas coinciden."
       new_password: "Nueva contraseña"
       send_reset: "Enviar instrucciones"
       change_password: "Cambiar contraseña"
@@ -498,7 +503,17 @@ es:
 
   devise:
     failure:
+      unauthenticated: "Debes iniciar sesión para continuar."
       unconfirmed: "Confirma tu correo antes de pagar o descargar."
+      invalid: "Correo o contraseña no válidos."
+      timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
+      already_authenticated: "Ya iniciaste sesión."
+      user:
+        unauthenticated: "Debes iniciar sesión para continuar."
+        unconfirmed: "Confirma tu correo antes de pagar o descargar."
+        invalid: "Correo o contraseña no válidos."
+        timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
+        already_authenticated: "Ya iniciaste sesión."
     registrations:
       signed_up: "¡Bienvenido! Te registraste correctamente."
       signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."

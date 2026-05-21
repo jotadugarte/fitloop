@@ -439,6 +439,11 @@ es_panic:
     password:
       forgot_title: ¿Olvidó la contraseña otra vez?
       reset_title: Contraseña nueva (mínimo 12, sin excusas)
+      length_hint: Mínimo %{min} caracteres (sin atajos).
+      validation:
+        too_short: Al menos %{min} caracteres; menos no cuenta.
+        mismatch: Las contraseñas no coinciden. Revise el drama.
+        match: Las contraseñas coinciden. Puede respirar.
       new_password: Nueva contraseña
       send_reset: Mandar el salvavidas al correo
       change_password: Cambiar contraseña
@@ -487,7 +492,17 @@ es_panic:
 
   devise:
     failure:
+      unauthenticated: Inicia sesión primero; sin cuenta no hay taller.
       unconfirmed: Confirma el correo antes de pagar o descargar. El buzón no se revisa solo.
+      invalid: Correo o contraseña incorrectos. El drama continúa.
+      timeout: La sesión murió. Vuelve a iniciar sesión.
+      already_authenticated: Ya estás dentro. No hace falta volver a entrar.
+      user:
+        unauthenticated: Inicia sesión primero; sin cuenta no hay taller.
+        unconfirmed: Confirma el correo antes de pagar o descargar. El buzón no se revisa solo.
+        invalid: Correo o contraseña incorrectos. El drama continúa.
+        timeout: La sesión murió. Vuelve a iniciar sesión.
+        already_authenticated: Ya estás dentro. No hace falta volver a entrar.
     registrations:
       signed_up: ¡Bienvenido al club! Registro exitoso.
       signed_up_but_unconfirmed: Mire el correo; ahí está el enlace de confirmación.

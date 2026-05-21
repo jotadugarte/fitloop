@@ -1,18 +1,16 @@
 <h1><%= t("auth.password.reset_title") %></h1>
 
-<%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
+<%= form_for(resource, as: resource_name, url: password_path(resource_name),
+      html: { method: :put, data: password_validation_form_data }) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
   <%= f.hidden_field :reset_password_token %>
 
-  <div>
-    <%= f.label :password, t("auth.password.new_password") %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
+  <%= render "devise/shared/password_fields_with_validation", f: f %>
 
-  <div>
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  <div class="form-actions">
+    <%= f.submit t("auth.password.change_password"),
+          class: "btn btn-primary",
+          disabled: true,
+          data: { password_validation_target: "submit" } %>
   </div>
-
-  <div><%= f.submit t("auth.password.change_password") %></div>
 <% end %>

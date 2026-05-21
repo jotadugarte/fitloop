@@ -50,8 +50,10 @@ RSpec.describe "OmniAuth sign-in UI", type: :request do
       end
     end
 
-    it "[REQ-FIT-AUTH-002] omits Google on #{path_name} when credentials are absent" do
+    it "[REQ-FIT-AUTH-002] omits Google on #{path_name} in production without credentials" do
       without_google_credentials do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+
         get send(path_name)
 
         expect(response).to have_http_status(:ok)

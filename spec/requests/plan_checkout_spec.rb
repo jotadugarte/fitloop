@@ -5,6 +5,20 @@ require "rails_helper"
 RSpec.describe "Simulated plan checkout", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
+  describe "GET /planes without session [REQ-FIT-AUTH-002]" do
+    it "[REQ-FIT-AUTH-002] redirects to sign-in with a translated unauthenticated message" do
+      I18n.with_locale(:es) do
+        get "/planes"
+
+        expect(response).to redirect_to(new_user_session_path)
+        follow_redirect!
+
+        expect(response.body).to include(I18n.t("devise.failure.user.unauthenticated"))
+        expect(response.body).not_to include("translation missing")
+      end
+    end
+  end
+
   def sign_in_user!(user)
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
   end

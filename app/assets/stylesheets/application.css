@@ -273,6 +273,31 @@ h3 {
   margin-bottom: 1rem;
 }
 
+.auth-page__password-fields {
+  margin-bottom: 0;
+}
+
+.field__validation-msg {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.field__validation-msg--error {
+  color: var(--fit-danger, #b42318);
+}
+
+.field__validation-msg--ok {
+  color: var(--fit-success, #067647);
+}
+
+.auth-page__form .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .auth-page__form .field input[type="email"],
 .auth-page__form .field input[type="text"],
 .auth-page__form .field input[type="password"] {

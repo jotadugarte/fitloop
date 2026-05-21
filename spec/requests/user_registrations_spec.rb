@@ -16,6 +16,22 @@ RSpec.describe "User registration", type: :request do
     }
   end
 
+  describe "GET /crear-cuenta [REQ-FIT-AUTH-002]" do
+    it "[REQ-FIT-AUTH-002] shows password length requirements and live validation UI" do
+      get new_user_registration_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(
+        I18n.t("auth.password.length_hint", min: Devise.password_length.begin)
+      )
+      expect(response.body).to include('data-controller="password-validation"')
+      expect(response.body).to include(
+        I18n.t("auth.password.validation.too_short", min: Devise.password_length.begin)
+      )
+      expect(response.body).to include('data-password-validation-target="submit"')
+    end
+  end
+
   describe "POST /crear-cuenta [REQ-FIT-AUTH-002]" do
     it "[REQ-FIT-AUTH-002] requires name" do
       expect do
