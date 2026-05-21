@@ -285,6 +285,11 @@ h3 {
   line-height: 1.35;
 }
 
+.field__validation-msg[hidden],
+.field__hint[hidden] {
+  display: none !important;
+}
+
 .field__validation-msg--error {
   color: var(--fit-danger, #b42318);
 }

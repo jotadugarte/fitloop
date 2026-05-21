@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["password", "confirmation", "submit", "lengthError", "matchError", "matchOk"]
+  static targets = ["password", "confirmation", "submit", "lengthHint", "lengthError", "matchFeedback"]
   static values = {
     min: Number,
     tooShort: String,
@@ -24,25 +24,41 @@ export default class extends Controller {
   }
 
   updateLengthFeedback(password, min) {
+    const showError = password.length > 0 && password.length < min
+
+    if (this.hasLengthHintTarget) {
+      this.lengthHintTarget.hidden = showError
+    }
+
     if (!this.hasLengthErrorTarget) return
 
-    const showError = password.length > 0 && password.length < min
     this.lengthErrorTarget.hidden = !showError
     if (showError) this.lengthErrorTarget.textContent = this.tooShortValue
   }
 
   updateMatchFeedback(password, confirmation) {
-    if (!this.hasMatchErrorTarget || !this.hasMatchOkTarget) return
+    if (!this.hasMatchFeedbackTarget) return
 
-    const checkMatch = confirmation.length > 0
-    this.matchErrorTarget.hidden = !checkMatch || password === confirmation
-    this.matchOkTarget.hidden = !checkMatch || password !== confirmation
+    const feedback = this.matchFeedbackTarget
 
-    if (checkMatch && password !== confirmation) {
-      this.matchErrorTarget.textContent = this.mismatchValue
-    } else if (checkMatch && password === confirmation) {
-      this.matchOkTarget.textContent = this.matchValue
+    if (confirmation.length === 0) {
+      feedback.hidden = true
+      feedback.classList.remove("field__validation-msg--error", "field__validation-msg--ok")
+      return
     }
+
+    feedback.hidden = false
+
+    if (password === confirmation) {
+      feedback.textContent = this.matchValue
+      feedback.classList.remove("field__validation-msg--error")
+      feedback.classList.add("field__validation-msg--ok")
+      return
+    }
+
+    feedback.textContent = this.mismatchValue
+    feedback.classList.remove("field__validation-msg--ok")
+    feedback.classList.add("field__validation-msg--error")
   }
 
   updateSubmit(password, confirmation, min) {
