@@ -28,6 +28,7 @@ module Billing
     def plan_quota?
       subscription = Subscription.active_at(@at).find_by(user_id: @user.id)
       return false unless subscription
+      return false unless @nesting_run.project
 
       !QuotaCounter.for(subscription, at: @at).exhausted?
     end

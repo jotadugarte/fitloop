@@ -43,6 +43,9 @@ Rails.application.routes.draw do
   get "checkout", to: "checkout#show"
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
 
+  get "mis-pagos", to: "mis_pagos#show", as: :mis_pagos
+  get "mis-pagos/descargas/:id", to: "mis_pagos/downloads#show", as: :mis_pagos_download
+
   resource :locale, only: :update, controller: "locales"
 
   get "empezar", to: "projects#start", as: :start_project

@@ -110,6 +110,18 @@ en:
     download:
       plan_included: "Included in your plan"
       retention_expired: "The retained download has expired. The file is no longer available."
+    mis_pagos:
+      title: "My payments"
+      active_plan: "Active plan"
+      no_active_plan: "You do not have an active plan."
+      plan_ends: "Expires on %{ends_at}"
+      quota_remaining: "Quota this month: %{remaining} of %{limit} downloads"
+      single_purchases: "Paid single downloads"
+      no_single_purchases: "No paid single downloads yet."
+      download: "Download"
+      retained_until: "Available until %{until}"
+      payment_history: "Payment history"
+      no_payments: "No payments recorded."
     planes:
       title: "Plans"
       success: "Plan activated. You can download the nested DXF from your project."

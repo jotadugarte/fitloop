@@ -125,6 +125,18 @@ es:
     download:
       plan_included: "Incluido en tu plan"
       retention_expired: "La descarga retenida expiró. El archivo ya no está disponible."
+    mis_pagos:
+      title: "Mis pagos"
+      active_plan: "Plan activo"
+      no_active_plan: "No tienes un plan activo."
+      plan_ends: "Vence el %{ends_at}"
+      quota_remaining: "Cupo este mes: %{remaining} de %{limit} descargas"
+      single_purchases: "Descargas sueltas pagadas"
+      no_single_purchases: "Aún no tienes descargas sueltas pagadas."
+      download: "Descargar"
+      retained_until: "Disponible hasta %{until}"
+      payment_history: "Historial de pagos"
+      no_payments: "Sin pagos registrados."
     planes:
       title: "Planes"
       success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."

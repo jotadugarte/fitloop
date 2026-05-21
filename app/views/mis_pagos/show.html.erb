@@ -1,0 +1,61 @@
+<article data-testid="mis-pagos-page">
+  <h1><%= t("billing.mis_pagos.title") %></h1>
+
+  <% if @subscription %>
+    <section data-testid="mis-pagos-active-plan">
+      <h2><%= t("billing.mis_pagos.active_plan") %></h2>
+      <p>
+        <%= t("billing.mis_pagos.plan_ends", ends_at: l(@subscription.ends_at, format: :long)) %>
+      </p>
+      <% if @quota_counter %>
+        <p data-testid="mis-pagos-quota">
+          <%= t("billing.mis_pagos.quota_remaining", remaining: @quota_counter.remaining, limit: @quota_counter.usage.quota_limit) %>
+        </p>
+      <% end %>
+    </section>
+  <% else %>
+    <p data-testid="mis-pagos-no-plan"><%= t("billing.mis_pagos.no_active_plan") %></p>
+  <% end %>
+
+  <section data-testid="mis-pagos-single-purchases">
+    <h2><%= t("billing.mis_pagos.single_purchases") %></h2>
+    <% if @retained_grants.any? %>
+      <ul>
+        <% @retained_grants.each do |grant| %>
+          <li data-testid="mis-pagos-grant-row">
+            <%= l(grant.created_at, format: :short) %>
+            <% if grant.retention_active? %>
+              <%= link_to t("billing.mis_pagos.download"),
+                          mis_pagos_download_path(grant),
+                          class: "btn btn-secondary btn--small",
+                          data: { turbo: false, testid: "mis-pagos-download" } %>
+              <span class="mis-pagos__retention"><%= t("billing.mis_pagos.retained_until", until: l(grant.retained_until, format: :short)) %></span>
+            <% else %>
+              <span data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p><%= t("billing.mis_pagos.no_single_purchases") %></p>
+    <% end %>
+  </section>
+
+  <section data-testid="mis-pagos-payments">
+    <h2><%= t("billing.mis_pagos.payment_history") %></h2>
+    <% if @payments.any? %>
+      <ul>
+        <% @payments.each do |payment| %>
+          <li data-testid="mis-pagos-payment-row">
+            <%= l(payment.created_at, format: :short) %> —
+            <%= payment.purpose %> —
+            <%= payment.status %> —
+            <%= payment.currency.upcase %> <%= payment.amount %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p><%= t("billing.mis_pagos.no_payments") %></p>
+    <% end %>
+  </section>
+</article>

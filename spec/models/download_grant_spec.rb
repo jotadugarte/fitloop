@@ -7,9 +7,10 @@ RSpec.describe DownloadGrant, "[REQ-FIT-BILL-003]" do
   let(:nesting_run) { create_nesting_run! }
 
   describe "associations [REQ-FIT-BILL-003]" do
-    it "[REQ-FIT-BILL-003] belongs to user and nesting_run" do
+    it "[REQ-FIT-BILL-003] belongs to user and optionally to nesting_run (D54)" do
       expect(described_class.reflect_on_association(:user).macro).to eq(:belongs_to)
       expect(described_class.reflect_on_association(:nesting_run).macro).to eq(:belongs_to)
+      expect(described_class.reflect_on_association(:nesting_run).options[:optional]).to be(true)
     end
 
     it "[REQ-FIT-BILL-003] has retained_nested_dxf attachment for single purchase (D54)" do

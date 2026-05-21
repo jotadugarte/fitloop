@@ -120,6 +120,18 @@ es_panic:
     download:
       plan_included: Incluido en tu plan
       retention_expired: La descarga retenida caducó. Ya no está el archivo.
+    mis_pagos:
+      title: Mis pagos
+      active_plan: Plan activo
+      no_active_plan: Sin plan activo.
+      plan_ends: Vence el %{ends_at}
+      quota_remaining: "Cupo del mes: %{remaining} / %{limit}"
+      single_purchases: Descargas sueltas pagadas
+      no_single_purchases: Sin descargas sueltas todavía.
+      download: Descargar
+      retained_until: Hasta %{until}
+      payment_history: Historial de pagos
+      no_payments: Sin pagos.
     planes:
       success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)

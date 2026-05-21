@@ -302,7 +302,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="31" status="complete">Write failing spec: plan purchase extends ends_at from current end (D28); calendar-month slices 50 quota; overage 50% price (D34); suspended user blocked (D46).</step>
     <step id="32" status="complete">Implement /planes + plan checkout; post-purchase redirect to project#show (D43); plan-active download shows “Incluido en tu plan” (D33).</step>
     <step id="33" status="complete">Write failing spec: plan re-download requires live project (D50); single purchase re-download from project OR /mis-pagos while `retained_until` (D54); expired retention → 403 with copy; workspace TTL does not purge retained blob.</step>
-    <step id="34" status="pending">Implement /mis-pagos: payments list, active plan, quota, per-run rows with “Descargar” while retained (single only); purge job post-24h (D56).</step>
+    <step id="34" status="complete">Implement /mis-pagos: payments list, active plan, quota, per-run rows with “Descargar” while retained (single only); purge job post-24h (D56).</step>
     <step id="35" status="pending">Write failing spec: checkout copies nested_dxf even if subsequent Workspace.discard! (simulate TTL); Mis pagos download works without session project bind (D54).</step>
     <step id="37" status="pending">Write failing system spec: anonymous → nest → pay suelta → discard workspace → download from Mis pagos (2:30 AM scenario); plan user loses project → cannot download without re-nest.</step>
     <step id="36" status="pending">i18n parity en/es (+ es_panic): auth, billing, paywall, `billing.single_download.retention_24h` (D55); update docs/QA_MANUAL_CHECKLIST.md; REQ-tagged regression.</step>

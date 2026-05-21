@@ -6,7 +6,7 @@ RSpec.describe "Mis pagos retained download", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   def sign_in_user!(user)
-    post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+    sign_in user
   end
 
   def attach_nested_output!(project)
@@ -27,8 +27,9 @@ RSpec.describe "Mis pagos retained download", type: :request do
     post checkout_simulate_path,
          params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" }
     grant = DownloadGrant.find_by!(user: user, nesting_run: run)
+    grant_id = grant.id
     Workspace.discard!(session)
-    grant
+    DownloadGrant.find(grant_id)
   end
 
   describe "GET /mis-pagos/descargas/:id [REQ-FIT-BILL-003]" do
@@ -56,8 +57,9 @@ RSpec.describe "Mis pagos retained download", type: :request do
 
     it "[REQ-FIT-BILL-003] forbids download for another user's grant" do
       grant = purchase_and_discard!(user: user)
+      sign_out user
       other = create_billing_user!(email: "other@example.com")
-      sign_in_user! other
+      sign_in other
 
       get mis_pagos_download_path(grant)
 
