@@ -23,7 +23,27 @@ module Users
 
     def handle_oauth(_provider)
       auth = request.env["omniauth.auth"]
-      @user = User.from_omniauth(auth, time_zone: omniauth_time_zone)
+      time_zone = omniauth_time_zone
+
+      existing_oauth = User.find_by(provider: auth.provider.to_s, uid: auth.uid.to_s)
+      if existing_oauth
+        sign_in_and_redirect existing_oauth, event: :authentication
+        return
+      end
+
+      email_account = User.find_by(email: auth.info.email.to_s.strip.downcase)
+      if email_account && Accounts::OauthCollision.merge_required?(email_account, auth)
+        Accounts::OauthCollision.stash!(
+          session,
+          existing_user: email_account,
+          auth: auth,
+          time_zone: time_zone
+        )
+        redirect_to fusionar_cuenta_path
+        return
+      end
+
+      @user = User.from_omniauth(auth, time_zone: time_zone)
       sign_in_and_redirect @user, event: :authentication
     end
 

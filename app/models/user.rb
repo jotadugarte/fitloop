@@ -30,7 +30,7 @@ class User < ApplicationRecord
   def self.from_omniauth(auth, time_zone: nil)
     precondition!(auth.info.email.present?)
 
-    user = find_or_initialize_by(provider: auth.provider, uid: auth.uid)
+    user = find_or_initialize_by(provider: auth.provider.to_s, uid: auth.uid.to_s)
     user.email = auth.info.email
     user.name = auth.info.name.presence || user.email.to_s.split("@").first
     user.time_zone = time_zone.presence || "America/Costa_Rica"

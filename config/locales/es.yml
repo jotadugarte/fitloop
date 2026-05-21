@@ -365,6 +365,16 @@ es:
       account: "Mi cuenta"
       payments: "Mis pagos"
       sign_out: "Cerrar sesión"
+    merge:
+      offer_title: "¿Fusionar cuentas?"
+      offer_body: "Ya existe una cuenta para %{email} con otro método de acceso. Escribe tu contraseña para vincular este inicio de sesión, o rechaza para mantenerlas separadas."
+      password_label: "Contraseña de la cuenta actual"
+      accept: "Fusionar cuentas"
+      decline: "Mantener separadas"
+      declined: "No se fusionaron las cuentas. Inicia sesión con tu método original."
+      accepted: "Cuentas fusionadas. Ya iniciaste sesión."
+      expired: "Esta oferta de fusión expiró. Intenta iniciar sesión de nuevo."
+      invalid_password: "La contraseña no es correcta."
     oauth:
       google_oauth2: "Continuar con Google"
       facebook: "Continuar con Facebook"

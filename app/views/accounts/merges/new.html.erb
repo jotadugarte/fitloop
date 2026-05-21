@@ -1,0 +1,14 @@
+<h1><%= t("auth.merge.offer_title") %></h1>
+
+<p><%= t("auth.merge.offer_body", email: @existing_user.email) %></p>
+
+<%= form_with url: fusionar_cuenta_path, scope: :merge, method: :post do |f| %>
+  <div>
+    <%= f.label :password, t("auth.merge.password_label") %><br />
+    <%= f.password_field :password, autocomplete: "current-password" %>
+  </div>
+
+  <div><%= f.submit t("auth.merge.accept") %></div>
+<% end %>
+
+<%= button_to t("auth.merge.decline"), cancel_fusionar_cuenta_path, method: :delete %>

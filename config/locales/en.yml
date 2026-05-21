@@ -350,6 +350,16 @@ en:
       account: "My account"
       payments: "My payments"
       sign_out: "Sign out"
+    merge:
+      offer_title: "Merge accounts?"
+      offer_body: "An account already exists for %{email} with a different sign-in method. Enter your password to link this sign-in, or decline to keep accounts separate."
+      password_label: "Current account password"
+      accept: "Merge accounts"
+      decline: "Keep separate"
+      declined: "Accounts were not merged. Sign in with your original method."
+      accepted: "Accounts merged. You are now signed in."
+      expired: "This merge offer has expired. Try signing in again."
+      invalid_password: "Password is incorrect."
     oauth:
       google_oauth2: "Continue with Google"
       facebook: "Continue with Facebook"

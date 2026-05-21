@@ -355,6 +355,16 @@ es_panic:
       account: Mi cuenta
       payments: Mis pagos
       sign_out: Cerrar sesión
+    merge:
+      offer_title: ¿Fusionar cuentas o seguir en guerra civil?
+      offer_body: Ya hay una cuenta con %{email} y otro método de acceso. Ponga la contraseña para unificar bandos o rechace y siga la novela.
+      password_label: Contraseña de la cuenta que ya existía
+      accept: Fusionar cuentas
+      decline: Mantener separadas (drama garantizado)
+      declined: No hubo fusión. Use su método de acceso original.
+      accepted: Cuentas fusionadas. Sesión abierta.
+      expired: La oferta de fusión caducó. Vuelva a intentar.
+      invalid_password: Contraseña incorrecta. El drama continúa.
     oauth:
       google_oauth2: Entrar con Google (un clic y listo)
       facebook: Entrar con Facebook
