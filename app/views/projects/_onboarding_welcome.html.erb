@@ -1,0 +1,19 @@
+<%# locals: (testid:, intro:, steps_title:, steps:, variant: "hero") %>
+<% panel_classes = variant == "compact" ? "panel panel--inset" : "" %>
+<section class="onboarding-welcome onboarding-welcome--<%= variant %> <%= panel_classes %>"
+         data-testid="<%= testid %>">
+  <div class="onboarding-welcome__brand">
+    <%= image_tag "/images/logo.png",
+                  alt: t("application.name"),
+                  class: "onboarding-welcome__logo" %>
+  </div>
+  <div class="onboarding-welcome__copy">
+    <p class="onboarding-welcome__intro"><%= intro %></p>
+    <h2 class="onboarding-welcome__steps-title"><%= steps_title %></h2>
+    <ol class="onboarding-welcome__steps">
+      <% Array(steps).each do |step| %>
+        <li><%= step %></li>
+      <% end %>
+    </ol>
+  </div>
+</section>

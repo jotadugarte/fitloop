@@ -1,0 +1,56 @@
+<%# locals: (project:, context:, input_id:, testid:, hint:, wrap_layers_in_form: false, layers_turbo_frame: nil, expand_layers: false, expanded_attachment_ids: []) %>
+<% wrap_layers_in_form = local_assigns.fetch(:wrap_layers_in_form, false) %>
+<% layers_turbo_frame = local_assigns[:layers_turbo_frame] %>
+<% expand_layers = local_assigns.fetch(:expand_layers, false) %>
+<% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+<% checklist_locals = {
+  project: project,
+  context: context,
+  expand_layers: expand_layers,
+  expanded_attachment_ids: expanded_attachment_ids
+} %>
+
+<div class="project-dxf-upload-section">
+  <div class="panel panel--inset project-dxf-upload__hint-card" data-testid="dxf-upload-<%= context %>-hint">
+    <p class="project-dxf-upload__hint"><%= hint %></p>
+  </div>
+
+  <div class="panel panel--inset project-dxf-upload"
+       data-controller="dxf-upload"
+       data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: context) %>"
+       data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
+    <div class="field">
+      <label for="<%= input_id %>" class="visually-hidden"><%= t("projects.form.dxf_upload_choose") %></label>
+      <%= file_field_tag "files[]",
+            multiple: true,
+            accept: ".dxf,application/dxf",
+            id: input_id,
+            data: {
+              dxf_upload_target: "input",
+              action: "change->dxf-upload#upload",
+              testid: testid
+            } %>
+    </div>
+
+    <div class="project-dxf-upload__layers">
+      <% if wrap_layers_in_form %>
+        <% if project.input_dxf_attachments.any? %>
+          <%= form_with url: workspace_project_path(project),
+                        method: :patch,
+                        class: "source-dxf-detail__layers-form",
+                        data: { turbo_frame: layers_turbo_frame } do %>
+            <%= hidden_field_tag :section, "layers" %>
+            <%= render "projects/dxf_layers_checklist", **checklist_locals %>
+            <p class="form-actions form-actions--inline">
+              <%= submit_tag t("projects.show.apply_layers"), class: "btn btn-secondary btn--compact" %>
+            </p>
+          <% end %>
+        <% else %>
+          <p class="dxf-files-layers__empty panel panel--inset"><%= t("projects.form.dxf_layers_prompt") %></p>
+        <% end %>
+      <% else %>
+        <%= render "projects/dxf_files_layers", **checklist_locals %>
+      <% end %>
+    </div>
+  </div>
+</div>

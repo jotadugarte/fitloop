@@ -1,9 +1,10 @@
 <%# [REQ-FIT-UI-001] Sheet inventory: composer, legend, then sortable list. %>
 <% composer_draft = local_assigns.fetch(:composer_draft, {}) %>
-<fieldset class="sheet-inventory-fieldset">
+<% show_welcome = local_assigns.fetch(:show_welcome, false) %>
+<fieldset class="sheet-inventory-fieldset<%= " sheet-inventory-fieldset--setup" if show_welcome %>">
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
-  <div class="sheet-inventory__stack">
+  <% sheet_inventory_body = capture do %>
     <div class="sheet-inventory__composer panel panel--inset">
       <div class="sheet-inventory__composer-fields">
         <div class="field">
@@ -90,7 +91,20 @@
         </tbody>
       </table>
     </div>
-  </div>
+  <% end %>
+
+  <% if show_welcome %>
+    <div class="sheet-inventory__layout sheet-inventory__layout--setup">
+      <div class="sheet-inventory__primary">
+        <%= sheet_inventory_body %>
+      </div>
+      <%= render "projects/setup_welcome" %>
+    </div>
+  <% else %>
+    <div class="sheet-inventory__stack">
+      <%= sheet_inventory_body %>
+    </div>
+  <% end %>
 
   <template data-sheet-inventory-target="template">
     <tr data-sheet-inventory-row data-testid="sheet-stock-row">

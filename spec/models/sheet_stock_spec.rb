@@ -27,7 +27,7 @@ RSpec.describe SheetStock, type: :model do
     it "[REQ-FIT-DOM-001] rejects a second unlimited stock on the same project" do
       project = Project.create!(
         title: "Inventory cap",
-        pin: "123456",
+        ephemeral: true,
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: nil, sort_order: 0 }
         }

@@ -12,10 +12,7 @@ RSpec.describe "Golden DXF nesting E2E", type: :system do
   end
 
   it "[REQ-FIT-QA-001] nests the golden DXF and exposes download + SVG preview" do
-    project = Project.create!(
-      title: "Golden E2E bench",
-      pin: "667788",
-      sheet_stocks_attributes: {
+    project = create_project_for_spec!(title: "Golden E2E bench", sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
       }
     )
@@ -27,8 +24,6 @@ RSpec.describe "Golden DXF nesting E2E", type: :system do
     project.project_layers.create!(layer_name: "PIECES", included: true)
 
     visit project_path(project)
-    fill_in I18n.t("projects.access.pin_label"), with: "667788"
-    click_button I18n.t("projects.access.unlock")
     click_button I18n.t("nesting.start")
 
     expect(page).to have_css('[data-testid="nesting-result"]')

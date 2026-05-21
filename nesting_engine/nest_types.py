@@ -21,6 +21,8 @@ class PlacedPiece:
     piece_index: int
     polygon: Polygon
     placement: Placement
+    primary_layer_name: str | None = None
+    decorations: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -47,8 +49,11 @@ class MultiBinResult:
 
 
 def apply_kerf(piece: Polygon, kerf_mm: float) -> Polygon:
+    from nesting_engine.piece_loader import piece_polygon
+
+    polygon = piece_polygon(piece)
     if kerf_mm <= 0:
-        return piece
-    buffered = piece.buffer(kerf_mm / 2.0)
+        return polygon
+    buffered = polygon.buffer(kerf_mm / 2.0)
     assert not buffered.is_empty, "kerf buffer must not empty the piece"
     return buffered

@@ -19,7 +19,7 @@ class NestingJob < ApplicationJob
     end
 
     nesting_run.update!(status: "processing", started_at: Time.current)
-    project.update!(progress_percent: 8, progress_message: I18n.t("nesting.preparing"))
+    project.update!(progress_percent: 8, progress_message: I18n.t("nesting.phase.preparing"))
     Nesting::ProgressBroadcaster.call(project: project.reload, eta_overrun: false, time_limit_notice: false)
 
     Nesting::JobRunner.call(nesting_run: nesting_run)

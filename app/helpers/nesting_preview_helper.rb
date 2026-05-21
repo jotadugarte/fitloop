@@ -20,7 +20,8 @@ module NestingPreviewHelper
           nesting_preview_sheet_markup(
             sheet,
             layout_height: preview.sheet_layout_height,
-            show_dimensions: !mini
+            show_dimensions: !mini,
+            preview: preview
           )
         end
       )
@@ -29,7 +30,7 @@ module NestingPreviewHelper
 
   private
 
-  def nesting_preview_sheet_markup(sheet, layout_height:, show_dimensions: true)
+  def nesting_preview_sheet_markup(sheet, layout_height:, show_dimensions: true, preview:)
     sheet_attrs = {
       x: sheet.offset_x_mm,
       y: sheet_top_svg_y(layout_height, sheet.height_mm),
@@ -38,7 +39,7 @@ module NestingPreviewHelper
     }
     sheet_fill = tag.rect(**sheet_attrs, fill: SHEET_FILL_COLOR, stroke: "none", class: "nesting-preview__sheet-fill")
     piece_tags = sheet.pieces.map do |piece|
-      nesting_preview_piece_markup(piece, sheet: sheet, layout_height: layout_height)
+      nesting_preview_piece_markup(piece, sheet: sheet, layout_height: layout_height, preview: preview)
     end
     sheet_border = tag.rect(
       **sheet_attrs,
@@ -81,26 +82,102 @@ module NestingPreviewHelper
     rounded == rounded.round ? rounded.round.to_s : format("%.1f", rounded)
   end
 
-  def nesting_preview_piece_markup(piece, sheet:, layout_height:)
-    if piece.rings.present?
-      path_d = piece.rings.map { |ring| nesting_preview_ring_path(ring, sheet: sheet, layout_height: layout_height) }.join(" ")
-      return tag.path(
-        d: path_d,
-        class: "nesting-preview__piece",
-        fill_rule: "evenodd",
-        vector_effect: "non-scaling-stroke",
-        data: { testid: "preview-piece" }
+  def nesting_preview_piece_markup(piece, sheet:, layout_height:, preview:)
+    decoration_tags = Array(piece.decorations).map do |decoration|
+      nesting_preview_decoration_markup(
+        decoration,
+        sheet: sheet,
+        layout_height: layout_height,
+        preview: preview
       )
     end
 
+    outline_tag =
+      if piece.rings.present?
+        nesting_preview_piece_outline_markup(
+          piece,
+          sheet: sheet,
+          layout_height: layout_height,
+          preview: preview
+        )
+      else
+        nesting_preview_piece_bounds_markup(piece, sheet: sheet, layout_height: layout_height, preview: preview)
+      end
+
+    safe_join([ *decoration_tags, outline_tag ].compact)
+  end
+
+  def nesting_preview_piece_outline_markup(piece, sheet:, layout_height:, preview:)
+    path_d = piece.rings.map { |ring| nesting_preview_ring_path(ring, sheet: sheet, layout_height: layout_height) }.join(" ")
+    color = preview.color_for_layer(piece.primary_layer_name)
+    tag.path(
+      d: path_d,
+      class: "nesting-preview__piece",
+      fill_rule: "evenodd",
+      vector_effect: "non-scaling-stroke",
+      data: { testid: "preview-piece", layer: piece.primary_layer_name }.compact,
+      **nesting_preview_layer_paint(color, filled: true)
+    )
+  end
+
+  def nesting_preview_piece_bounds_markup(piece, sheet:, layout_height:, preview:)
+    color = preview.color_for_layer(piece.primary_layer_name)
     tag.rect(
       x: sheet.offset_x_mm + piece.x_mm,
       y: cad_y_to_svg_y(layout_height, piece.y_mm, piece.height_mm),
       width: piece.width_mm,
       height: piece.height_mm,
       class: "nesting-preview__piece",
-      data: { testid: "preview-piece" }
+      data: { testid: "preview-piece", layer: piece.primary_layer_name }.compact,
+      **nesting_preview_layer_paint(color, filled: true)
     )
+  end
+
+  def nesting_preview_decoration_markup(decoration, sheet:, layout_height:, preview:)
+    color = preview.color_for_layer(decoration.layer_name)
+    case decoration.geometry_type
+    when "line"
+      coords = Array(decoration.payload["coordinates"])
+      return if coords.size < 2
+
+      path_d = coords.each_with_index.map do |(x, y), index|
+        svg_x = sheet.offset_x_mm + x.to_f
+        svg_y = layout_height - y.to_f
+        prefix = index.zero? ? "M" : "L"
+        "#{prefix} #{svg_x} #{svg_y}"
+      end.join(" ")
+
+      tag.path(
+        d: path_d,
+        class: "nesting-preview__decoration",
+        fill: "none",
+        vector_effect: "non-scaling-stroke",
+        data: { testid: "preview-decoration", layer: decoration.layer_name },
+        **nesting_preview_layer_paint(color, filled: false)
+      )
+    when "text", "insert"
+      insert = decoration.payload["insert"]
+      return unless insert.is_a?(Array) && insert.size >= 2
+
+      tag.circle(
+        cx: sheet.offset_x_mm + insert[0].to_f,
+        cy: layout_height - insert[1].to_f,
+        r: 2.5,
+        class: "nesting-preview__decoration",
+        data: { testid: "preview-decoration", layer: decoration.layer_name },
+        **nesting_preview_layer_paint(color, filled: true)
+      )
+    end
+  end
+
+  def nesting_preview_layer_paint(color, filled:)
+    return {} if color.blank?
+
+    attrs = { stroke: color }
+    attrs[:fill] = color if filled
+    attrs[:fill_opacity] = "0.35" if filled
+    attrs[:stroke_width] = filled ? 1.25 : 1.0
+    attrs
   end
 
   def nesting_preview_ring_path(ring, sheet:, layout_height:)

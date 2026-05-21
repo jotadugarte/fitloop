@@ -1,6 +1,6 @@
 # Data Flow & Side-Effect Map — Fitloop
 
-**Purpose:** Maps how entities mutate and propagate throughout Fitloop. AI agents must consult this document to avoid orphan blobs, stale project status, or bypassing PIN / pre-flight gates.
+**Purpose:** Maps how entities mutate and propagate throughout Fitloop. AI agents must consult this document to avoid orphan blobs, stale project status, or bypassing workspace bind / pre-flight gates.
 
 **Anchors:** `docs/core/SPEC.md` (workflows W1–W5), `docs/core/SYSTEM_ARCHITECTURE.md` (stack boundaries).
 
@@ -44,7 +44,7 @@ Browser (project#show)
 
 | Stage | Trigger | DB / storage changes |
 |-------|---------|----------------------|
-| Create | `ProjectsController#create` | Row + `sheet_stocks`; `pin_digest` from 6-digit PIN; session `project_access` granted to creator |
+| Create | `Workspace.create!` / `find_or_create!` via `ProjectsController#start` / `#new` | `Project(ephemeral: true)` row; `session[:workspace_project_id]` via `Workspace.bind!` |
 | Draft | Default after create | `status: draft`; may have `input_dxf` attachments |
 | Ready | Layers selected + pieces extractable (implicit or explicit) | User can start nesting when `ProjectReadinessValidator` passes |
 | Processing | `NestingRunsController#create` | `status: processing`; progress fields updated by `JobRunner` |
@@ -92,7 +92,7 @@ Blobs use standard `active_storage_*` tables; deleting a project does **not** au
 
 | Trigger | Required side effect | Mechanism |
 |---------|---------------------|-----------|
-| Project created with valid PIN | Creator session unlock | `grant_project_access!` in `ProjectsController#create` |
+| Workspace start / bind | Session key set | `Workspace.bind!` after ephemeral `Project` create |
 | DXF files uploaded | Layer rows synced | `Dxf::LayerSync` after attach |
 | Nesting run created | Job enqueued; project → processing | `NestingJob.perform_later` |
 | CLI success (completed/partial) | Attach outputs; update statuses | `Nesting::CliRunner` + `StatusMapper` |
@@ -106,15 +106,20 @@ Blobs use standard `active_storage_*` tables; deleting a project does **not** au
 ## 4. Access Control Flow (W5)
 
 ```
-GET /projects/:id
-  → ProjectsController#show
-  → project_access_granted? (session flag per project id)
-  → if false: render pin_gate (minimal layout)
-  → POST verify_pin → ProjectAccess.granted? (user PIN or admin credentials PIN)
-  → grant_project_access! → redirect show
+GET /empezar (start)
+  → Workspace.discard!(session)  [prior workspace]
+  → redirect new_project_path
+  → Workspace.find_or_create!(session) → ephemeral Project
+  → Workspace.bind!(session, project)
+
+GET /projects/:id (and nested routes using SetsWorkspaceProject)
+  → Workspace.resolve!(session, id)
+  → if session[:workspace_project_id] != id or project discarded:
+       Workspace.discard!(session) → redirect start with workspace.expired
+  → else: controller action (show, edit, nesting, layers, …)
 ```
 
-**Edit/update** require `require_project_access!` (same session flag).
+**No PIN gate.** Foreign ephemeral project IDs are not reachable without session bind (ADR-0004).
 
 ---
 
@@ -133,7 +138,7 @@ No Action Cable caching layer; HTML fragments are source of truth after each bro
 | Layer | Strategy |
 |-------|----------|
 | HTTP / ETag | `stale_when_importmap_changes` on `ApplicationController` |
-| Session | `project_access`, `locale` — invalidate by key change only |
+| Session | `workspace_project_id`, `locale` — invalidate on discard or key change |
 | Active Storage | Blob `key` immutable; replacing attachment creates new blob |
 | Python tmp dirs | Per-run folder under `tmp/nesting_runs/`; not shared across runs |
 
@@ -141,9 +146,84 @@ No Action Cable caching layer; HTML fragments are source of truth after each bro
 
 ---
 
+## 8. Auto-split workflow (W6)
+
+Post-`partial` nest, ephemeral workspace users resolve orphans before the next nest. State persists in PostgreSQL keyed by `Nesting::PieceKey`.
+
+```
+project#show (orphan cards, post-job)
+  → PATCH OrphanResolution (pending | system_split | manual)
+  → [system_split] POST enqueue Nesting::SplitPlanJob
+       → Nesting::SplitPlannerRunner → CLI mode plan_splits
+       → split_preview.json → SplitProposal (draft) + Turbo preview SVG
+  → POST SplitProposals#accept | #reject | #regenerate (per orphan)
+       → accept: DerivedPiece rows, mother piece_key in excluded_piece_keys, OrphanResolution → resolved
+       → append projects.session_workflow_log
+  → POST “Anidar con piezas actualizadas”
+       → NestingRunsController#create (auto-enqueue)
+       → Nesting::ConfigBuilder adds excluded_piece_keys, derived_pieces
+       → Nesting::JobRunner → normal nest CLI
+       → nested.dxf includes cut lines + child labels when splits applied
+```
+
+| Entity | Lifecycle notes |
+|--------|-----------------|
+| `OrphanResolution` | Created/updated when user chooses resolution; `resolved` suppresses re-reporting same `piece_key` |
+| `SplitProposal` | `draft` during preview; `accepted`/`rejected` terminal; invalidated on sheet stock change or nest cancel |
+| `DerivedPiece` | Materialized on accept; fed into extractor/nest; mother geometry skipped via `excluded_piece_keys` |
+
+**Manual path:** user downloads guidance, edits CAD off-app, uploads new DXF, clicks readiness CTA → `ProjectReadinessValidator` → `resolved` when mother no longer in extract set.
+
+**Forbidden:** auto-split without user opt-in; nest with accepted splits but mother still in extract set; plan_splits math in Ruby.
+
+---
+
+## 9. Composite DXF layers (W7)
+
+When the user sets a **primary layer per file** and optional **auxiliary** layers, extraction and nesting follow the composite pipeline (`REQ-FIT-DXF-002`). Rails owns UI + `ProjectLayer.layer_role`; Python owns geometry.
+
+```
+project#layers (grouped by attachment)
+  → PATCH primary radio + auxiliary checkboxes
+  → ProjectLayer.layer_role (primary | auxiliary) + included
+  → ProjectReadinessValidator (auxiliary requires primary on same file)
+  → NestingRunsController#create
+  → Nesting::ConfigBuilder
+       → input_files[]: { primary_layer, auxiliary_layers[] } per attachment
+       → (legacy) included_layers union when no primary_layer on that file
+  → Nesting::JobRunner → CLI
+       → piece_loader → composite_extract.load_composite_pieces
+            → CompositePiece (primary rings + decorations[])
+       → nest_multi_bin (primary polygon only for placement)
+       → decoration_transform (same placement transform as primary)
+       → dxf_output.write_nested_dxf (original layer names on nested.dxf)
+```
+
+| Stage | Component | Notes |
+|-------|-----------|--------|
+| Extract | `composite_extract` | `intersection` clip for lines/arcs/polylines; insert point for TEXT/MTEXT/INSERT |
+| Preview | `dxf_preview` + Rails presenter | Clipped auxiliary geometry with primary outlines |
+| Split + composite | `partition_decorations` | Same cut segments as primary; mother excluded via `excluded_piece_keys` |
+| Accept split | `DerivedPiece` + `decorations_json` | `derived_pieces[]` in config; `piece_loader` attaches decorations |
+| Nest children | `nest_multi_bin` | Derived `CompositePiece` children nest like any piece |
+
+**Auto-split branch (see also §8, `REQ-FIT-SPLIT-001`):**
+
+```
+orphan CompositePiece (mother has decorations)
+  → CLI plan_splits → split_preview.json (child outlines + decorations[] per child)
+  → SplitProposals#accept → DerivedPiece rows (geometry_json + decorations_json)
+  → excluded_piece_keys + derived_pieces in config.json
+  → nest → nested.dxf with per-child aux on original layers
+```
+
+**Forbidden:** nest auxiliary layers as standalone pieces when `layer_role: primary` is configured; composite association math in Ruby; drop original layer names in composite `nested.dxf` output.
+
+---
+
 ## 7. Forbidden Shortcuts
 
 - Do not write to `nested.dxf` from Rails — CLI only.
 - Do not skip `ProjectReadinessValidator` before enqueueing `NestingJob`.
-- Do not store plaintext PIN — only `pin_digest`.
+- Do not bypass `Workspace.resolve!` for user-facing project routes that use `SetsWorkspaceProject`.
 - Do not assume `NestingRun` holds the downloadable DXF — it lives on `Project#nested_dxf`.

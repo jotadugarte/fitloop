@@ -3,7 +3,14 @@
 require "rails_helper"
 
 RSpec.describe "Project orphan DXF download", type: :request do
-  let(:project) { create_project_for_spec!(title: "Orphan DXF bench", pin: "665544") }
+  let(:project) do
+    get start_project_path
+    follow_redirect!
+
+    record = Project.find(session[Workspace::SESSION_KEY])
+    record.update!(title: "Orphan DXF bench")
+    record
+  end
 
   def attach_orphan_placements!
     project.nesting_runs.create!(
@@ -42,7 +49,6 @@ RSpec.describe "Project orphan DXF download", type: :request do
 
   describe "GET /projects/:id/orphans/:piece_index/dxf [REQ-FIT-NEST-003]" do
     it "downloads a DXF for an orphan piece when access is granted" do
-      unlock_project_for_spec!(project, pin: "665544")
       attach_orphan_placements!
 
       get orphan_dxf_project_path(project, piece_index: 0)
@@ -54,7 +60,6 @@ RSpec.describe "Project orphan DXF download", type: :request do
     end
 
     it "returns not found for unknown piece index" do
-      unlock_project_for_spec!(project, pin: "665544")
       attach_orphan_placements!
 
       get orphan_dxf_project_path(project, piece_index: 99)
@@ -62,13 +67,22 @@ RSpec.describe "Project orphan DXF download", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "requires project access" do
+    it "[REQ-FIT-AUTH-001] requires workspace session bind" do
       attach_orphan_placements!
 
-      get orphan_dxf_project_path(project, piece_index: 0)
+      foreign = Project.create!(
+        ephemeral: true,
+        title: "Other orphan project",
+        status: :partial,
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
+        }
+      )
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include('data-testid="pin-gate"')
+      get orphan_dxf_project_path(foreign, piece_index: 0)
+
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
     end
   end
 end

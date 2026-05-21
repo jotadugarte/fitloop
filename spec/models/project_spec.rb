@@ -38,4 +38,26 @@ RSpec.describe Project, type: :model do
       expect(names).to include(:sheet_stocks, :project_layers, :nesting_runs)
     end
   end
+
+  describe "ephemeral workspace [REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
+    it "defaults ephemeral to true" do
+      expect(described_class.new.ephemeral).to be(true)
+    end
+
+    it "does not expose pin_digest on the schema" do
+      described_class.reset_column_information
+      expect(described_class.column_names).not_to include("pin_digest")
+    end
+
+    it "creates an ephemeral project without PIN attributes" do
+      project = described_class.create!(
+        title: "Bench",
+        ephemeral: true,
+        status: :draft
+      )
+
+      expect(project).to be_persisted
+      expect(project).to be_ephemeral
+    end
+  end
 end

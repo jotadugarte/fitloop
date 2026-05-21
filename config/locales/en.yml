@@ -30,9 +30,16 @@
 en:
   application:
     name: "Fitloop"
+    dialog_title: "Fitloop"
+    dialog_accept: "OK"
 
   locale:
     switcher_label: "Language"
+    switcher_row_primary: "Language"
+    labels:
+      en: "EN"
+      es: "ES"
+      es_panic: "📐 PÁNICO"
 
   date:
     formats:
@@ -52,7 +59,6 @@ en:
     attributes:
       project:
         title: "Title"
-        pin: "PIN (6 digits)"
       sheet_stock:
         width_mm: "Width (mm)"
         height_mm: "Height (mm)"
@@ -62,8 +68,6 @@ en:
       models:
         project:
           attributes:
-            pin:
-              invalid_format: "must be exactly 6 digits"
             title:
               blank: "can't be blank"
             base:
@@ -109,20 +113,16 @@ en:
     created: "Project created."
     updated: "Project updated."
     nesting_parameters_updated: "Nesting parameters updated."
-    index:
-      title: "Projects"
-      tagline: "Nesting jobs are temporary and discarded when you leave the app."
-      new: "Start"
-      empty: "No saved projects. Use Start on the home page."
     setup:
       missing_dxf: "Upload at least one DXF file before continuing."
-    access:
-      prompt: "Enter the project PIN to continue."
-      pin_label: "Project PIN"
-      unlock: "Unlock project"
-      granted: "Access granted."
-      denied: "Incorrect PIN. Try again."
-      back_to_list: "Back to all projects"
+      welcome:
+        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        steps_title: "On this screen"
+        steps:
+          - "Add your sheets: width, height, and how many you have of each size. Leave quantity blank for unlimited sheets of that size."
+          - "Optional: open “Nesting parameters” to adjust piece spacing and sheet edge margin."
+          - "Upload your DXF files and pick the cut layer (primary) and auxiliary layers (engraving, marks…)."
+          - "Click “Continue” to run nesting and see the result."
     new:
       title: "New project"
       setup_title: "Initial parameters"
@@ -130,6 +130,15 @@ en:
       title: "Edit %{title}"
     show:
       session_title: "Your nesting"
+      welcome:
+        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        steps_title: "On this screen"
+        steps:
+          - "Sheet inventory: check sizes and quantities, reorder consumption priority, and click “Save sheets” if you change anything."
+          - "DXF detail: upload files, pick the primary cut layer and auxiliary layers (engraving, marks…), then “Apply layers”."
+          - "Previews and unplaced pieces: after nesting, review placements on each sheet and which pieces did not fit."
+          - "Nesting actions: start nesting, re-nest, or cancel the run depending on project status."
+          - "Nesting parameters: adjust piece separation and sheet edge margin when needed."
       nesting_parameters_title: "Nesting parameters"
       nesting_parameters_hint: "Adjust piece spacing and sheet edge margin."
       apply_nesting_parameters: "Apply"
@@ -139,7 +148,7 @@ en:
         other: "%{count} sheets"
       collapsible_hint: "Click to expand"
       preview_zone_title: "Previews and unplaced pieces"
-      nesting_parameters_meta: "Kerf %{kerf} mm · Margin %{margin} mm"
+      nesting_parameters_meta: "Separation %{kerf} mm · Margin %{margin} mm"
       dxf_files_meta:
         zero: "No files"
         one: "1 file"
@@ -151,6 +160,7 @@ en:
       source_dxf_detail_meta: "%{files} files · %{selected} of %{total} layers"
       source_dxf_detail_empty: "Upload a DXF file to see layers and preview."
       dxf_file_layers_meta: "%{selected} of %{total} layers"
+      dxf_file_layers_meta_template: "%{selected} of %{total} layers"
       remove_dxf: "Remove"
       remove_dxf_confirm: "Remove %{filename}?"
       apply_layers: "Apply layers"
@@ -184,7 +194,7 @@ en:
         other: "%{count} errors prevented saving"
       sheet_stocks_legend: "Sheet inventory"
       consumption_priority: "Priority"
-      consumption_order_legend: "The nesting engine consumes sheet types from top to bottom."
+      consumption_order_legend: "The nesting engine consumes sheet types by priority."
       reorder_sheet: "Drag to reorder"
       sort_finite_first: "Sort: finite first"
       alert_single_unlimited: "Only one unlimited sheet type is allowed per project."
@@ -199,6 +209,7 @@ en:
       alert_quantity: "Enter a quantity of at least 1, or leave the field blank for unlimited sheets."
       dxf_upload_legend: "DXF files"
       dxf_upload_label: "DXF files"
+      dxf_upload_choose: "Choose DXF files"
       dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
       dxf_upload_setup_hint: "When you choose files they appear here with layers to select."
       dxf_upload_failed: "Could not upload DXF files. Try again."
@@ -206,8 +217,8 @@ en:
       dxf_layers_empty: "No layers found in this file."
       dxf_upload_resubmit_hint: "If you had selected DXF files, choose them again before saving."
       nesting_settings_legend: "Nesting parameters"
-      kerf_mm: "Maximum spacing between pieces (mm)"
-      kerf_mm_hint: "Minimum clearance between piece outlines on the same sheet. Default 0 mm."
+      kerf_mm: "Separation between pieces (mm)"
+      kerf_mm_hint: "Minimum separation between piece outlines on the same sheet. Default 0 mm."
       margin_mm: "Sheet edge margin (mm)"
       margin_mm_hint: "Minimum distance from piece outlines to the sheet edge. Default 5 mm."
       save_project: "Save project"
@@ -229,6 +240,16 @@ en:
     queued: "Queued…"
     preparing: "Preparing files…"
     running: "Running nesting engine…"
+    phase:
+      queued: "Queued for nesting…"
+      preparing: "Preparing nesting job…"
+      starting: "Starting nesting engine…"
+      extracting: "Extracting piece geometry…"
+      fill: "Placing pieces on sheets…"
+      optimizing: "Optimizing sheet layouts…"
+      consolidating: "Consolidating sheets…"
+      refining: "Refining placement…"
+      writing_outputs: "Writing nested outputs…"
     completed: "Nesting completed."
     partial: "Nesting finished with orphans."
     failed: "Nesting failed."
@@ -238,11 +259,16 @@ en:
     time_limit_notice: "Time limit reached. Showing the best result so far."
     renest: "Re-nest"
     renest_started: "Re-nesting started. Previous runs are kept in history."
+    nest_updated_pieces: "Nest with updated pieces"
+    nest_updated_pieces_started: "Nesting started with updated pieces from accepted splits."
+    nest_updated_pieces_unavailable: "No accepted split pieces are available to nest yet."
     orphans_heading: "Pieces not placed"
     orphan_reason:
       oversized_for_sheet: "Too large for any sheet in inventory"
       no_sheet_capacity: "Fits a sheet size but no sheet was available"
       unknown: "Could not be placed"
+    derived_piece:
+      title: "Piece %{piece_number} — %{suffix}"
     orphan_preview:
       piece_title: "Piece %{piece_number}"
       label: "Unplaced piece %{piece_number}"
@@ -252,13 +278,52 @@ en:
       oversized_for_sheet: "Try a larger sheet or split the piece in the DXF."
       no_sheet_capacity: "Add more sheets to inventory or re-nest."
       unknown: "Review the DXF and sheet inventory, then re-nest."
+    split:
+      choose_pending: "Leave pending"
+      choose_system: "Split with Fitloop"
+      choose_manual: "Resolve manually"
+      accept: "Accept"
+      reject: "Reject"
+      regenerate: "Regenerate"
+      accepted: "Split accepted — ready to re-nest with updated pieces."
+      accepted_pending_nest: "Split accepted. Child pieces are ready — use Nest with updated pieces in Actions."
+      not_feasible: "Fitloop could not split this piece to fit your sheet inventory. Try manual resolution or add larger sheets."
+      not_feasible_accept: "This split preview is not feasible and cannot be accepted."
+      manual_mother_still_present: "The original piece geometry is still in your DXF. Remove it in CAD, upload the updated file, then try again."
+      manual:
+        intro: "Fix this piece in your CAD, your way:"
+        step_1: "Open the original DXF and replace or split piece %{piece_number} however works best for you."
+        step_2: "Upload the updated file in DXF detail (above) and run nesting again."
+        no_dedup: "Fitloop does not edit your file for you — you make the changes in your design software."
+        confirm: "I updated my DXF"
+        resolved: "Manual resolution confirmed — this orphan is resolved."
+        not_manual_state: "This orphan is not in manual resolution."
+        orphan_geometry_missing: "Orphan geometry is missing — run nesting again before confirming."
+      badge:
+        pending: "Pending"
+        system_split: "System split"
+        manual: "Manual"
+        resolved: "Resolved"
+        split_applied: "Split accepted"
 
   project_readiness:
     heading: "Cannot start nesting yet"
     no_layers_selected: "Select at least one layer to include in nesting."
     no_extractable_pieces: "No closed contours were found on the selected layers."
+    primary_layer_required: "Choose a primary layer for each DXF file that includes associated layers."
 
   project_layers:
+    layer_name: "Layer"
+    section_note: "Choose the primary layer for outlines to nest. Engraving, marks, text, and other auxiliary layers move with the piece that contains them."
+    primary_layer:
+      label: "Primary layer"
+      short: "Primary"
+      tooltip: "Outlines to nest; other geometry stays inside each piece."
+      selection_hint: "The primary layer defines each piece outline to nest. Anything on auxiliary layers (engraving, marks, text…) moves with the piece that contains it."
+    auxiliary_layers:
+      label: "Associated layers"
+      short: "Auxiliary"
+      helper: "Engraving, marks, text… move with the piece that contains them."
     updated: "Layer selection saved."
     upload:
       created: "DXF files uploaded."

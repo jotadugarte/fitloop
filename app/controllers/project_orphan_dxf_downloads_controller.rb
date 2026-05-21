@@ -5,7 +5,6 @@ class ProjectOrphanDxfDownloadsController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
 
   def show
     orphan = orphan_presenter.find_by_piece_index(params[:piece_index])

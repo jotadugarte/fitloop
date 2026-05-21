@@ -1,9 +1,16 @@
 es:
   application:
     name: "Fitloop"
+    dialog_title: "Fitloop"
+    dialog_accept: "Aceptar"
 
   locale:
     switcher_label: "Idioma"
+    switcher_row_primary: "Idioma"
+    labels:
+      en: "EN"
+      es: "ES"
+      es_panic: "📐 PÁNICO"
 
   date:
     abbr_day_names:
@@ -67,7 +74,6 @@ es:
     attributes:
       project:
         title: "Título"
-        pin: "PIN (6 dígitos)"
       sheet_stock:
         width_mm: "Ancho (mm)"
         height_mm: "Alto (mm)"
@@ -77,8 +83,6 @@ es:
       models:
         project:
           attributes:
-            pin:
-              invalid_format: "debe tener exactamente 6 dígitos"
             title:
               blank: "no puede estar en blanco"
             base:
@@ -124,20 +128,16 @@ es:
     created: "Proyecto creado."
     updated: "Proyecto actualizado."
     nesting_parameters_updated: "Parámetros de anidado actualizados."
-    index:
-      title: "Proyectos"
-      tagline: "Los trabajos de anidado son temporales: al salir de la app se descartan."
-      new: "Empezar"
-      empty: "No hay proyectos guardados. Pulsa Empezar en la página de inicio."
     setup:
       missing_dxf: "Sube al menos un archivo DXF antes de continuar."
-    access:
-      prompt: "Introduce el PIN del proyecto para continuar."
-      pin_label: "PIN del proyecto"
-      unlock: "Desbloquear proyecto"
-      granted: "Acceso concedido."
-      denied: "PIN incorrecto. Inténtalo de nuevo."
-      back_to_list: "Volver a todos los proyectos"
+      welcome:
+        intro: "FitLoop coloca tus piezas de corte (archivos DXF) sobre las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        steps_title: "En esta pantalla"
+        steps:
+          - "Añade tus láminas: ancho, alto y cuántas tienes de cada tamaño. Si dejas la cantidad en blanco, ese tipo de lámina será ilimitado."
+          - "Opcional: abre «Parámetros de anidado» para ajustar la separación entre piezas y el margen del borde."
+          - "Sube tus DXF y elige la capa de corte (principal) y las auxiliares (grabado, marcas…)."
+          - "Pulsa «Continuar» para pasar al anidado y ver el resultado."
     new:
       title: "Nuevo proyecto"
       setup_title: "Parámetros iniciales"
@@ -145,6 +145,15 @@ es:
       title: "Editar %{title}"
     show:
       session_title: "Tu anidado"
+      welcome:
+        intro: "FitLoop coloca tus piezas de corte (archivos DXF) sobre las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        steps_title: "En esta pantalla"
+        steps:
+          - "Inventario de láminas: comprueba tamaños y cantidades, reordena la prioridad de uso y pulsa «Guardar láminas» si cambias algo."
+          - "Detalle DXF: sube archivos, elige la capa principal de corte y las auxiliares (grabado, marcas…), luego «Aplicar capas»."
+          - "Vistas previas y piezas no colocadas: tras anidar, revisa cómo quedaron las piezas en cada lámina y cuáles no entraron en las láminas disponibles."
+          - "Acciones de anidado: inicia el anidado, vuelve a anidar o cancela el proceso según el estado del proyecto."
+          - "Parámetros de anidado: ajusta la separación entre piezas y el margen del borde de la lámina cuando lo necesites."
       nesting_parameters_title: "Parámetros de anidado"
       nesting_parameters_hint: "Ajusta la separación entre piezas y el margen del borde de la lámina."
       apply_nesting_parameters: "Aplicar"
@@ -154,7 +163,7 @@ es:
         other: "%{count} láminas"
       collapsible_hint: "Pulsa para desplegar"
       preview_zone_title: "Vistas previas y piezas no colocadas"
-      nesting_parameters_meta: "Kerf %{kerf} mm · Margen %{margin} mm"
+      nesting_parameters_meta: "Separación %{kerf} mm · Margen %{margin} mm"
       dxf_files_meta:
         zero: "Sin archivos"
         one: "1 archivo"
@@ -166,6 +175,7 @@ es:
       source_dxf_detail_meta: "%{files} archivos · %{selected} de %{total} capas"
       source_dxf_detail_empty: "Sube un archivo DXF para ver capas y vista previa."
       dxf_file_layers_meta: "%{selected} de %{total} capas"
+      dxf_file_layers_meta_template: "%{selected} de %{total} capas"
       remove_dxf: "Eliminar"
       remove_dxf_confirm: "¿Eliminar %{filename}?"
       apply_layers: "Aplicar capas"
@@ -199,7 +209,7 @@ es:
         other: "%{count} errores impidieron guardar"
       sheet_stocks_legend: "Inventario de láminas"
       consumption_priority: "Prioridad"
-      consumption_order_legend: "El motor de anidado consume los tipos de lámina de arriba a abajo."
+      consumption_order_legend: "El motor de anidado consume los tipos de lámina según su prioridad."
       reorder_sheet: "Arrastrar para reordenar"
       sort_finite_first: "Ordenar: finitos primero"
       alert_single_unlimited: "Solo se permite un tipo de lámina ilimitado por proyecto."
@@ -214,6 +224,7 @@ es:
       alert_quantity: "Introduce una cantidad de al menos 1, o deja el campo vacío para láminas ilimitadas."
       dxf_upload_legend: "Archivos DXF"
       dxf_upload_label: "Archivos DXF"
+      dxf_upload_choose: "Elegir archivos DXF"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
       dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
@@ -221,7 +232,7 @@ es:
       dxf_layers_empty: "No se encontraron capas en este archivo."
       dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
       nesting_settings_legend: "Parámetros de anidado"
-      kerf_mm: "Separación máxima entre piezas (mm)"
+      kerf_mm: "Separación entre piezas (mm)"
       kerf_mm_hint: "Holgura mínima entre contornos de piezas en la misma lámina. Por defecto 0 mm."
       margin_mm: "Margen del borde de la lámina (mm)"
       margin_mm_hint: "Distancia mínima entre el contorno exterior de las piezas y el borde de la lámina. Por defecto 5 mm."
@@ -244,6 +255,16 @@ es:
     queued: "En cola…"
     preparing: "Preparando archivos…"
     running: "Ejecutando motor de anidado…"
+    phase:
+      queued: "En cola para anidar…"
+      preparing: "Preparando el trabajo de anidado…"
+      starting: "Iniciando el motor de anidado…"
+      extracting: "Extrayendo geometría de piezas…"
+      fill: "Colocando piezas en láminas…"
+      optimizing: "Optimizando distribución en láminas…"
+      consolidating: "Consolidando láminas…"
+      refining: "Afinando la colocación…"
+      writing_outputs: "Generando archivos anidados…"
     completed: "Anidado completado."
     partial: "Anidado terminado con huérfanos."
     failed: "Anidado fallido."
@@ -253,11 +274,16 @@ es:
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a anidar"
     renest_started: "Reanidado iniciado. Las ejecuciones anteriores se conservan en el historial."
+    nest_updated_pieces: "Anidar con piezas actualizadas"
+    nest_updated_pieces_started: "Anidado iniciado con las piezas actualizadas de las divisiones aceptadas."
+    nest_updated_pieces_unavailable: "Aún no hay piezas derivadas de divisiones aceptadas para anidar."
     orphans_heading: "Piezas no colocadas"
     orphan_reason:
       oversized_for_sheet: "Demasiado grande para cualquier lámina del inventario"
       no_sheet_capacity: "Cabe en una lámina pero no quedó espacio"
       unknown: "No se pudo colocar"
+    derived_piece:
+      title: "Pieza %{piece_number} — %{suffix}"
     orphan_preview:
       piece_title: "Pieza %{piece_number}"
       label: "Pieza %{piece_number} sin colocar"
@@ -267,13 +293,52 @@ es:
       oversized_for_sheet: "Prueba una lámina más grande o divide la pieza en el DXF."
       no_sheet_capacity: "Añade más láminas al inventario o vuelve a anidar."
       unknown: "Revisa el DXF y el inventario de láminas, luego vuelve a anidar."
+    split:
+      choose_pending: "Dejar pendiente"
+      choose_system: "Dividir con Fitloop"
+      choose_manual: "Resolver manualmente"
+      accept: "Aceptar"
+      reject: "Rechazar"
+      regenerate: "Regenerar"
+      accepted: "División aceptada — listo para re-anidar con piezas actualizadas."
+      accepted_pending_nest: "División aceptada. Las piezas hijas están listas; usa «Anidar con piezas actualizadas» en Acciones."
+      not_feasible: "Fitloop no pudo dividir esta pieza para que quepa en tu inventario de láminas. Prueba resolución manual o añade láminas más grandes."
+      not_feasible_accept: "Esta vista previa de división no es viable y no se puede aceptar."
+      manual_mother_still_present: "La geometría de la pieza original sigue en tu DXF. Quítala en el CAD, sube el archivo actualizado e inténtalo de nuevo."
+      manual:
+        intro: "Ajusta esta pieza en tu CAD, a tu manera:"
+        step_1: "Abre el DXF original y sustituye o divide la pieza %{piece_number} como mejor te parezca."
+        step_2: "Sube el archivo actualizado en Detalle DXF (más arriba) y vuelve a ejecutar el anidado."
+        no_dedup: "Fitloop no modifica tu archivo por ti: los cambios los haces en tu programa de diseño."
+        confirm: "He actualizado mis DXF"
+        resolved: "Resolución manual confirmada — este huérfano quedó resuelto."
+        not_manual_state: "Este huérfano no está en resolución manual."
+        orphan_geometry_missing: "Falta la geometría del huérfano — ejecuta un anidado antes de confirmar."
+      badge:
+        pending: "Pendiente"
+        system_split: "Sistema"
+        manual: "Manual"
+        resolved: "Resuelto"
+        split_applied: "División aceptada"
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"
     no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."
     no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
+    primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
 
   project_layers:
+    layer_name: "Capa"
+    section_note: "Elige la capa principal para el contorno a anidar. Grabado, marcas, texto y otras capas auxiliares se desplazan con la pieza que las contiene."
+    primary_layer:
+      label: "Capa principal"
+      short: "Principal"
+      tooltip: "Contornos a anidar; el resto queda dentro de cada pieza."
+      selection_hint: "La capa principal define el contorno de cada pieza a anidar. Todo lo dibujado en capas auxiliares (grabado, marcas, texto…) se desplaza junto con la pieza que lo contiene."
+    auxiliary_layers:
+      label: "Capas asociadas"
+      short: "Auxiliares"
+      helper: "Grabado, marcas, texto… se mueven con la pieza que los contiene."
     updated: "Selección de capas guardada."
     upload:
       created: "Archivos DXF subidos."

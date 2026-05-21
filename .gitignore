@@ -55,6 +55,10 @@ Thumbs.db
 # Local DXF scratch (fixtures live under nesting_engine/tests/fixtures/)
 xf-test-temp/
 
+# agentic:guild local state (not product code)
+.agenticguild/current_state.md
+.agenticguild/completed_sessions/*.md
+
 
 
 

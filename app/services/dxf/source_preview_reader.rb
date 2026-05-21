@@ -10,13 +10,16 @@ module Dxf
 
     class Error < StandardError; end
 
-    def self.preview(paths:, layer_names:, curve_tolerance_mm:)
-      return empty_payload if paths.blank? || layer_names.blank?
+    def self.preview(paths:, curve_tolerance_mm:, layer_names: nil, input_files: nil)
+      return empty_payload if paths.blank?
+      return empty_payload if layer_names.blank? && input_files.blank?
 
-      config = {
-        layer_names: layer_names,
-        curve_tolerance_mm: curve_tolerance_mm
-      }
+      config = { curve_tolerance_mm: curve_tolerance_mm }
+      if input_files.present?
+        config[:input_files] = input_files
+      else
+        config[:layer_names] = layer_names
+      end
       output, status = Open3.capture2(
         Python.subprocess_env,
         Python.executable,

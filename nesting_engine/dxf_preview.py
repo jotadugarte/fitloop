@@ -25,75 +25,134 @@ def build_source_preview(
     *,
     curve_tolerance_mm: float = 0.25,
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
+    file_configs: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
-    included = {name for name in layer_names if name}
-    if not included or not dxf_paths:
+    if not dxf_paths:
         return _empty_preview()
 
     layers: dict[str, dict[str, object]] = {}
+    bounds = _empty_bounds()
+    cursor_max_x: float | None = None
+
+    for file_index, path in enumerate(dxf_paths):
+        file_config = _file_config_at(file_configs, file_index)
+        placement = _file_preview_placement(
+            path,
+            layer_names,
+            file_config=file_config,
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+            cursor_max_x=cursor_max_x,
+        )
+        if placement is None:
+            continue
+        file_layers, colors, place_offset_x, file_bounds = placement
+        _merge_shifted_layers(layers, file_layers, colors, place_offset_x)
+        bounds, cursor_max_x = _advance_preview_bounds(bounds, file_bounds, place_offset_x)
+
+    if bounds["min_x"] is math.inf:
+        return _empty_preview()
+    return _preview_payload(layers, bounds)
+
+
+def _empty_bounds() -> dict[str, float]:
+    return {"min_x": math.inf, "min_y": math.inf, "max_x": -math.inf, "max_y": -math.inf}
+
+
+def _file_preview_placement(
+    path: Path,
+    layer_names: list[str],
+    *,
+    file_config: dict[str, object],
+    curve_tolerance_mm: float,
+    max_block_depth: int,
+    cursor_max_x: float | None,
+) -> tuple[
+    dict[str, list[list[list[float]]]],
+    dict[str, str],
+    float,
+    dict[str, float],
+] | None:
+    doc = ezdxf.readfile(path)
+    colors = layer_catalog_from_file(path)
+    file_layers = _file_layer_polylines(
+        path,
+        doc,
+        layer_names,
+        file_config=file_config,
+        curve_tolerance_mm=curve_tolerance_mm,
+        max_block_depth=max_block_depth,
+    )
+    if not file_layers:
+        return None
+
+    file_bounds = _bounds_from_layer_polylines(file_layers)
+    if file_bounds is None:
+        return None
+
+    place_offset_x = 0.0 if cursor_max_x is None else cursor_max_x + _FILE_GAP_MM - file_bounds["min_x"]
+    return file_layers, colors, place_offset_x, file_bounds
+
+
+def _bounds_from_layer_polylines(
+    file_layers: dict[str, list[list[list[float]]]],
+) -> dict[str, float] | None:
     min_x = math.inf
     min_y = math.inf
     max_x = -math.inf
     max_y = -math.inf
-    cursor_max_x: float | None = None
-
-    for path in dxf_paths:
-        doc = ezdxf.readfile(path)
-        colors = layer_catalog_from_file(path)
-        file_min_x = math.inf
-        file_min_y = math.inf
-        file_max_x = -math.inf
-        file_max_y = -math.inf
-        file_layers: dict[str, list[list[list[float]]]] = {name: [] for name in included}
-
-        for polyline in _iter_layer_polylines(
-            doc,
-            included,
-            curve_tolerance_mm=curve_tolerance_mm,
-            max_block_depth=max_block_depth,
-        ):
-            layer_name = polyline["layer"]
-            points = polyline["points"]
-            file_layers.setdefault(layer_name, []).append(points)
+    for polylines in file_layers.values():
+        for points in polylines:
             for x, y in points:
-                file_min_x = min(file_min_x, x)
-                file_min_y = min(file_min_y, y)
-                file_max_x = max(file_max_x, x)
-                file_max_y = max(file_max_y, y)
-
-        if file_min_x is math.inf:
-            continue
-
-        if cursor_max_x is None:
-            place_offset_x = 0.0
-        else:
-            place_offset_x = cursor_max_x + _FILE_GAP_MM - file_min_x
-
-        for layer_name, polylines in file_layers.items():
-            if not polylines:
-                continue
-            shifted = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
-            entry = layers.setdefault(
-                layer_name,
-                {"name": layer_name, "color": colors.get(layer_name, "#808080"), "polylines": []},
-            )
-            if layer_name in colors:
-                entry["color"] = colors[layer_name]
-            cast_polylines = entry["polylines"]
-            assert isinstance(cast_polylines, list)
-            cast_polylines.extend(shifted)
-
-        placed_min_x = file_min_x + place_offset_x
-        placed_max_x = file_max_x + place_offset_x
-        min_x = min(min_x, placed_min_x)
-        min_y = min(min_y, file_min_y)
-        max_x = max(max_x, placed_max_x)
-        max_y = max(max_y, file_max_y)
-        cursor_max_x = placed_max_x
-
+                min_x = min(min_x, x)
+                min_y = min(min_y, y)
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
     if min_x is math.inf:
-        return _empty_preview()
+        return None
+    return {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
 
+
+def _merge_shifted_layers(
+    layers: dict[str, dict[str, object]],
+    file_layers: dict[str, list[list[list[float]]]],
+    colors: dict[str, str],
+    place_offset_x: float,
+) -> None:
+    for layer_name, polylines in file_layers.items():
+        if not polylines:
+            continue
+        shifted = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
+        entry = layers.setdefault(
+            layer_name,
+            {"name": layer_name, "color": colors.get(layer_name, "#808080"), "polylines": []},
+        )
+        if layer_name in colors:
+            entry["color"] = colors[layer_name]
+        cast_polylines = entry["polylines"]
+        assert isinstance(cast_polylines, list)
+        cast_polylines.extend(shifted)
+
+
+def _advance_preview_bounds(
+    bounds: dict[str, float],
+    file_bounds: dict[str, float],
+    place_offset_x: float,
+) -> tuple[dict[str, float], float]:
+    placed_min_x = file_bounds["min_x"] + place_offset_x
+    placed_max_x = file_bounds["max_x"] + place_offset_x
+    return {
+        "min_x": min(bounds["min_x"], placed_min_x),
+        "min_y": min(bounds["min_y"], file_bounds["min_y"]),
+        "max_x": max(bounds["max_x"], placed_max_x),
+        "max_y": max(bounds["max_y"], file_bounds["max_y"]),
+    }, placed_max_x
+
+
+def _preview_payload(
+    layers: dict[str, dict[str, object]],
+    bounds: dict[str, float],
+) -> dict[str, object]:
     ordered_layers = [
         {
             "name": name,
@@ -102,7 +161,10 @@ def build_source_preview(
         }
         for name in sorted(layers)
     ]
-
+    min_x = bounds["min_x"]
+    min_y = bounds["min_y"]
+    max_x = bounds["max_x"]
+    max_y = bounds["max_y"]
     return {
         "width_mm": max(max_x - min_x, 1.0),
         "height_mm": max(max_y - min_y, 1.0),
@@ -110,6 +172,95 @@ def build_source_preview(
         "offset_y_mm": min_y,
         "layers": ordered_layers,
     }
+
+
+def _file_config_at(
+    file_configs: list[dict[str, object]] | None,
+    file_index: int,
+) -> dict[str, object]:
+    if not file_configs or file_index >= len(file_configs):
+        return {}
+    return file_configs[file_index]
+
+
+def _file_layer_polylines(
+    path: Path,
+    doc: ezdxf.document.Drawing,
+    default_layer_names: list[str],
+    *,
+    file_config: dict[str, object],
+    curve_tolerance_mm: float,
+    max_block_depth: int,
+) -> dict[str, list[list[list[float]]]]:
+    primary_layer = file_config.get("primary_layer")
+    if isinstance(primary_layer, str) and primary_layer.strip():
+        return _composite_file_layer_polylines(
+            path,
+            doc,
+            primary_layer.strip(),
+            list(file_config.get("auxiliary_layers") or []),
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+        )
+
+    included = {name for name in list(file_config.get("layer_names") or default_layer_names) if name}
+    if not included:
+        return {}
+
+    file_layers: dict[str, list[list[list[float]]]] = {name: [] for name in included}
+    for polyline in _iter_layer_polylines(
+        doc,
+        included,
+        curve_tolerance_mm=curve_tolerance_mm,
+        max_block_depth=max_block_depth,
+    ):
+        layer_name = str(polyline["layer"])
+        points = polyline["points"]
+        file_layers.setdefault(layer_name, []).append(points)
+    return file_layers
+
+
+def _composite_file_layer_polylines(
+    path: Path,
+    doc: ezdxf.document.Drawing,
+    primary_layer: str,
+    auxiliary_layers: list[str],
+    *,
+    curve_tolerance_mm: float,
+    max_block_depth: int,
+) -> dict[str, list[list[list[float]]]]:
+    from nesting_engine.composite_extract import load_composite_pieces
+
+    included = {primary_layer}
+    file_layers: dict[str, list[list[list[float]]]] = {primary_layer: []}
+    for polyline in _iter_layer_polylines(
+        doc,
+        included,
+        curve_tolerance_mm=curve_tolerance_mm,
+        max_block_depth=max_block_depth,
+    ):
+        file_layers[primary_layer].append(polyline["points"])
+
+    aux_layers = [name for name in auxiliary_layers if name]
+    if aux_layers:
+        pieces = load_composite_pieces(
+            path,
+            primary_layer,
+            aux_layers,
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+        )
+        for piece in pieces:
+            for decoration in piece.decorations:
+                if decoration.geometry_type != "line":
+                    continue
+                coordinates = decoration.payload.get("coordinates")
+                if not coordinates or len(coordinates) < 2:
+                    continue
+                points = [[float(x), float(y)] for x, y in coordinates]
+                file_layers.setdefault(decoration.layer_name, []).append(points)
+
+    return {name: polylines for name, polylines in file_layers.items() if polylines}
 
 
 def _empty_preview() -> dict[str, object]:
@@ -244,10 +395,12 @@ def main(argv: list[str] | None = None) -> int:
 
     config = json.loads(argv[0])
     paths = [Path(p) for p in argv[1:]]
+    file_configs = config.get("input_files")
     result = build_source_preview(
         paths,
         list(config.get("layer_names", [])),
         curve_tolerance_mm=float(config.get("curve_tolerance_mm", 0.25)),
+        file_configs=list(file_configs) if file_configs else None,
     )
     print(json.dumps(result))
     return 0

@@ -12,6 +12,7 @@
                    expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
       </div>
     <% end %>
+    <%= render "projects/dxf_layers_section_notes" %>
   </div>
 <% else %>
   <p class="dxf-files-layers__empty panel panel--inset"><%= t("projects.form.dxf_layers_prompt") %></p>

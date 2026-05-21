@@ -9,6 +9,8 @@ RSpec.describe "Ephemeral workspace", type: :request do
     get start_project_path
     follow_redirect!
     expect(response.body).to include(I18n.t("projects.new.setup_title"))
+    expect(response.body).to include(I18n.t("projects.setup.welcome.intro"))
+    expect(response.body).to include('data-testid="setup-welcome"')
     expect(response.body).to include(I18n.t("projects.form.continue"))
     expect(response.body).not_to include('name="project[pin]"')
     expect(response.body).not_to include('name="project[title]"')
@@ -35,16 +37,37 @@ RSpec.describe "Ephemeral workspace", type: :request do
         }
       },
       project_layers: {
-        pieces_layer.active_storage_attachment_id.to_s => {
-          pieces_layer.id.to_s => { included: "1" }
-        }
+        pieces_layer.id.to_s => { included: "1" }
       }
     }
 
     expect(response).to redirect_to(project_path(project))
     follow_redirect!
+    expect(response.body).to include('data-testid="show-welcome"')
+    expect(response.body).to include(I18n.t("projects.show.welcome.intro"))
     expect(response.body).to include(I18n.t("projects.show.nesting_parameters_title"))
     expect(response.body).to include(I18n.t("projects.show.session_title"))
+  end
+
+  it "[REQ-FIT-AUTH-001] redirects to empezar when opening another ephemeral project without bind" do
+    get start_project_path
+    follow_redirect!
+    bound = Project.find(session[:workspace_project_id])
+
+    other = Project.create!(
+      ephemeral: true,
+      title: "Other session project",
+      status: :draft,
+      sheet_stocks_attributes: {
+        "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
+      }
+    )
+
+    get project_path(other)
+
+    expect(response).to redirect_to(start_project_path)
+    expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    expect(bound).to be_persisted
   end
 
   it "discards the workspace when returning home" do

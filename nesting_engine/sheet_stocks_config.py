@@ -31,7 +31,6 @@ def validate_sheet_stock_specs(stocks: list[SheetStockSpec]) -> None:
 
 def stocks_in_consumption_order(stocks: list[SheetStockSpec]) -> list[SheetStockSpec]:
     """Finite stocks first (stable by sort_order), then unlimited — preserves each stock's sort_order."""
-    validate_sheet_stock_specs(stocks)
     finites = sorted(
         (stock for stock in stocks if stock.quantity is not None),
         key=lambda stock: stock.sort_order,

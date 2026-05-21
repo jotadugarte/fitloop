@@ -8,7 +8,7 @@ RSpec.describe "Re-nest job output", type: :job do
   it "[REQ-FIT-NEST-004] replaces the downloadable nested DXF on a subsequent run" do
     project = Project.create!(
       title: "Replace nested output",
-      pin: "667799",
+        ephemeral: true,
       sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
       }

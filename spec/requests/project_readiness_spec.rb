@@ -3,12 +3,11 @@
 require "rails_helper"
 
 RSpec.describe "Project pre-flight", type: :request do
-  let(:project) { create_project_for_spec!(title: "Pre-flight UI", pin: "778899") }
+  let(:project) { create_project_for_spec!(title: "Pre-flight UI") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:project_id/layers [REQ-FIT-VAL-001]" do
     it "shows i18n pre-flight errors when no layers are selected" do
-      unlock_project_for_spec!(project, pin: "778899")
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),

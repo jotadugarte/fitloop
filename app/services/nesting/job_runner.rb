@@ -22,8 +22,7 @@ module Nesting
     def call
       return if handle_cancelled!
 
-      update_progress!(percent: 5, message: I18n.t("nesting.preparing"))
-      update_progress!(percent: 15, message: I18n.t("nesting.running"))
+      update_progress!(percent: 12, message: I18n.t("nesting.phase.starting"))
 
       begin
         Timeout.timeout(@project.nesting_time_limit_sec) do

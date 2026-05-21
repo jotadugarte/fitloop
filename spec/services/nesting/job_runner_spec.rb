@@ -4,10 +4,8 @@ require "rails_helper"
 
 RSpec.describe Nesting::JobRunner do
   let(:project) do
-    Project.create!(
-      title: "Job runner bench",
-      pin: "667788",
-      nesting_time_limit_sec: 600,
+    Project.create!(title: "Job runner bench",
+            nesting_time_limit_sec: 600,
       estimated_finished_at: 1.second.ago,
       sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
@@ -28,6 +26,28 @@ RSpec.describe Nesting::JobRunner do
       expect(nesting_run.status).to eq("failed")
       expect(project.status).to eq("failed")
       expect(project.progress_message).to eq(I18n.t("nesting.cancelled"))
+    end
+
+    it "[REQ-FIT-SPLIT-001] invalidates draft split proposals when nesting is cancelled" do
+      resolution = OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :system_split
+      )
+      draft = resolution.split_proposals.create!(
+        status: :draft,
+        version: 1,
+        feasible: true,
+        child_piece_geometries: [ { "label" => "a", "rings" => [] } ],
+        cut_segments: [],
+        labels: [ "a" ]
+      )
+
+      nesting_run.update!(cancel_requested_at: Time.current)
+      described_class.call(nesting_run: nesting_run)
+
+      expect(SplitProposal.exists?(draft.id)).to be(false)
     end
 
     it "marks partial and shows time limit notice when the time limit is exceeded" do
@@ -79,6 +99,39 @@ RSpec.describe Nesting::JobRunner do
       expect(nesting_run).not_to receive(:reload)
 
       described_class.call(nesting_run: nesting_run)
+    end
+
+    it "uses pre-CLI phase label before invoking the CLI [REQ-FIT-JOB-001]" do
+      allow(Nesting::CliRunner).to receive(:call)
+      project.update!(progress_percent: 8, progress_message: I18n.t("nesting.phase.preparing"))
+      runner = described_class.new(nesting_run: nesting_run)
+      allow(runner).to receive(:update_progress!).and_call_original
+
+      runner.call
+
+      expect(runner).to have_received(:update_progress!).with(
+        percent: 12,
+        message: I18n.t("nesting.phase.starting")
+      )
+    end
+
+    it "does not leave stale 5%/15% pre-CLI progress ticks" do
+      allow(Nesting::CliRunner).to receive(:call)
+      runner = described_class.new(nesting_run: nesting_run)
+      allow(runner).to receive(:update_progress!).and_call_original
+
+      runner.call
+
+      expect(runner).to have_received(:update_progress!).with(
+        percent: 12,
+        message: I18n.t("nesting.phase.starting")
+      )
+      expect(runner).not_to have_received(:update_progress!).with(
+        hash_including(message: I18n.t("nesting.preparing"))
+      )
+      expect(runner).not_to have_received(:update_progress!).with(
+        hash_including(message: I18n.t("nesting.running"))
+      )
     end
 
     it "throttles cancel_requested_at DB reads during CLI polling" do

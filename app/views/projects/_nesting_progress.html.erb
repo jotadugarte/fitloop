@@ -1,14 +1,23 @@
 <%= turbo_frame_tag dom_id(project, :nesting_progress) do %>
+  <% active_run = local_assigns.fetch(:active_run) { Nesting::ProgressLocals.active_processing_run(project) } %>
   <% if project.processing? %>
     <% percent = project.progress_percent.to_i %>
+    <% aria_valuetext = nesting_progress_aria_valuetext(project, percent) %>
     <section class="nesting-progress panel panel--chrome fit-section" data-testid="nesting-progress">
       <h2 class="fit-section__legend"><%= t("nesting.progress_heading") %></h2>
       <div class="fit-section__content">
         <div class="panel panel--inset">
           <% if percent.positive? %>
-            <progress class="nesting-progress__bar" value="<%= percent %>" max="100"></progress>
+            <progress
+              class="nesting-progress__bar"
+              value="<%= percent %>"
+              max="100"
+              aria-valuetext="<%= aria_valuetext %>"></progress>
           <% else %>
-            <div class="nesting-progress__bar nesting-progress__bar--indeterminate" role="progressbar" aria-valuetext="<%= project.progress_message %>">          </div>
+            <div
+              class="nesting-progress__bar nesting-progress__bar--indeterminate"
+              role="progressbar"
+              aria-valuetext="<%= aria_valuetext %>"></div>
           <% end %>
           <p class="nesting-progress__status" data-testid="progress-message">
             <% if percent.positive? %>
@@ -21,6 +30,16 @@
           <% end %>
           <% if time_limit_notice %>
             <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
+          <% end %>
+          <% if active_run %>
+            <div class="nesting-progress__actions">
+              <%= button_to t("nesting.cancel"),
+                            cancel_project_nesting_run_path(project, active_run),
+                            method: :post,
+                            class: "btn btn-secondary",
+                            form: { data: { turbo_frame: "_top" } },
+                            data: { testid: "cancel-nesting" } %>
+            </div>
           <% end %>
         </div>
       </div>

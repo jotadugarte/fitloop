@@ -2,10 +2,10 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ProgressBroadcaster do
-  let(:project) { create_project_for_spec!(title: "Broadcast bench", pin: "998877") }
+RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
+  let(:project) { create_project_for_spec!(title: "Broadcast bench") }
 
-  describe ".call [REQ-FIT-JOB-001]" do
+  describe ".call" do
     it "broadcasts nesting progress and, when not processing, actions and preview" do
       allow(project).to receive(:processing?).and_return(false)
       allow(project).to receive(:broadcast_replace_to)
@@ -95,6 +95,32 @@ RSpec.describe Nesting::ProgressBroadcaster do
         target: ActionView::RecordIdentifier.dom_id(project, :status_badge),
         partial: "projects/status_badge",
         locals: { project: project }
+      )
+    end
+
+    it "includes active_run locals while processing [REQ-FIT-JOB-001]" do
+      project.update!(
+        status: :processing,
+        progress_percent: 42,
+        progress_message: "Placing pieces on sheets",
+        estimated_finished_at: 8.minutes.from_now
+      )
+      active_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
+      allow(project).to receive(:processing?).and_return(true)
+      allow(project).to receive(:broadcast_replace_to)
+
+      described_class.call(project: project, eta_overrun: false, time_limit_notice: false)
+
+      expect(project).to have_received(:broadcast_replace_to).with(
+        project,
+        target: ActionView::RecordIdentifier.dom_id(project, :nesting_progress),
+        partial: "projects/nesting_progress",
+        locals: hash_including(
+          project: project,
+          active_run: active_run,
+          eta_overrun: false,
+          time_limit_notice: false
+        )
       )
     end
   end

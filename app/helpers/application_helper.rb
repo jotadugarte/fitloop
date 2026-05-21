@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include NestingProgressHelper
   include UiHelper
   include NestingPreviewHelper
 

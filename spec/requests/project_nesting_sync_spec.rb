@@ -4,18 +4,12 @@ require "rails_helper"
 
 RSpec.describe "Project nesting sync", type: :request do
   let(:project) do
-    create_project_for_spec!(
-      title: "Nesting sync bench",
-      pin: "667788",
-      ephemeral: false,
-      bind_workspace: false
-    ).tap do |record|
+    create_project_for_spec!(title: "Nesting sync bench").tap do |record|
       record.update!(status: :processing, progress_percent: 3, progress_message: I18n.t("nesting.queued"))
     end
   end
 
   before do
-    unlock_project_for_spec!(project, pin: "667788")
     project.nesting_runs.create!(
       status: "completed",
       started_at: 2.seconds.ago,
@@ -34,6 +28,26 @@ RSpec.describe "Project nesting sync", type: :request do
 
     project.reload
     expect(project).to be_completed
+  end
+
+  it "GET /projects/:id/nesting_sync includes cancel while processing [REQ-FIT-JOB-001]" do
+    project.nesting_runs.destroy_all
+    project.update!(
+      status: :processing,
+      progress_percent: 42,
+      progress_message: I18n.t("nesting.phase.fill"),
+      estimated_finished_at: 8.minutes.from_now,
+      nesting_time_limit_sec: 600
+    )
+    project.nesting_runs.create!(status: "processing", params_snapshot: {})
+
+    get nesting_sync_project_path(project), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="nesting-progress"')
+    expect(response.body).to include('data-testid="cancel-nesting"')
+    expect(response.body).not_to include('data-testid="time-remaining"')
+    expect(response.body).not_to include('data-testid="nesting-result"')
   end
 
   it "GET /projects/:id reconciles a finished job on show [REQ-FIT-JOB-001]" do

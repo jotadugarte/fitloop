@@ -59,7 +59,7 @@ class SpecDocVerifier
       errors << "missing nesting status: #{status}" unless content.match?(/\b#{status}\b/)
     end
 
-    errors << "missing PIN access requirement (6-digit user PIN)" unless content.match?(/6.?digit.*PIN|PIN.*6.?digit/i)
+    errors << "missing workspace session access (REQ-FIT-AUTH-001)" unless content.match?(/Workspace\.resolve!|workspace_project_id|ephemeral session/i)
     errors << "missing sheet inventory (finite or infinite quantity)" unless content.match?(/SheetStock|sheet inventory|quantity.*∞|infinite/i)
     errors << "missing layer filter requirement" unless content.match?(/layer.*(filter|select|checklist)|ProjectLayer/i)
     errors << "missing CLI contract (config.json or nesting_engine)" unless content.match?(/CLI|config\.json|nesting_engine/i)
