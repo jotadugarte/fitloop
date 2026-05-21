@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing Workspace spec (plan step 19: session[:workspaces] tab_id D20–D21)</current_step>
+    <current_step>3.2 — Implement (plan step 20: Workspace :workspaces hash, tab_id, TTL, touch_activity!)</current_step>
 
   </execution_context>
 

@@ -283,7 +283,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="18" status="complete">Placeholder pages /terminos and /privacidad + checkbox links; FU-LEGAL-001 copy TBD.</step>
 
     <!-- P2 — Workspace: multi-tab + 2 min TTL (REQ-FIT-AUTH-001 extension per ADR-0005) -->
-    <step id="19" status="pending">Write failing Workspace spec [REQ-FIT-AUTH-001]: `session[:workspaces] = { tab_id => project_id }`; bind/resolve by tab_id; independent project per tab; last_activity_at TTL 120s expires project with flash (D20–D21); Turbo requests include tab_id so streams do not cross tabs.</step>
+    <step id="19" status="complete">Write failing Workspace spec [REQ-FIT-AUTH-001]: `session[:workspaces] = { tab_id => project_id }`; bind/resolve by tab_id; independent project per tab; last_activity_at TTL 120s expires project with flash (D20–D21); Turbo requests include tab_id so streams do not cross tabs.</step>
     <step id="20" status="pending">Refactor Workspace: replace `SESSION_KEY` single id with `:workspaces` hash; `bind!(session, project, tab_id:)`, `resolve!(session, project_id, tab_id:)`, `discard!(session, tab_id:)`; Project#touch_activity!; heartbeat ping per tab.</step>
     <step id="21" status="pending">Write failing system spec: two tabs → two projects; closing tab &gt;2min shows lost-project message on return.</step>
 
