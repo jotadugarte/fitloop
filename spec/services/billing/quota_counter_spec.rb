@@ -29,6 +29,13 @@ RSpec.describe Billing::QuotaCounter, "[REQ-FIT-BILL-002]", type: :service do
     expect(counter).to be_exhausted
   end
 
+  it "[REQ-FIT-BILL-002] raises QuotaExhausted when recording past the monthly cap (D27)" do
+    counter = described_class.for(subscription)
+    50.times { counter.record_download! }
+
+    expect { counter.record_download! }.to raise_error(Billing::QuotaCounter::QuotaExhausted)
+  end
+
   it "[REQ-FIT-BILL-002] resets quota in a new calendar month within the same subscription (D27)" do
     travel_to Time.zone.parse("2026-03-28") do
       counter = described_class.for(subscription)

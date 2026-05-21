@@ -39,9 +39,13 @@ module Billing
 
     def record_success!
       paid_at = Time.current
-      subscription = upsert_subscription!(paid_at)
-      payment = Payment.create!(base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription))
-      { subscription: subscription, payment: payment, project: @project }
+      result = nil
+      ActiveRecord::Base.transaction do
+        subscription = upsert_subscription!(paid_at)
+        payment = Payment.create!(base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription))
+        result = { subscription: subscription, payment: payment, project: @project }
+      end
+      result
     end
 
     def upsert_subscription!(paid_at)

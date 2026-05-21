@@ -16,6 +16,14 @@ RSpec.describe Billing::RecordPlanDownload, "[REQ-FIT-BILL-002]", type: :service
     expect(usage.downloads_used).to eq(1)
   end
 
+  it "[REQ-FIT-BILL-002] skips increment when download uses a signed token" do
+    create_active_subscription!(user: user)
+
+    described_class.call(user: user, nesting_run: nesting_run, via_download_token: true)
+
+    expect(PlanMonthlyUsage.count).to eq(0)
+  end
+
   it "[REQ-FIT-BILL-002] skips increment when single-purchase grant covers the run" do
     subscription = create_active_subscription!(user: user)
     DownloadGrant.create!(

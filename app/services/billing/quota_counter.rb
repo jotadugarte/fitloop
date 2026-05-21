@@ -3,6 +3,8 @@
 module Billing
   # [REQ-FIT-BILL-002] Tracks 50 downloads per calendar month within a subscription (D27).
   class QuotaCounter
+    QuotaExhausted = Class.new(StandardError)
+
     def self.for(subscription, at: Time.current)
       new(subscription, at: at)
     end
@@ -29,6 +31,8 @@ module Billing
     end
 
     def record_download!
+      raise QuotaExhausted, "monthly plan quota exhausted" if exhausted?
+
       usage.increment!(:downloads_used)
     end
   end
