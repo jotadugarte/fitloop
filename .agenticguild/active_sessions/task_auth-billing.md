@@ -295,8 +295,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
 
     <!-- P4 — Fase B: Paywall & simulated checkout -->
     <step id="26" status="complete">Write failing request spec: nested DXF download without grant/plan → redirect paywall D42; preview still allowed; email unconfirmed blocked (D22).</step>
-    <step id="27" status="pending">Remove orphan DXF download button from UI (D23); keep manual path only.</step>
-    <step id="28" status="pending">Implement paywall page: options pay this run / planes / iniciar-sesion; guest must register before pay (D40).</step>
+    <step id="27" status="complete">Remove orphan DXF download button from UI (D23); keep manual path only.</step>
+    <step id="28" status="complete">Implement paywall page: options pay this run / planes / iniciar-sesion; guest must register before pay (D40).</step>
     <step id="29" status="complete">Write failing checkout spec: simulate card USD and SINPE CRC success/fail buttons (D37); creates Payment + DownloadGrant on success.</step>
     <step id="30" status="complete">Implement simulated checkout; on single purchase success: Billing::RetainNestedDxf before response, auto-download (+ Descargar ahora fallback D39), i18n copy D55 (24 h en Mis pagos); signed expiring download URL (D45); timezone_capture on plan checkout (D49).</step>
     <step id="31" status="complete">Write failing spec: plan purchase extends ends_at from current end (D28); calendar-month slices 50 quota; overage 50% price (D34); suspended user blocked (D46).</step>
@@ -304,7 +304,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="33" status="complete">Write failing spec: plan re-download requires live project (D50); single purchase re-download from project OR /mis-pagos while `retained_until` (D54); expired retention → 403 with copy; workspace TTL does not purge retained blob.</step>
     <step id="34" status="complete">Implement /mis-pagos: payments list, active plan, quota, per-run rows with “Descargar” while retained (single only); purge job post-24h (D56).</step>
     <step id="35" status="complete">Write failing spec: checkout copies nested_dxf even if subsequent Workspace.discard! (simulate TTL); Mis pagos download works without session project bind (D54).</step>
-    <step id="37" status="pending">Write failing system spec: anonymous → nest → pay suelta → discard workspace → download from Mis pagos (2:30 AM scenario); plan user loses project → cannot download without re-nest.</step>
+    <step id="37" status="complete">Write failing system spec: anonymous → nest → pay suelta → discard workspace → download from Mis pagos (2:30 AM scenario); plan user loses project → cannot download without re-nest.</step>
     <step id="36" status="complete">i18n parity en/es (+ es_panic): auth, billing, paywall, `billing.single_download.retention_24h` (D55); update docs/QA_MANUAL_CHECKLIST.md; REQ-tagged regression.</step>
   </implementation_plan>
 

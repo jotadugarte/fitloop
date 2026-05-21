@@ -6,9 +6,9 @@
 
     <active_skill>start-task</active_skill>
 
-    <current_phase>3 — Execution (Iterative TDD)</current_phase>
+    <current_phase>3 — Implementation</current_phase>
 
-    <current_step>3.2 — Implement (plan step 37: 2:30 AM system spec RED)</current_step>
+    <current_step>complete — all plan steps done; ready for finish-branch</current_step>
 
   </execution_context>
 
