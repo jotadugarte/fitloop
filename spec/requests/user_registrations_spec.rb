@@ -24,6 +24,7 @@ RSpec.describe "User registration", type: :request do
       expect(response.body).to include(
         I18n.t("auth.password.length_hint", min: Devise.password_length.begin)
       )
+      expect(response.body).to include("importmap")
       expect(response.body).to include('data-controller="password-validation"')
       expect(response.body).to include(
         I18n.t("auth.password.validation.too_short", min: Devise.password_length.begin)
