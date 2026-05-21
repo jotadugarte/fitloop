@@ -34,9 +34,13 @@
     <h2 id="paywall-aside-title" class="paywall-aside__title"><%= t("billing.paywall.aside.title") %></h2>
     <p class="paywall-aside__lead"><%= t("billing.paywall.aside.lead") %></p>
     <ul class="paywall-aside__benefits">
-      <li><%= t("billing.paywall.aside.benefit_ready") %></li>
+      <li>
+        <%= t("billing.paywall.aside.benefit_ready") %>
+        <ul class="paywall-aside__benefits-nested">
+          <li><%= t("billing.paywall.aside.benefit_retention") %></li>
+        </ul>
+      </li>
       <li><%= t("billing.paywall.aside.benefit_plan") %></li>
-      <li><%= t("billing.paywall.aside.benefit_retention") %></li>
     </ul>
   </aside>
 </div>

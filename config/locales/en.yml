@@ -110,9 +110,9 @@ en:
         lead: "Nesting finished. Choose how to unlock the download:"
         benefit_ready: "One-time payment for this run"
         benefit_plan: "Monthly plan with a download quota"
-        benefit_retention: "24 hours in My payments after a single purchase"
+        benefit_retention: "24 hours in My payments even if you leave the workshop"
     single_download:
-      retention_24h: "After payment, the file will be available in My payments for 24 hours even if you leave the workshop."
+      retention_24h: "If you pay for this download only (not a plan), after payment the file stays in My payments for 24 hours even if you leave the workshop. Plans do not keep a copy in My payments."
     suspended: "Your account is suspended. You cannot pay or download."
     download:
       plan_included: "Included in your plan"

@@ -125,9 +125,9 @@ es:
         lead: "El anidado terminó. Elige cómo desbloquear la descarga:"
         benefit_ready: "Pago único para esta ejecución"
         benefit_plan: "Plan mensual con cupo de descargas"
-        benefit_retention: "24 h en Mis pagos tras compra suelta"
+        benefit_retention: "24 h en Mis pagos aunque cierres el taller"
     single_download:
-      retention_24h: "Tras pagar, el archivo estará en Mis pagos durante 24 horas aunque cierres el taller."
+      retention_24h: "Si pagas solo esta descarga (no un plan), tras el pago el archivo estará en Mis pagos durante 24 horas aunque cierres el taller. Los planes no guardan copia en Mis pagos."
     suspended: "Tu cuenta está suspendida. No puedes pagar ni descargar."
     download:
       plan_included: "Incluido en tu plan"

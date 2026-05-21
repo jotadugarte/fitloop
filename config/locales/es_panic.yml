@@ -120,9 +120,9 @@ es_panic:
         lead: "El Tetris terminó. Desbloquea la bajada así:"
         benefit_ready: Una vuelta, un pago, un DXF
         benefit_plan: Plan con cupo mensual de descargas
-        benefit_retention: 24 h en Mis pagos si pagas suelto
+        benefit_retention: 24 h en Mis pagos aunque cierres el taller
     single_download:
-      retention_24h: Tras pagar, el archivo queda en Mis pagos 24 h aunque cierres el taller.
+      retention_24h: Si pagas solo esta descarga (no plan), tras pagar queda en Mis pagos 24 h aunque cierres el taller. Los planes no guardan copia en Mis pagos.
     suspended: Cuenta suspendida. Sin pagos ni descargas.
     download:
       plan_included: Incluido en tu plan
