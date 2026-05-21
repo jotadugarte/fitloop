@@ -83,6 +83,16 @@ RSpec.describe "Workspace tab isolation", type: :request do
       expect(Project.exists?(project.id)).to be(true)
     end
 
+    it "[REQ-FIT-AUTH-001] recovers project show when tab_id header missing but session still bound (D21)" do
+      project = start_workspace_for_tab!(tab_a)
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="project-show"')
+      expect(Project.exists?(project.id)).to be(true)
+    end
+
     it "[REQ-FIT-AUTH-001] keeps project with no tab-left cookie regardless of last_activity_at (D20)" do
       project = start_workspace_for_tab!(tab_a)
       project.update!(last_activity_at: 10.minutes.ago)

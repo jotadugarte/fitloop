@@ -13,5 +13,13 @@ class Workspace
 
       expire_project!(session, project, tab_id: tid)
     end
+
+    def expire_project_everywhere!(session, project)
+      cancel_active_nesting!(project)
+      project.destroy!
+      workspaces_hash(session).delete_if { |_tab, pid| pid.to_i == project.id }
+      session[WORKSPACES_KEY] = workspaces_hash(session)
+      sync_legacy_session_key!(session)
+    end
   end
 end

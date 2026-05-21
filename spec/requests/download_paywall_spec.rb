@@ -18,6 +18,14 @@ RSpec.describe "Download paywall", type: :request do
     run
   end
 
+  def start_workspace_for_tab!(tab_id)
+    headers = { "X-Workspace-Tab-Id" => tab_id }
+    get start_project_path, headers: headers
+    follow_redirect!
+    get new_project_path, headers: headers
+    Workspace.find(session, tab_id: tab_id)
+  end
+
   it "[REQ-FIT-BILL-001] omits duplicate sign-in buttons (header only)" do
     project = begin_workspace_session!
     attach_nested_output!(project)
@@ -33,9 +41,9 @@ RSpec.describe "Download paywall", type: :request do
   it "[REQ-FIT-BILL-001] paywall links reach checkout and planes without tab header (D42)" do
     user = create_billing_user!
     tab_a = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    sign_in_user! user
     project = start_workspace_for_tab!(tab_a)
     run = attach_nested_output!(project)
-    sign_in_user! user
 
     get download_paywall_project_path(project), headers: { "X-Workspace-Tab-Id" => tab_a }
     expect(response).to have_http_status(:ok)
@@ -47,14 +55,6 @@ RSpec.describe "Download paywall", type: :request do
     get planes_path(project_id: project.id)
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="planes-checkout"')
-  end
-
-  def start_workspace_for_tab!(tab_id)
-    headers = { "X-Workspace-Tab-Id" => tab_id }
-    get start_project_path, headers: headers
-    follow_redirect!
-    get new_project_path, headers: headers
-    Workspace.find(session, tab_id: tab_id)
   end
 
   it "[REQ-FIT-AUTH-002] returns guest to paywall after sign-in from header (D18)" do

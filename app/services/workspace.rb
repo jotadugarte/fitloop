@@ -29,6 +29,10 @@ class Workspace
         session[SESSION_KEY].to_i == project_id
     end
 
+    def tab_id_for_project(session, project_id)
+      workspaces_hash(session).find { |_tab, pid| pid.to_i == project_id.to_i }&.first
+    end
+
     def find_or_create!(session, tab_id: nil)
       tid = normalize_tab_id(tab_id)
       project = find(session, tab_id: tid)

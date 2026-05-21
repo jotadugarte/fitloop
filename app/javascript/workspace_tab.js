@@ -53,6 +53,16 @@ export function configureWorkspaceTabLeave() {
   })
 }
 
+/** User still on Fitloop (visible tab): do not treat as workshop closed. */
+export function configureWorkspaceTabPresence() {
+  const clearIfVisible = () => {
+    if (document.visibilityState === "visible") clearTabLeft()
+  }
+
+  document.addEventListener("turbo:load", clearIfVisible)
+  document.addEventListener("visibilitychange", clearIfVisible)
+}
+
 export function configureWorkspaceTabHeaders() {
   document.addEventListener("turbo:before-fetch-request", (event) => {
     const tabId = workspaceTabId()
