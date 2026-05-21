@@ -2,46 +2,73 @@
 
 require "fileutils"
 
-# Ephemeral in-browser workspace: one project per session, discarded when the user leaves.
+# Ephemeral in-browser workspace: projects per browser tab, discarded on leave or TTL.
 class Workspace
   SESSION_KEY = :workspace_project_id
+  WORKSPACES_KEY = :workspaces
+  DEFAULT_TAB_ID = "__default__"
+  ACTIVITY_TTL = 120.seconds
   NESTING_RUNS_DIR = Rails.root.join("tmp/nesting_runs").freeze
 
   class << self
-    def find(session)
-      project_id = session[SESSION_KEY]
+    def bound?(session)
+      session[SESSION_KEY].present? || workspaces_hash(session).present?
+    end
+
+    def find(session, tab_id: nil)
+      project_id = bound_project_id(session, tab_id: tab_id)
       return nil if project_id.blank?
 
       Project.ephemeral.find_by(id: project_id)
     end
 
-    def find_or_create!(session)
-      project = find(session)
-      session.delete(SESSION_KEY) if project.nil? && session[SESSION_KEY].present?
-      find(session) || create!(session)
+    def find_or_create!(session, tab_id: nil)
+      tid = normalize_tab_id(tab_id)
+      project = find(session, tab_id: tid)
+      clear_stale_bind!(session, tid) if project.nil? && bound_project_id(session, tab_id: tid).present?
+      find(session, tab_id: tid) || create!(session, tab_id: tid)
     end
 
-    def resolve!(session, project_id)
+    def resolve!(session, project_id, tab_id: nil)
       project_id = project_id.to_i
-      unless session[SESSION_KEY].to_i == project_id
+      tid = normalize_tab_id(tab_id)
+      unless bound_project_id(session, tab_id: tid).to_i == project_id
         raise ActiveRecord::RecordNotFound,
               "Ephemeral project #{project_id} is not bound to this session"
       end
 
-      project = find(session)
+      project = find(session, tab_id: tid)
       raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} was discarded" unless project
 
+      if activity_expired?(project)
+        expire_project!(session, project, tab_id: tid)
+        raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} expired"
+      end
+
+      touch_activity!(project)
       project
     end
 
-    def discard!(session)
-      project = find(session)
-      cancel_active_nesting!(project) if project
-      project&.destroy
-      session.delete(SESSION_KEY)
+    def discard!(session, tab_id: nil)
+      if tab_id.present?
+        discard_tab!(session, normalize_tab_id(tab_id))
+      else
+        tab_ids(session).each { |tid| discard_tab!(session, tid) }
+        session.delete(SESSION_KEY)
+        session.delete(WORKSPACES_KEY)
+      end
     end
 
-    # Remove abandoned ephemeral projects (browser closed without visiting home).
+    def activity_expired?(project)
+      return false if project.last_activity_at.nil?
+
+      project.last_activity_at < ACTIVITY_TTL.ago
+    end
+
+    def touch_activity!(project)
+      project.update!(last_activity_at: Time.current)
+    end
+
     def purge_all_ephemeral!
       destroyed = 0
       Project.ephemeral.find_each do |project|
@@ -52,7 +79,6 @@ class Workspace
       destroyed
     end
 
-    # Dev/maintenance: wipe all projects, sheet stocks, nesting runs, and temp dirs.
     def purge_all!
       projects_count = Project.count
       Project.destroy_all
@@ -77,26 +103,89 @@ class Workspace
       count
     end
 
-    def bind!(session, project)
-      session[SESSION_KEY] = project.id
+    def bind!(session, project, tab_id: nil)
+      tid = normalize_tab_id(tab_id)
+      hash = workspaces_hash(session)
+      hash[tid] = project.id
+      session[WORKSPACES_KEY] = hash
+      sync_legacy_session_key!(session)
     end
 
-    def create!(session)
+    def create!(session, tab_id: nil)
       project = Project.create!(
         ephemeral: true,
         title: I18n.t("workspace.default_title"),
-        status: :draft
+        status: :draft,
+        last_activity_at: Time.current
       )
-      bind!(session, project)
+      bind!(session, project, tab_id: tab_id)
       project
     end
 
-    def reset!(session)
-      discard!(session)
-      create!(session)
+    def reset!(session, tab_id: nil)
+      discard!(session, tab_id: tab_id)
+      create!(session, tab_id: tab_id)
     end
 
     private
+
+    def normalize_tab_id(tab_id)
+      tab_id.presence || DEFAULT_TAB_ID
+    end
+
+    def workspaces_hash(session)
+      session[WORKSPACES_KEY] = (session[WORKSPACES_KEY] || {}).stringify_keys
+    end
+
+    def tab_ids(session)
+      ids = workspaces_hash(session).keys
+      return ids if ids.present?
+
+      session[SESSION_KEY].present? ? [DEFAULT_TAB_ID] : []
+    end
+
+    def bound_project_id(session, tab_id:)
+      tid = normalize_tab_id(tab_id)
+      workspaces_hash(session)[tid].presence || legacy_bound_project_id(session, tab_id: tid)
+    end
+
+    def legacy_bound_project_id(session, tab_id:)
+      return nil unless tab_id == DEFAULT_TAB_ID
+
+      session[SESSION_KEY]
+    end
+
+    def sync_legacy_session_key!(session)
+      ids = workspaces_hash(session).values
+      if ids.empty?
+        session.delete(SESSION_KEY)
+      elsif tab_ids(session).include?(DEFAULT_TAB_ID)
+        session[SESSION_KEY] = workspaces_hash(session)[DEFAULT_TAB_ID]
+      end
+    end
+
+    def clear_stale_bind!(session, tab_id)
+      workspaces_hash(session).delete(tab_id)
+      session[WORKSPACES_KEY] = workspaces_hash(session)
+      sync_legacy_session_key!(session)
+    end
+
+    def discard_tab!(session, tab_id)
+      project = find(session, tab_id: tab_id)
+      cancel_active_nesting!(project) if project
+      project&.destroy
+      workspaces_hash(session).delete(tab_id)
+      session[WORKSPACES_KEY] = workspaces_hash(session)
+      sync_legacy_session_key!(session)
+    end
+
+    def expire_project!(session, project, tab_id:)
+      cancel_active_nesting!(project)
+      project.destroy!
+      workspaces_hash(session).delete(tab_id)
+      session[WORKSPACES_KEY] = workspaces_hash(session)
+      sync_legacy_session_key!(session)
+    end
 
     def cancel_active_nesting!(project)
       project.nesting_runs.where(status: "processing").find_each do |run|

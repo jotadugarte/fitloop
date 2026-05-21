@@ -8,8 +8,10 @@ RSpec.describe "Workspace tab isolation", type: :request do
   end
 
   def start_workspace_for_tab!(tab_id)
-    get start_project_path, headers: tab_headers(tab_id)
-    follow_redirect!
+    headers = tab_headers(tab_id)
+    get start_project_path, headers: headers
+    expect(response).to redirect_to(new_project_path)
+    get new_project_path, headers: headers
     Workspace.find(session, tab_id: tab_id)
   end
 

@@ -43,12 +43,12 @@ class ProjectsController < ApplicationController
   end
 
   def start
-    Workspace.discard!(session)
+    Workspace.discard!(session, tab_id: workspace_tab_id)
     redirect_to new_project_path
   end
 
   def new
-    @project = Workspace.find_or_create!(session)
+    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
     @composer_draft = {}
   end
 
@@ -180,7 +180,7 @@ class ProjectsController < ApplicationController
       return
     end
 
-    Workspace.bind!(session, @project)
+    Workspace.bind!(session, @project, tab_id: workspace_tab_id)
     @project.update!(status: :ready)
     redirect_to @project
   end

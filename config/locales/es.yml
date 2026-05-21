@@ -110,6 +110,7 @@ es:
   workspace:
     default_title: "Sesión de anidado"
     expired: "Esta sesión ya no está disponible. Vuelve a empezar."
+    activity_expired: "Tu proyecto en el taller expiró por inactividad (más de 2 minutos). Vuelve a empezar."
 
   home:
     index:

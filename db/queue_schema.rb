@@ -101,6 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_025640) do
     t.boolean "ephemeral", default: true, null: false
     t.datetime "estimated_finished_at"
     t.float "kerf_mm", default: 0.0, null: false
+    t.datetime "last_activity_at"
     t.float "margin_mm", default: 5.0, null: false
     t.integer "nesting_time_limit_sec", default: 600, null: false
     t.string "progress_message"

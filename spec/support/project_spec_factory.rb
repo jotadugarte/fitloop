@@ -55,7 +55,8 @@ RSpec.configure do |config|
     def start_setup_session!
       get start_project_path
       follow_redirect!
-      Project.find(session[Workspace::SESSION_KEY])
+      Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID) ||
+        Project.find(session[Workspace::SESSION_KEY])
     end
 
     # Session bind must go through the controller (Rails 8 request specs do not persist
@@ -67,7 +68,8 @@ RSpec.configure do |config|
       else
         get start_project_path
         follow_redirect!
-        Project.find(session[Workspace::SESSION_KEY])
+        Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID) ||
+          Project.find(session[Workspace::SESSION_KEY])
       end
     end
 

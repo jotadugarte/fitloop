@@ -95,6 +95,7 @@ en:
   workspace:
     default_title: "Nesting session"
     expired: "This session is no longer available. Please start again."
+    activity_expired: "Your workshop project expired due to inactivity (over 2 minutes). Please start again."
 
   home:
     index:

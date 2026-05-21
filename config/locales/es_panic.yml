@@ -106,6 +106,7 @@ es_panic:
   workspace:
     default_title: Noche de desvelo
     expired: Se cerró AutoCAD sin guardar. Toca empezar de cero.
+    activity_expired: El taller caducó por inactividad (>2 min). Empezar de cero, sin llanto en el teclado.
   home:
     index:
       tagline: Tetris de supervivencia DXF

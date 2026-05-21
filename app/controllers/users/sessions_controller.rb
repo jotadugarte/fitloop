@@ -20,7 +20,7 @@ module Users
     end
 
     def workspace_bound?
-      Workspace.find(session).present?
+      Workspace.bound?(session)
     end
   end
 end

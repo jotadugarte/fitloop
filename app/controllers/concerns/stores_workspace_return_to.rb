@@ -26,10 +26,11 @@ module StoresWorkspaceReturnTo
     return false unless controller_name.in?(%w[sessions registrations])
     return false unless action_name == "new"
 
-    session[Workspace::SESSION_KEY].present?
+    Workspace.bound?(session)
   end
 
   def store_workspace_return_to!
-    session[:workspace_return_to] = project_path(session[Workspace::SESSION_KEY])
+    project_id = session[Workspace::SESSION_KEY].presence || session.dig(Workspace::WORKSPACES_KEY)&.values&.first
+    session[:workspace_return_to] = project_path(project_id)
   end
 end
