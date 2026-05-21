@@ -14,9 +14,21 @@ module Auth
     def self.for_ui
       ordered = []
       google = OAUTH.find { |p| p.key == :google_oauth2 }
-      ordered << google if credentials_present?(google)
-      ordered.concat(OAUTH.reject { |p| p.key == :google_oauth2 })
+      ordered << google if google && credentials_present?(google) && registered?(google)
+      ordered.concat(
+        OAUTH.reject { |p| p.key == :google_oauth2 }.select { |p| registered?(p) }
+      )
       ordered
+    end
+
+    def self.authorize_path_name(provider)
+      precondition!(provider.is_a?(Provider))
+      "user_#{provider.key}_omniauth_authorize_path"
+    end
+
+    def self.registered?(provider)
+      precondition!(provider.is_a?(Provider))
+      Rails.application.routes.url_helpers.respond_to?(authorize_path_name(provider))
     end
 
     def self.credentials_present?(provider)

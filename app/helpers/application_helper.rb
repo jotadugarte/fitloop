@@ -3,6 +3,10 @@ module ApplicationHelper
   include UiHelper
   include NestingPreviewHelper
 
+  def user_omniauth_authorize_path(provider)
+    public_send(Auth::OmniauthProviders.authorize_path_name(provider).to_sym)
+  end
+
   def sheet_stock_dimension_mm(value)
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)
   end

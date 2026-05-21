@@ -1,7 +1,7 @@
 <div class="oauth-providers" data-controller="timezone-capture">
   <% Auth::OmniauthProviders.for_ui.each do |provider| %>
     <%= button_to t("auth.oauth.#{provider.key}"),
-                  omniauth_authorize_path(:user, provider.key),
+                  user_omniauth_authorize_path(provider),
                   method: :post,
                   class: "oauth-providers__button",
                   data: { testid: provider.test_id, timezone_capture_target: "oauthLink" },
