@@ -51,5 +51,13 @@ module Users
       set_minimum_password_length
       render :new, status: :unprocessable_entity
     end
+
+    def after_sign_up_path_for(resource)
+      consume_workspace_return_to || super
+    end
+
+    def after_inactive_sign_up_path_for(resource)
+      consume_workspace_return_to || super
+    end
   end
 end

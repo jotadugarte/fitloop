@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Failing request spec (plan step 14: auth workspace bind D18)</current_step>
+    <current_step>3.1 — Failing request spec (plan step 16: logout + Workspace.discard! D19)</current_step>
 
   </execution_context>
 

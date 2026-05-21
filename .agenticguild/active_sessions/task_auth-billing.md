@@ -276,8 +276,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <step id="11" status="complete">Implement OmniAuth callbacks; capture name, email; Stimulus `timezone_capture_controller` sets `users.time_zone` from `Intl.DateTimeFormat().resolvedOptions().timeZone` on register (D49); trusted-provider email marks confirmed when policy allows; register Facebook/Apple similarly when ENV set.</step>
     <step id="12" status="complete">Write failing spec: email collision → merge opt-in screen (no silent merge); declining leaves user on error path.</step>
     <step id="13" status="complete">Implement Accounts::Merge opt-in service; no post-login provider linking UI (D12).</step>
-    <step id="14" status="pending">Write failing spec: login/register mid-workflow keeps Workspace project bind (D18); return_to project#show.</step>
-    <step id="15" status="pending">Implement auth return_to; Stimulus `workspace_tab_controller`: UUID per tab in sessionStorage; send `tab_id` on workspace requests for `session[:workspaces]` bind (D21).</step>
+    <step id="14" status="complete">Write failing spec: login/register mid-workflow keeps Workspace project bind (D18); return_to project#show.</step>
+    <step id="15" status="complete">Implement auth return_to; Stimulus `workspace_tab_controller`: UUID per tab in sessionStorage; send `tab_id` on workspace requests for `session[:workspaces]` bind (D21).</step>
     <step id="16" status="pending">Write failing spec: logout runs Workspace.discard! with confirm when project active (D19).</step>
     <step id="17" status="pending">Implement logout + discard; /mi-cuenta profile; delete account multi-step confirm with active-plan warning (D15).</step>
     <step id="18" status="pending">Placeholder pages /terminos and /privacidad + checkbox links; FU-LEGAL-001 copy TBD.</step>
