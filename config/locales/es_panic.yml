@@ -122,6 +122,15 @@ es_panic:
       tier_2: Plan 2 meses
       tier_4: Plan 4 meses
     checkout:
+      demo_badge: DEMO — pagos simulados (QA)
+      card_usd: Tarjeta (USD)
+      sinpe_crc: SINPE Móvil (CRC)
+      simulate_success: Pago exitoso
+      simulate_failure: Pago fallido
+      failure: El pago simulado falló. Otra vuelta.
+      success_title: Pago recibido
+      success_retention: Descarga en marcha. También en Mis pagos 24 h aunque cierres el taller.
+      download_now: Descargar ahora
       title: Pagar esta descarga
       single_download: Descarga suelta
       overage_hint: Cupo del plan muerto (50%)

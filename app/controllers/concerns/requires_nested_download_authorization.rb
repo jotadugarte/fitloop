@@ -17,8 +17,18 @@ module RequiresNestedDownloadAuthorization
       return redirect_to(email_confirmation_pending_path, alert: t("devise.failure.unconfirmed"))
     end
 
+    return if valid_download_token?(run)
     return if Billing::Entitlement.can_download?(user: current_user, nesting_run: run)
 
     redirect_to download_paywall_project_path(@project)
+  end
+
+  def valid_download_token?(run)
+    return false if params[:download_token].blank? || current_user.nil?
+
+    payload = Billing::DownloadToken.verify(params[:download_token])
+    payload[:user_id] == current_user.id && payload[:nesting_run_id] == run.id
+  rescue Billing::DownloadToken::InvalidToken
+    false
   end
 end

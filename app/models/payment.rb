@@ -12,5 +12,5 @@ class Payment < ApplicationRecord
   enum :purpose, { single_download: "single_download", plan_subscription: "plan_subscription" }, validate: true
 
   validates :amount, numericality: { greater_than: 0 }
-  validates :paid_at, presence: true, unless: :pending?
+  validates :paid_at, presence: true, if: :succeeded?
 end

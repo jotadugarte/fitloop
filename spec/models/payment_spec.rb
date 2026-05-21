@@ -34,7 +34,7 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
       expect(payment).to be_succeeded
     end
 
-    it "[REQ-FIT-BILL-001] rejects failed status without paid_at" do
+    it "[REQ-FIT-BILL-001] allows failed status without paid_at" do
       payment = described_class.new(
         user: user,
         status: "failed",
@@ -44,8 +44,7 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
         purpose: "single_download"
       )
 
-      expect(payment).not_to be_valid
-      expect(payment.errors).to be_of_kind(:paid_at, :blank)
+      expect(payment).to be_valid
     end
   end
 end

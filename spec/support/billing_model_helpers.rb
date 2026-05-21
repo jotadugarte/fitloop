@@ -23,4 +23,5 @@ end
 RSpec.configure do |config|
   config.include BillingModelHelpers, type: :model
   config.include BillingModelHelpers, type: :request
+  config.include BillingModelHelpers, type: :service
 end
