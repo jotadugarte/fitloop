@@ -53,6 +53,10 @@ python -m pytest nesting_engine/tests -q -m "not slow"
 | REQ-FIT-SPEC-001 | `test/spec/spec_doc_test.rb` |
 | REQ-FIT-DOM-001 | `spec/models/project*_spec.rb`, `spec/models/sheet_stock_spec.rb` |
 | REQ-FIT-AUTH-001 | `spec/services/workspace_spec.rb`, `spec/requests/workspace_access_spec.rb`, `spec/requests/ephemeral_workspace_spec.rb` |
+| REQ-FIT-AUTH-002 | `test/spec/auth_billing_spec_doc_test.rb` (+ Devise/OmniAuth specs TBD in `task_auth-billing.md`) |
+| REQ-FIT-BILL-001 | `test/spec/auth_billing_spec_doc_test.rb` (+ checkout specs TBD) |
+| REQ-FIT-BILL-002 | `test/spec/auth_billing_spec_doc_test.rb` (+ plan/quota specs TBD) |
+| REQ-FIT-BILL-003 | `test/spec/auth_billing_spec_doc_test.rb` (+ download grant/retention specs TBD) |
 | REQ-FIT-UI-001 | `spec/system/projects_spec.rb` |
 | REQ-FIT-UI-002 | `spec/requests/project_preview_spec.rb`, `spec/services/nesting/preview_presenter_spec.rb` |
 | REQ-FIT-UI-003 | `spec/requests/workspace_access_spec.rb`, `spec/requests/i18n_views_spec.rb` |

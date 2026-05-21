@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-19 — ephemeral session access shipped (`REQ-FIT-AUTH-001`, ADR-0004); PIN removed from app.
+**Last audit:** 2026-05-20 — auth + billing spec locked (ADR-0005, REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003); implementation in progress.
 
-**Next action:** Optional FastAPI wrapper; or hard file/piece caps.
+**Next action:** P6 Auth (Devise + OmniAuth) → P7 Billing (simulated paywall).
 
 ---
 
@@ -89,7 +89,8 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 ## In Progress
 
-_(none)_
+- [ ] **P6 — User accounts (auth)** — Devise + OmniAuth; email verification; merge opt-in; Spanish routes; workspace re-bind on login (REQ-FIT-AUTH-002, ADR-0005) — Session: `task_auth-billing.md`
+- [ ] **P7 — Simulated billing** — paywall nested DXF; `config/billing.yml`; plans 1/2/4m; grants + 24h retention; `/mis-pagos` (REQ-FIT-BILL-001..003, ADR-0005) — Depends on: P6 — Session: `task_auth-billing.md`
 
 ---
 

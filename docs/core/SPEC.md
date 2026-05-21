@@ -17,7 +17,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | Term | Definition | In code / UX |
 |------|------------|----------------|
 | **Project** | Ephemeral nesting workspace: title, parameters, inputs, sheet stocks, selected layers, job state | `Project` model (`ephemeral: true`) |
-| **Workspace** | Session-bound aggregate: at most one ephemeral `Project` per browser session | `Workspace` service, `session[:workspace_project_id]` |
+| **Workspace** | Session-bound aggregate: ephemeral `Project`(s) per browser tab | `Workspace` service, `session[:workspaces]` hash (`tab_id` → `project_id`) |
+| **User** | Persistent account for login, verification, and billing; does **not** own `Project` rows in v1 | `User` model, Devise + OmniAuth |
+| **DownloadGrant** | Entitlement to download one `NestingRun`'s nested DXF (plan quota or single purchase) | `DownloadGrant`, signed download token |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
 | **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
 | **CompositePiece** | One nestable unit: primary polygon (+ holes) + attached decoration entities (Python) | `composite_extract` |
@@ -93,12 +95,21 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 1. User triggers new **NestingRun** on same project (“Volver a anidar”).
 2. Previous downloadable result replaced; run history retained.
 
-### W5 — Ephemeral session access (no accounts)
+### W5 — Ephemeral session access
 
-1. No user accounts or saved-project list in v1; `GET /projects` redirects to workspace start (`/empezar`).
-2. Access to a `Project` requires the browser session cookie and matching `session[:workspace_project_id]` (`Workspace.resolve!`).
+1. `GET /projects` redirects to workspace start (`/empezar`); no saved-project list.
+2. Access to a `Project` requires tab-scoped bind: `session[:workspaces][tab_id]` (`Workspace.resolve!` with `tab_id`).
 3. Opening another ephemeral project ID without bind → redirect to start with `workspace.expired` (HTML) or `RecordNotFound` (internal).
-4. Returning home or explicit discard → `Workspace.discard!` destroys the project and clears the session key.
+4. Returning home, explicit discard, or user logout → `Workspace.discard!` destroys the project for that tab and clears the bind.
+5. **>120s** without activity on a tab → project expired with explicit message; **≤120s** → same project.
+
+### W6 — Accounts, paywall, and simulated billing
+
+1. Anonymous user may upload, nest, and preview; **nested DXF download** requires login + verified email + grant or active plan.
+2. Register/login via OAuth (Google → Facebook → Apple → email) or email/password; terms checkbox; name required.
+3. Paywall offers: pay this run (single), view `/planes`, or `/iniciar-sesion`.
+4. Simulated checkout: **Tarjeta (USD)** or **SINPE Móvil (CRC)** with success/fail demo buttons.
+5. Single purchase: auto-download + blob retained **24h** under user (`/mis-pagos`); plan downloads require live ephemeral project.
 
 ---
 
@@ -129,17 +140,124 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
+| **REQ-FIT-AUTH-002** | User accounts: Devise + OmniAuth, email verification, merge opt-in, account routes, delete account | P6 |
+| **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; simulated USD/CRC checkout | P7 |
+| **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
+| **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 
 ### REQ-FIT-AUTH-001 (detail)
 
 **Supersedes pre-2026-05-19 PIN model** — see `docs/core/ADRs/0004-ephemeral-session-access.md`.
 
-- **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!` sets `session[:workspace_project_id]`.
-- **Read / mutate:** Controllers use `Workspace.resolve!(session, id)` — returns the project only when the session is bound to that ephemeral id.
+- **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!(session, project, tab_id:)` sets `session[:workspaces][tab_id]`.
+- **Read / mutate:** Controllers use `Workspace.resolve!(session, id, tab_id:)` — returns the project only when the tab's bind matches the ephemeral id.
+- **Multi-tab:** Each browser tab has a UUID `tab_id` (Stimulus `workspace_tab_controller`); independent ephemeral projects per tab.
+- **Activity TTL:** `last_activity_at` on project; heartbeat per tab; **120s** idle → expire with i18n message.
 - **Foreign ID:** Unbound request for another project → `ActiveRecord::RecordNotFound` or redirect to `/empezar` with `workspace.expired`.
 - **Leave:** `HomeController` / `Workspace.discard!` destroys the project, cancels active nesting, clears session key.
 - **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
 - **Non-goals:** cross-session sharing, PIN recovery, admin override via app UI.
+- **Superseded session key:** migrate from `session[:workspace_project_id]` to `session[:workspaces]` per ADR-0005.
+
+### REQ-FIT-AUTH-002 (detail)
+
+**Scope:** Persistent `User` accounts orthogonal to ephemeral `Workspace` (ADR-0005). Projects are **not** saved per user.
+
+**Stack:** **Devise** (email/password, `:confirmable`, password minimum **12** characters, password reset) + **OmniAuth** (Google, Facebook, Apple — enabled only when credentials present). UI order: Google → Facebook → Apple → email.
+
+**Routes (Spanish, D41):**
+
+| Path | Purpose |
+|------|---------|
+| `/iniciar-sesion` | Login |
+| `/crear-cuenta` | Registration |
+| `/mi-cuenta` | Profile; link to Mis pagos |
+| `/mis-pagos` | Payment history (billing) |
+| `/planes` | Plan pricing and checkout |
+
+**Registration:**
+
+- **OAuth:** one-click create or sign-in; capture `name`, `email`; trusted-provider email may set `email_confirmed_at` when policy allows.
+- **Email/password:** `name` required; `terms_accepted_at` + `terms_version` required; confirmation link before billing actions.
+- **Email collision:** if email exists with another method → opt-in **merge** screen (no silent merge).
+- **Timezone:** `users.time_zone` captured via `Intl.DateTimeFormat().resolvedOptions().timeZone` on register/plan checkout (Stimulus `timezone_capture_controller`); required before plan purchase.
+
+**Gates:**
+
+- `email_confirmed_at` required before pay or activate plan (D22); rest of app usable while unconfirmed.
+- `suspended_at` blocks login actions that pay or download (admin via console in v1).
+
+**Session + workspace:**
+
+- Login/register mid-workflow **keeps** the bound ephemeral `Project` (D18).
+- Logout runs `Workspace.discard!` with confirmation when project active (D19).
+- Delete account: multi-step confirm; warn if active plan (D15).
+
+**Non-goals v1:** link additional OAuth providers from Mi cuenta (D12); age verification (D17).
+
+**Tests:** `test/spec/auth_billing_spec_doc_test.rb`; Devise/OmniAuth request specs (implementation plan P1).
+
+### REQ-FIT-BILL-001 (detail)
+
+**Scope:** Paywall and simulated payments for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button.
+
+**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Seed keys: `single_download_usd`, `single_download_sinpe_crc`, `plan_*` tiers 1/2/4 months.
+
+**Checkout (simulated, D37):**
+
+- Methods: **Tarjeta (USD)** and **SINPE Móvil (CRC)**.
+- Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator.
+- Guest at paywall must **register/login** first (no guest checkout, D40).
+
+**Paywall UX (D42):** Clear copy “Se requiere pago o plan” with paths to single-run pay, `/planes`, `/iniciar-sesion`.
+
+**Tests:** billing doc verifier; checkout request specs (implementation plan P4).
+
+### REQ-FIT-BILL-002 (detail)
+
+**Scope:** Subscription plans **1, 2, and 4 months** (not 3); simulated purchase; entitlement while active.
+
+**Quota (D27):** **50** nested DXF downloads per **calendar month** within the subscription period (tier 1m → 50; 2m → 50+50; 4m → up to 200 total across months). Counters **reset each month** inside the cycle — not one pooled cap.
+
+**Overage (D34):** When monthly plan quota is exhausted, user may buy a **single download** at **50%** of the normal single-download list price (document in terms/plans, FU-LEGAL-002).
+
+**Plan rules:**
+
+- **One active plan** per user at a time.
+- Additional purchase of same or different tier **extends** `ends_at` from the **end** of the current plan (D28) — does not restart from today.
+- `starts_at` = payment instant; `ends_at` = end of natural day N months later in `users.time_zone` (23:59:59 anchor day, D29).
+- **No grace period** after expiry (D30); manual renewal after expiry (D31).
+- Post-plan purchase redirect to `project#show` (D43).
+- Plan-active download shows brief “Incluido en tu plan” i18n (D33).
+
+**Mis pagos (D38):** `/mis-pagos` — payment history, active plan (expiry, monthly quota used/remaining), single-purchase rows.
+
+**Tests:** plan checkout specs; quota counter specs (implementation plan P4).
+
+### REQ-FIT-BILL-003 (detail)
+
+**Scope:** Authorize nested DXF downloads via **`DownloadGrant`** (and plan quota), not rate limiting (D44).
+
+**Grant model:**
+
+- One active grant per (`user_id`, `nesting_run_id`).
+- Re-download same run allowed while grant valid (signed URL per attempt).
+- Kinds: `single_purchase` | `plan_included`.
+
+**Signed URLs (D45):** Download endpoint requires token bound to `NestingRun` + user; expiry ~**15 minutes** per request.
+
+**Single-purchase retention (D54):**
+
+- On successful single purchase, copy `Project#nested_dxf` blob to grant attachment **`retained_nested_dxf`** (or `DeliveredDownload` row) **before** workspace may discard project.
+- `retained_until` = `paid_at + 24.hours`; download from `/mis-pagos` authorized while `Time.current <= retained_until` even if ephemeral `Project` is gone.
+- i18n copy: file available in Mis pagos for **24 hours** after purchase (D55).
+- Purge blob after `retained_until` (job or lazy, D56); history row may remain without download button.
+
+**Plan downloads (D50):** No retained blob; re-download only while ephemeral project still bound and quota OK; session loss requires re-nest.
+
+**Auto-download (D39):** Single purchase success triggers auto-download + “Descargar ahora” fallback; plan purchase returns to project without extra step.
+
+**Tests:** `test/spec/auth_billing_spec_doc_test.rb`; download authorization and retention specs (implementation plan P4).
 
 ### REQ-FIT-DOM-001 (detail)
 
@@ -322,4 +440,5 @@ Full JSON schema to be maintained in `nesting_engine/README.md` when the package
 
 - FastAPI microservice wrapper
 - Hard caps on file size / piece count
-- Cross-session project resume (accounts, share links, export/import)
+- Cross-session **project** resume (projects stay ephemeral; accounts enable billing and 24h single-download retention only)
+- Real payment provider integration (Stripe, etc.) — simulated buttons only in v1 billing phase

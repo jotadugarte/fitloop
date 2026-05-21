@@ -2,7 +2,7 @@
 
 **Source of truth:** `db/schema.rb` (version `2026_05_21_025640`). Regenerate this doc when migrations change.
 
-**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (+ Active Storage attachments on `Project`).
+**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (+ Active Storage attachments on `Project`). **Planned (ADR-0005, P6/P7):** `User`, `Subscription`, `Purchase`, `Payment`, `DownloadGrant`, `PlanMonthlyUsage`.
 
 ---
 
@@ -186,9 +186,34 @@ Standard Rails 8 tables for blob metadata:
 
 ---
 
+## Planned tables (ADR-0005 — auth + billing, not yet migrated)
+
+### `users`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `email` | string | Unique, case-insensitive |
+| `encrypted_password` | string | Devise; min 12 chars for email auth |
+| `name` | string | Required at registration |
+| `email_confirmed_at` | datetime | Gate before billing |
+| `terms_accepted_at` | datetime | Required at registration |
+| `terms_version` | string | Legal version id |
+| `time_zone` | string | Required before plan purchase |
+| `suspended_at` | datetime | Blocks pay/download when set |
+
+### `subscriptions`, `purchases`, `payments`, `download_grants`, `plan_monthly_usages`
+
+See `REQ-FIT-BILL-001..003` in `SPEC.md`. `download_grants.retained_nested_dxf` (Active Storage) + `retained_until` for single-purchase 24h retention.
+
+---
+
 ## Entity Relationship (logical)
 
 ```
+User 1──* Subscription
+User 1──* Purchase
+User 1──* DownloadGrant
+DownloadGrant *──1 NestingRun (via nesting_run_id)
 Project 1──* SheetStock
 Project 1──* ProjectLayer
 Project 1──* NestingRun

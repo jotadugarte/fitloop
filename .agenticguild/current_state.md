@@ -4,11 +4,11 @@
 
   <execution_context>
 
-    <active_skill>explore-task</active_skill>
+    <active_skill>start-task</active_skill>
 
-    <current_phase>2 — The Handoff (Finalize &amp; Kickoff)</current_phase>
+    <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>2.1 — Spec locked; handoff to start-task</current_step>
+    <current_step>3.1 — Failing test (plan step 4: User model spec)</current_step>
 
   </execution_context>
 

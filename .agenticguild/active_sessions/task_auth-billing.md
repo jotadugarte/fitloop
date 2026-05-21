@@ -122,6 +122,8 @@
 
 ## Domain Model
 
+_Approved 2026-05-20 (start-task step 3.0)._
+
 ### User
 - **Responsibility:** Identidad persistente; no dueño de `Project` rows en v1.
 - **Invariants:** email único (case-insensitive); `email_confirmed_at` presente antes de billing; `name` presente; `time_zone` presente antes de comprar plan; `terms_accepted_at` + `terms_version` al crear cuenta; contraseña ≥12 chars si auth por email; `suspended_at` nil para operar.
@@ -259,9 +261,9 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
 
   <implementation_plan>
     <!-- P0 — Governance & anchors -->
-    <step id="1" status="pending">Write failing architecture/doc tests or spec verifier stubs for new REQ-FIT-AUTH-002 and REQ-FIT-BILL-001..003 presence in docs/core/SPEC.md (extend existing doc verifier pattern if present).</step>
-    <step id="2" status="pending">Add docs/core/ADRs/0005-user-accounts-and-simulated-billing.md (extends ADR-0004; `session[:workspaces]` hash; 24h retained nested_dxf for single purchase D54; billing.yml; Devise+OmniAuth; no project persistence per user).</step>
-    <step id="3" status="pending">Update docs/core/SPEC.md (REQ-FIT-AUTH-002 detail, REQ-FIT-BILL-001..003), DATA_FLOW_MAP.md, SCHEMA_REFERENCE.md, docs/ROADMAP.md pending items P6 Auth / P7 Billing.</step>
+    <step id="1" status="complete">Write failing architecture/doc tests or spec verifier stubs for new REQ-FIT-AUTH-002 and REQ-FIT-BILL-001..003 presence in docs/core/SPEC.md (extend existing doc verifier pattern if present).</step>
+    <step id="2" status="complete">Add docs/core/ADRs/0005-user-accounts-and-simulated-billing.md (extends ADR-0004; `session[:workspaces]` hash; 24h retained nested_dxf for single purchase D54; billing.yml; Devise+OmniAuth; no project persistence per user).</step>
+    <step id="3" status="complete">Update docs/core/SPEC.md (REQ-FIT-AUTH-002 detail, REQ-FIT-BILL-001..003), DATA_FLOW_MAP.md, SCHEMA_REFERENCE.md, docs/ROADMAP.md pending items P6 Auth / P7 Billing.</step>
 
     <!-- P1 — Fase A: Auth (Devise + OmniAuth) -->
     <step id="4" status="pending">Write failing model spec User [REQ-FIT-AUTH-002]: email unique, name required, password min 12, terms_accepted_at+version, time_zone, email_confirmed_at gate, suspended_at.</step>
