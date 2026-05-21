@@ -10,14 +10,14 @@
           <%= link_to t("billing.paywall.pay_this_download"),
                       checkout_path(nesting_run_id: @nesting_run.id),
                       class: "btn btn-primary",
-                      data: { testid: "paywall-checkout", turbo_frame: "_top" } %>
+                      data: { testid: "paywall-checkout", turbo: false } %>
         </li>
       <% end %>
       <li>
         <%= link_to t("billing.paywall.view_plans"),
                     planes_path(project_id: @project.id),
                     class: "btn btn-secondary",
-                    data: { testid: "paywall-planes", turbo_frame: "_top" } %>
+                    data: { testid: "paywall-planes", turbo: false } %>
       </li>
     </ul>
 

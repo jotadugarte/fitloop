@@ -147,6 +147,15 @@ RSpec.describe Workspace do
       expect(described_class.find(session, tab_id: tab_a)).to eq(project)
       expect(described_class.find(session, tab_id: tab_b)).to be_nil
     end
+
+    it "[REQ-FIT-AUTH-001] detects bind via bound_to_project? regardless of tab_id (D42)" do
+      project = Project.create!(ephemeral: true, title: "Tab", status: :draft)
+      described_class.bind!(session, project, tab_id: tab_a)
+
+      expect(described_class.bound_to_project?(session, project)).to be(true)
+      expect(described_class.bound_to_project?(session, project.id)).to be(true)
+      expect(described_class.find(session, tab_id: tab_b)).to be_nil
+    end
   end
 
   describe "tab-close TTL [REQ-FIT-AUTH-001]" do

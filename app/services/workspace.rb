@@ -23,6 +23,12 @@ class Workspace
       Project.ephemeral.find_by(id: project_id)
     end
 
+    def bound_to_project?(session, project)
+      project_id = project.is_a?(Project) ? project.id : Integer(project)
+      workspaces_hash(session).values.any? { |bound_id| bound_id.to_i == project_id } ||
+        session[SESSION_KEY].to_i == project_id
+    end
+
     def find_or_create!(session, tab_id: nil)
       tid = normalize_tab_id(tab_id)
       project = find(session, tab_id: tid)

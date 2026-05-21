@@ -37,8 +37,7 @@ class CheckoutController < ApplicationController
     return redirect_to(start_project_path, alert: t("workspace.expired")) unless @nesting_run
 
     @project = @nesting_run.project
-    bound = Workspace.find(session, tab_id: workspace_tab_id)
-    return if bound&.id == @project.id
+    return if Workspace.bound_to_project?(session, @project)
 
     redirect_to start_project_path, alert: t("workspace.expired")
   end

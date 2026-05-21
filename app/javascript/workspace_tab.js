@@ -37,6 +37,8 @@ export function configureWorkspaceTabLeave() {
   document.addEventListener("turbo:before-visit", () => {
     sessionStorage.setItem(INTERNAL_NAV_KEY, "1")
     clearTabLeft()
+    const tabId = ensureWorkspaceTabId()
+    persistWorkspaceTabCookie(tabId)
   })
 
   document.addEventListener("pagehide", (event) => {
@@ -48,6 +50,20 @@ export function configureWorkspaceTabLeave() {
     if (event.persisted) return
 
     markTabLeft()
+  })
+}
+
+export function configureWorkspaceTabHeaders() {
+  document.addEventListener("turbo:before-fetch-request", (event) => {
+    const tabId = workspaceTabId()
+    if (!tabId) return
+
+    const headers = event.detail.fetchOptions.headers
+    if (headers instanceof Headers) {
+      headers.set(WORKSPACE_TAB_HEADER, tabId)
+    } else {
+      event.detail.fetchOptions.headers = { ...headers, [WORKSPACE_TAB_HEADER]: tabId }
+    }
   })
 }
 

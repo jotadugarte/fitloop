@@ -44,8 +44,7 @@ class PlanesController < ApplicationController
     @project = Project.find_by(id: params[:project_id])
     return redirect_to(start_project_path, alert: t("workspace.expired")) unless @project
 
-    bound = Workspace.find(session, tab_id: workspace_tab_id)
-    return true if bound&.id == @project.id
+    return true if Workspace.bound_to_project?(session, @project)
 
     redirect_to start_project_path, alert: t("workspace.expired")
     false
