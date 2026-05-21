@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.1 — Next: plan step 10 (OmniAuth failing spec)</current_step>
+    <current_step>3.1 — Failing request spec (plan step 10: OmniAuth UI)</current_step>
 
   </execution_context>
 
