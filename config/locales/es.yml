@@ -237,6 +237,7 @@ es:
       adjust_setup: "Ajustar parámetros"
       layers: "Capas DXF"
       download_nested_dxf: "Descargar DXF anidado"
+      nested_dxf_unavailable: "No hay un anidado listo para descargar. Vuelve a anidar o revisa el estado del proyecto."
       back: "Inicio"
       actions_title: "Acciones de anidado"
       manage_title: "Ajustes"

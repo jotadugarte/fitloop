@@ -230,6 +230,7 @@ es_panic:
       adjust_setup: Configurar láser
       layers: Capas (Layers)
       download_nested_dxf: Llevar al plotter (Descargar DXF anidado)
+      nested_dxf_unavailable: No hay anidado listo. Re-anidar o revisar el estado del proyecto.
       back: Jalar de aquí (Atrás)
       actions_title: Botón de pánico
       manage_title: Administrar este dolor de cabeza

@@ -10,7 +10,10 @@ module RequiresNestedDownloadAuthorization
     return head(:not_found) unless @project.nested_dxf.attached?
 
     @nesting_run = nesting_run_for_download
-    return head(:not_found) unless @nesting_run
+    unless @nesting_run
+      redirect_to project_path(@project), alert: t("projects.show.nested_dxf_unavailable")
+      return
+    end
 
     return redirect_to(download_paywall_project_path(@project)) if current_user.nil?
     unless current_user.billing_ready?
@@ -24,7 +27,10 @@ module RequiresNestedDownloadAuthorization
   end
 
   def nesting_run_for_download
-    @project.nesting_runs.where(status: "completed").order(id: :desc).first
+    @project.nesting_runs
+             .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
+             .order(id: :desc)
+             .first
   end
 
   def valid_download_token?(run)

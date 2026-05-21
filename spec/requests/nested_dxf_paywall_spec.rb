@@ -77,6 +77,25 @@ RSpec.describe "Nested DXF download paywall", type: :request do
         usage = PlanMonthlyUsage.find_by!(subscription: user.subscriptions.first)
         expect(usage.downloads_used).to eq(1)
       end
+
+      it "[REQ-FIT-NEST-003] serves nested DXF when latest run is partial with orphans unresolved (D23)" do
+        user = create_billing_user!
+        create_active_subscription!(user: user)
+        project = begin_workspace_session!
+        project.nesting_runs.create!(status: "partial")
+        project.update!(status: :partial)
+        project.nested_dxf.attach(
+          io: StringIO.new("PARTIAL NESTED DXF"),
+          filename: "nested.dxf",
+          content_type: "application/dxf"
+        )
+        sign_in_user! user
+
+        get nested_dxf_project_path(project)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("PARTIAL NESTED DXF")
+      end
     end
   end
 

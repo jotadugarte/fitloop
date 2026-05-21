@@ -4,6 +4,8 @@ module Nesting
   # [REQ-FIT-NEST-003] Maps CLI exit code and report.json to terminal job status.
   class StatusMapper
     TERMINAL_STATUSES = %w[completed partial failed].freeze
+    # Runs that may attach nested.dxf and authorize paywall/download (D23, REQ-FIT-NEST-003).
+    DOWNLOADABLE_RUN_STATUSES = %w[completed partial].freeze
 
     def self.map(exit_status:, report:, work_dir:)
       new(exit_status: exit_status, report: report, work_dir: work_dir).map

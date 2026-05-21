@@ -222,6 +222,7 @@ en:
       adjust_setup: "Adjust parameters"
       layers: "DXF layers"
       download_nested_dxf: "Download nested DXF"
+      nested_dxf_unavailable: "There is no nested layout ready to download. Run nesting again or check the project status."
       back: "Home"
       actions_title: "Nesting actions"
       manage_title: "Settings"

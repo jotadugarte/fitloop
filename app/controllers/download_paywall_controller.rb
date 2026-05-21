@@ -8,7 +8,10 @@ class DownloadPaywallController < ApplicationController
   before_action :store_guest_paywall_return_to!, only: :show
 
   def show
-    @nesting_run = @project.nesting_runs.where(status: "completed").order(id: :desc).first
+    @nesting_run = @project.nesting_runs
+                           .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
+                           .order(id: :desc)
+                           .first
   end
 
   private
