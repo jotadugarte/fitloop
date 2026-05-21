@@ -1,11 +1,29 @@
+<% primary_locales = %i[en es] %>
+<% panic_locale = :es_panic %>
+<% panic_available = I18n.available_locales.include?(panic_locale) %>
+
 <nav class="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
-  <% I18n.available_locales.each do |locale| %>
-    <% active = I18n.locale == locale %>
-    <%= button_to locale.to_s.upcase,
-          locale_path(locale: locale),
-          method: :patch,
-          class: "locale-switcher__btn#{' locale-switcher__btn--active' if active}",
-          aria: { current: (active ? "true" : "false") },
-          form: { class: "locale-switcher__form" } %>
+  <div class="locale-switcher__row" role="group" aria-label="<%= t("locale.switcher_row_primary") %>">
+    <% primary_locales.each do |locale| %>
+      <% active = I18n.locale == locale %>
+      <%= button_to t("locale.labels.#{locale}"),
+            locale_path(locale: locale),
+            method: :patch,
+            class: "locale-switcher__btn#{' locale-switcher__btn--active' if active}",
+            aria: { current: (active ? "true" : "false") },
+            form: { class: "locale-switcher__form" } %>
+    <% end %>
+  </div>
+
+  <% if panic_available %>
+    <div class="locale-switcher__row locale-switcher__row--panic" role="group" aria-label="<%= t("locale.labels.es_panic") %>">
+      <% active = I18n.locale == panic_locale %>
+      <%= button_to t("locale.labels.es_panic"),
+            locale_path(locale: panic_locale),
+            method: :patch,
+            class: "locale-switcher__btn locale-switcher__btn--wide#{' locale-switcher__btn--active' if active}",
+            aria: { current: (active ? "true" : "false") },
+            form: { class: "locale-switcher__form" } %>
+    </div>
   <% end %>
 </nav>

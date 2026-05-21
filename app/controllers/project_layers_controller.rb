@@ -1,20 +1,23 @@
 # frozen_string_literal: true
 
 # [REQ-FIT-DXF-001] Layer checklist built from union of uploaded DXF layer names.
+# [REQ-FIT-DXF-002] Per-file primary layer + auxiliary layers when using per-file sync.
 class ProjectLayersController < ApplicationController
   include StartsNesting
 
   before_action :set_project
-  before_action -> { require_project_access!(@project) }
 
   def index
-    Dxf::LayerSync.call(@project)
+    sync_layers!
+    @project.reload
+    @per_file_layers = per_file_layers?
     @project_layers = @project.project_layers.order(:layer_name)
+    @input_dxf_attachments = @project.input_dxf_attachments
     @readiness = ProjectReadinessValidator.validate(@project)
   end
 
   def update
-    update_layer_inclusions!
+    ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
 
     readiness = ProjectReadinessValidator.validate(@project)
     unless readiness.ok?
@@ -32,11 +35,17 @@ class ProjectLayersController < ApplicationController
     @project = Project.find(params[:project_id])
   end
 
-  def update_layer_inclusions!
-    permitted = params.fetch(:project_layers, {}).permit!
-    @project.project_layers.find_each do |layer|
-      attrs = permitted[layer.id.to_s]
-      layer.update!(included: attrs.present? && attrs[:included] == "1")
+  def sync_layers!
+    return if @project.input_dxf_attachments.blank?
+
+    if per_file_layers? || @project.input_dxf_attachments.one?
+      Dxf::LayerSyncPerFile.call(@project)
+    else
+      Dxf::LayerSync.call(@project)
     end
+  end
+
+  def per_file_layers?
+    @project.project_layers.where.not(active_storage_attachment_id: nil).exists?
   end
 end

@@ -6,9 +6,9 @@
 
 ## Purpose
 
-Fitloop is a web application for **DXF sheet nesting**: users create projects with multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, protect projects with a **6-digit PIN**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
+Fitloop is a web application for **DXF sheet nesting**: users start an **ephemeral workspace** (one in-browser session per visit), attach multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
 
-Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`).
+Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`, optional joke locale `es_panic`).
 
 ---
 
@@ -16,16 +16,17 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 | Term | Definition | In code / UX |
 |------|------------|----------------|
-| **Project** | A nesting workspace: title, parameters, PIN, inputs, sheet stocks, selected layers, job state | `Project` model |
+| **Project** | Ephemeral nesting workspace: title, parameters, inputs, sheet stocks, selected layers, job state | `Project` model (`ephemeral: true`) |
+| **Workspace** | Session-bound aggregate: at most one ephemeral `Project` per browser session | `Workspace` service, `session[:workspace_project_id]` |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
-| **ProjectLayer** | A DXF layer name discovered from uploads; `included` flag for nesting | `ProjectLayer` |
+| **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
+| **CompositePiece** | One nestable unit: primary polygon (+ holes) + attached decoration entities (Python) | `composite_extract` |
+| **DecorationEntity** | Non-nestable DXF entity associated to a primary polygon; keeps `layer_name` for output | `composite_extract` |
 | **NestingRun** | One execution of the nesting pipeline for a project; stores params snapshot and results | `NestingRun` |
 | **Piece** | Runtime polygon (with optional holes) extracted from DXF on selected layers | Python / `PieceId` |
 | **Orphan** | Piece not placed; listed in `report.json` with reason code | Report only |
 | **Kerf** | Cut width offset between pieces (default 0 mm) | `Project#kerf_mm` |
 | **Margin** | Inset from sheet edge (default 5 mm) | `Project#margin_mm` |
-| **PIN (user)** | 6-digit code chosen at project create; bcrypt digest stored | `Pin6` |
-| **Admin PIN** | 10-digit master PIN in Rails credentials; unlocks any project | `AdminPin10` |
 | **Job status** | Terminal nesting outcome: `completed`, `partial`, or `failed` | `NestingRun#status` |
 
 ---
@@ -34,10 +35,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### Project
 
-- **Fields:** `title`, `pin_digest`, `kerf_mm` (default 0), `margin_mm` (5), `curve_tolerance_mm` (0.1), `sheet_gap_mm` (15), `nesting_time_limit_sec` (600), `status` (`draft` \| `ready` \| `processing` \| `completed` \| `partial` \| `failed`), `progress_percent`, `progress_message`, timestamps
+- **Fields:** `title`, `ephemeral` (default `true`), `kerf_mm` (default 0), `margin_mm` (5), `curve_tolerance_mm` (0.1), `sheet_gap_mm` (15), `nesting_time_limit_sec` (600), `status` (`draft` \| `ready` \| `processing` \| `completed` \| `partial` \| `failed`), `progress_percent`, `progress_message`, `session_workflow_log` (JSON), timestamps
 - **Attachments (Active Storage):** many `input_dxf`; one `nested_dxf` when job succeeds or is partial
 - **Associations:** `has_many :sheet_stocks`, `has_many :project_layers`, `has_many :nesting_runs`
-- **Invariants:** title present; ≥1 `SheetStock`; ≥1 `ProjectLayer` with `included: true`; valid 6-digit PIN at create; on `completed`/`partial`, nested DXF attached unless validation-only failure
+- **Invariants:** all user-facing rows are `ephemeral: true`; title present when setup completes; ≥1 `SheetStock`; ≥1 `ProjectLayer` with `included: true`; on `completed`/`partial`, nested DXF attached unless validation-only failure
 
 ### SheetStock
 
@@ -48,7 +49,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### ProjectLayer
 
-- `layer_name` (union of all uploaded DXF layer names), `included` (boolean) — **layer filter** for extraction/nesting
+- `layer_name` per `active_storage_attachment_id`, `included` (boolean), optional `layer_role` (`primary` \| `auxiliary` \| nil)
+- **Legacy mode:** no `layer_role: primary` on a file → every `included` layer yields independent nest polygons (current behavior).
+- **Composite mode:** exactly one **primary layer per file**; optional **auxiliary** layers contribute decorations only (see `REQ-FIT-DXF-002`).
 
 ### NestingRun
 
@@ -64,12 +67,13 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W1 — Create project and sheet inventory
 
-1. User enters title and chooses a **6-digit PIN** (saved projects) or uses the ephemeral setup flow.
-2. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
-3. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
-4. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
-5. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
-6. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
+1. User starts workspace (`GET /empezar`) → `Workspace` creates/binds an ephemeral `Project` in `session[:workspace_project_id]`.
+2. User completes setup (title, sheet stocks, DXF, layers) via the ephemeral setup form.
+3. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
+4. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
+5. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
+6. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
+7. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
 
 ### W2 — Upload DXFs and select layers
 
@@ -89,10 +93,12 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 1. User triggers new **NestingRun** on same project (“Volver a anidar”).
 2. Previous downloadable result replaced; run history retained.
 
-### W5 — Access without account
+### W5 — Ephemeral session access (no accounts)
 
-1. Project list/history visible without login.
-2. Opening a project requires user **PIN** or **admin PIN** (`ProjectAccess` service).
+1. No user accounts or saved-project list in v1; `GET /projects` redirects to workspace start (`/empezar`).
+2. Access to a `Project` requires the browser session cookie and matching `session[:workspace_project_id]` (`Workspace.resolve!`).
+3. Opening another ephemeral project ID without bind → redirect to start with `workspace.expired` (HTML) or `RecordNotFound` (internal).
+4. Returning home or explicit discard → `Workspace.discard!` destroys the project and clears the session key.
 
 ---
 
@@ -106,39 +112,89 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-EXT-001** | Python package; extract ≥1 closed contour from sample DXF | P0 |
 | **REQ-FIT-NEST-001** | Nesting library spike (libnest2d or ADR fallback) | P0 |
 | **REQ-FIT-DOM-001** | Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` with defaults | P1 |
-| **REQ-FIT-AUTH-001** | User **6-digit PIN** at create (bcrypt); admin **10-digit** master PIN from credentials; `ProjectAccess` | P1 |
+| **REQ-FIT-AUTH-001** | Ephemeral **workspace session bind** via `Workspace`; no PIN; `resolve!` for project access | P1 |
 | **REQ-FIT-UI-001** | Project CRUD; ordered sheet inventory UI (finite + ∞) | P1 |
 | **REQ-FIT-DXF-001** | Multi-DXF upload; union layers; **layer checklist** (i18n) | P2 |
+| **REQ-FIT-DXF-002** | **Primary layer per file** + **auxiliary** layers clipped to primary polygons; composite nest + output | v1.2 |
 | **REQ-FIT-VAL-001** | Pre-flight: reject zero layers / zero pieces | P2 |
 | **REQ-FIT-EXT-002** | Extractor: INSERT on layer, nested blocks depth ≤8, warnings in report | P2 |
 | **REQ-FIT-CLI-001** | CLI contract documented; `NestingJob` + `Nesting::CliRunner` | P3 |
 | **REQ-FIT-NEST-002** | Multi-bin nest; outputs nested DXF + `placements.json` + `report.json` | P3 |
 | **REQ-FIT-NEST-003** | Map job status **`completed`** \| **`partial`** \| **`failed`** from report; orphans in v1 | P3 |
-| **REQ-FIT-JOB-001** | Turbo progress, 600s cap → partial + notice, cancel | P3 |
+| **REQ-FIT-JOB-001** | Live CLI `progress.json`, phased Turbo UI, ETA/cancel in progress panel, 600s cap | P3 |
 | **REQ-FIT-UI-002** | Browser preview from `placements.json` | P4 |
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
-| **REQ-FIT-UI-003** | Download nested DXF; list without login; PIN gate on show | P4 |
+| **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
 | **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
-| **REQ-FIT-UI-005** | Locale switcher in layout: EN/ES toggle; `set_locale`; cookie/session persistence | P4 |
+| **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
-| **REQ-FIT-SPLIT-001** | Auto-split oversized pieces (v1.1 backlog) | P5 |
+| **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 
 ### REQ-FIT-AUTH-001 (detail)
 
-- User selects a **6-digit PIN** at project creation; validate format; store `pin_digest` (bcrypt).
-- Admin **10-digit PIN** in `Rails.application.credentials`; grants access to any project.
-- No end-user PIN recovery in v1.
-- Rate-limit admin PIN attempts.
+**Supersedes pre-2026-05-19 PIN model** — see `docs/core/ADRs/0004-ephemeral-session-access.md`.
+
+- **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!` sets `session[:workspace_project_id]`.
+- **Read / mutate:** Controllers use `Workspace.resolve!(session, id)` — returns the project only when the session is bound to that ephemeral id.
+- **Foreign ID:** Unbound request for another project → `ActiveRecord::RecordNotFound` or redirect to `/empezar` with `workspace.expired`.
+- **Leave:** `HomeController` / `Workspace.discard!` destroys the project, cancels active nesting, clears session key.
+- **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
+- **Non-goals:** cross-session sharing, PIN recovery, admin override via app UI.
 
 ### REQ-FIT-DOM-001 (detail)
 
-- Migrations and models for `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`.
+- Migrations and models for `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (split/composite v1.1+).
 - Defaults: kerf 0, margin 5, curve tolerance 0.1, sheet gap 15, nesting time limit 600s.
 
 ### REQ-FIT-DXF-001 (detail)
 
 - Multiple DXF per project; layer names unioned across files.
 - Checkbox **layer filter** persists `ProjectLayer.included`.
+
+### REQ-FIT-DXF-002 (detail)
+
+**Scope:** v1.2 — one DXF file may define a **primary layer** (cut outlines) and optional **auxiliary** layers (engraving, marks, text). Auxiliary geometry is **not** nested alone; it is associated to the primary polygon that contains it and moves with that piece after placement.
+
+**Rails (`ProjectLayer`):**
+
+- `layer_role` enum: `primary` \| `auxiliary` \| nil (legacy).
+- **Exclusive primary layer per file:** at most one `layer_role: primary` per `(project_id, active_storage_attachment_id)`; `ProjectLayer::SetPrimary` clears sibling primaries and sets `included: true`.
+- UI: one **primary** radio per attachment; **auxiliary** checkboxes; i18n **Capa principal** / **Primary layer**.
+- Pre-flight (`REQ-FIT-VAL-001`): if any auxiliary layer is `included` on a file, a **primary layer** must be set for that same attachment.
+- `Nesting::ConfigBuilder` emits per-file `primary_layer` + `auxiliary_layers[]` in `input_files[]`; when no primary is set for a file, legacy flat `included_layers` union applies.
+
+**Python value objects:**
+
+- **`CompositePiece`:** primary closed polygon (+ holes) + `decorations[]` (`DecorationEntity` list). Nesting optimizer uses **primary polygon only** (kerf/margin unchanged). `piece_key` identity derives from primary geometry, not decorations.
+- **`DecorationEntity`:** normalized DXF entity with preserved **`layer_name`** for output emission.
+
+**Spatial association (per source file, normative):**
+
+- **Inside** = primary polygon fill **including holes as interior** (geometry inside a hole associates to the same piece).
+- **Lines / arcs / polylines:** `intersection(entity, primary_polygon)` — keep interior segments only (Option B clip); discard exterior. One entity crossing two primary polygons → two decorations, each clipped independently.
+- **TEXT / MTEXT:** include whole entity if **insert point** ∈ primary polygon; no glyph clipping. Outside → silent discard.
+- **INSERT:** include if **insert point** ∈ primary polygon; nested block resolution depth ≤8 (`REQ-FIT-EXT-002`). Outside → silent discard.
+- **Circles / points:** center-in or clipped arc segments per entity type in `composite_extract`.
+- **Outside all primary polygons:** silent discard (no report requirement).
+
+**Extract (`nesting_engine/composite_extract.py`):**
+
+- `load_composite_pieces(path, primary_layer, auxiliary_layers, …)` returns `CompositePiece[]` with spatial index per file.
+- `piece_loader` uses composite path when `primary_layer` is present in config; legacy path unchanged otherwise.
+
+**Nest and output:**
+
+- Placement applies the same translate/rotate to primary and decorations (`decoration_transform`).
+- **`nested.dxf`** writes primary rings on the **source primary layer name** and decoration entities on their **original layer names** (not forced `PIECES` for composite runs).
+
+**Integration with auto-split (`REQ-FIT-SPLIT-001`):**
+
+- Split cuts apply to the **primary polygon** only; auxiliary layers are **not** split independently.
+- `partition_decorations(mother, split_children, cut_segments)` assigns each mother decoration to children via `intersection(decoration, child_primary_polygon)`; decorations crossing a cut split between children (same clip rules as extract).
+- Mother `piece_key` remains in `excluded_piece_keys`; children are supplied via `derived_pieces[]` with `rings` and `decorations` / `decorations_json`.
+- Split preview and accept materialize per-child decoration payloads; nest of derived composite children preserves **original layer names** after placement.
+
+**Out of v1.2:** different cut angles per auxiliary layer; re-associating decorations across children after nest (only at extract + split).
 
 ### REQ-FIT-NEST-002 (detail)
 
@@ -154,7 +210,78 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **`completed`:** all extractable pieces placed within time limit.
 - **`partial`:** time cap reached or some orphans; best-so-far nested DXF + orphan list in report.
 - **`failed`:** unrecoverable error (e.g. validation, CLI crash, no usable geometry).
-- v1: oversized-for-sheet pieces → **orphans** (no auto-split).
+- v1: oversized-for-sheet pieces → **orphans** (no auto-split). v1.1 adds opt-in resolution per `REQ-FIT-SPLIT-001`.
+
+### REQ-FIT-JOB-001 (detail)
+
+**Scope:** Friendly nesting progress while `Project#status == processing` — phased labels, engine-driven percent, visible cancel and time-remaining copy (`en` / `es` / optional `es_panic`). See `nesting_engine/README.md` § `progress.json`.
+
+**Python (`nesting_engine/progress_reporter.py`):**
+
+- Writes `{output_dir}/progress.json` (schema v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- `phase_id` values: `extracting`, `fill`, `optimizing`, `consolidating`, `refining`, `writing_outputs`.
+- Hooked in `nest.py` / `nest_libnest2d.py` at pipeline boundaries **without** changing placement algorithms.
+
+**Rails orchestration:**
+
+- **Enqueue:** `StartsNesting` sets `progress_message` to `nesting.phase.queued` (3%) and `estimated_finished_at` to `now + nesting_time_limit_sec` (not a fixed 30s stub).
+- **Pre-CLI:** `NestingJob` → `nesting.phase.preparing` (8%); `Nesting::JobRunner` → `nesting.phase.starting` (12%) before `CliRunner`.
+- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by time limit).
+- **UI:** `projects/_nesting_progress` shows progress bar (`aria-valuetext` = phase + percent + optional time remaining), **Cancel** (`data-testid="cancel-nesting"`), `nesting.time_remaining`, and `nesting.eta_overrun`. Cancel is **not** duplicated in `show_actions` while processing.
+- **Broadcast / poll:** `Nesting::ProgressBroadcaster` and `ProjectsController#nesting_sync` use `Nesting::ProgressLocals` (`active_run`, `time_remaining`, `eta_overrun`).
+- **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).
+
+**Tests:** `nesting_engine/tests/test_progress_reporter.py`, `test_nest_progress.py`, `test_cli_mock.py`; `spec/services/nesting/progress_*_spec.rb`, `cli_runner_spec.rb`, `spec/system/nesting_progress_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`.
+
+### REQ-FIT-UI-005 (detail)
+
+**Scope:** Layout locale switcher and persistence for product locales `en` and `es`, plus optional joke locale **`es_panic`** (“Modo Arquitecto en Pánico”) — humorous Spanish copy across the main workflow; not a fourth production language.
+
+**Rails:**
+
+- `config.i18n.available_locales` includes `:es_panic`.
+- `config/locales/es_panic.yml` mirrors the `es.yml` key tree (no runtime fallback to `:es`).
+- `LocaleSwitchable` + `LocalesController#update` persist `fitloop_locale` cookie (string `"es_panic"`).
+- `shared/_locale_switcher`: row 1 `EN` | `ES`; row 2 full-width **📐 PÁNICO** via `locale.labels.*` (never `locale.to_s.upcase` for `es_panic`).
+- i18n keys: `locale.switcher_label` (nav), `locale.switcher_row_primary` (aria-label for EN/ES group), `locale.labels.en` / `es` / `es_panic`.
+
+**Non-goals:** parallel `fitloop.*` namespace; percent-band progress strings (use existing `nesting.phase.*` keys).
+
+**Tests:** `spec/requests/locale_spec.rb`, `spec/i18n/locale_key_parity_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`, `spec/lib/fitloop_home_verifier_spec.rb`.
+
+### REQ-FIT-SPLIT-001 (detail)
+
+**Scope:** v1.1 feature for **ephemeral** workspace projects (`Project#ephemeral?`). After a `partial` nest (or when unresolved orphans remain visible in-session), the user resolves each orphan **opt-in** via per-card actions—no automatic splitting.
+
+**Identity:** `Nesting::PieceKey` (stable string, e.g. `{blob_id}:piece-{index}` or `{blob_id}:fp-{fingerprint}`) keys `OrphanResolution#piece_key` across re-nests; do not rely on `piece_index` alone.
+
+**Rails models:**
+
+- **`OrphanResolution`** (`project_id`, `piece_key`, `resolution_state`, `reason` snapshot, optional `last_nesting_run_id`). States: `pending`, `system_split`, `manual`, `resolved`. One active row per `piece_key` per project. `resolved` orphans do not reappear in later runs for the same key.
+- **`SplitProposal`** (belongs to `OrphanResolution`): `draft` | `accepted` | `rejected`; JSON `cut_segments`, `child_piece_geometries`, `labels`; `version` for regenerate-after-reject.
+- **`DerivedPiece`** (`project_id`, `parent_piece_key`, `label` e.g. Pieza-3a, `geometry_json`, `sort_order`): nestable children after accept.
+- **`Project#session_workflow_log`**: append-only JSON array for in-session audit (`splits_applied`, `split_rejected`); not a multi-day history product.
+
+**User workflow (post-job UI on `project#show`):**
+
+1. Orphan cards show badge + choice: leave **`pending`**, **Dividir con Fitloop** (`system_split`), or **Resolver manualmente** (`manual`). User may change mind before materializing.
+2. **`system_split`:** enqueue split plan job → mandatory **preview** (inline SVG from engine geometry) → **Aceptar** / **Rechazar** / **Regenerar** per orphan. Accept materializes `DerivedPiece` rows and excludes the mother from nest input.
+3. **`manual`:** explicit copy—edit CAD off-app, remove mother geometry, upload corrected DXF; **“He actualizado mis DXF”** runs pre-flight; auto-`resolved` when mother no longer extracts.
+4. When all targeted splits are accepted (or user is ready), CTA **“Anidar con piezas actualizadas”** auto-enqueues a normal nest (not only generic re-nest).
+5. System split offered for `oversized_for_sheet` and `no_sheet_capacity` when exportable `rings` exist; disabled without rings. No “add sheet” shortcut from orphan UI—user edits `SheetStock` inventory and re-nests. Sheet inventory changes invalidate draft `SplitProposal` rows.
+
+**Engine (`nesting_engine/split_planner.py`):** straight cuts at any angle; preserve holes; minimize sub-piece count; recursive re-split until each child fits largest applicable stock or emit **`split_not_feasible`**. Kerf applies only during nest placement, **not** on the split cut plane. Cut lines and labels (Pieza-Na/Nb) appear in **`nested.dxf`** on successful nest with derived pieces.
+
+**CLI (two invocations, same `config.json` schema extensions):**
+
+| Mode | `config.json` | Output |
+|------|---------------|--------|
+| Plan | `"mode": "plan_splits"`, `piece_keys[]` (and piece geometry refs as needed) | `split_preview.json` (cuts, child outlines, labels; may include `split_not_feasible` per key) |
+| Nest | normal nest fields + `excluded_piece_keys[]`, `derived_pieces[]` | `nested.dxf`, `placements.json`, `report.json` |
+
+Rails: `Nesting::SplitPlanJob` + `Nesting::SplitPlannerRunner` for plan mode; `Nesting::ConfigBuilder` merges exclusions and derived geometry for nest mode. Cancel of an in-flight nesting run invalidates draft proposals tied to that run.
+
+**Out of v1.1:** in-app DXF editing, bulk orphan actions, persistent cross-session orphan history UI.
 
 ---
 
@@ -193,7 +320,6 @@ Full JSON schema to be maintained in `nesting_engine/README.md` when the package
 
 ## Out of scope (v1)
 
-- Auto-split oversized pieces → v1.1 (`REQ-FIT-SPLIT-001`)
 - FastAPI microservice wrapper
 - Hard caps on file size / piece count
-- User PIN recovery flow
+- Cross-session project resume (accounts, share links, export/import)

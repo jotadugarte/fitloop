@@ -9,12 +9,14 @@ Use after automated specs are green. Record date, tester, and environment.
 - [ ] `.venv` active; `pip install -r nesting_engine/requirements.txt` done
 - [ ] `bin/dev` or `bin/rails server` + Solid Queue worker running
 
-## Project & access
+## Workspace & access
 
 - [ ] `GET /` shows Fitloop home and logo
-- [ ] `GET /projects` lists projects without login
-- [ ] Create project with title, 6-digit PIN, at least one sheet stock (finite and ∞ cases)
-- [ ] Open project → PIN gate appears; wrong PIN rejected; correct PIN unlocks show page
+- [ ] `GET /projects` redirects to workspace start (`/empezar`) — no saved-project list
+- [ ] `GET /empezar` creates an ephemeral workspace and shows setup (no PIN field)
+- [ ] Complete setup (title, sheet stock, DXF, layers) → project show page loads
+- [ ] Opening another project URL without session bind redirects to start with expired message
+- [ ] Returning home discards the workspace project (session cleared)
 
 ## DXF inputs
 
@@ -38,7 +40,7 @@ Use after automated specs are green. Record date, tester, and environment.
 
 ## Security & ops
 
-- [ ] Admin master PIN (credentials) unlocks any project; rate limit behaves
+- [ ] No PIN or admin-unlock UI in the app
 - [ ] No nesting math errors surfaced as 500 without flash/message
 
 ## Sign-off

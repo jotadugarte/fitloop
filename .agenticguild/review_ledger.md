@@ -1,3 +1,3 @@
 # Review Ledger
 
-_(cleared after harvest-rules on 2026-05-19 — sheet stock consumption priority branch)_
+_(cleared — harvest-rules 2026-05-20, finish-branch auto-split-progress-bar)_

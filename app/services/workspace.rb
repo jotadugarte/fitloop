@@ -23,16 +23,13 @@ class Workspace
 
     def resolve!(session, project_id)
       project_id = project_id.to_i
-      if session[SESSION_KEY].to_i == project_id
-        project = find(session)
-        raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} was discarded" unless project
-
-        return project
+      unless session[SESSION_KEY].to_i == project_id
+        raise ActiveRecord::RecordNotFound,
+              "Ephemeral project #{project_id} is not bound to this session"
       end
 
-      project = Project.find_by(id: project_id)
-      raise ActiveRecord::RecordNotFound, "Unknown project #{project_id}" unless project
-      raise ActiveRecord::RecordNotFound, "Ephemeral project #{project_id} is not bound to this session" if project.ephemeral?
+      project = find(session)
+      raise ActiveRecord::RecordNotFound, "Workspace project #{project_id} was discarded" unless project
 
       project
     end

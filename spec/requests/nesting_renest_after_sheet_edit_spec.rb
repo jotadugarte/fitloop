@@ -24,9 +24,7 @@ RSpec.describe "Re-nesting after sheet inventory edit", type: :request do
         }
       },
       project_layers: {
-        pieces_layer.active_storage_attachment_id.to_s => {
-          pieces_layer.id.to_s => { included: "1" }
-        }
+        pieces_layer.id.to_s => { included: "1" }
       }
     }
     follow_redirect!

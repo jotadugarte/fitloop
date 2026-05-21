@@ -7,7 +7,7 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
     it "places all finite stocks before the unlimited stock with dense sort_order ranks" do
       project = Project.create!(
         title: "Normalize consumption order",
-        pin: "654321",
+        ephemeral: true,
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: nil, sort_order: 0 },
           "1" => { width_mm: 800, height_mm: 1600, quantity: 5, sort_order: 1 }
@@ -26,7 +26,7 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
     it "preserves relative order among multiple finite stocks" do
       project = Project.create!(
         title: "Finite relative order",
-        pin: "112233",
+        ephemeral: true,
         sheet_stocks_attributes: {
           "0" => { width_mm: 1000, height_mm: 2000, quantity: nil, sort_order: 0 },
           "1" => { width_mm: 900, height_mm: 1800, quantity: 2, sort_order: 2 },

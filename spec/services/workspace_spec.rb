@@ -12,7 +12,6 @@ RSpec.describe Workspace do
       Project.create!(
         ephemeral: false,
         title: "Saved",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
 
@@ -30,7 +29,6 @@ RSpec.describe Workspace do
       Project.create!(
         ephemeral: false,
         title: "B",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
 
@@ -42,8 +40,15 @@ RSpec.describe Workspace do
     end
   end
 
-  describe ".resolve! [REQ-FIT-DOM-001]" do
-    it "[REQ-FIT-DOM-001] rejects ephemeral project ids not bound to the session" do
+  describe ".resolve! [REQ-FIT-AUTH-001]" do
+    it "[REQ-FIT-AUTH-001] returns the ephemeral project when the session is bound" do
+      project = Project.create!(ephemeral: true, title: "Mine", status: :draft)
+      session = { described_class::SESSION_KEY => project.id }
+
+      expect(described_class.resolve!(session, project.id)).to eq(project)
+    end
+
+    it "[REQ-FIT-AUTH-001] raises when the ephemeral project id is not bound to the session" do
       project = Project.create!(ephemeral: true, title: "Other", status: :draft)
 
       expect do
@@ -51,15 +56,45 @@ RSpec.describe Workspace do
       end.to raise_error(ActiveRecord::RecordNotFound, /not bound/)
     end
 
-    it "[REQ-FIT-DOM-001] allows non-ephemeral projects for legacy PIN flows" do
+    it "[REQ-FIT-AUTH-001] raises when the session is bound to a different project" do
+      mine = Project.create!(ephemeral: true, title: "Mine", status: :draft)
+      other = Project.create!(ephemeral: true, title: "Other", status: :draft)
+      session = { described_class::SESSION_KEY => mine.id }
+
+      expect do
+        described_class.resolve!(session, other.id)
+      end.to raise_error(ActiveRecord::RecordNotFound, /not bound/)
+    end
+
+    it "[REQ-FIT-AUTH-001] raises when the project id does not exist" do
+      session = { described_class::SESSION_KEY => 999_999 }
+
+      expect do
+        described_class.resolve!(session, 999_999)
+      end.to raise_error(ActiveRecord::RecordNotFound, /discarded/)
+    end
+
+    it "[REQ-FIT-AUTH-001] raises when the bound project was discarded" do
+      project = Project.create!(ephemeral: true, title: "Gone", status: :draft)
+      session = { described_class::SESSION_KEY => project.id }
+      project.destroy!
+
+      expect do
+        described_class.resolve!(session, project.id)
+      end.to raise_error(ActiveRecord::RecordNotFound, /discarded/)
+    end
+
+    it "[REQ-FIT-AUTH-001] does not resolve non-ephemeral projects by id" do
       saved = Project.create!(
         ephemeral: false,
         title: "Saved",
-        pin: "123456",
         sheet_stocks_attributes: { "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 } }
       )
+      session = { described_class::SESSION_KEY => saved.id }
 
-      expect(described_class.resolve!({}, saved.id)).to eq(saved)
+      expect do
+        described_class.resolve!(session, saved.id)
+      end.to raise_error(ActiveRecord::RecordNotFound, /discarded/)
     end
   end
 end

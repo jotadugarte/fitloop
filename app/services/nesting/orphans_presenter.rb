@@ -7,12 +7,15 @@ module Nesting
 
     Orphan = Struct.new(
       :piece_index,
+      :piece_key,
       :reason,
       :rings,
       :width_mm,
       :height_mm,
       :offset_x_mm,
       :offset_y_mm,
+      :resolution_state,
+      :split_proposal,
       keyword_init: true
     ) do
       def display_number
@@ -25,6 +28,49 @@ module Nesting
 
       def exportable?
         rings.present? && rings.any? { |ring| ring.size >= 3 }
+      end
+
+      # [REQ-FIT-SPLIT-001] System split requires closed-ring geometry for preview/plan CLI.
+      def system_split_enabled?
+        exportable?
+      end
+
+      def split_preview_available?
+        return false unless split_proposal&.draft? && split_proposal.feasible?
+
+        Array(split_proposal.child_piece_geometries).any? { |child| split_child_exportable?(child) }
+      end
+
+      def split_child_exportable?(child)
+        rings = Array(child["rings"])
+        rings.present? && rings.any? { |ring| Array(ring).size >= 3 }
+      end
+
+      def split_plan_failed?
+        split_proposal&.draft? && !split_proposal.feasible?
+      end
+
+      def split_not_feasible?
+        split_proposal&.split_not_feasible?
+      end
+
+      def split_accepted?
+        split_proposal&.accepted?
+      end
+
+      # [REQ-FIT-SPLIT-001] Resolved via accept; keep visible until user re-nests with derived pieces.
+      def split_applied?
+        resolution_state == "resolved" && split_accepted?
+      end
+
+      def split_applied_preview_available?
+        return false unless split_applied?
+
+        Array(split_proposal.child_piece_geometries).any? { |child| split_child_exportable?(child) }
+      end
+
+      def manual_resolution?
+        resolution_state == "manual"
       end
 
       def view_width
@@ -75,22 +121,34 @@ module Nesting
 
     def build_items
       placement_rows = Array(placements_data&.fetch("orphans", nil))
-      if placement_rows.any? && placement_rows.first.key?("rings")
-        return placement_rows.map { |row| build_orphan(row) }
-      end
+      rows =
+        if placement_rows.any? && placement_rows.first.key?("rings")
+          placement_rows
+        else
+          Array(latest_report&.fetch("orphans", nil))
+        end
 
-      Array(latest_report&.fetch("orphans", nil)).map { |row| build_orphan(row) }
+      resolutions_by_key = @project.orphan_resolutions.index_by(&:piece_key)
+      rows.filter_map { |row| build_orphan(row, resolutions_by_key) }
     end
 
-    def build_orphan(row)
+    def build_orphan(row, resolutions_by_key)
+      piece_index = row.fetch("piece_index").to_i
+      piece_key = row["piece_key"].presence || piece_index.to_s
+      resolution = resolutions_by_key[piece_key]
+      return if resolution&.resolved? && !split_applied_card?(resolution)
+
       Orphan.new(
-        piece_index: row.fetch("piece_index").to_i,
+        piece_index: piece_index,
+        piece_key: piece_key,
         reason: row.fetch("reason"),
         rings: normalize_rings(row["rings"]),
         width_mm: row.fetch("width_mm", 0).to_f,
         height_mm: row.fetch("height_mm", 0).to_f,
         offset_x_mm: row.fetch("offset_x_mm", 0).to_f,
-        offset_y_mm: row.fetch("offset_y_mm", 0).to_f
+        offset_y_mm: row.fetch("offset_y_mm", 0).to_f,
+        resolution_state: resolution&.resolution_state || "pending",
+        split_proposal: resolution&.split_proposals&.order(version: :desc)&.first
       )
     end
 
@@ -110,6 +168,10 @@ module Nesting
 
     def latest_report
       @project.nesting_runs.order(created_at: :desc).pick(:report_json)
+    end
+
+    def split_applied_card?(resolution)
+      @project.derived_pieces.exists?(parent_piece_key: resolution.piece_key)
     end
   end
 end

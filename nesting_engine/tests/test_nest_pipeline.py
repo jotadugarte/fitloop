@@ -350,3 +350,80 @@ def test_run_from_config_cli_json_contract_keys(tmp_path: Path) -> None:
     assert piece["width_mm"] > 0.0
     assert piece["height_mm"] > 0.0
     assert 0.0 <= piece["rotation_deg"] < 360.0
+
+
+def test_nest_with_derived_pieces_emits_split_metadata_without_dxf_annotations(tmp_path: Path) -> None:
+    """[REQ-FIT-SPLIT-001] Derived children nest; report/placements note split; nested.dxf stays clean."""
+    output_dir = tmp_path / "output"
+    config = {
+        "project_id": "split-derived",
+        "input_dxf_paths": [],
+        "included_layers": [],
+        "derived_pieces": [
+            {
+                "parent_piece_key": "0",
+                "label": "Pieza-1a",
+                "sort_order": 0,
+                "rings": [
+                    [
+                        [0.0, 0.0],
+                        [60.0, 0.0],
+                        [60.0, 40.0],
+                        [0.0, 40.0],
+                    ]
+                ],
+            },
+            {
+                "parent_piece_key": "0",
+                "label": "Pieza-1b",
+                "sort_order": 1,
+                "rings": [
+                    [
+                        [0.0, 0.0],
+                        [60.0, 0.0],
+                        [60.0, 40.0],
+                        [0.0, 40.0],
+                    ]
+                ],
+            },
+        ],
+        "split_cut_segments": [
+            [[30.0, 0.0], [30.0, 40.0]],
+        ],
+        "sheet_stocks": [
+            {"width_mm": 300.0, "height_mm": 300.0, "quantity": 1, "sort_order": 0}
+        ],
+        "kerf_mm": 0.0,
+        "margin_mm": 5.0,
+        "curve_tolerance_mm": 0.1,
+        "sheet_gap_mm": 15.0,
+        "time_limit_sec": 600,
+        "output_dir": str(output_dir),
+    }
+
+    run_from_config(config)
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "completed"
+    assert report["split"]["derived_labels"] == ["Pieza-1a", "Pieza-1b"]
+    assert report["split"]["cut_segment_count"] == 1
+
+    placed_labels = {
+        piece["label"]
+        for sheet in placements["sheets"]
+        for piece in sheet["pieces"]
+        if "label" in piece
+    }
+    assert placed_labels == {"Pieza-1a", "Pieza-1b"}
+
+    doc = ezdxf.readfile(output_dir / "nested.dxf")
+    layers = {layer.dxf.name for layer in doc.layers}
+    assert "SPLIT_CUTS" not in layers
+    assert "SPLIT_LABELS" not in layers
+
+    msp = doc.modelspace()
+    assert not [entity for entity in msp if entity.dxf.layer in {"SPLIT_CUTS", "SPLIT_LABELS"}]
+    piece_polys = [entity for entity in msp if entity.dxf.layer == "PIECES"]
+    assert piece_polys, "expected nested piece contours in nested.dxf"

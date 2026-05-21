@@ -6,7 +6,7 @@ RSpec.describe NestingJob, type: :job do
   let(:project) do
     Project.create!(
       title: "CLI bridge bench",
-      pin: "334455",
+        ephemeral: true,
       sheet_stocks_attributes: {
         "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
       }

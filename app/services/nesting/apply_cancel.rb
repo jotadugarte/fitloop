@@ -27,7 +27,12 @@ module Nesting
         progress_message: I18n.t("nesting.cancelled")
       )
       ProgressBroadcaster.call(project: @project.reload, eta_overrun: false, time_limit_notice: false)
+      invalidate_split_previews!
       true
+    end
+
+    def invalidate_split_previews!
+      SheetStocks::InvalidateSplitPreviews.call(@project)
     end
   end
 end

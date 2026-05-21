@@ -10,6 +10,16 @@ module Dxf
 
     class Error < StandardError; end
 
+    # [REQ-FIT-DXF-002] Composite mode counts cut outlines on the primary layer only.
+    def self.layer_names_for_count(project_layers)
+      included = project_layers.where(included: true)
+      if included.where(layer_role: :primary).exists?
+        included.where(layer_role: :primary).pluck(:layer_name)
+      else
+        included.pluck(:layer_name)
+      end
+    end
+
     def self.count(paths:, layer_names:)
       return 0 if paths.blank? || layer_names.blank?
 

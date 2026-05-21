@@ -1,21 +1,23 @@
 // [REQ-FIT-UI-001] Composer validation and keyboard guards for sheet inventory.
 
+import { fitloopAlert } from "fitloop_dialog"
+
 export function validateComposer(data, context) {
   const width = parseFloat(data.width)
   const height = parseFloat(data.height)
   if (!data.width || !data.height || Number.isNaN(width) || Number.isNaN(height) || width <= 0 || height <= 0) {
-    window.alert(context.alertDimensions)
+    fitloopAlert(context.alertDimensions)
     return false
   }
   if (data.quantity !== "") {
     const qty = parseInt(data.quantity, 10)
     if (Number.isNaN(qty) || qty < 1) {
-      window.alert(context.alertQuantity)
+      fitloopAlert(context.alertQuantity)
       return false
     }
   }
   if (data.quantity === "" && context.hasUnlimitedStock() && !context.editingUnlimitedRow()) {
-    window.alert(context.alertSingleUnlimited)
+    fitloopAlert(context.alertSingleUnlimited)
     return false
   }
   return true

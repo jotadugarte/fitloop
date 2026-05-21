@@ -66,7 +66,7 @@ class FitloopHomeVerifier
 
   def check_i18n
     errors = []
-    %w[en es].each do |locale|
+    %w[en es es_panic].each do |locale|
       path = "config/locales/#{locale}.yml"
       errors << "missing locale file: #{path}" unless file?(path)
     end

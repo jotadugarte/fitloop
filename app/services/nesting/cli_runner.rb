@@ -93,30 +93,46 @@ module Nesting
       config_path = work_dir.join("config.json")
       raise CancelledError if @cancel_check&.call
 
-      return @invoke.call(work_dir, config_path) if @invoke
+      @last_progress_percent = @project.progress_percent.to_i
+
+      if @invoke
+        exit_status = nil
+        worker = Thread.new { exit_status = @invoke.call(work_dir, config_path) }
+        return wait_with_progress_poll(work_dir) { worker.join(0.2) ? exit_status : nil }
+      end
 
       env = Dxf::Python.subprocess_env
       command = [Dxf::Python.executable, DEFAULT_SCRIPT.to_s, config_path.to_s]
-      exit_status = nil
 
       Open3.popen3(env, *command) do |_stdin, _stdout, _stderr, wait_thr|
         pid = wait_thr.pid
-        loop do
-          raise CancelledError if @cancel_check&.call
-
+        wait_with_progress_poll(work_dir) do
           if wait_thr.join(0.2)
-            exit_status = wait_thr.value.exitstatus
-            break
+            wait_thr.value.exitstatus
+          elsif @cancel_check&.call
+            Process.kill("TERM", pid)
+            raise CancelledError
           end
-
-          next unless @cancel_check&.call
-
-          Process.kill("TERM", pid)
-          raise CancelledError
         end
       end
+    end
 
-      exit_status
+    def wait_with_progress_poll(work_dir)
+      loop do
+        raise CancelledError if @cancel_check&.call
+
+        sync_progress!(work_dir)
+        exit_status = yield
+        return exit_status unless exit_status.nil?
+      end
+    end
+
+    def sync_progress!(work_dir)
+      snapshot = ProgressSnapshot.read(work_dir, last_percent: @last_progress_percent)
+      return unless snapshot
+
+      ProgressSync.call(project: @project, snapshot: snapshot, nesting_run: @nesting_run)
+      @last_progress_percent = snapshot.percent
     end
 
     def attach_outputs!(work_dir, terminal_status:)

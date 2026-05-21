@@ -1,0 +1,348 @@
+---
+es_panic:
+  application:
+    name: Fitloop
+    dialog_title: El Oráculo del Láser
+    dialog_accept: Diay, a jugársela
+  locale:
+    switcher_label: Nivel de Estrés
+    switcher_row_primary: EN / ES (antes del pánico)
+    labels:
+      en: EN
+      es: ES
+      es_panic: "\U0001F4D0 PÁNICO"
+  date:
+    abbr_day_names:
+    - Dom
+    - Lun
+    - Mar
+    - Mié
+    - Jue
+    - Vie
+    - Sáb
+    abbr_month_names:
+    -
+    - Ene
+    - Feb
+    - Mar
+    - Abr
+    - May
+    - Jun
+    - Jul
+    - Ago
+    - Sep
+    - Oct
+    - Nov
+    - Dic
+    day_names:
+    - Domingo de Pánico
+    - Lunes de no dormir
+    - Martes de Renders
+    - Miércoles de llorar en Taller
+    - Jueves de Estrés
+    - Viernes de Pre-entrega
+    - Sábado de Amanecida
+    formats:
+      short: "%-d %b %Y"
+    month_names:
+    -
+    - Enero
+    - Febrero
+    - Marzo
+    - Abril
+    - Mayo
+    - Junio (Fin de Semestre)
+    - Julio
+    - Agosto
+    - Septiembre
+    - Octubre
+    - Noviembre
+    - Diciembre (Entrega Final)
+  time:
+    formats:
+      short: "%-d %b %Y %H:%M (hora del pánico)"
+  activerecord:
+    models:
+      project:
+        one: Entrega (Proyecto)
+        other: Entregas (Proyectos)
+      sheet_stock:
+        one: Pedazo de material
+        other: Materiales comprados
+    attributes:
+      project:
+        title: Nombre de la maqueta
+      sheet_stock:
+        width_mm: X (Ancho mm)
+        height_mm: Y (Alto mm)
+        quantity: "¿Para cuántas le alcanza?"
+        sort_order: Orden de sacrificio
+    errors:
+      models:
+        project:
+          attributes:
+            title:
+              blank: tiene que ponerle nombre, aunque sea 'final_final_ahorasi'
+            base:
+              no_sheet_stocks: si no hay material, va a tener que cortar aire. Agregue una lámina.
+              multiple_unlimited_sheet_stocks: suave un toque, Elon Musk, solo se permite un material infinito.
+        sheet_stock:
+          attributes:
+            width_mm:
+              blank: falta la medida en X
+              not_a_number: ponga un número, el plotter no entiende letras
+              greater_than: tiene que ser mayor a %{count}, la antimateria no se corta
+            height_mm:
+              blank: falta la medida en Y
+              not_a_number: ponga un número, no poemas
+              greater_than: tiene que ser mayor a %{count}
+      messages:
+        record_invalid: 'El profe le rebotó el plano por: %{errors}'
+  nav:
+    primary: Ruta de escape principal
+    mobile: Menú desde el celular roto
+    home: Volver a Taller
+    projects: Entregas pendientes
+  workspace:
+    default_title: Noche de desvelo
+    expired: Se cerró AutoCAD sin guardar. Toca empezar de cero.
+  home:
+    index:
+      tagline: Tetris de supervivencia DXF
+      subtitle: Optimización de cortes para salvar la tanda y el presupuesto de la maqueta.
+      cta_start: Iniciar el caos
+  projects:
+    status:
+      draft: En pañales (Borrador)
+      ready: Listo para el desastre
+      processing: Quemando RAM del servidor...
+      completed: "¡Sobrevivió!"
+      partial: Cupo la mitad (faltó plata)
+      failed: Fatal Error de CAD
+    created: Entrega creada. Que Dios se apiade de su alma.
+    updated: Cambios guardados a las 3:00 AM.
+    nesting_parameters_updated: Nivel de exigencia del profe actualizado.
+    setup:
+      missing_dxf: Falta el CAD. Suba el archivo o reprueba de una.
+      welcome:
+        intro: Bienvenido al milagro de la madrugada. Suba los vectores, ponga cuánto material le queda, y nosotros vemos cómo acomodar esas piezas para que no tenga que empeñar un riñón comprando más MDF.
+        steps_title: 'Manual de supervivencia:'
+        steps:
+        - 1. Suba el plano lleno de polilíneas (ojalá cerradas).
+        - 2. Seleccione la capa que pasa por la cortadora.
+        - 3. Haga inventario de lo que le queda en la mochila.
+        - 4. Cruce los dedos y dele a 'Anidar'.
+    new:
+      title: Nueva entrega para sufrir
+      setup_title: Configurar el caos
+    edit:
+      title: 'Tratando de salvar: %{title}'
+    show:
+      session_title: Noche de Taller
+      welcome:
+        intro: Ya casi corona la entrega. Revise bien esta vara antes de mandar a cortar y echar a perder el material.
+        steps_title: 'Cómo salvar la tanda en 5 pasos:'
+        steps:
+        - 1. Cuente cuántas láminas le quedan (Inventario).
+        - 2. Suba los archivos sin purgar (Detalle DXF).
+        - 3. Revise lo que va a escupir la máquina (Vistas Previas).
+        - 4. Toque el botón de pánico (Iniciar anidado).
+        - 5. Ajuste los márgenes por si la máquina le muerde el material.
+      nesting_parameters_title: Nivel de exigencia del profe
+      nesting_parameters_hint: Ajuste qué tan pegadas van las piezas para no hacer carbón la maqueta.
+      apply_nesting_parameters: Que sea lo que Dios quiera (Aplicar)
+      save_sheets: Fijar presupuesto (Guardar)
+      sheet_inventory_meta:
+        one: 1 lámina triste
+        other: "%{count} láminas salvadoras"
+      collapsible_hint: Haga clic para esconder este caos visual
+      preview_zone_title: Expectativa vs Realidad
+      nesting_parameters_meta: Separación %{kerf} · Margen %{margin} (Antiquemaduras)
+      dxf_files_meta:
+        zero: 0 planos (Peligro de reprobar)
+        one: 1 plano pesadísimo
+        other: "%{count} archivos vectoriales"
+      dxf_files_title: Los archivos prohibidos (DXF)
+      add_dxf_label: Meter más desastre (DXF)
+      add_dxf_hint: Suba los de última hora
+      source_dxf_detail_summary: Detalle del CAD
+      source_dxf_detail_meta: "%{files} planos pesadísimos · %{selected} de %{total} capas encendidas"
+      source_dxf_detail_empty: Archivo vacío o lleno de bloques sin reventar.
+      dxf_file_layers_meta: "%{selected} de %{total} capas útiles"
+      dxf_file_layers_meta_template: "%{selected} de %{total} capas útiles"
+      remove_dxf: Al basurero
+      remove_dxf_confirm: "¿Seguro que quiere volar el archivo? No hay Ctrl+Z."
+      apply_layers: Aplicar capas
+      nesting_value_mm: "%{value} mm"
+      edit: Cambiarle el nombre
+      adjust_setup: Configurar láser
+      layers: Capas (Layers)
+      download_nested_dxf: Llevar al plotter (Descargar DXF anidado)
+      back: Jalar de aquí (Atrás)
+      actions_title: Botón de pánico
+      manage_title: Administrar este dolor de cabeza
+    history:
+      title: Historial de fracasos (y milagros)
+      finished: Sobrevivió a las %{time}
+    source_preview:
+      title: Lo que lee la máquina
+      empty: No hay vista previa, confíe a ciegas.
+      layer_count:
+        one: 1 layer visible
+        other: "%{count} layers prendidos"
+    preview:
+      title: El milagro en pantalla (Vista previa del anidado)
+      empty: Nada por aquí. Dele anidar y rece para que todo quepa.
+      sheet_count:
+        one: 1 tabla en uso
+        other: "%{count} tablas sacrificadas"
+      sheet_dimensions: 'Lámina %{index}: %{width} × %{height} mm'
+    form:
+      errors_heading:
+        one: 'El profe le encontró 1 error crítico:'
+        other: 'Su maqueta tiene %{count} errores horribles:'
+      sheet_stocks_legend: Lo que sobrevivió en la mochila (Inventario)
+      consumption_priority: Prioridad de sacrificio
+      consumption_order_legend: El sistema se tragará las láminas en este estricto orden de sacrificio de arriba a abajo.
+      reorder_sheet: Mover prioridad
+      sort_finite_first: Ponga las limitadas arriba para gastar primero lo que ya compró.
+      alert_single_unlimited: Solo puede poner 'infinito' en una fila. No somos aserradero.
+      add_sheet: Echar al asador
+      edit_sheet: Retocar lámina
+      delete_sheet: Sacrificar fila
+      sheet_actions: Acciones de pánico
+      quantity_unlimited: Infinita (peligroso)
+      quantity_hint: Déjelo en blanco para láminas ilimitadas, o ponga un número para una cantidad fija.
+      sheet_summary: Resumen de su pobreza
+      alert_dimensions: "¡Ojo! Hay piezas en su CAD más grandes que las láminas. Mágicamente no van a caber."
+      alert_quantity: El láser calculará su destino basándose en lo que anotó abajo.
+      dxf_upload_legend: Los benditos vectores (Archivos DXF)
+      dxf_upload_label: Suba el bendito .dxf
+      dxf_upload_choose: Buscar el .dxf
+      dxf_upload_hint: Solo archivos .dxf por favor, no intente subir un PDF.
+      dxf_upload_setup_hint: Si sube un archivo corrupto, el servidor va a llorar.
+      dxf_upload_failed: El archivo murió al subir.
+      dxf_layers_prompt: Diga cuál capa corta. El grabado y los adornos se van a mover con la pieza principal.
+      dxf_layers_empty: Este CAD no tiene capas útiles.
+      dxf_upload_resubmit_hint: Purgue ese AutoCAD y vuelva a intentar.
+      nesting_settings_legend: Exigencias del láser (No quemar la U)
+      kerf_mm: Separación contra incendios (mm)
+      kerf_mm_hint: Holgura mínima entre piezas. Cero = pegadas al límite del desastre.
+      margin_mm: Borde intocable de la lámina (mm)
+      margin_mm_hint: Margen del borde. Por defecto 5 mm de supervivencia.
+      save_project: Guardar antes de que se vaya la luz
+      continue: Sobrevivir (Continuar)
+  nesting_run:
+    status:
+      processing: Rezando...
+      completed: Coronamos.
+      partial: A medias (vaya a la librería por más MDF).
+      failed: Explotó todo.
+  nesting:
+    start: "¡Acomode esta vara por favor!"
+    cancel: "¡ABORTAR MISIÓN!"
+    started: Empezó el milagro, cruce los dedos...
+    cancelling: Abortando misión, repito, abortando...
+    cancelled: Cobarde. Abortó la misión a medio camino.
+    queued: En la fila del pánico...
+    preparing: Preparando el desastre controlado...
+    running: El motor está sudando...
+    phase:
+      queued: Haciendo fila en la cortadora...
+      preparing: Afilando el láser digital...
+      starting: Invocando a los dioses del Tetris...
+      extracting: Revisando que haya cerrado bien las polilíneas...
+      fill: Empujando piezas a ver si caben...
+      optimizing: Peleando a muerte con la geometría...
+      consolidating: Contando los sobrevivientes en las láminas...
+      refining: Exprimiendo hasta el último milímetro de MDF...
+      writing_outputs: Exportando la salvación en formato vectorial...
+    completed: "¡Milagro! Todo cupo perfectamente."
+    partial: A medias (algunas piezas quedaron huérfanas, vaya a la librería a comprar más).
+    failed: Fatal Error. El taller se incendió y falló el anidado (intente de nuevo).
+    input_file_missing: Alguien borró el archivo original. Seguro fue usted, mae.
+    progress_heading: Nivel de ansiedad (Progreso)
+    eta_overrun: El servidor está sudando frío, dele un toque...
+    time_limit_notice: Me cansé de calcular. Esto es lo mejor que va a obtener a esta hora.
+    renest: Barajar de nuevo (Volver a anidar)
+    renest_started: Acomodando todo otra vez, a ver si hay suerte...
+    nest_updated_pieces: Acomodar con los parches nuevos
+    nest_updated_pieces_started: Metiendo los parches a la fuerza...
+    nest_updated_pieces_unavailable: No hay piezas nuevas, deje de darle clic compulsivamente.
+    orphans_heading: Los huérfanos (Piezas que no cupieron)
+    orphan_reason:
+      oversized_for_sheet: No cabe. Es más grande que sus láminas.
+      no_sheet_capacity: Cabe en teoría, pero el Tetris dijo que no.
+      unknown: No entró. Misterios sin resolver de la arquitectura.
+    derived_piece:
+      title: Hija perdida de la pieza %{piece_number} %{suffix}
+    orphan_preview:
+      piece_title: Pieza rebelde %{piece_number}
+      label: 'Víctima (Pieza):'
+      dimensions: "%{width} × %{height} mm (Muy bestia)"
+      download_dxf: Bajar pieza rebelde
+    orphan_hint:
+      oversized_for_sheet: Compre lámina de camión o parta la pieza en dos en el CAD.
+      no_sheet_capacity: Vaya a comprar una lámina más grande o machetee la pieza en dos.
+      unknown: Revise si cerró bien las líneas, no sea así.
+    split:
+      choose_pending: Dejar en el limbo
+      choose_system: Que Fitloop la machetee
+      choose_manual: Yo lo arreglo en CAD
+      accept: Va, córtelo así
+      reject: No, qué asco de corte
+      regenerate: Otra machetada, por favor
+      accepted: Machete aceptado — listo para re-anidar.
+      accepted_pending_nest: Machete guardado. Use el botón de parches nuevos.
+      not_feasible: Ni con machete cabe. Compre material o edite el CAD.
+      not_feasible_accept: Esta machetada es inviable, no la firme.
+      manual_mother_still_present: La pieza madre sigue en el CAD. Bórrela y suba de nuevo.
+      manual:
+        intro: 'Arregle su desastre en el CAD:'
+        step_1: 1. Abra el CAD pesadísimo, busque la pieza %{piece_number} y divídala como mejor le parezca.
+        step_2: 2. Suba el archivo actualizado en Detalle DXF y vuelva a invocar el anidado.
+        no_dedup: Fitloop no purga su AutoCAD por usted.
+        confirm: Ya arreglé mi CAD (mentira permitida)
+        resolved: Manual resuelto — este huérfano ya no molesta.
+        not_manual_state: Este huérfano no está en modo manual.
+        orphan_geometry_missing: Falta geometría — anide primero, luego confirme.
+      badge:
+        pending: En el limbo
+        system_split: Macheteada
+        manual: Salvado (Manual)
+        resolved: Resuelto a las 3 AM
+        split_applied: Machete aplicado
+  project_readiness:
+    heading: 'No puede avanzar sin arreglar esto:'
+    no_layers_selected: "¡Ojo! Seleccione al menos un layer, el láser no lee mentes."
+    no_extractable_pieces: Suba un archivo que tenga líneas de corte, por amor a Dios.
+    primary_layer_required: Marque por lo menos UNA capa como 'Corte principal' o la máquina se va a volver loca.
+  project_layers:
+    layer_name: Layer / Capa
+    section_note: Diga cuál capa corta. El grabado, marcas y textos auxiliares se van a mover con la pieza para no hacer un desastre.
+    primary_layer:
+      label: La de Corte (Guillotina)
+      short: Corte (Guillotina)
+      tooltip: La línea oficial que separa sus piezas de la basura.
+      selection_hint: Elija una capa principal, no todas a la vez.
+    auxiliary_layers:
+      label: Las de Adorno (Maquillaje)
+      short: Maquillaje (Adorno)
+      helper: Grabados, textos y líneas que viajan dentro de la pieza principal sin cortarla.
+    updated: Capas actualizadas con éxito.
+    upload:
+      created: CAD trepado al servidor.
+      removed: Archivo mandado al infierno de la papelera.
+      missing: Se le olvidó seleccionar el archivo.
+      legend: Tire sus archivos pesados aquí
+      label: Seleccionar CAD (.dxf)
+      submit: Subir a la nube
+    index:
+      title: El cajón desastre de %{title}
+      back: Jalar de aquí (Atrás)
+      legend: Listado del caos general
+      save: Guardar e iniciar anidado
+      empty: Está más vacío que Taller un domingo. Suba algo.
+      files_attached:
+        one: 1 triste archivo subido
+        other: "%{count} archivos flotando en el espacio"

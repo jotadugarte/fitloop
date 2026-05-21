@@ -15,6 +15,7 @@ class ProjectReadinessValidator
   def validate
     errors = []
     errors << I18n.t("project_readiness.no_layers_selected") unless selected_layers?
+    errors.concat(missing_primary_layer_errors)
     errors << I18n.t("project_readiness.no_extractable_pieces") if selected_layers? && extractable_piece_count.zero?
 
     Result.new(ok?: errors.empty?, errors: errors)
@@ -24,6 +25,27 @@ class ProjectReadinessValidator
 
   def selected_layers?
     @project.project_layers.where(included: true).exists?
+  end
+
+  # [REQ-FIT-DXF-002] Included auxiliary layers require a primary on the same DXF file.
+  def missing_primary_layer_errors
+    attachment_ids = @project.project_layers
+      .where(included: true, layer_role: :auxiliary)
+      .where.not(active_storage_attachment_id: nil)
+      .distinct
+      .pluck(:active_storage_attachment_id)
+
+    return [] if attachment_ids.empty?
+
+    message = I18n.t("project_readiness.primary_layer_required")
+    attachment_ids.filter_map do |attachment_id|
+      primary_set = @project.project_layers.exists?(
+        active_storage_attachment_id: attachment_id,
+        included: true,
+        layer_role: :primary
+      )
+      message unless primary_set
+    end
   end
 
   def extractable_piece_count
@@ -41,7 +63,7 @@ class ProjectReadinessValidator
   end
 
   def count_with_union_layers
-    layer_names = @project.project_layers.where(included: true).pluck(:layer_name)
+    layer_names = Dxf::PieceCounter.layer_names_for_count(@project.project_layers)
     return 0 if layer_names.empty?
 
     with_downloaded_dxf_paths do |paths|
@@ -54,9 +76,9 @@ class ProjectReadinessValidator
   def count_with_per_file_layers
     total = 0
     @project.input_dxf_attachments.each do |attachment|
-      layer_names = @project.project_layers
-        .where(included: true, active_storage_attachment_id: attachment.id)
-        .pluck(:layer_name)
+      layer_names = Dxf::PieceCounter.layer_names_for_count(
+        @project.project_layers.where(active_storage_attachment_id: attachment.id)
+      )
       next if layer_names.empty?
 
       total += with_downloaded_path(attachment) do |path|

@@ -4,20 +4,17 @@
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
 
-  layout :fitloop_layout
+  layout "application"
 
   before_action :set_workspace_project, only: %i[
-    show edit update verify_pin nesting_sync nesting_parameters workspace nested_dxf
+    show edit update nesting_sync nesting_parameters workspace nested_dxf
   ]
-  before_action :require_project_access!, only: %i[edit update]
+
   def index
     redirect_to start_project_path
   end
 
   def show
-    grant_project_access!(@project) if @project.ephemeral?
-    return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
-
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
@@ -25,9 +22,6 @@ class ProjectsController < ApplicationController
   end
 
   def nested_dxf
-    grant_project_access!(@project) if @project.ephemeral?
-    return render("projects/pin_gate", status: :ok) unless project_access_granted?(@project)
-
     attachment = @project.nested_dxf
     return head(:not_found) unless attachment.attached?
 
@@ -40,9 +34,6 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_sync
-    grant_project_access!(@project) if @project.ephemeral?
-    return head(:forbidden) unless project_access_granted?(@project)
-
     sync_nesting_ui_state!
     @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
@@ -58,7 +49,6 @@ class ProjectsController < ApplicationController
 
   def new
     @project = Workspace.find_or_create!(session)
-    grant_project_access!(@project)
     @composer_draft = {}
   end
 
@@ -67,9 +57,8 @@ class ProjectsController < ApplicationController
   end
 
   def edit
-    grant_project_access!(@project) if @project.ephemeral?
     @composer_draft = {}
-    render(:new) if @project.ephemeral?
+    render :new
   end
 
   def update
@@ -77,31 +66,10 @@ class ProjectsController < ApplicationController
     sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
     @project.assign_attributes(attributes)
     normalize_sheet_stock_consumption_order!(@project)
-
-    if @project.ephemeral?
-      finish_ephemeral_setup
-    elsif @project.save
-      redirect_to @project, notice: t("projects.updated")
-    else
-      @composer_draft = composer_draft_params
-      render(:edit, status: :unprocessable_content)
-    end
-  end
-
-  def verify_pin
-    if ProjectAccess.granted?(project: @project, pin: params[:pin])
-      grant_project_access!(@project)
-      redirect_to @project, notice: t("projects.access.granted")
-    else
-      flash.now[:alert] = t("projects.access.denied")
-      render("projects/pin_gate", status: :unprocessable_entity)
-    end
+    finish_ephemeral_setup
   end
 
   def nesting_parameters
-    grant_project_access!(@project) if @project.ephemeral?
-    return head(:forbidden) unless project_access_granted?(@project)
-
     if @project.update(nesting_parameters_params)
       respond_to do |format|
         format.turbo_stream do
@@ -128,9 +96,6 @@ class ProjectsController < ApplicationController
   end
 
   def workspace
-    grant_project_access!(@project) if @project.ephemeral?
-    return head(:forbidden) unless project_access_granted?(@project)
-
     case params[:section]
     when "sheets"
       update_workspace_sheets!
@@ -220,24 +185,6 @@ class ProjectsController < ApplicationController
     redirect_to @project
   end
 
-  def fitloop_layout
-    pin_gate_request? ? "minimal" : "application"
-  end
-
-  def pin_gate_request?
-    return true if action_name == "verify_pin"
-    return false unless action_name == "show" && @project
-    return false if @project.ephemeral?
-
-    !project_access_granted?(@project)
-  end
-
-  def require_project_access!
-    return if @project.ephemeral?
-
-    super(@project)
-  end
-
   def nesting_parameters_params
     params.require(:project).permit(:kerf_mm, :margin_mm)
   end
@@ -245,7 +192,6 @@ class ProjectsController < ApplicationController
   def project_params
     params.require(:project).permit(
       :title,
-      :pin,
       :kerf_mm,
       :margin_mm,
       sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]
@@ -350,10 +296,6 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_progress_locals
-    {
-      project: @project,
-      eta_overrun: @project.estimated_finished_at.present? && Time.current > @project.estimated_finished_at,
-      time_limit_notice: @time_limit_notice
-    }
+    Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice)
   end
 end

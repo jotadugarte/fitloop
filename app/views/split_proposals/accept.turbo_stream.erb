@@ -1,0 +1,9 @@
+<%= turbo_stream.replace ActionView::RecordIdentifier.dom_id(@project, :show_actions) do %>
+  <%= render "projects/show_actions", project: @project %>
+<% end %>
+
+<%= turbo_stream.replace ActionView::RecordIdentifier.dom_id(@project, :nesting_orphans) do %>
+  <%= render "projects/nesting_orphans_frame",
+             project: @project,
+             orphans: Nesting::OrphansPresenter.for(@project) %>
+<% end %>

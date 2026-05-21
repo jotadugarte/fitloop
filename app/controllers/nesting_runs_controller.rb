@@ -6,7 +6,6 @@ class NestingRunsController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project
-  before_action -> { require_project_access!(@project) }
 
   def create
     @project.reload
@@ -18,7 +17,13 @@ class NestingRunsController < ApplicationController
       return
     end
 
-    start_nesting_for!(@project)
+    nest_updated_pieces = ActiveModel::Type::Boolean.new.cast(params[:nest_updated_pieces])
+    if nest_updated_pieces && @project.derived_pieces.none?
+      redirect_to @project, alert: I18n.t("nesting.nest_updated_pieces_unavailable")
+      return
+    end
+
+    start_nesting_for!(@project, nest_updated_pieces: nest_updated_pieces)
     redirect_to @project
   end
 

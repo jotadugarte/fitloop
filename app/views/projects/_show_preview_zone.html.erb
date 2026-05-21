@@ -5,6 +5,14 @@
     <div class="fit-section__content">
       <div class="panel panel--inset nesting-preview-panel">
         <%= render "projects/nesting_preview", project: project, preview: preview, heading_level: 3 %>
+        <% if project.nested_dxf.attached? %>
+          <p class="preview-zone__download form-actions form-actions--inline">
+            <%= link_to t("projects.show.download_nested_dxf"),
+                        nested_dxf_project_path(project),
+                        class: "btn btn-primary",
+                        data: { turbo: false, turbo_frame: "_top", testid: "download-nested-dxf" } %>
+          </p>
+        <% end %>
       </div>
 
       <%= turbo_frame_tag dom_id(project, :nesting_orphans) do %>

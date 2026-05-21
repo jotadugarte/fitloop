@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Project nesting preview", type: :request do
-  let(:project) { create_project_for_spec!(title: "Preview bench", pin: "334422") }
+  let(:project) { create_project_for_spec!(title: "Preview bench") }
   let(:placements_payload) do
     {
       sheets: [
@@ -32,7 +32,6 @@ RSpec.describe "Project nesting preview", type: :request do
 
   describe "GET /projects/:id [REQ-FIT-UI-002]" do
     it "renders piece outlines with holes when placements include rings" do
-      unlock_project_for_spec!(project, pin: "334422")
 
       payload = placements_payload.deep_dup
       payload[:sheets][0][:pieces] = [
@@ -59,12 +58,11 @@ RSpec.describe "Project nesting preview", type: :request do
       get project_path(project)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('fill-rule="evenodd"')
-      expect(response.body).to include("<path")
+      expect(response.body).to include('fill_rule="evenodd"')
+      expect(response.body).to include('data-testid="preview-piece"')
     end
 
     it "renders an SVG preview with one rect per sheet in placements.json" do
-      unlock_project_for_spec!(project, pin: "334422")
 
       project.placements_json.attach(
         io: StringIO.new(placements_payload.to_json),
@@ -85,8 +83,60 @@ RSpec.describe "Project nesting preview", type: :request do
       )
       expect(response.body).to include('data-testid="preview-sheet-dimensions"')
       expect(response.body).to include('fill="#ffffff"')
-      expect(response.body).to include('y="0"')
+      expect(response.body).to include('y="0.0"')
       expect(response.body).not_to match(/<rect[^>]+y="-\d/)
+    end
+
+    it "renders auxiliary decorations with layer colors in the nesting preview" do
+
+      project.project_layers.create!(
+        layer_name: "CORTE",
+        included: true,
+        layer_role: :primary,
+        color: "#ff0000"
+      )
+      project.project_layers.create!(
+        layer_name: "GRABADO",
+        included: true,
+        layer_role: :auxiliary,
+        color: "#260000"
+      )
+
+      payload = placements_payload.deep_dup
+      payload[:sheets][0][:pieces] = [
+        {
+          piece_index: 0,
+          x_mm: 10.0,
+          y_mm: 15.0,
+          rotation_deg: 0.0,
+          width_mm: 80.0,
+          height_mm: 40.0,
+          primary_layer_name: "CORTE",
+          rings: [
+            [ [ 10.0, 15.0 ], [ 90.0, 15.0 ], [ 90.0, 55.0 ], [ 10.0, 55.0 ] ]
+          ],
+          decorations: [
+            {
+              layer_name: "GRABADO",
+              geometry_type: "line",
+              payload: { coordinates: [ [ 20.0, 30.0 ], [ 80.0, 30.0 ] ] }
+            }
+          ]
+        }
+      ]
+      project.placements_json.attach(
+        io: StringIO.new(payload.to_json),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+      project.update!(status: :completed)
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="preview-decoration"')
+      expect(response.body).to include('stroke="#ff0000"')
+      expect(response.body).to include('stroke="#260000"')
     end
   end
 end

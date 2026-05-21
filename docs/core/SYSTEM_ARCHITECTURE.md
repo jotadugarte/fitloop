@@ -2,7 +2,7 @@
 
 **Purpose:** Unchangeable technical laws for the Fitloop DXF sheet-nesting web app. AI agents must not violate these boundaries without an approved ADR in `docs/core/ADRs/`.
 
-**Product:** Fitloop — multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, PIN access, Python nesting engine, live job progress, nested DXF download + browser preview. Brand assets live under `images/` (app logo).
+**Product:** Fitloop — ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live job progress, nested DXF download + browser preview. Brand assets live under `images/` (app logo).
 
 ---
 
@@ -16,17 +16,17 @@
 | **Primary database** | **PostgreSQL** | Project persistence, job metadata |
 | **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
-| **i18n** | Rails I18n | `en`, `es` in v1 |
+| **i18n** | Rails I18n | `en`, `es` in v1; optional joke locale `es_panic` (easter egg, same key tree as `es`) |
 | **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
-Rails owns HTTP, auth (PIN), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
+Rails owns HTTP, **workspace session access** (`Workspace`), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
 
 ---
 
 ## 2. Architectural Paradigm
 
-* **Design pattern:** Rails MVC + **service objects** for domain workflows (`ProjectAccess`, `ProjectReadinessValidator`, `Nesting::CliRunner`). No fat controllers.
+* **Design pattern:** Rails MVC + **service objects** for domain workflows (`Workspace`, `ProjectReadinessValidator`, `Nesting::CliRunner`). No fat controllers.
 * **State:** Server-rendered HTML; Turbo for partial updates and job progress. No separate SPA framework in v1.
 * **API:** Server-rendered routes + Turbo Streams; no public REST API in v1.
 * **Nesting integration:** ActiveJob → Solid Queue → subprocess/CLI to `nesting_engine` → attach results + broadcast status (`completed` | `partial` | `failed`).
@@ -50,7 +50,7 @@ AI agents **must not** introduce the following without an ADR:
 ## 4. Environment & Infrastructure
 
 * **Deployment target:** Single host (or container) with Rails + PostgreSQL + Python venv for `nesting_engine` on the same machine (v1).
-* **Secrets:** Rails encrypted credentials — e.g. admin master PIN (10 digits); user project PINs stored as bcrypt digests on `Project`.
+* **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); **no access secrets on `Project`** (session bind only per ADR-0004).
 * **Storage:** Active Storage (disk or cloud per env) for DXF inputs and nested output.
 
 ---
@@ -107,3 +107,18 @@ Shapely in `nest_placement.py` is used for per-piece fallback, whole-sheet scori
 | **Engine** | `nest_libnest2d.stocks_in_consumption_order` | Consume finite stocks before unlimited regardless of mis-ordered client `sort_order` |
 
 **Requirement detail:** `REQ-FIT-UI-001`, `REQ-FIT-DOM-001`, `REQ-FIT-NEST-002`, `REQ-FIT-CLI-001` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § SheetStock.
+
+---
+
+## 9. CLI progress, split planner, and composite extract (normative)
+
+| Mode / artifact | Python module | Rails role |
+|-----------------|---------------|------------|
+| **`progress.json`** | `progress_reporter.py` (write); `nest.py` phases | `Nesting::CliRunner` polls; `ProgressSnapshot` + `ProgressSync` update UI |
+| **`plan_splits` / split preview** | `split_planner.py`, CLI `plan_splits` | `Nesting::SplitPlannerRunner` → `split_preview.json`; Turbo preview SVG |
+| **Composite pieces** | `composite_extract.py`, `decoration_transform.py` | `ProjectLayer.layer_role`; config via `Nesting::ConfigBuilder` |
+| **Flat layer filter (legacy)** | `extract.py` | `ProjectLayer.included` without `primary` |
+
+Rails orchestrates subprocess I/O only; no split geometry or composite clipping in Ruby.
+
+**Requirement detail:** `REQ-FIT-JOB-001`, `REQ-FIT-SPLIT-001`, `REQ-FIT-DXF-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §§ Nesting job, Auto-split, Composite layers.

@@ -1,12 +1,12 @@
 # Project Roadmap — Fitloop
 
-Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, PIN access, Python nesting engine, live progress, nested DXF + preview. Product spec is locked in `.agenticguild/active_sessions/task_dxf-nesting.md`.
+Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live progress, nested DXF + preview. Product spec is locked in `.agenticguild/active_sessions/task_dxf-nesting.md`.
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-17 — full-sheet libnest2d epic + intra-sheet repack (`nest_multi_bin` five-phase pipeline, `score_sheet_layout`).
+**Last audit:** 2026-05-19 — ephemeral session access shipped (`REQ-FIT-AUTH-001`, ADR-0004); PIN removed from app.
 
-**Next action:** Pending — nesting progress/status bar UX; v1.1 auto-split (`REQ-FIT-SPLIT-001`); or optional FastAPI wrapper.
+**Next action:** Optional FastAPI wrapper; or hard file/piece caps.
 
 ---
 
@@ -20,13 +20,13 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 | P3 | Nesting pipeline | **Complete** |
 | P4 | UX completion & ship | **Complete** |
 | Docs | Core reference docs | **Complete** |
-| P5 / Backlog | v1.1+ | **Not started** |
+| P5 / Backlog | v1.1+ | **Complete** (auto-split + composite v1.2 shipped) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
 
-**Verified in codebase:** Rails 8 app, domain models + migrations, PIN gate, multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
+**Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
 
-**Not implemented:** nesting progress/status bar UX (coarse 5%/15% feedback); v1.1 auto-split; optional FastAPI wrapper; hard file/piece caps; PIN recovery.
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -51,7 +51,7 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 ### P1 — Domain & access
 
 6. [x] Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (REQ-FIT-DOM-001) — 2026-05-16
-7. [x] PIN access + `ProjectAccess` (REQ-FIT-AUTH-001) — 2026-05-16
+7. [x] Ephemeral workspace session access (`Workspace`, REQ-FIT-AUTH-001; ADR-0004 supersedes PIN) — 2026-05-19
 8. [x] Project CRUD + ordered `SheetStock` UI (REQ-FIT-UI-001) — 2026-05-16
 
 ### P2 — DXF inputs & validation
@@ -71,14 +71,19 @@ Web app for DXF sheet nesting: multi-DXF projects, ordered sheet inventory (fini
 
 16. [x] Browser preview (SVG/canvas) from `placements.json` (REQ-FIT-UI-002) — 2026-05-16
 17. [x] Re-nest: new `NestingRun`, replace downloadable result, history list (REQ-FIT-NEST-004) — 2026-05-16
-19. [x] Download nested DXF; project list without login; PIN gate on show; functional UI + `en`/`es` locale files (REQ-FIT-UI-003) — 2026-05-16
+19. [x] Download nested DXF; workspace start redirect (no saved-project list); session-bound show; functional UI + `en`/`es` locale files (REQ-FIT-UI-003) — 2026-05-16 (access model updated 2026-05-19, ADR-0004)
 21. [x] E2E with golden sample DXF; manual QA checklist; deploy notes (REQ-FIT-QA-001) — 2026-05-16
 18. [x] Locale switcher: EN/ES toggle, `LocalesController#update`, `LocaleSwitchable#set_locale`, cookie + session persistence (REQ-FIT-UI-005) — 2026-05-16
+- [x] **Modo Arquitecto en Pánico** (`:es_panic`) — joke locale YAML, 2+1 switcher (📐 PÁNICO), key parity + request/i18n specs (REQ-FIT-UI-005) — 2026-05-19 — Session: `task_es-panic-locale.md`
 20. [x] Architecture-studio web design: IBM Plex, blueprint grid, sidebar/bottom nav, landing, project cards, CAD preview, visual layers (REQ-FIT-UI-004) — 2026-05-16
 - [x] Core docs: `DATA_FLOW_MAP.md`, `TESTING_STRATEGY_MATRIX.md`, `SCHEMA_REFERENCE.md` — 2026-05-16
 - [x] **libnest2d integration** — `nest_libnest2d` + `python-libnest2d==0.1.3`; DEPLOY native deps; CI `nesting_engine` job (REQ-FIT-NEST-001, REQ-FIT-NEST-002, REQ-FIT-QA-001) — 2026-05-17 — Session: `task_libnest2d-integration.md`
 - [x] **Full-sheet libnest2d placement (kerf + obstacles)** — `nest_sheet_with_obstacles`, batch fill in `_place_on_one_sheet`, `_consolidate_sheets` repack, `_inter_sheet_local_search`; invariant tests (REQ-FIT-NEST-002, ADR-0001) — 2026-05-18 — Session: `task_full-sheet-libnest2d-epic.md`
 - [x] **Intra-sheet repack (void closure)** — `_intra_sheet_repack_search` (×2 post-fill/post-consolidate), `score_sheet_layout` / `_layout_better_than`, opportunistic pull from later sheets; peluo DXF fixture + `@pytest.mark.slow` (REQ-FIT-NEST-002, ADR-0001) — 2026-05-17 — Session: `task_intra-sheet-repack.md`
+- [x] **v1.1 — Auto-split** — opt-in orphan resolution (`OrphanResolution`, `SplitProposal`, `DerivedPiece`), `split_planner.py`, `plan_splits` CLI, ephemeral UI, manual CAD path, nest-with-updated-pieces CTA, `split_not_feasible`, cancel/sheet invalidation (REQ-FIT-SPLIT-001, ADR-0002) — 2026-05-19 — Session: `task_v11-auto-split.md`
+- [x] **v1.2 — Composite DXF layers (core)** — `layer_role` primary/auxiliary per file, `composite_extract`, clipped aux in preview, layer-preserved `nested.dxf`, primary-only piece count (REQ-FIT-DXF-002, ADR-0003) — 2026-05-18 — Session: `task_composite-dxf-layers.md`
+- [x] **v1.2 — Composite + auto-split** — `partition_decorations`, `decorations_json` on `DerivedPiece`, composite `plan_splits` preview, nest derived children with aux layers (REQ-FIT-DXF-002, REQ-FIT-SPLIT-001) — 2026-05-18 — Session: `task_composite-dxf-layers.md`
+- [x] **Remove PIN / saved-project access** — drop `pin_digest`, `ProjectAccess` / gate UI, ephemeral-only `Workspace.resolve!`; docs + ADR-0004 (REQ-FIT-AUTH-001) — 2026-05-19 — Session: `task_remove-pin.md`
 
 ---
 
@@ -93,10 +98,10 @@ _(none)_
 ### Product / UX
 
 - [x] **Sheet stock consumption priority** — Priority column, drag reorder, finite-first button, ∞ auto-last, max one ∞ per project; server + CLI + engine alignment (REQ-FIT-UI-001, REQ-FIT-DOM-001, REQ-FIT-NEST-002) — 2026-05-17
-- [ ] **Nesting progress / status bar UX** — During `processing`, the bar mostly shows only coarse percentages (e.g. 5%, 15%) with little phase context for most of the run; make feedback friendlier: clearer step labels (queued → preparing → engine → finishing), smoother or engine-driven progress where possible, visible cancel/ETA copy, and accessible status text in `en`/`es` (REQ-FIT-JOB-001)
-
+- [x] **Nesting progress / status bar UX** — CLI `progress.json`, phased labels (queued → preparing → starting → engine phases → writing outputs), live percent via `CliRunner` poll, cancel + time remaining in progress panel, `en`/`es` copy (REQ-FIT-JOB-001) — 2026-05-20 — Session: `task_nesting-progress-ux.md`
 ### Nesting engine
-- [ ] **v1.1 — Auto-split** oversized pieces (REQ-FIT-SPLIT-001) — Depends on: MVP v1 shipped
+
+_(no pending engine items)_
 
 ---
 

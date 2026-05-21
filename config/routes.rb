@@ -17,7 +17,6 @@ Rails.application.routes.draw do
 
   resources :projects, except: :destroy do
     member do
-      post :verify_pin
       patch :nesting_parameters
       patch :workspace
       get :nesting_sync
@@ -35,5 +34,19 @@ Rails.application.routes.draw do
         post :cancel
       end
     end
+    resources :orphan_resolutions, only: :update, param: :piece_key do
+      member do
+        post :confirm_manual
+      end
+    end
+    post "orphan_resolutions/:piece_key/split_proposal/accept",
+         to: "split_proposals#accept",
+         as: :accept_project_orphan_split_proposal
+    post "orphan_resolutions/:piece_key/split_proposal/reject",
+         to: "split_proposals#reject",
+         as: :reject_project_orphan_split_proposal
+    post "orphan_resolutions/:piece_key/split_proposal/regenerate",
+         to: "split_proposals#regenerate",
+         as: :regenerate_project_orphan_split_proposal
   end
 end

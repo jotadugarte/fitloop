@@ -7,10 +7,15 @@
   data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
   data-project-status="<%= @project.status %>"
 >
-  <header class="page-header page-header--compact">
-    <h1><%= @project.ephemeral? ? t("projects.show.session_title") : @project.title %></h1>
-    <%= render "status_badge", project: @project %>
-  </header>
+  <div class="project-show__hero">
+    <h1 class="visually-hidden">
+      <%= @project.ephemeral? ? t("projects.show.session_title") : @project.title %>
+    </h1>
+    <div class="project-show__hero-status">
+      <%= render "status_badge", project: @project %>
+    </div>
+    <%= render "show_welcome" %>
+  </div>
 
   <%= render "show_sheet_inventory", project: @project %>
 
@@ -24,10 +29,7 @@
   <%= render "show_actions", project: @project %>
 
   <section class="project-show__progress">
-    <%= render "nesting_progress",
-               project: @project,
-               eta_overrun: false,
-               time_limit_notice: @time_limit_notice %>
+    <%= render "nesting_progress", **Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice) %>
   </section>
 
   <%= render "nesting_parameters", project: @project %>

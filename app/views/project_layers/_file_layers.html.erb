@@ -1,0 +1,59 @@
+<%# locals: (project:, attachment:) %>
+<% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
+<% primary_layer = layers.find { |layer| layer.layer_role == "primary" } %>
+
+<section class="dxf-file-layers panel panel--inset"
+         data-testid="dxf-file-layers"
+         data-attachment-id="<%= attachment.id %>">
+  <% if layers.any? %>
+    <ul class="layer-list layer-list--visual layer-list--roles">
+      <li class="layer-list__item layer-list__item--header" aria-hidden="true">
+        <span class="layer-list__row">
+          <span class="layer-list__col layer-list__col--primary"><%= t("project_layers.primary_layer.short") %></span>
+          <span class="layer-list__col layer-list__col--auxiliary"><%= t("project_layers.auxiliary_layers.short") %></span>
+          <span class="layer-list__col layer-list__col--swatch"></span>
+          <span class="layer-list__col layer-list__col--name"><%= t("project_layers.layer_name") %></span>
+        </span>
+      </li>
+      <% layers.each do |layer| %>
+        <% is_primary = primary_layer&.id == layer.id %>
+        <% is_auxiliary = layer.layer_role == "auxiliary" %>
+        <li class="layer-list__item" data-layer-roles-target="row">
+          <span class="layer-list__row">
+            <span class="layer-list__col layer-list__col--primary">
+              <%= radio_button_tag "project_layers[#{attachment.id}][primary_layer_id]",
+                                   layer.id,
+                                   is_primary,
+                                   id: "primary_layer_#{attachment.id}_#{layer.id}",
+                                   disabled: is_auxiliary,
+                                   data: {
+                                     testid: "primary-layer-radio",
+                                     layer_roles_target: "primary",
+                                     action: "layer-roles#primaryChanged"
+                                   } %>
+            </span>
+            <span class="layer-list__col layer-list__col--auxiliary">
+              <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auxiliary]",
+                                "1",
+                                is_auxiliary,
+                                id: "auxiliary_layer_#{attachment.id}_#{layer.id}",
+                                disabled: is_primary,
+                                data: {
+                                  testid: "auxiliary-layer-checkbox",
+                                  layer_roles_target: "auxiliary",
+                                  action: "layer-roles#auxiliaryChanged"
+                                } %>
+            </span>
+            <span class="layer-chip layer-list__col layer-list__col--swatch"
+                  style="--layer-chip-color: <%= layer_chip_color(layer) %>"
+                  aria-hidden="true"></span>
+            <label class="layer-list__name layer-list__col layer-list__col--name"
+                   for="primary_layer_<%= attachment.id %>_<%= layer.id %>"><%= layer.layer_name %></label>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p><%= t("project_layers.index.empty") %></p>
+  <% end %>
+</section>
