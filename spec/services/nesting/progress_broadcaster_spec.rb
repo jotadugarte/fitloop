@@ -79,7 +79,7 @@ RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
       expect(html).to include('data-testid="nesting-orphans"')
       expect(html).to include('data-testid="orphan-card"')
       expect(html).to include('data-testid="orphan-preview-svg"')
-      expect(html).to include('data-testid="download-orphan-dxf"')
+      expect(html).not_to include('data-testid="download-orphan-dxf"')
       expect(html).to match(/Pieza 1|Piece 1/)
     end
 

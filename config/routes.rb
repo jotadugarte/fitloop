@@ -51,6 +51,7 @@ Rails.application.routes.draw do
       patch :workspace
       get :nesting_sync
       get :nested_dxf
+      get "descarga-pago", to: "download_paywall#show", as: :download_paywall
       get "orphans/:piece_index/dxf",
           to: "project_orphan_dxf_downloads#show",
           as: :orphan_dxf

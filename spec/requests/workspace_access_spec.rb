@@ -70,7 +70,8 @@ RSpec.describe "Workspace project access", type: :request do
       expect(response.body).to include('data-turbo="false"')
     end
 
-    it "serves the nested DXF as a file download" do
+    it "redirects nested DXF download to paywall without entitlement [REQ-FIT-BILL-001]" do
+      project.nesting_runs.create!(status: "completed")
       project.nested_dxf.attach(
         io: StringIO.new("NESTED DXF CONTENT"),
         filename: "nested.dxf",
@@ -79,10 +80,7 @@ RSpec.describe "Workspace project access", type: :request do
 
       get nested_dxf_project_path(project)
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("NESTED DXF CONTENT")
-      expect(response.headers["Content-Disposition"]).to include("attachment")
-      expect(response.headers["Content-Disposition"]).to include("nested.dxf")
+      expect(response).to redirect_to(download_paywall_project_path(project))
     end
   end
 end

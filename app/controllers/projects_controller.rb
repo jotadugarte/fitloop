@@ -3,12 +3,14 @@
 # [REQ-FIT-UI-001] Ephemeral workspace setup and project show.
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
+  include RequiresNestedDownloadAuthorization
 
   layout "application"
 
   before_action :set_workspace_project, only: %i[
     show edit update nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :authorize_nested_download!, only: :nested_dxf
 
   def index
     redirect_to start_project_path

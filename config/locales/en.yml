@@ -98,6 +98,14 @@ en:
     activity_expired: "Your workshop project expired due to inactivity (over 2 minutes). Please start again."
 
   billing:
+    paywall:
+      title: "Payment or plan required"
+      intro: "To download the nested DXF you need to pay for this download or have an active plan."
+      pay_this_download: "Pay for this download"
+      view_plans: "View plans"
+      back_to_project: "Back to project"
+    single_download:
+      retention_24h: "After payment, the file will be available in My payments for 24 hours even if you leave the workshop."
     planes:
       title: "Plans"
       tier_1: "1-month plan"

@@ -113,6 +113,14 @@ es:
     activity_expired: "Tu proyecto en el taller expiró por inactividad (más de 2 minutos). Vuelve a empezar."
 
   billing:
+    paywall:
+      title: "Se requiere pago o plan"
+      intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
+      pay_this_download: "Pagar esta descarga"
+      view_plans: "Ver planes"
+      back_to_project: "Volver al proyecto"
+    single_download:
+      retention_24h: "Tras pagar, el archivo estará en Mis pagos durante 24 horas aunque cierres el taller."
     planes:
       title: "Planes"
       tier_1: "Plan 1 mes"

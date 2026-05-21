@@ -108,6 +108,14 @@ es_panic:
     expired: Se cerró AutoCAD sin guardar. Toca empezar de cero.
     activity_expired: El taller caducó por inactividad (>2 min). Empezar de cero, sin llanto en el teclado.
   billing:
+    paywall:
+      title: Se requiere pago o plan (sin drama)
+      intro: Para bajar el DXF anidado hay que pagar esta vuelta o tener plan activo.
+      pay_this_download: Pagar esta descarga
+      view_plans: Ver planes
+      back_to_project: Volver al proyecto
+    single_download:
+      retention_24h: Tras pagar, el archivo queda en Mis pagos 24 h aunque cierres el taller.
     planes:
       title: Planes (elige tu sufrimiento)
       tier_1: Plan 1 mes

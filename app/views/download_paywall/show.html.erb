@@ -1,0 +1,29 @@
+<article data-testid="download-paywall">
+  <h1><%= t("billing.paywall.title") %></h1>
+  <p><%= t("billing.paywall.intro") %></p>
+  <p><%= t("billing.single_download.retention_24h") %></p>
+
+  <ul class="paywall-options">
+    <% if @nesting_run %>
+      <li>
+        <%= link_to t("billing.paywall.pay_this_download"),
+                    checkout_path(nesting_run_id: @nesting_run.id),
+                    class: "btn btn-primary",
+                    data: { testid: "paywall-checkout" } %>
+      </li>
+    <% end %>
+    <li>
+      <%= link_to t("billing.paywall.view_plans"), planes_path, class: "btn btn-secondary", data: { testid: "paywall-planes" } %>
+    </li>
+    <% unless user_signed_in? %>
+      <li>
+        <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "btn btn-secondary", data: { testid: "paywall-sign-in" } %>
+      </li>
+      <li>
+        <%= link_to t("auth.nav.sign_up"), new_user_registration_path, class: "btn btn-secondary", data: { testid: "paywall-sign-up" } %>
+      </li>
+    <% end %>
+  </ul>
+
+  <p><%= link_to t("billing.paywall.back_to_project"), project_path(@project) %></p>
+</article>
