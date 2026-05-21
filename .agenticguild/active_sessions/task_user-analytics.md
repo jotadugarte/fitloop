@@ -128,6 +128,50 @@ See explore-task step 1.2 response for plain-language explanations of: admin vs 
 
 ---
 
+## Observaciones Técnicas (Cursor / implementación)
+
+Notas para que `start-task` no alucine patrones al ejecutar los 35 pasos del plan.
+
+### GeoIP fallback (A35)
+
+- **Fuente primaria:** MaxMind GeoLite2 local (`Analytics::ResolveCountry` + MMDB en `ENV` / CI).
+- **Fallback:** header Cloudflare `CF-IPCountry` — leer de forma **segura** vía Rack/Rails, no asumir un solo nombre de header en Fly.io/proxy:
+  - Preferir `request.get_header("HTTP_CF_IPCOUNTRY")` o `request.headers["CF-IPCountry"]` (Rails normaliza).
+  - Evitar hardcodear solo `request.headers["HTTP_CF_IPCOUNTRY"]` sin probar en staging; documentar en `docs/DEPLOY.md` qué header llega detrás del proxy.
+- Si ambos fallan → `country_code` null (A35).
+
+### Identidad histórica tras borrar cuenta (A38)
+
+- El usuario ejerce supresión: fila `users` **anonimizada** (no puede volver a entrar).
+- La bitácora conserva snapshot inmutable en evento **`account_deleted`**: `historical_email`, `historical_name` en `properties` (admin-only).
+- Panel 100 % interno → timeline por ex-`user_id` sigue siendo legible para operaciones/comercial sin reidentificar al usuario en la app pública.
+
+### Aplanamiento `user_events` + jsonb (A26)
+
+- Tabla única + columna `properties` jsonb = convención Rails moderna.
+- Agregaciones del dashboard: scopes ActiveRecord con operadores Postgres nativos (`->`, `->>`) sobre `properties` (ej. `orphans_by_reason`, `duration_ms`, `historical_email`) — **no** tablas hijas por tipo de evento en v1.
+- Índices GIN opcionales solo si un query concreto lo exige post-MVP; priorizar índices B-tree en `occurred_at`, `user_id`, `event_type`.
+
+---
+
+## Visualización — dashboard administrador (A37, A30, A40)
+
+**Stack UI:** Chart.js v4 vía importmap; tema Fitloop (azul blueprint técnico, acento **coral** en alertas/umbrales); KPI cards grandes con icono; animación suave al montar canvas (`admin_chart_controller`).
+
+### Embudo v1 (render)
+
+Secuencia fija (A37): `workspace_started` → `first_dxf_uploaded` → `nest_completed` → `paywall_viewed` → `payment_succeeded` → `download_completed`.
+
+Ejemplo de presentación (porcentajes ilustrativos; datos reales desde agregados):
+
+```
+[ Empezar ] ──(100%)──> [ Primer DXF ] ──(80%)──> [ Nest OK ] ──(50%)──> [ Paywall ] ──(20%)──> [ Pago Exitoso ] ──(19%)──> [ Descarga ]
+```
+
+**Semáforo (A30):** si conversión **Paywall → Pago Exitoso** cae por debajo de `funnel_conversion_min_percent` (semilla **15 %** en `config/analytics.yml`), la tarjeta KPI del embudo recibe clase `metric--alert` (coral) — solo visual, sin email/Slack v1.
+
+---
+
 ## Follow-ups
 
 | ID | Topic |
@@ -144,6 +188,7 @@ See explore-task step 1.2 response for plain-language explanations of: admin vs 
 - **2026-05-20 — A26–A39:** Admin app role, user_events+jsonb, sync/async, idempotency, bitácora consulta only, umbrales rojos sin push, paralelo auth, rate limit, archive PG, ENV admin email, GeoLite2+CF fallback, embudo, identidad histórica admin-only.
 - **2026-05-20 — A40:** Gráficos llamativos (Chart.js + tema Fitloop); A30 aclarado = semáforo visual en dashboard, sin notificaciones.
 - **2026-05-20 — SPEC COMPLETO:** Implementation plan locked; REQ-FIT-ANALYTICS-001; ADR-0006; defaults umbrales en `config/analytics.yml`.
+- **2026-05-20 — Cursor hints:** GeoIP header seguro (CF-IPCountry), identidad histórica en `account_deleted`, jsonb `->`/`->>` para gráficos, embudo visual + semáforo 15 % paywall→pago.
 
 ---
 
@@ -199,7 +244,7 @@ low_priority_events_per_hour: 300
     <step id="6" status="pending">Write failing Analytics::Thresholds spec: loads YAML, hot-reload on mtime, breach detection for funnel %, payment failure %, nest p95 seconds.</step>
     <step id="7" status="pending">Implement Analytics::Thresholds; implement Analytics::TrackEvent (idempotency no-op, rate limit low_priority 300/h, critical sync insert, low enqueue TrackEventJob).</step>
     <step id="8" status="pending">Write failing TrackEventJob spec: low_priority persisted async; critical never dropped by rate limit.</step>
-    <step id="9" status="pending">Implement TrackEventJob; Analytics::ResolveCountry (GeoLite2 MMDB path ENV + CF-IPCountry fallback); document MMDB download in docs/DEPLOY.md.</step>
+    <step id="9" status="pending">Implement TrackEventJob; Analytics::ResolveCountry (GeoLite2 MMDB path ENV + CF-IPCountry fallback via `request.get_header` / normalized headers — verify on Fly staging, not a single hardcoded header name); document MMDB download in docs/DEPLOY.md.</step>
     <step id="10" status="pending">Write failing Analytics::MergeAnonymousSession spec: on login/register, reassign `user_events` rows from `anonymous_session_key` to `user_id`.</step>
     <step id="11" status="pending">Implement merge hook from SessionsController/Devise callbacks after auth-billing User exists.</step>
 
@@ -215,8 +260,8 @@ low_priority_events_per_hour: 300
 
     <!-- P4 — Dashboard UI -->
     <step id="18" status="pending">Pin chart.js in importmap; add Stimulus admin_chart_controller + admin analytics CSS (blueprint theme, coral alert, animation on load).</step>
-    <step id="19" status="pending">Write failing request spec Admin::AnalyticsController: KPI cards, funnel counts from user_events, semáforo CSS class when threshold breached.</step>
-    <step id="20" status="pending">Implement GET /admin/analytics — near-real-time aggregates; daily/weekly toggle; filters date range, locale, payment_method, currency (billing JOIN when tables exist, else omit monetization widgets).</step>
+    <step id="19" status="pending">Write failing request spec Admin::AnalyticsController: KPI cards, funnel stage counts from user_events (jsonb aggregates where needed), funnel bar UI data, semáforo `metric--alert` when paywall→payment_succeeded conversion &lt; `funnel_conversion_min_percent` (15 % seed).</step>
+    <step id="20" status="pending">Implement GET /admin/analytics — near-real-time aggregates (ActiveRecord scopes using `properties-&gt;&gt;` where needed); funnel Chart.js horizontal bars with % between stages; daily/weekly toggle; filters date range, locale, payment_method, currency (billing JOIN when tables exist, else omit monetization widgets).</step>
     <step id="21" status="pending">Write failing spec: monetization KPIs from Payment/Subscription tables (not event amounts) — paid downloads split single vs plan, active/sold plans by tier, 1m plan users quota exhausted — skip examples if billing not merged yet.</step>
     <step id="22" status="pending">Implement billing KPI queries when REQ-FIT-BILL models present; bot_heuristic flag on users with excessive low_priority velocity.</step>
 
@@ -226,7 +271,7 @@ low_priority_events_per_hour: 300
 
     <!-- P6 — Auth & account events (parallel auth-billing) -->
     <step id="25" status="pending">Write failing spec: account_registered, account_logged_in/out, email_confirmed, account_deleted with historical_email/name in properties (admin-only display).</step>
-    <step id="26" status="pending">Instrument Devise/OmniAuth/delete-account flow; wire Accounts::Delete to emit account_deleted before anonymize.</step>
+    <step id="26" status="pending">Instrument Devise/OmniAuth/delete-account flow; wire Accounts::Delete to emit critical `account_deleted` **before** anonymize with immutable `historical_email`/`historical_name` in properties (admin timeline only).</step>
 
     <!-- P7 — Billing events (when auth-billing P4 merged) -->
     <step id="27" status="pending">Write failing spec: paywall_viewed, payment_succeeded/failed, download_completed (+ download_from_mis_pagos), idempotent double download click.</step>
@@ -246,8 +291,12 @@ low_priority_events_per_hour: 300
 
   <working_notes>
     Run in parallel with auth-billing: steps 16–17 need User model; steps 27–28 need billing models.
-    Chart.js only (no SPA); ADR required for importmap pin.
+    Chart.js only (no SPA); ADR required for importmap pin; Fitloop blueprint + coral `metric--alert`.
     session_workflow_log on Project remains separate (in-session only).
     Do not store DXF, SVG preview, geometry, or client absolute paths in properties.
+    GeoIP: MaxMind local first; CF-IPCountry fallback — test header name on Fly, use request.get_header.
+    Funnel semáforo: paywall→payment_succeeded &lt; 15 % (config/analytics.yml) → coral KPI card, no push alerts v1.
+    account_deleted retains historical identity in properties; user row anonymized after event insert.
+    Dashboard queries: single user_events table; jsonb -&gt; / -&gt;&gt; in scopes, not per-event-type tables.
   </working_notes>
 </task_session>
