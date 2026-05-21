@@ -3,10 +3,10 @@
 <% panic_available = I18n.available_locales.include?(panic_locale) %>
 
 <nav class="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
-  <div class="locale-switcher__row" role="group" aria-label="<%= t("locale.switcher_row_primary", default: "Language") %>">
+  <div class="locale-switcher__row" role="group" aria-label="<%= t("locale.switcher_row_primary") %>">
     <% primary_locales.each do |locale| %>
       <% active = I18n.locale == locale %>
-      <%= button_to t("locale.labels.#{locale}", default: locale.to_s.upcase),
+      <%= button_to t("locale.labels.#{locale}"),
             locale_path(locale: locale),
             method: :patch,
             class: "locale-switcher__btn#{' locale-switcher__btn--active' if active}",

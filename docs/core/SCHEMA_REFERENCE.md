@@ -2,7 +2,7 @@
 
 **Source of truth:** `db/schema.rb` (version `2026_05_21_025640`). Regenerate this doc when migrations change.
 
-**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` (+ Active Storage attachments on `Project`).
+**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (+ Active Storage attachments on `Project`).
 
 ---
 
@@ -59,21 +59,28 @@ Ordered sheet inventory per project.
 
 ## `project_layers`
 
-Layer filter checklist (union of all uploaded DXF layer names).
+Per-DXF layer rows: inclusion filter and optional composite roles (`REQ-FIT-DXF-002`).
 
 | Column | Type | Null | Default | Notes |
 |--------|------|------|---------|-------|
 | `id` | bigint | PK | | |
 | `project_id` | bigint | no | FK → `projects` | |
-| `layer_name` | string | no | | Unique per project |
+| `active_storage_attachment_id` | bigint | yes | | FK → `active_storage_attachments` (which input DXF) |
+| `layer_name` | string | no | | Unique per `(project_id, attachment_id)` |
 | `included` | boolean | no | `false` | Include in extraction/nesting |
+| `layer_role` | string | yes | | `primary` \| `auxiliary` \| null (legacy flat filter) |
+| `color` | string | yes | | UI swatch |
 | `created_at` | datetime | no | | |
 | `updated_at` | datetime | no | | |
 
 **Indexes:**
 
 - `index_project_layers_on_project_id`
-- `index_project_layers_on_project_id_and_layer_name` (unique)
+- `index_project_layers_on_active_storage_attachment_id`
+- `index_project_layers_on_project_attachment_and_name` (unique)
+- `index_project_layers_one_primary_per_attachment` (unique partial: one `primary` per attachment)
+
+**Business rules:** At most one `layer_role: primary` per input DXF attachment; auxiliary layers clip decorations to primary contours in Python.
 
 ---
 
@@ -98,6 +105,75 @@ One row per nesting execution (history); outputs attached to **Project**, not ru
 
 ---
 
+## `orphan_resolutions`
+
+Per-orphan resolution state for auto-split workflow (`REQ-FIT-SPLIT-001`).
+
+| Column | Type | Null | Default | Notes |
+|--------|------|------|---------|-------|
+| `id` | bigint | PK | | |
+| `project_id` | bigint | no | FK → `projects` | |
+| `piece_key` | string | no | | Stable orphan id (`Nesting::PieceKey`) |
+| `resolution_state` | string | no | `pending` | `pending`, `system_split`, `manual`, `resolved` |
+| `reason` | string | yes | | Snapshot from last orphan report |
+| `last_nesting_run_id` | bigint | yes | FK → `nesting_runs` | Run that produced the orphan |
+| `created_at` | datetime | no | | |
+| `updated_at` | datetime | no | | |
+
+**Indexes:**
+
+- `index_orphan_resolutions_on_project_id`
+- `index_orphan_resolutions_on_project_id_and_piece_key` (unique)
+- `index_orphan_resolutions_on_last_nesting_run_id`
+
+---
+
+## `split_proposals`
+
+Draft/accepted/rejected split preview for one `OrphanResolution` (`REQ-FIT-SPLIT-001`).
+
+| Column | Type | Null | Default | Notes |
+|--------|------|------|---------|-------|
+| `id` | bigint | PK | | |
+| `orphan_resolution_id` | bigint | no | FK → `orphan_resolutions` | |
+| `status` | string | no | `draft` | `draft`, `accepted`, `rejected` |
+| `feasible` | boolean | no | `true` | Planner could not split when false |
+| `version` | integer | no | `1` | Increments on regenerate |
+| `plan_reason` | string | yes | | Engine/planner reason code |
+| `cut_segments` | jsonb | no | `[]` | Cut lines for preview |
+| `child_piece_geometries` | jsonb | no | `[]` | Child polygons for preview/accept |
+| `labels` | jsonb | no | `[]` | Child labels (e.g. Pieza-3a) |
+| `created_at` | datetime | no | | |
+| `updated_at` | datetime | no | | |
+
+**Indexes:** `index_split_proposals_on_orphan_resolution_id`
+
+**Lifecycle:** Invalidated (destroyed) on sheet inventory change or nest cancel when still `draft`.
+
+---
+
+## `derived_pieces`
+
+Nestable child pieces materialized after split accept (`REQ-FIT-SPLIT-001`, composite via `REQ-FIT-DXF-002`).
+
+| Column | Type | Null | Default | Notes |
+|--------|------|------|---------|-------|
+| `id` | bigint | PK | | |
+| `project_id` | bigint | no | FK → `projects` | |
+| `parent_piece_key` | string | no | | Mother orphan key |
+| `label` | string | no | | Display label (e.g. Pieza-3a) |
+| `geometry_json` | jsonb | no | `{}` | Closed rings for nest |
+| `decorations_json` | jsonb | no | `[]` | Auxiliary decorations per child (composite split) |
+| `sort_order` | integer | no | `0` | UI ordering |
+| `created_at` | datetime | no | | |
+| `updated_at` | datetime | no | | |
+
+**Indexes:** `index_derived_pieces_on_project_id`
+
+**Nest config:** Mother's `piece_key` listed in `excluded_piece_keys`; children injected via `derived_pieces` in `Nesting::ConfigBuilder`.
+
+---
+
 ## Active Storage tables
 
 Standard Rails 8 tables for blob metadata:
@@ -116,10 +192,13 @@ Standard Rails 8 tables for blob metadata:
 Project 1──* SheetStock
 Project 1──* ProjectLayer
 Project 1──* NestingRun
+Project 1──* OrphanResolution
+Project 1──* DerivedPiece
+OrphanResolution 1──* SplitProposal
 Project 1──* ActiveStorage::Attachment (input_dxf × N, nested_dxf × 1, placements_json × 1)
 ```
 
-**Cascade:** Destroying a `Project` destroys `sheet_stocks`, `project_layers`, and `nesting_runs` (FK). Purge attachment blobs via Rails destroy callbacks on attachments.
+**Cascade:** Destroying a `Project` destroys `sheet_stocks`, `project_layers`, `nesting_runs`, `orphan_resolutions`, and `derived_pieces` (FK). Purge attachment blobs via Rails destroy callbacks on attachments. `split_proposals` cascade via `orphan_resolutions`.
 
 ---
 

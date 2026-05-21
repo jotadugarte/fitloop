@@ -31,72 +31,128 @@ def build_source_preview(
         return _empty_preview()
 
     layers: dict[str, dict[str, object]] = {}
-    min_x = math.inf
-    min_y = math.inf
-    max_x = -math.inf
-    max_y = -math.inf
+    bounds = _empty_bounds()
     cursor_max_x: float | None = None
 
     for file_index, path in enumerate(dxf_paths):
         file_config = _file_config_at(file_configs, file_index)
-        doc = ezdxf.readfile(path)
-        colors = layer_catalog_from_file(path)
-        file_min_x = math.inf
-        file_min_y = math.inf
-        file_max_x = -math.inf
-        file_max_y = -math.inf
-        file_layers = _file_layer_polylines(
+        placement = _file_preview_placement(
             path,
-            doc,
             layer_names,
             file_config=file_config,
             curve_tolerance_mm=curve_tolerance_mm,
             max_block_depth=max_block_depth,
+            cursor_max_x=cursor_max_x,
         )
-        if not file_layers:
+        if placement is None:
             continue
+        file_layers, colors, place_offset_x, file_bounds = placement
+        _merge_shifted_layers(layers, file_layers, colors, place_offset_x)
+        bounds, cursor_max_x = _advance_preview_bounds(bounds, file_bounds, place_offset_x)
 
-        for layer_name, polylines in file_layers.items():
-            for points in polylines:
-                for x, y in points:
-                    file_min_x = min(file_min_x, x)
-                    file_min_y = min(file_min_y, y)
-                    file_max_x = max(file_max_x, x)
-                    file_max_y = max(file_max_y, y)
-
-        if file_min_x is math.inf:
-            continue
-
-        if cursor_max_x is None:
-            place_offset_x = 0.0
-        else:
-            place_offset_x = cursor_max_x + _FILE_GAP_MM - file_min_x
-
-        for layer_name, polylines in file_layers.items():
-            if not polylines:
-                continue
-            shifted = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
-            entry = layers.setdefault(
-                layer_name,
-                {"name": layer_name, "color": colors.get(layer_name, "#808080"), "polylines": []},
-            )
-            if layer_name in colors:
-                entry["color"] = colors[layer_name]
-            cast_polylines = entry["polylines"]
-            assert isinstance(cast_polylines, list)
-            cast_polylines.extend(shifted)
-
-        placed_min_x = file_min_x + place_offset_x
-        placed_max_x = file_max_x + place_offset_x
-        min_x = min(min_x, placed_min_x)
-        min_y = min(min_y, file_min_y)
-        max_x = max(max_x, placed_max_x)
-        max_y = max(max_y, file_max_y)
-        cursor_max_x = placed_max_x
-
-    if min_x is math.inf:
+    if bounds["min_x"] is math.inf:
         return _empty_preview()
+    return _preview_payload(layers, bounds)
 
+
+def _empty_bounds() -> dict[str, float]:
+    return {"min_x": math.inf, "min_y": math.inf, "max_x": -math.inf, "max_y": -math.inf}
+
+
+def _file_preview_placement(
+    path: Path,
+    layer_names: list[str],
+    *,
+    file_config: dict[str, object],
+    curve_tolerance_mm: float,
+    max_block_depth: int,
+    cursor_max_x: float | None,
+) -> tuple[
+    dict[str, list[list[list[float]]]],
+    dict[str, str],
+    float,
+    dict[str, float],
+] | None:
+    doc = ezdxf.readfile(path)
+    colors = layer_catalog_from_file(path)
+    file_layers = _file_layer_polylines(
+        path,
+        doc,
+        layer_names,
+        file_config=file_config,
+        curve_tolerance_mm=curve_tolerance_mm,
+        max_block_depth=max_block_depth,
+    )
+    if not file_layers:
+        return None
+
+    file_bounds = _bounds_from_layer_polylines(file_layers)
+    if file_bounds is None:
+        return None
+
+    place_offset_x = 0.0 if cursor_max_x is None else cursor_max_x + _FILE_GAP_MM - file_bounds["min_x"]
+    return file_layers, colors, place_offset_x, file_bounds
+
+
+def _bounds_from_layer_polylines(
+    file_layers: dict[str, list[list[list[float]]]],
+) -> dict[str, float] | None:
+    min_x = math.inf
+    min_y = math.inf
+    max_x = -math.inf
+    max_y = -math.inf
+    for polylines in file_layers.values():
+        for points in polylines:
+            for x, y in points:
+                min_x = min(min_x, x)
+                min_y = min(min_y, y)
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
+    if min_x is math.inf:
+        return None
+    return {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y}
+
+
+def _merge_shifted_layers(
+    layers: dict[str, dict[str, object]],
+    file_layers: dict[str, list[list[list[float]]]],
+    colors: dict[str, str],
+    place_offset_x: float,
+) -> None:
+    for layer_name, polylines in file_layers.items():
+        if not polylines:
+            continue
+        shifted = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
+        entry = layers.setdefault(
+            layer_name,
+            {"name": layer_name, "color": colors.get(layer_name, "#808080"), "polylines": []},
+        )
+        if layer_name in colors:
+            entry["color"] = colors[layer_name]
+        cast_polylines = entry["polylines"]
+        assert isinstance(cast_polylines, list)
+        cast_polylines.extend(shifted)
+
+
+def _advance_preview_bounds(
+    bounds: dict[str, float],
+    file_bounds: dict[str, float],
+    place_offset_x: float,
+) -> tuple[dict[str, float], float]:
+    placed_min_x = file_bounds["min_x"] + place_offset_x
+    placed_max_x = file_bounds["max_x"] + place_offset_x
+    return {
+        "min_x": min(bounds["min_x"], placed_min_x),
+        "min_y": min(bounds["min_y"], file_bounds["min_y"]),
+        "max_x": max(bounds["max_x"], placed_max_x),
+        "max_y": max(bounds["max_y"], file_bounds["max_y"]),
+    }, placed_max_x
+
+
+def _preview_payload(
+    layers: dict[str, dict[str, object]],
+    bounds: dict[str, float],
+) -> dict[str, object]:
     ordered_layers = [
         {
             "name": name,
@@ -105,7 +161,10 @@ def build_source_preview(
         }
         for name in sorted(layers)
     ]
-
+    min_x = bounds["min_x"]
+    min_y = bounds["min_y"]
+    max_x = bounds["max_x"]
+    max_y = bounds["max_y"]
     return {
         "width_mm": max(max_x - min_x, 1.0),
         "height_mm": max(max_y - min_y, 1.0),

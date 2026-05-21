@@ -2,10 +2,10 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ProgressBroadcaster do
+RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
   let(:project) { create_project_for_spec!(title: "Broadcast bench") }
 
-  describe ".call [REQ-FIT-JOB-001]" do
+  describe ".call" do
     it "broadcasts nesting progress and, when not processing, actions and preview" do
       allow(project).to receive(:processing?).and_return(false)
       allow(project).to receive(:broadcast_replace_to)

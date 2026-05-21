@@ -6,6 +6,7 @@ es:
 
   locale:
     switcher_label: "Idioma"
+    switcher_row_primary: "Idioma"
     labels:
       en: "EN"
       es: "ES"

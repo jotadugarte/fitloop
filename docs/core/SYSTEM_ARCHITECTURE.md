@@ -107,3 +107,18 @@ Shapely in `nest_placement.py` is used for per-piece fallback, whole-sheet scori
 | **Engine** | `nest_libnest2d.stocks_in_consumption_order` | Consume finite stocks before unlimited regardless of mis-ordered client `sort_order` |
 
 **Requirement detail:** `REQ-FIT-UI-001`, `REQ-FIT-DOM-001`, `REQ-FIT-NEST-002`, `REQ-FIT-CLI-001` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § SheetStock.
+
+---
+
+## 9. CLI progress, split planner, and composite extract (normative)
+
+| Mode / artifact | Python module | Rails role |
+|-----------------|---------------|------------|
+| **`progress.json`** | `progress_reporter.py` (write); `nest.py` phases | `Nesting::CliRunner` polls; `ProgressSnapshot` + `ProgressSync` update UI |
+| **`plan_splits` / split preview** | `split_planner.py`, CLI `plan_splits` | `Nesting::SplitPlannerRunner` → `split_preview.json`; Turbo preview SVG |
+| **Composite pieces** | `composite_extract.py`, `decoration_transform.py` | `ProjectLayer.layer_role`; config via `Nesting::ConfigBuilder` |
+| **Flat layer filter (legacy)** | `extract.py` | `ProjectLayer.included` without `primary` |
+
+Rails orchestrates subprocess I/O only; no split geometry or composite clipping in Ruby.
+
+**Requirement detail:** `REQ-FIT-JOB-001`, `REQ-FIT-SPLIT-001`, `REQ-FIT-DXF-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §§ Nesting job, Auto-split, Composite layers.

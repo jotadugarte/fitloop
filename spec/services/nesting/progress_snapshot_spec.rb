@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ProgressSnapshot do
+RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
   let(:work_dir) { Pathname(Dir.mktmpdir) }
   let(:progress_path) { work_dir.join("output", "progress.json") }
 
@@ -15,14 +15,7 @@ RSpec.describe Nesting::ProgressSnapshot do
     progress_path.write(payload.to_json)
   end
 
-  describe ".from_hash [REQ-FIT-JOB-001]" do
-    before do
-      I18n.backend.store_translations(
-        :en,
-        nesting: { phase: { fill: "Placing pieces on sheets" } }
-      )
-    end
-
+  describe ".from_hash" do
     it "parses schema v1 and maps phase_id to i18n message" do
       snapshot = described_class.from_hash(
         {
@@ -42,7 +35,7 @@ RSpec.describe Nesting::ProgressSnapshot do
         pieces_total: 10,
         pieces_placed: 4
       )
-      expect(snapshot.message).to eq("Placing pieces on sheets")
+      expect(snapshot.message).to eq(I18n.t("nesting.phase.fill"))
     end
 
     it "uses message_key override when present" do
@@ -90,7 +83,7 @@ RSpec.describe Nesting::ProgressSnapshot do
     end
   end
 
-  describe ".read [REQ-FIT-JOB-001]" do
+  describe ".read" do
     before do
       I18n.backend.store_translations(
         :en,

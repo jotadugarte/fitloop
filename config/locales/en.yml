@@ -35,6 +35,7 @@ en:
 
   locale:
     switcher_label: "Language"
+    switcher_row_primary: "Language"
     labels:
       en: "EN"
       es: "ES"

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::SplitPlannerRunner do
+RSpec.describe Nesting::SplitPlannerRunner, "[REQ-FIT-SPLIT-001]" do
   let(:project) { create_project_for_spec!(title: "Split runner") }
 
   it "[REQ-FIT-SPLIT-001] passes orphan rings as plan_pieces in config.json" do

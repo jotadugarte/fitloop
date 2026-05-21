@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nesting progress UI", type: :system do
+RSpec.describe "Nesting progress UI [REQ-FIT-JOB-001] [REQ-FIT-UI-003]", type: :system do
   include ActiveJob::TestHelper
 
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }

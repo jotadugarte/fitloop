@@ -1,4 +1,9 @@
 # [REQ-FIT-DXF-002] Extract composite pieces: primary polygons + auxiliary decorations.
+#
+# Module layout:
+# - load_composite_pieces: primary contours + auxiliary entity scan
+# - _attach_* helpers: clip decorations to piece polygons
+# - partition_decorations: assign mother decorations to split children
 from __future__ import annotations
 
 from dataclasses import dataclass, field

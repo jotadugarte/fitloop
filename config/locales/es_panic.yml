@@ -6,6 +6,7 @@ es_panic:
     dialog_accept: Diay, a jugársela
   locale:
     switcher_label: Nivel de Estrés
+    switcher_row_primary: EN / ES (antes del pánico)
     labels:
       en: EN
       es: ES

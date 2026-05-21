@@ -23,9 +23,25 @@ RSpec.describe "Locale switcher", type: :request do
     it "renders the EN/ES toggle in the layout" do
       get root_path
 
-      expect(response.body).to include('aria-label="Language"')
+      expect(response.body).to include("aria-label=\"#{I18n.t('locale.switcher_row_primary')}\"")
       expect(response.body).to include("EN")
       expect(response.body).to include("ES")
+    end
+
+    it "localizes the EN/ES group aria-label in Spanish" do
+      cookies[:fitloop_locale] = "es"
+      get root_path
+
+      label = I18n.t("locale.switcher_row_primary", locale: :es)
+      expect(response.body).to include("aria-label=\"#{label}\"")
+    end
+
+    it "localizes the EN/ES group aria-label in es_panic" do
+      cookies[:fitloop_locale] = "es_panic"
+      get root_path
+
+      label = I18n.t("locale.switcher_row_primary", locale: :es_panic)
+      expect(response.body).to include("aria-label=\"#{label}\"")
     end
 
     it "renders panic copy when the locale cookie is set" do

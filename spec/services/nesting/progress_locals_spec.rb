@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ProgressLocals do
+RSpec.describe Nesting::ProgressLocals, "[REQ-FIT-JOB-001]" do
   let(:project) do
     create_project_for_spec!(
       title: "Progress locals bench",
@@ -16,7 +16,7 @@ RSpec.describe Nesting::ProgressLocals do
     )
   end
 
-  describe ".for [REQ-FIT-JOB-001]" do
+  describe ".for" do
     it "returns active_run and eta_overrun for processing projects" do
       active_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
 

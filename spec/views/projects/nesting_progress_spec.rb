@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "projects/nesting_progress", type: :view do
+RSpec.describe "projects/nesting_progress [REQ-FIT-JOB-001] [REQ-FIT-UI-003]", type: :view do
   include NestingProgressHelper
 
   let(:project) do

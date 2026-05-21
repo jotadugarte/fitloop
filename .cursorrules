@@ -9,6 +9,7 @@
       1. State Tracking: When executing any skill, you MUST write your current `<phase>` and `<step>` to `.agenticguild/current_state.md`. When a task is active, you MUST also write the active session filename to `<active_task_pointer>` (e.g. `task_foo.md`) so the active task is unambiguous across IDEs and chats.
       2. Resuming: If the user says "Resume Task", "Status Check", or "Where were we?", you MUST read `.agenticguild/current_state.md` to rehydrate your context before answering.
       3. Artifact Generation: Log any identified tech-debt, blocked tasks, or test-coverage gaps into the appropriate artifact files within `.agenticguild/` rather than keeping them in temporary chat context.
+      4. Git hygiene: Do not commit `.agenticguild/current_state.md` or `.agenticguild/completed_sessions/*.md` (listed in `.gitignore`). Keep `active_sessions/task_template.md` only when session notes must live in-repo.
     </rules>
   </memory_management>
 
@@ -23,7 +24,7 @@
 
   <project_config>
     Projects fill in project-specific paths here. Skills that need these paths will read them.
-    Schema path: [e.g. db/schema.rb, prisma/schema.prisma, db/schema.ts]
+    Schema path: db/schema.rb
     Roadmap path: [optional, default docs/ROADMAP.md]
   </project_config>
 
@@ -84,6 +85,12 @@
       14. CLI `sheet_stocks` validation lives in `nesting_engine/sheet_stocks_config.py`; the engine consumes via `stocks_in_consumption_order`—do not rely on raw client `sort_order` alone in `nest_multi_bin`.
       15. DXF extract: if `LWPOLYLINE` or closed `Polyline` has non-zero bulge, use `_flattened_path_polygon`; do not chord-connect bulged vertices (`_lwpolyline_has_bulge` / `_polyline_has_bulge`).
       16. Nesting cancel: controllers set `cancel_requested_at` only and flash `nesting.cancelling`; `Nesting::ApplyCancel` runs from the job runner or `ProjectStatusSync`. Reconcile stuck processing runs: `ApplyCancel` → `ReconcileFailedJob` → `CliRunner.finalize_from_work_dir!` before inferring a terminal status.
+      17. Nesting progress UX: Python writes `{output_dir}/progress.json` (schema v1); `Nesting::CliRunner` polls it; `ProgressSnapshot` / `ProgressSync` keep monotonic `percent` and map `phase_id` to `nesting.phase.*` via `ProgressSnapshot::PHASE_I18N_KEYS`. Do not add parallel percent-band i18n keys.
+      18. Locale `es_panic`: `config/locales/es_panic.yml` mirrors the `es.yml` key tree; new locales require `spec/i18n/locale_key_parity_spec.rb`; switcher labels use `locale.labels.*` (never `locale.to_s.upcase` for `:es_panic`).
+      19. Auto-split orphans: stable identity via `Nesting::PieceKey` / `PieceKeyBuilder` and `OrphanResolution#piece_key`; on sheet inventory change or nest cancel, purge draft `SplitProposal` rows (`SheetStocks::InvalidateSplitPreviews`, `Nesting::ApplyCancel`).
+      20. Composite DXF layers: `ProjectLayer.layer_role` (`primary` | `auxiliary`) per input attachment; extract/preview in Python (`composite_extract`, `dxf_preview`); `DerivedPiece#decorations_json` for composite splits; do not nest auxiliary layers as standalone pieces when a primary is configured.
+      21. Service specs: use `RSpec.describe ClassName, "[REQ-ID]"` (constant), not a string class name in the outer `describe`.
+      22. `dxf_preview.build_source_preview` stays a thin orchestrator (≤60 lines); file placement and bounds logic live in helpers (`_file_preview_placement`, `_merge_shifted_layers`, etc.).
     </rules>
   </project_rules>
 </agentic_guild_os>

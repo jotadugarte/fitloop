@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ProgressSync do
+RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
   let(:project) do
     create_project_for_spec!(
       title: "Progress sync bench",
@@ -41,7 +41,7 @@ RSpec.describe Nesting::ProgressSync do
     )
   end
 
-  describe ".call [REQ-FIT-JOB-001]" do
+  describe ".call" do
     it "updates project progress from snapshot and broadcasts when changed" do
       allow(Nesting::ProgressBroadcaster).to receive(:call)
 
@@ -54,7 +54,7 @@ RSpec.describe Nesting::ProgressSync do
       project.reload
       expect(changed).to be(true)
       expect(project.progress_percent).to eq(42)
-      expect(project.progress_message).to eq("Placing pieces on sheets")
+      expect(project.progress_message).to eq(I18n.t("nesting.phase.fill"))
       expect(Nesting::ProgressBroadcaster).to have_received(:call).with(
         project: project,
         eta_overrun: false,

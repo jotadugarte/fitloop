@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Orphan auto split", type: :system do
+RSpec.describe "Orphan auto split [REQ-FIT-SPLIT-001]", type: :system do
   include ActionView::RecordIdentifier
 
   around do |example|

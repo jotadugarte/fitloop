@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Composite DXF layers nesting", type: :system do
+RSpec.describe "Composite DXF layers nesting [REQ-FIT-DXF-002] [REQ-FIT-UI-001]", type: :system do
   around do |example|
     previous_adapter = ActiveJob::Base.queue_adapter
     ActiveJob::Base.queue_adapter = :inline

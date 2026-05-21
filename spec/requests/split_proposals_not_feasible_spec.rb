@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Split proposal not feasible", type: :request do
+RSpec.describe "Split proposal not feasible [REQ-FIT-SPLIT-001]", type: :request do
   def start_ephemeral_workspace!
     get start_project_path
     follow_redirect!

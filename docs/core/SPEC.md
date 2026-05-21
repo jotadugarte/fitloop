@@ -143,7 +143,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### REQ-FIT-DOM-001 (detail)
 
-- Migrations and models for `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`.
+- Migrations and models for `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (split/composite v1.1+).
 - Defaults: kerf 0, margin 5, curve tolerance 0.1, sheet gap 15, nesting time limit 600s.
 
 ### REQ-FIT-DXF-001 (detail)
@@ -243,6 +243,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - `config/locales/es_panic.yml` mirrors the `es.yml` key tree (no runtime fallback to `:es`).
 - `LocaleSwitchable` + `LocalesController#update` persist `fitloop_locale` cookie (string `"es_panic"`).
 - `shared/_locale_switcher`: row 1 `EN` | `ES`; row 2 full-width **📐 PÁNICO** via `locale.labels.*` (never `locale.to_s.upcase` for `es_panic`).
+- i18n keys: `locale.switcher_label` (nav), `locale.switcher_row_primary` (aria-label for EN/ES group), `locale.labels.en` / `es` / `es_panic`.
 
 **Non-goals:** parallel `fitloop.*` namespace; percent-band progress strings (use existing `nesting.phase.*` keys).
 
