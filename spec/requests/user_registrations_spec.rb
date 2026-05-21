@@ -48,7 +48,7 @@ RSpec.describe "User registration", type: :request do
 
   describe "checkout access before email confirmation [REQ-FIT-AUTH-002]" do
     let(:unconfirmed_user) do
-      User.create!(
+      User.new(
         email: "pending@example.com",
         password: "securepassword12",
         password_confirmation: "securepassword12",
@@ -56,7 +56,7 @@ RSpec.describe "User registration", type: :request do
         terms_accepted_at: Time.current,
         terms_version: "v1-placeholder",
         time_zone: "America/Costa_Rica"
-      )
+      ).tap(&:skip_confirmation_notification!).tap(&:save!)
     end
 
     before { sign_in unconfirmed_user }

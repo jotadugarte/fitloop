@@ -268,8 +268,8 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
     <!-- P1 — Fase A: Auth (Devise + OmniAuth) -->
     <step id="4" status="complete">Write failing model spec User [REQ-FIT-AUTH-002]: email unique, name required, password min 12, terms_accepted_at+version, time_zone, email_confirmed_at gate, suspended_at.</step>
     <step id="5" status="complete">Add gems (devise, omniauth-google-oauth2, omniauth-facebook, omniauth-apple); User migration; mount Devise routes under /iniciar-sesion /crear-cuenta (Spanish path names per D41).</step>
-    <step id="6" status="pending">Write failing request spec: registration email+password requires name, terms checkbox, sends confirmation; unconfirmed cannot access checkout routes.</step>
-    <step id="7" status="pending">Implement Devise :confirmable (or custom mailer) for email verification link; i18n en/es for auth flash and forms.</step>
+    <step id="6" status="complete">Write failing request spec: registration email+password requires name, terms checkbox, sends confirmation; unconfirmed cannot access checkout routes.</step>
+    <step id="7" status="complete">Implement Devise :confirmable (or custom mailer) for email verification link; i18n en/es for auth flash and forms.</step>
     <step id="8" status="pending">Write failing request spec: password reset flow (forgot → email → reset ≥12 chars).</step>
     <step id="9" status="pending">Implement password recovery; header links “Iniciar sesión” / “Crear cuenta” on all layouts; logged-in menu Mi cuenta / Mis pagos / Cerrar sesión.</step>
     <step id="10" status="pending">Write failing OmniAuth spec: Google provider (conditional on credentials); ordered buttons Google → Facebook → Apple → email on login/register pages.</step>

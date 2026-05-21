@@ -356,3 +356,19 @@ es:
       files_attached:
         one: "1 archivo DXF adjunto"
         other: "%{count} archivos DXF adjuntos"
+
+  auth:
+    registration:
+      title: "Crear cuenta"
+      terms_label: "Acepto los términos de servicio y la política de privacidad"
+      submit: "Registrarse"
+
+  devise:
+    failure:
+      unconfirmed: "Confirma tu correo antes de pagar o descargar."
+    registrations:
+      signed_up: "¡Bienvenido! Te registraste correctamente."
+      signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."
+    mailer:
+      confirmation_instructions:
+        subject: "Instrucciones de confirmación"

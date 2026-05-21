@@ -26,12 +26,6 @@ class User < ApplicationRecord
     suspended_at.nil?
   end
 
-  def send_on_create_confirmation_instructions
-    return if Rails.env.test?
-
-    super
-  end
-
   private
 
   def normalize_email

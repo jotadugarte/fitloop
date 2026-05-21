@@ -1,0 +1,37 @@
+<h1><%= t("auth.registration.title") %></h1>
+
+<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+
+  <div>
+    <%= f.label :email %><br />
+    <%= f.email_field :email, autocomplete: "email" %>
+  </div>
+
+  <div>
+    <%= f.label :name %><br />
+    <%= f.text_field :name, autocomplete: "name" %>
+  </div>
+
+  <div>
+    <%= f.label :password %><br />
+    <%= f.password_field :password, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :password_confirmation %><br />
+    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+  </div>
+
+  <div>
+    <%= f.label :time_zone %><br />
+    <%= f.text_field :time_zone %>
+  </div>
+
+  <div>
+    <%= f.check_box :terms_accepted, { checked: true }, "1", "0" %>
+    <%= f.label :terms_accepted, t("auth.registration.terms_label") %>
+  </div>
+
+  <div><%= f.submit t("auth.registration.submit") %></div>
+<% end %>

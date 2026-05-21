@@ -3,6 +3,10 @@
 require "rails_helper"
 
 RSpec.describe User, "[REQ-FIT-AUTH-002]" do
+  before do
+    allow_any_instance_of(described_class).to receive(:send_on_create_confirmation_instructions)
+  end
+
   def valid_attributes
     {
       email: "studio@example.com",

@@ -341,3 +341,19 @@ en:
       files_attached:
         one: "1 DXF file attached"
         other: "%{count} DXF files attached"
+
+  auth:
+    registration:
+      title: "Create account"
+      terms_label: "I accept the terms of service and privacy policy"
+      submit: "Sign up"
+
+  devise:
+    failure:
+      unconfirmed: "Confirm your email before paying or downloading."
+    registrations:
+      signed_up: "Welcome! You signed up successfully."
+      signed_up_but_unconfirmed: "Check your email for a confirmation link."
+    mailer:
+      confirmation_instructions:
+        subject: "Confirmation instructions"

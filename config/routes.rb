@@ -18,7 +18,11 @@ Rails.application.routes.draw do
     password: "contrasena",
     confirmation: "confirmacion",
     edit: "mi-cuenta"
-  }
+  }, controllers: { registrations: "users/registrations" }
+
+  get "confirmacion", to: "confirmations#show", as: :email_confirmation_pending
+  get "planes", to: "planes#show"
+  get "checkout", to: "checkout#show"
 
   resource :locale, only: :update, controller: "locales"
 
