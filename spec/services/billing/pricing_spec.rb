@@ -7,11 +7,12 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
 
   around do |example|
     original = File.read(billing_yml)
+    described_class.reset_cache!
     example.run
   ensure
     File.write(billing_yml, original)
     FileUtils.touch(billing_yml)
-    described_class.reset_cache! if described_class.respond_to?(:reset_cache!)
+    described_class.reset_cache!
   end
 
   describe ".load from config/billing.yml [REQ-FIT-BILL-001]" do
@@ -37,14 +38,24 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
 
   describe "hot-reload on mtime [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] reloads values when billing.yml changes on disk (D53)" do
-      described_class.reset_cache! if described_class.respond_to?(:reset_cache!)
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(File.read(billing_yml))
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+
+      described_class.reset_cache!
       expect(described_class.single_download_usd).to eq(2.0)
 
-      modified = File.read(billing_yml).gsub("single_download_usd: 2.00", "single_download_usd: 3.50")
       sleep 1.1
-      File.write(billing_yml, modified)
+      temp.write(File.read(billing_yml).gsub("single_download_usd: 2.00", "single_download_usd: 3.50"))
+      temp.close
+      FileUtils.touch(temp.path, mtime: Time.now + 2)
 
       expect(described_class.single_download_usd).to eq(3.5)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
     end
   end
 

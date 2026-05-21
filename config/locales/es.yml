@@ -112,6 +112,17 @@ es:
     expired: "Esta sesión ya no está disponible. Vuelve a empezar."
     activity_expired: "Tu proyecto en el taller expiró por inactividad (más de 2 minutos). Vuelve a empezar."
 
+  billing:
+    planes:
+      title: "Planes"
+      tier_1: "Plan 1 mes"
+      tier_2: "Plan 2 meses"
+      tier_4: "Plan 4 meses"
+    checkout:
+      title: "Pagar esta descarga"
+      single_download: "Descarga suelta"
+      overage_hint: "Con cupo de plan agotado (50%)"
+
   home:
     index:
       tagline: "Anidado de láminas DXF"

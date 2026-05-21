@@ -1,0 +1,7 @@
+<h1><%= t("billing.planes.title") %></h1>
+
+<ul data-testid="planes-pricing">
+  <li><%= t("billing.planes.tier_1") %>: USD <%= Billing::Pricing.plan_1_month_card_usd %> / CRC <%= Billing::Pricing.plan_1_month_sinpe_crc %></li>
+  <li><%= t("billing.planes.tier_2") %>: USD <%= Billing::Pricing.plan_2_months_card_usd %> / CRC <%= Billing::Pricing.plan_2_months_sinpe_crc %></li>
+  <li><%= t("billing.planes.tier_4") %>: USD <%= Billing::Pricing.plan_4_months_card_usd %> / CRC <%= Billing::Pricing.plan_4_months_sinpe_crc %></li>
+</ul>

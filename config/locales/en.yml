@@ -97,6 +97,17 @@ en:
     expired: "This session is no longer available. Please start again."
     activity_expired: "Your workshop project expired due to inactivity (over 2 minutes). Please start again."
 
+  billing:
+    planes:
+      title: "Plans"
+      tier_1: "1-month plan"
+      tier_2: "2-month plan"
+      tier_4: "4-month plan"
+    checkout:
+      title: "Pay for this download"
+      single_download: "Single download"
+      overage_hint: "With plan quota exhausted (50%)"
+
   home:
     index:
       tagline: "DXF sheet nesting"

@@ -289,7 +289,7 @@ _Overage descarga suelta con cupo agotado: 50% → USD 1.00 / CRC 500 (derivado 
 
     <!-- P3 — Billing config & domain -->
     <step id="22" status="complete">Add config/billing.yml with Spanish comments and seed pricing (D53); write failing Billing::Pricing spec: loads YAML, hot-reload on mtime, overage 50% math.</step>
-    <step id="23" status="pending">Implement Billing::Pricing (≤60 lines, assertions on positive amounts); used by checkout and /planes display.</step>
+    <step id="23" status="complete">Implement Billing::Pricing (≤60 lines, assertions on positive amounts); used by checkout and /planes display.</step>
     <step id="24" status="pending">Write failing migrations/models specs: Payment, Subscription (tier 1|2|4m), DownloadGrant (`kind`, `retained_until`, `has_one_attached :retained_nested_dxf` for single purchase), PlanMonthlyUsage (50/month) [REQ-FIT-BILL-001..003].</step>
     <step id="25" status="pending">Implement models + services: Billing::Entitlement, Billing::PlanPeriod (ends_at end-of-day in user.time_zone), Billing::QuotaCounter, Billing::RetainNestedDxf (copy blob on single purchase success, D54).</step>
 

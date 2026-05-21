@@ -5,6 +5,6 @@ class CheckoutController < ApplicationController
   include RequiresBillingConfirmation
 
   def show
-    head :ok
+    render :show
   end
 end

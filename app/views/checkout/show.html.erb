@@ -1,0 +1,13 @@
+<h1><%= t("billing.checkout.title") %></h1>
+
+<p data-testid="checkout-pricing">
+  <%= t("billing.checkout.single_download") %>:
+  USD <%= Billing::Pricing.single_download_usd %> /
+  CRC <%= Billing::Pricing.single_download_sinpe_crc %>
+</p>
+
+<p data-testid="checkout-overage-pricing">
+  <%= t("billing.checkout.overage_hint") %>:
+  USD <%= Billing::Pricing.single_download_overage_usd %> /
+  CRC <%= Billing::Pricing.single_download_overage_sinpe_crc %>
+</p>

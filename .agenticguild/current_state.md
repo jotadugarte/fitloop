@@ -8,7 +8,7 @@
 
     <current_phase>3 — Execution (Iterative TDD)</current_phase>
 
-    <current_step>3.2 — Implement (plan step 23: Billing::Pricing)</current_step>
+    <current_step>3.1 — Failing migrations/models specs (plan step 24)</current_step>
 
   </execution_context>
 
