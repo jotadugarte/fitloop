@@ -1,7 +1,14 @@
 <% flash.each do |type, message| %>
   <% next if message.blank? %>
 
-  <div class="flash flash-<%= type %>" data-testid="flash-<%= type %>" role="<%= type.to_sym == :alert ? 'alert' : 'status' %>">
+  <div
+    class="flash flash-<%= type %>"
+    data-controller="flash-dismiss"
+    data-action="mouseenter->flash-dismiss#pause mouseleave->flash-dismiss#resume"
+    data-testid="flash-<%= type %>"
+    role="<%= type.to_sym == :alert ? 'alert' : 'status' %>"
+    aria-live="polite"
+  >
     <p class="flash__title"><%= t("application.dialog_title") %></p>
     <p class="flash__message"><%= message %></p>
   </div>

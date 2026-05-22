@@ -13,6 +13,7 @@ RSpec.describe "User sign in", type: :request do
 
         follow_redirect!
         expect(response.body).to include(I18n.t("devise.sessions.user.signed_in"))
+        expect(response.body).to include('data-controller="flash-dismiss"')
         expect(response.body).not_to include("translation missing")
       end
     end
