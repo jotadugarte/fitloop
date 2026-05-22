@@ -33,7 +33,7 @@ class PlanesController < ApplicationController
       return
     end
 
-    redirect_to project_path(@project), notice: t("billing.planes.success")
+    redirect_to workshop_path, notice: t("billing.planes.success")
   end
 
   private

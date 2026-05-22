@@ -88,7 +88,7 @@ class ProjectsController < ApplicationController
             locals: { project: @project }
           )
         end
-        format.html { redirect_to @project, notice: t("projects.nesting_parameters_updated") }
+        format.html { redirect_to workshop_path, notice: t("projects.nesting_parameters_updated") }
       end
     else
       respond_to do |format|
@@ -99,7 +99,7 @@ class ProjectsController < ApplicationController
             locals: { project: @project }
           ), status: :unprocessable_content
         end
-        format.html { redirect_to @project, alert: @project.errors.full_messages.to_sentence }
+        format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
       end
     end
   end
@@ -191,7 +191,7 @@ class ProjectsController < ApplicationController
 
     Workspace.bind!(session, @project, tab_id: workspace_tab_id)
     @project.update!(status: :ready)
-    redirect_to @project
+    redirect_to workshop_path
   end
 
   def nesting_parameters_params

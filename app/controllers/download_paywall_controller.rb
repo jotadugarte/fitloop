@@ -19,6 +19,6 @@ class DownloadPaywallController < ApplicationController
   def store_guest_paywall_return_to!
     return if user_signed_in?
 
-    session[:workspace_return_to] = download_paywall_project_path(@project)
+    session[:workspace_return_to] = download_paywall_workshop_path
   end
 end

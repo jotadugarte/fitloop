@@ -1,5 +1,5 @@
 # Current state
 
-- **Phase:** explore-task (handoff)
-- **Step:** 2.1 — spec locked; run `start-task`
-- **Active task:** `task_onvo-payments.md`
+- **Phase:** implementation
+- **Step:** workshop-url `/taller` routes complete; request specs green
+- **Active task:** `active_sessions/task_user-analytics.md` (URL privacy work landed on main app routes)

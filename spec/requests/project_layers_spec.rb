@@ -49,9 +49,7 @@ RSpec.describe "Project layers", type: :request do
   end
 
   describe "composite layer UI [REQ-FIT-DXF-002]" do
-    let(:project) do
-      create_project_for_spec!(title: "Composite layers bench", bind_workspace: false)
-    end
+    let(:project) { create_project_for_spec!(title: "Composite layers bench") }
 
     def attach_per_file_dxf!
       project.input_dxf.attach(

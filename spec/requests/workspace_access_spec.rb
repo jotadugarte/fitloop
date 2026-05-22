@@ -11,20 +11,13 @@ RSpec.describe "Workspace project access", type: :request do
     end
   end
 
-  describe "GET /projects/:id without session bind [REQ-FIT-AUTH-001]" do
-    it "redirects to empezar when the project is not bound to the session" do
+  describe "GET /taller without session bind [REQ-FIT-AUTH-001]" do
+    it "redirects to empezar when no workshop is bound to the session" do
       get start_project_path
       follow_redirect!
+      Workspace.discard!(session, tab_id: Workspace::DEFAULT_TAB_ID)
 
-      foreign = ProjectSpecFactory.create!(
-        title: "Other workspace",
-        status: :completed,
-        sheet_stocks_attributes: {
-          "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
-        }
-      )
-
-      get project_path(foreign)
+      get workshop_path
 
       expect(response).to redirect_to(start_project_path)
       expect(flash[:alert]).to eq(I18n.t("workspace.expired"))

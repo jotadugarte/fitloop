@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  include WorkshopUrlHelper
   include LocaleSwitchable
   include ResolvesWorkspaceTab
   include StoresWorkspaceReturnTo

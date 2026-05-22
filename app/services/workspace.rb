@@ -176,6 +176,8 @@ class Workspace
         session.delete(SESSION_KEY)
       elsif tab_ids(session).include?(DEFAULT_TAB_ID)
         session[SESSION_KEY] = workspaces_hash(session)[DEFAULT_TAB_ID]
+      else
+        session.delete(SESSION_KEY)
       end
     end
 

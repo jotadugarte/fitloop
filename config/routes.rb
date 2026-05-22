@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Define your application routes per the DSL in https://guides.rubyonguides.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
@@ -50,7 +50,10 @@ Rails.application.routes.draw do
 
   get "empezar", to: "projects#start", as: :start_project
 
-  resources :projects, except: :destroy do
+  resolve("Project") { [:workshop] }
+
+  # Ephemeral workshop (session-bound); no project id in the browser URL.
+  resource :workshop, path: "taller", controller: "projects", only: %i[show edit update] do
     member do
       patch :nesting_parameters
       patch :workspace
@@ -77,12 +80,20 @@ Rails.application.routes.draw do
     end
     post "orphan_resolutions/:piece_key/split_proposal/accept",
          to: "split_proposals#accept",
-         as: :accept_project_orphan_split_proposal
+         as: :accept_orphan_split_proposal
     post "orphan_resolutions/:piece_key/split_proposal/reject",
          to: "split_proposals#reject",
-         as: :reject_project_orphan_split_proposal
+         as: :reject_orphan_split_proposal
     post "orphan_resolutions/:piece_key/split_proposal/regenerate",
          to: "split_proposals#regenerate",
-         as: :regenerate_project_orphan_split_proposal
+         as: :regenerate_orphan_split_proposal
   end
+
+  resources :projects, only: %i[index new create]
+
+  # Legacy bookmarks: redirect old /projects/:id URLs to /taller.
+  get "projects/:id", to: redirect("/taller")
+  get "projects/:id/edit", to: redirect("/taller/edit")
+  get "projects/:id/descarga-pago", to: redirect("/taller/descarga-pago")
+  get "projects/:id/*path", to: redirect("/taller/%{path}")
 end

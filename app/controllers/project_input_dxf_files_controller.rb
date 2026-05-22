@@ -53,7 +53,7 @@ class ProjectInputDxfFilesController < ApplicationController
   end
 
   def redirect_after_upload
-    setup_context? ? edit_project_path(@project) : @project
+    setup_context? ? edit_workshop_path : workshop_path
   end
 
   def respond_to_missing_files

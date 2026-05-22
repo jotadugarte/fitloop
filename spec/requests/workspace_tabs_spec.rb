@@ -48,14 +48,16 @@ RSpec.describe "Workspace tab isolation", type: :request do
 
     it "[REQ-FIT-AUTH-001] resolves show only with matching X-Workspace-Tab-Id" do
       project_a = start_workspace_for_tab!(tab_a)
-      start_workspace_for_tab!(tab_b)
+      project_b = start_workspace_for_tab!(tab_b)
 
-      get project_path(project_a), headers: tab_headers(tab_a)
+      get workshop_path, headers: tab_headers(tab_a)
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include("preview_zone_project_#{project_a.id}")
 
-      get project_path(project_a), headers: tab_headers(tab_b)
-      expect(response).to redirect_to(start_project_path)
-      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+      get workshop_path, headers: tab_headers(tab_b)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("preview_zone_project_#{project_b.id}")
+      expect(response.body).not_to include("preview_zone_project_#{project_a.id}")
     end
   end
 
@@ -64,7 +66,7 @@ RSpec.describe "Workspace tab isolation", type: :request do
       project = start_workspace_for_tab!(tab_a)
       cookies[Workspace::TabLeave::TAB_LEFT_COOKIE] = (121.seconds.ago.to_f * 1000).to_i
 
-      get project_path(project), headers: tab_headers(tab_a)
+      get workshop_path, headers: tab_headers(tab_a)
 
       expect(response).to redirect_to(start_project_path)
       expect(flash[:alert]).to eq(I18n.t("workspace.tab_closed_expired"))
@@ -77,7 +79,7 @@ RSpec.describe "Workspace tab isolation", type: :request do
       project.update!(last_activity_at: 10.minutes.ago)
       cookies[Workspace::TabLeave::TAB_LEFT_COOKIE] = (30.seconds.ago.to_f * 1000).to_i
 
-      get project_path(project), headers: tab_headers(tab_a)
+      get workshop_path, headers: tab_headers(tab_a)
 
       expect(response).to have_http_status(:ok)
       expect(Project.exists?(project.id)).to be(true)
@@ -85,11 +87,13 @@ RSpec.describe "Workspace tab isolation", type: :request do
 
     it "[REQ-FIT-AUTH-001] recovers project show when tab_id header missing but session still bound (D21)" do
       project = start_workspace_for_tab!(tab_a)
+      cookies[ResolvesWorkspaceTab::TAB_COOKIE] = tab_a
 
-      get project_path(project)
+      get workshop_path
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="project-show"')
+      expect(response.body).to include("preview_zone_project_#{project.id}")
       expect(Project.exists?(project.id)).to be(true)
     end
 
@@ -97,7 +101,7 @@ RSpec.describe "Workspace tab isolation", type: :request do
       project = start_workspace_for_tab!(tab_a)
       project.update!(last_activity_at: 10.minutes.ago)
 
-      get project_path(project), headers: tab_headers(tab_a)
+      get workshop_path, headers: tab_headers(tab_a)
 
       expect(response).to have_http_status(:ok)
       expect(Project.exists?(project.id)).to be(true)

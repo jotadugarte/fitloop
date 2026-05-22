@@ -24,7 +24,7 @@ module StoresWorkspaceReturnTo
 
     tid = workspace_tab_id
     Workspace.bind!(session, project, tab_id: tid) if Workspace.tab_id_for_project(session, project.id) != tid
-    project_path(project)
+    workshop_path
   end
 
   private
@@ -55,6 +55,6 @@ module StoresWorkspaceReturnTo
     project = Workspace.any_bound_project(session, prefer_tab_id: workspace_tab_id)
     return if project.blank?
 
-    session[:workspace_return_to] = project_path(project)
+    session[:workspace_return_to] = workshop_path
   end
 end

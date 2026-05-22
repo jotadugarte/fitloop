@@ -72,7 +72,7 @@ RSpec.describe "Split proposal not feasible [REQ-FIT-SPLIT-001]", type: :request
 
   describe "POST accept [REQ-FIT-SPLIT-001]" do
     it "[REQ-FIT-SPLIT-001] blocks accepting an infeasible split proposal" do
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       expect(response).to redirect_to(project_path(project))
       expect(flash[:alert]).to eq(I18n.t("nesting.split.not_feasible_accept"))

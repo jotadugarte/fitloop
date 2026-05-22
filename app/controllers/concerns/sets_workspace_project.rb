@@ -9,13 +9,49 @@ module SetsWorkspaceProject
   def set_workspace_project
     return if expire_workspace_after_tab_closure!
 
-    param_id = params[:project_id] || params[:id]
-    @project = Workspace.resolve!(session, param_id, tab_id: workspace_tab_id)
+    param_id = explicit_workspace_project_id
+
+    if param_id.present?
+      @project = Workspace.resolve!(session, param_id, tab_id: workspace_tab_id)
+    else
+      assign_workspace_project_from_session!
+      return if performed?
+    end
   rescue ActiveRecord::RecordNotFound
     recover_workspace_project!(param_id) || redirect_to(
       start_project_path,
       alert: I18n.t("workspace.expired")
     )
+  end
+
+  def assign_workspace_project_from_session!
+    if missing_tab_id_for_bound_workspaces?
+      redirect_to start_project_path, alert: I18n.t("workspace.expired")
+      return
+    end
+
+    @project = Workspace.find(session, tab_id: workspace_tab_id)
+    redirect_to start_project_path, alert: I18n.t("workspace.expired") unless @project
+  end
+
+  def missing_tab_id_for_bound_workspaces?
+    hash = session[Workspace::WORKSPACES_KEY]
+    return false unless hash.is_a?(Hash) && hash.present?
+    return false if request.headers[ResolvesWorkspaceTab::TAB_HEADER].present?
+    return false if cookies[ResolvesWorkspaceTab::TAB_COOKIE].present?
+
+    hash.keys.map(&:to_s).none?(Workspace::DEFAULT_TAB_ID)
+  end
+
+  def explicit_workspace_project_id
+    return params[:project_id].presence if params[:project_id].present?
+    return nil if workshop_scoped_request?
+
+    params[:id].presence
+  end
+
+  def workshop_scoped_request?
+    request.path.start_with?("/taller")
   end
 
   def recover_workspace_project!(param_id)
@@ -43,8 +79,7 @@ module SetsWorkspaceProject
   def expire_workspace_after_tab_closure!
     return false unless tab_return_expired?
 
-    param_id = params[:project_id] || params[:id]
-    project = Project.ephemeral.find_by(id: param_id.to_i) if param_id.present?
+    project = project_for_tab_expiry
 
     if project && Workspace.bound_to_project?(session, project)
       Workspace.expire_project_everywhere!(session, project)
@@ -54,6 +89,16 @@ module SetsWorkspaceProject
 
     redirect_to start_project_path, alert: I18n.t("workspace.tab_closed_expired")
     true
+  end
+
+  def project_for_tab_expiry
+    param_id = explicit_workspace_project_id
+    if param_id.present?
+      Project.ephemeral.find_by(id: param_id.to_i)
+    else
+      Workspace.find(session, tab_id: workspace_tab_id) ||
+        Workspace.any_bound_project(session, prefer_tab_id: workspace_tab_id)
+    end
   end
 
   def clear_stale_workspace_binds_for!(project_id)

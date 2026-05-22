@@ -13,10 +13,12 @@ RSpec.describe "Project DXF upload", type: :request do
 
   it "[REQ-FIT-AUTH-001] requires workspace tab header when project is bound per tab (D21)" do
     tab_id = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
-    get start_project_path, headers: { "X-Workspace-Tab-Id" => tab_id }
-    follow_redirect!
-    get new_project_path, headers: { "X-Workspace-Tab-Id" => tab_id }
+    tab_headers = { "X-Workspace-Tab-Id" => tab_id }
+    get start_project_path, headers: tab_headers
+    follow_redirect!(headers: tab_headers)
+    get new_project_path, headers: tab_headers
     project = Workspace.find(session, tab_id: tab_id)
+    expect(session[Workspace::WORKSPACES_KEY].keys).to eq([tab_id])
 
     post project_input_dxf_files_path(project, context: "setup"),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },

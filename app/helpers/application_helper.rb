@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include WorkshopUrlHelper
   include NestingProgressHelper
   include UiHelper
   include NestingPreviewHelper
@@ -40,8 +41,7 @@ module ApplicationHelper
   end
 
   def toolbar_workshop_path
-    project = toolbar_workspace_project
-    project ? project_path(project) : start_project_path
+    toolbar_workspace_project ? workshop_path : start_project_path
   end
 
   def toolbar_workshop_button_class

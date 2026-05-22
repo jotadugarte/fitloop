@@ -19,7 +19,7 @@ RSpec.describe "Nested DXF download paywall", type: :request do
   end
 
   def paywall_path_for(project)
-    "/projects/#{project.id}/descarga-pago"
+    "/taller/descarga-pago"
   end
 
   describe "GET /projects/:id/nested_dxf [REQ-FIT-BILL-001]" do

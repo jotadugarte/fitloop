@@ -4,8 +4,9 @@
 # [REQ-FIT-DXF-002] Per-file primary layer + auxiliary layers when using per-file sync.
 class ProjectLayersController < ApplicationController
   include StartsNesting
+  include SetsWorkspaceProject
 
-  before_action :set_project
+  before_action :set_workspace_project
 
   def index
     sync_layers!
@@ -26,14 +27,10 @@ class ProjectLayersController < ApplicationController
     end
 
     start_nesting_for!(@project)
-    redirect_to @project
+    redirect_to workshop_path
   end
 
   private
-
-  def set_project
-    @project = Project.find(params[:project_id])
-  end
 
   def sync_layers!
     return if @project.input_dxf_attachments.blank?
