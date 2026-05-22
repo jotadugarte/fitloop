@@ -82,6 +82,17 @@ RSpec.describe Workspace do
       expect do
         described_class.resolve!(session, project.id)
       end.to raise_error(ActiveRecord::RecordNotFound, /discarded/)
+
+      expect(session[described_class::SESSION_KEY]).to be_nil
+    end
+
+    it "[REQ-FIT-AUTH-001] clears a stale bind when the ephemeral project was discarded" do
+      project = Project.create!(ephemeral: true, title: "Gone", status: :draft)
+      session = { described_class::WORKSPACES_KEY => { described_class::DEFAULT_TAB_ID => project.id } }
+      project.destroy!
+
+      expect(described_class.find(session)).to be_nil
+      expect(session[described_class::WORKSPACES_KEY]).to be_empty
     end
 
     it "[REQ-FIT-AUTH-001] does not resolve non-ephemeral projects by id" do

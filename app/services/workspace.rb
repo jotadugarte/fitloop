@@ -21,10 +21,13 @@ class Workspace
     end
 
     def find(session, tab_id: nil)
-      project_id = bound_project_id(session, tab_id: tab_id)
+      tid = normalize_tab_id(tab_id)
+      project_id = bound_project_id(session, tab_id: tid)
       return nil if project_id.blank?
 
-      Project.ephemeral.find_by(id: project_id)
+      project = Project.ephemeral.find_by(id: project_id)
+      clear_stale_bind!(session, tid) if project.nil?
+      project
     end
 
     def bound_to_project?(session, project)
@@ -39,8 +42,6 @@ class Workspace
 
     def find_or_create!(session, tab_id: nil)
       tid = normalize_tab_id(tab_id)
-      project = find(session, tab_id: tid)
-      clear_stale_bind!(session, tid) if project.nil? && bound_project_id(session, tab_id: tid).present?
       find(session, tab_id: tid) || create!(session, tab_id: tid)
     end
 

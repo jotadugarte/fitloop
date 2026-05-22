@@ -242,8 +242,8 @@ class ProjectsController < ApplicationController
   end
 
   def sync_nesting_ui_state!
-    Nesting::ProjectStatusSync.call(project: @project)
-    @project.reload
+    @project = Nesting::ProjectStatusSync.call(project: @project)
+    return redirect_to(start_project_path, alert: I18n.t("workspace.expired")) unless @project
   end
 
   def sheet_workspace_streams

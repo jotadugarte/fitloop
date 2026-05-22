@@ -20,7 +20,12 @@ module SetsWorkspaceProject
 
   def recover_workspace_project!(param_id)
     project = Project.ephemeral.find_by(id: param_id)
-    return false unless project && Workspace.bound_to_project?(session, project)
+    unless project
+      clear_stale_workspace_binds_for!(param_id)
+      return false
+    end
+
+    return false unless Workspace.bound_to_project?(session, project)
 
     tid = workspace_tab_id
     return false if Workspace.find(session, tab_id: tid)&.id == project.id
@@ -49,6 +54,16 @@ module SetsWorkspaceProject
 
     redirect_to start_project_path, alert: I18n.t("workspace.tab_closed_expired")
     true
+  end
+
+  def clear_stale_workspace_binds_for!(project_id)
+    pid = project_id.to_i
+    hash = session[Workspace::WORKSPACES_KEY]
+    return unless hash.is_a?(Hash)
+
+    hash.delete_if { |_tab, bound_id| bound_id.to_i == pid }
+    session[Workspace::WORKSPACES_KEY] = hash
+    session.delete(Workspace::SESSION_KEY) if session[Workspace::SESSION_KEY].to_i == pid
   end
 
   def tab_return_expired?

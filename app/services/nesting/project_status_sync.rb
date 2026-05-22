@@ -14,6 +14,8 @@ module Nesting
     end
 
     def call
+      return nil unless project_present?
+
       return @project.reload unless @project.processing?
 
       run = latest_run
@@ -23,9 +25,15 @@ module Nesting
       sync_project_from_run!(run.reload) if run.reload.status != "processing"
 
       @project.reload
+    rescue ActiveRecord::RecordNotFound
+      nil
     end
 
     private
+
+    def project_present?
+      @project.persisted? && Project.ephemeral.exists?(@project.id)
+    end
 
     def latest_run
       @project.nesting_runs.order(created_at: :desc).first

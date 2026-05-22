@@ -16,6 +16,19 @@ RSpec.describe "App toolbar", type: :request do
     end
   end
 
+  describe "GET /projects/:id with stale workshop bind [REQ-FIT-AUTH-001]" do
+    it "redirects to empezar when the bound project was discarded" do
+      project = begin_workspace_session!
+      project_id = project.id
+      project.destroy!
+
+      get project_path(project_id)
+
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    end
+  end
+
   describe "GET /projects/:id [REQ-FIT-AUTH-001]" do
     let(:user) { create_billing_user! }
 
