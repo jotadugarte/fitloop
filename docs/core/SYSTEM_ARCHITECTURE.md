@@ -17,10 +17,12 @@
 | **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
 | **i18n** | Rails I18n | `en`, `es` in v1; optional joke locale `es_panic` (easter egg, same key tree as `es`) |
+| **Auth** | **Devise** + **OmniAuth** | Email/password + optional Google, Facebook, Apple (ENV-gated). Spanish routes (`/iniciar-sesion`, `/crear-cuenta`, `/mi-cuenta`, …). See ADR-0005. |
+| **Billing (v1)** | Rails + `config/billing.yml` | **Simulated** checkout only (no live payment gateway). Paywall on **nested DXF** download; preview and `placements.json` remain free. See ADR-0005. |
 | **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
-Rails owns HTTP, **workspace session access** (`Workspace`), persistence, validations, and orchestration. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML or own the database.
+Rails owns HTTP, **user accounts**, **workspace session access** (`Workspace`), billing orchestration, persistence, validations, and nesting job I/O. Python owns DXF parse, tessellation, nesting math, and nested DXF emission. Python does not serve HTML, own the database, or process payments.
 
 ---
 
@@ -44,13 +46,15 @@ AI agents **must not** introduce the following without an ADR:
 * 🚫 **Python owning persistence:** no SQLAlchemy/ORM project DB in the engine; Rails is system of record.
 * 🚫 **Tailwind / CSS-in-JS** unless explicitly adopted later via ADR (default: Rails/CSS following app conventions).
 * 🚫 **Margin as inter-piece gap:** Do not apply `margin_mm` between pieces on the same sheet. Sheet-edge inset only (`nest_placement`); piece-to-piece clearance via `kerf_mm` in `nest_types.apply_kerf` (see §7 and `REQ-FIT-NEST-002`).
+* 🚫 **Live payment gateways in billing v1:** no Stripe, ONVO, or card capture in production paths until a follow-on ADR replaces simulated checkout (`Billing::SimulateSingleDownload`, `Billing::SimulatePlanPurchase`).
+* 🚫 **Billing math in Python:** prices, grants, subscriptions, and paywall checks stay in Rails.
 
 ---
 
 ## 4. Environment & Infrastructure
 
 * **Deployment target:** Single host (or container) with Rails + PostgreSQL + Python venv for `nesting_engine` on the same machine (v1).
-* **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); **no access secrets on `Project`** (session bind only per ADR-0004).
+* **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); OmniAuth client IDs/secrets via ENV (see `.env.example`); **no access secrets on `Project`** (session bind only per ADR-0004).
 * **Storage:** Active Storage (disk or cloud per env) for DXF inputs and nested output.
 
 ---
@@ -122,3 +126,19 @@ Shapely in `nest_placement.py` is used for per-piece fallback, whole-sheet scori
 Rails orchestrates subprocess I/O only; no split geometry or composite clipping in Ruby.
 
 **Requirement detail:** `REQ-FIT-JOB-001`, `REQ-FIT-SPLIT-001`, `REQ-FIT-DXF-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §§ Nesting job, Auto-split, Composite layers.
+
+---
+
+## 10. User accounts and simulated billing (normative)
+
+| Layer | Module / service | Responsibility |
+|-------|------------------|----------------|
+| **Auth** | Devise + OmniAuth controllers under `app/controllers/users/` | Register, login, email confirmation, password reset, OAuth callbacks; account edit/delete |
+| **Workspace** | `Workspace`, `SetsWorkspaceProject`, `ResolvesWorkspaceTab` | Ephemeral `Project` per browser tab (`session[:workspaces]`); tab cookie/header; 120s TTL after tab close (ADR-0004, extended in ADR-0005) |
+| **Paywall** | `RequiresNestedDownloadAuthorization`, `DownloadPaywallController` | Nested DXF only; guests and unconfirmed users redirected; signed download token (~15 min) |
+| **Billing** | `Billing::Entitlement`, `Billing::Simulate*`, `config/billing.yml` | Simulated card (USD) and SINPE (CRC); plans 1/2/4 months; monthly quota; single-purchase 24h retention on `DownloadGrant` |
+| **Account UI** | `/mis-pagos`, `/planes`, `/checkout` | Plan purchase and retained download after workspace loss |
+
+Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
+
+**Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003` in `docs/core/SPEC.md`. **ADR:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.
