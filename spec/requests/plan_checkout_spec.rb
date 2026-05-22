@@ -35,6 +35,18 @@ RSpec.describe "Simulated plan checkout", type: :request do
       expect(response.body).to include('data-testid="planes-checkout"')
       expect(response.body).to include('data-testid="planes-tier-1"')
       expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
+      expect(response.body).not_to include(I18n.t("billing.paywall.aside.title"))
+    end
+
+    it "[REQ-FIT-BILL-002] highlights the active plan tier" do
+      create_active_subscription!(user: user, tier_months: 2)
+
+      get planes_path
+
+      expect(response.body).to include('data-testid="planes-tier-active-2"')
+      expect(response.body).to include("planes-tier--active")
+      expect(response.body).to include(I18n.t("billing.planes.active_badge"))
+      expect(response.body).not_to include('data-testid="planes-tier-active-1"')
     end
 
     it "[REQ-FIT-BILL-002] renders simulate actions when project is bound" do

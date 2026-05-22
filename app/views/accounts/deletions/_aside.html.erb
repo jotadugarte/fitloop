@@ -1,0 +1,13 @@
+<aside class="paywall-layout__aside panel panel--inset" aria-labelledby="account-deletion-aside-title">
+  <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
+  <h2 id="account-deletion-aside-title" class="paywall-aside__title"><%= t("auth.account_deletion.aside.title") %></h2>
+  <p class="paywall-aside__lead"><%= t("auth.account_deletion.aside.lead") %></p>
+  <ul class="paywall-aside__benefits">
+    <li><%= t("auth.account_deletion.aside.benefit_permanent") %></li>
+    <li><%= t("auth.account_deletion.aside.benefit_plan") %></li>
+    <li><%= t("auth.account_deletion.aside.benefit_support") %></li>
+  </ul>
+  <p class="account-deletion-aside__action">
+    <%= link_to t("auth.account_deletion.aside.back_to_account"), edit_user_registration_path, class: "btn btn-secondary" %>
+  </p>
+</aside>

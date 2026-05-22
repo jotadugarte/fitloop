@@ -1078,6 +1078,116 @@ h3.fit-section__legend {
   padding: 1.15rem 1.25rem;
 }
 
+.mis-pagos-section--active-plan {
+  border-color: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 40%, var(--fit-border));
+  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 6%, var(--fit-bg));
+}
+
+.mis-pagos-active-plan__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mis-pagos-active-plan__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-active-plan__badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fit-success-border, #3d8b5c);
+  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 14%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-success-border, #3d8b5c) 35%, var(--fit-border));
+  border-radius: 999px;
+}
+
+.mis-pagos-active-plan__tier {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--fit-success-border, #3d8b5c);
+}
+
+.mis-pagos-active-plan__duration {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-active-plan__period {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0 0 1.15rem;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--fit-navy) 4%, var(--fit-bg));
+  border: 1px solid var(--fit-border);
+  border-radius: 8px;
+}
+
+.mis-pagos-active-plan__period-row {
+  display: grid;
+  grid-template-columns: minmax(5rem, 6rem) minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  align-items: baseline;
+}
+
+.mis-pagos-active-plan__period-row dt {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-active-plan__period-row dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-active-plan__quota {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: var(--fit-bg);
+}
+
+.mis-pagos-active-plan__quota-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-active-plan__quota-value {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-active-plan__quota-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
 .mis-pagos-section__title {
   margin: 0 0 0.75rem;
   font-size: 1rem;
@@ -1212,7 +1322,127 @@ h3.fit-section__legend {
   }
 }
 
+/* ——— Account deletion ——— */
+
+.account-deletion-page .paywall-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-deletion-section {
+  margin: 0;
+  padding: 1.15rem 1.25rem;
+}
+
+.account-deletion-section__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--fit-text);
+}
+
+.account-deletion-section__warning {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--fit-navy);
+  background: color-mix(in srgb, var(--fit-alert-border) 12%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-alert-border) 35%, var(--fit-border));
+  border-radius: 8px;
+}
+
+.account-deletion-section--warning {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.account-deletion-section--warning .account-deletion-section__warning {
+  margin: 0;
+}
+
+.account-deletion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+}
+
+.account-deletion-form .field {
+  margin-top: 1rem;
+}
+
+.account-deletion-form .field:first-of-type {
+  margin-top: 1.25rem;
+}
+
+.account-deletion-form__phrase {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.account-deletion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--fit-border);
+}
+
+.account-deletion-actions .btn,
+.account-deletion-actions form.button_to {
+  flex: 1 1 12rem;
+  margin: 0;
+}
+
+.account-deletion-actions form.button_to {
+  display: flex;
+}
+
+.account-deletion-actions .btn {
+  width: 100%;
+  text-align: center;
+}
+
+.account-deletion-form__submit {
+  color: #fff;
+  background: var(--fit-alert-border, #c45c5c);
+  border-color: var(--fit-alert-border, #c45c5c);
+}
+
+.account-deletion-form__submit:hover,
+.account-deletion-form__submit:focus-visible {
+  background: color-mix(in srgb, var(--fit-alert-border, #c45c5c) 88%, #000);
+  border-color: color-mix(in srgb, var(--fit-alert-border, #c45c5c) 88%, #000);
+}
+
+.account-deletion-aside__action {
+  margin: 1.25rem 0 0;
+}
+
+.account-deletion-aside__action .btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .account-deletion-actions {
+    flex-direction: column;
+  }
+}
+
 /* ——— Planes ——— */
+
+.planes-page--solo.paywall-layout {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 42rem;
+}
 
 .planes-page .paywall-layout__main {
   display: flex;
@@ -1231,11 +1461,50 @@ h3.fit-section__legend {
   padding: 1.15rem 1.25rem;
 }
 
+.planes-tier--active {
+  border-color: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 45%, var(--fit-border));
+  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 8%, var(--fit-bg));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fit-success-border, #3d8b5c) 25%, transparent);
+}
+
+.planes-tier__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
 .planes-tier__title {
-  margin: 0 0 0.85rem;
+  margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--fit-navy);
+}
+
+.planes-tier--active .planes-tier__title {
+  color: var(--fit-success-border, #3d8b5c);
+}
+
+.planes-tier__active-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fit-success-border, #3d8b5c);
+  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 14%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-success-border, #3d8b5c) 35%, var(--fit-border));
+  border-radius: 999px;
+}
+
+.planes-tier__active-meta {
+  margin: -0.35rem 0 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--fit-text-muted);
 }
 
 .planes-tier__pricing {

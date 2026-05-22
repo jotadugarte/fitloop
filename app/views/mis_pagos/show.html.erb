@@ -9,19 +9,9 @@
   <article class="paywall-layout__main panel panel--chrome">
     <h1 class="billing-page__title"><%= t("billing.mis_pagos.title") %></h1>
 
-    <section class="mis-pagos-section panel panel--inset">
+    <section class="mis-pagos-section panel panel--inset<%= " mis-pagos-section--active-plan" if @subscription %>">
       <% if @subscription %>
-        <div data-testid="mis-pagos-active-plan">
-          <h2 class="mis-pagos-section__title"><%= t("billing.mis_pagos.active_plan") %></h2>
-          <p class="mis-pagos-section__text">
-            <%= t("billing.mis_pagos.plan_ends", ends_at: l(@subscription.ends_at, format: :long)) %>
-          </p>
-          <% if @quota_counter %>
-            <p class="mis-pagos-section__text mis-pagos-section__text--emphasis" data-testid="mis-pagos-quota">
-              <%= t("billing.mis_pagos.quota_remaining", remaining: @quota_counter.remaining, limit: @quota_counter.usage.quota_limit) %>
-            </p>
-          <% end %>
-        </div>
+        <%= render "mis_pagos/active_plan", subscription: @subscription, quota_counter: @quota_counter %>
       <% else %>
         <p class="mis-pagos-section__empty" data-testid="mis-pagos-no-plan"><%= t("billing.mis_pagos.no_active_plan") %></p>
       <% end %>

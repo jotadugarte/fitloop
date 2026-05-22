@@ -1,4 +1,4 @@
-<div class="paywall-layout planes-page" data-controller="timezone-capture" data-testid="planes-checkout">
+<div class="paywall-layout planes-page planes-page--solo" data-controller="timezone-capture" data-testid="planes-checkout">
   <%= hidden_field_tag :time_zone, current_user&.time_zone, data: { timezone_capture_target: "timeZone" } %>
 
   <article class="paywall-layout__main panel panel--chrome">
@@ -16,8 +16,23 @@
       <% [[1, "tier_1", Billing::Pricing.plan_1_month_card_usd, Billing::Pricing.plan_1_month_sinpe_crc],
          [2, "tier_2", Billing::Pricing.plan_2_months_card_usd, Billing::Pricing.plan_2_months_sinpe_crc],
          [4, "tier_4", Billing::Pricing.plan_4_months_card_usd, Billing::Pricing.plan_4_months_sinpe_crc]].each do |months, label_key, usd, crc| %>
-        <section class="planes-tier panel panel--inset" data-testid="planes-tier-<%= months %>">
-          <h2 class="planes-tier__title"><%= t("billing.planes.#{label_key}") %></h2>
+        <% tier_active = @active_subscription&.tier_months == months %>
+        <section class="planes-tier panel panel--inset<%= " planes-tier--active" if tier_active %>"
+                 data-testid="planes-tier-<%= months %>">
+          <div class="planes-tier__header">
+            <h2 class="planes-tier__title"><%= t("billing.planes.#{label_key}") %></h2>
+            <% if tier_active %>
+              <span class="planes-tier__active-badge" data-testid="planes-tier-active-<%= months %>">
+                <%= t("billing.planes.active_badge") %>
+              </span>
+            <% end %>
+          </div>
+
+          <% if tier_active %>
+            <p class="planes-tier__active-meta">
+              <%= t("billing.planes.active_until", ends_at: l(@active_subscription.ends_at, format: :long)) %>
+            </p>
+          <% end %>
 
           <dl class="checkout-pricing__list planes-tier__pricing">
             <div class="checkout-pricing__row">
@@ -60,14 +75,4 @@
       <%= link_to t("auth.nav.payments"), mis_pagos_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
     </footer>
   </article>
-
-  <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="planes-aside-title">
-    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
-    <h2 id="planes-aside-title" class="paywall-aside__title"><%= t("billing.paywall.aside.title") %></h2>
-    <p class="paywall-aside__lead"><%= t("billing.planes.aside.lead") %></p>
-    <ul class="paywall-aside__benefits">
-      <li><%= t("billing.paywall.aside.benefit_plan") %></li>
-      <li><%= t("billing.paywall.aside.benefit_retention") %></li>
-    </ul>
-  </aside>
 </div>

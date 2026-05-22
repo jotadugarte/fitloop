@@ -154,7 +154,14 @@ es_panic:
       active_plan: Plan activo
       no_active_plan: Sin plan activo.
       plan_ends: Vence el %{ends_at}
-      quota_remaining: "Cupo del mes: %{remaining} / %{limit}"
+      plan_access_duration:
+        one: 1 mes de acceso al plan
+        other: "%{count} meses de acceso al plan"
+      period_started: Inicio
+      period_ends: Vence
+      quota_monthly_heading: Cupo mensual de descargas
+      quota_monthly_hint: El cupo se renueva cada mes del calendario; no es el botín total del plan.
+      quota_remaining: "%{remaining} / %{limit} descargas este mes"
       single_purchases: Descargas sueltas pagadas
       no_single_purchases: Sin descargas sueltas todavía.
       download: Descargar
@@ -180,6 +187,8 @@ es_panic:
       tier_1: Plan 1 mes
       tier_2: Plan 2 meses
       tier_4: Plan 4 meses
+      active_badge: Activo (ahora mismo)
+      active_until: "Vigente hasta %{ends_at}"
       aside:
         lead: Planes con cupo mensual. Elige meses y simula pago USD o CRC.
     checkout:
@@ -523,6 +532,13 @@ es_panic:
       title: Eliminar cuenta
       intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
       active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      aside:
+        title: Antes de saltar al vacío
+        lead: Es definitivo. Si solo necesitas aire, cierra sesión y vuelve cuando el caos lo permita.
+        benefit_permanent: Desaparecen cuenta, taller en curso e historial de pagos.
+        benefit_plan: Plan activo = adiós a descargas y cuota que no hayas quemado.
+        benefit_support: ¿Dudas? Cancela y mira Mis pagos o Mi cuenta.
+        back_to_account: Volver a Mi cuenta
       continue: Continuar hacia el abismo
       cancel: Cancelar y respirar
       confirm_title: Confirmar eliminación
@@ -557,6 +573,13 @@ es_panic:
       title: Eliminar cuenta
       intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
       active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      aside:
+        title: Antes de saltar al vacío
+        lead: Es definitivo. Si solo necesitas aire, cierra sesión y vuelve cuando el caos lo permita.
+        benefit_permanent: Desaparecen cuenta, taller en curso e historial de pagos.
+        benefit_plan: Plan activo = adiós a descargas y cuota que no hayas quemado.
+        benefit_support: ¿Dudas? Cancela y mira Mis pagos o Mi cuenta.
+        back_to_account: Volver a Mi cuenta
       continue: Continuar hacia el abismo
       cancel: Cancelar y respirar
       confirm_title: Confirmar eliminación

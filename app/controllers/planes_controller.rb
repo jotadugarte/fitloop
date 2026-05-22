@@ -8,6 +8,7 @@ class PlanesController < ApplicationController
   before_action :load_plan_project!, only: %i[show simulate]
 
   def show
+    @active_subscription = Subscription.active_at.find_by(user_id: current_user.id)
   end
 
   def simulate
