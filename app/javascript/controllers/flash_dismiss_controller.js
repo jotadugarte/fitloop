@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 const DEFAULT_DELAY_MS = 5000
-const FADE_MS = 300
+const DISMISS_ANIMATION_MS = 260
 
 export default class extends Controller {
   static values = {
@@ -9,12 +9,13 @@ export default class extends Controller {
   }
 
   connect() {
+    this.dismissAt = Date.now() + this.delayValue
     this.scheduleDismiss()
   }
 
   disconnect() {
     this.clearScheduledDismiss()
-    this.clearFadeListener()
+    this.clearDismissAnimation()
   }
 
   pause() {
@@ -27,7 +28,8 @@ export default class extends Controller {
 
   scheduleDismiss() {
     this.clearScheduledDismiss()
-    this.dismissTimeout = window.setTimeout(() => this.dismiss(), this.delayValue)
+    const remaining = Math.max(0, this.dismissAt - Date.now())
+    this.dismissTimeout = window.setTimeout(() => this.dismiss(), remaining)
   }
 
   clearScheduledDismiss() {
@@ -46,31 +48,34 @@ export default class extends Controller {
       return
     }
 
-    this.onFadeEnd = (event) => {
-      if (event.target !== this.element || event.propertyName !== "opacity") return
+    this.onAnimationEnd = (event) => {
+      if (event.target !== this.element || event.animationName !== "flash-dismiss-out") return
 
-      this.clearFadeListener()
-      if (this.element.isConnected) this.element.remove()
+      this.removeElement()
     }
 
-    this.element.addEventListener("transitionend", this.onFadeEnd)
+    this.element.addEventListener("animationend", this.onAnimationEnd)
     this.element.classList.add("flash--dismissing")
 
-    this.fadeFallbackTimeout = window.setTimeout(() => {
-      this.clearFadeListener()
-      if (this.element.isConnected) this.element.remove()
-    }, FADE_MS + 50)
+    this.dismissFallbackTimeout = window.setTimeout(() => {
+      this.removeElement()
+    }, DISMISS_ANIMATION_MS + 40)
   }
 
-  clearFadeListener() {
-    if (this.onFadeEnd) {
-      this.element.removeEventListener("transitionend", this.onFadeEnd)
-      this.onFadeEnd = null
+  removeElement() {
+    this.clearDismissAnimation()
+    if (this.element.isConnected) this.element.remove()
+  }
+
+  clearDismissAnimation() {
+    if (this.onAnimationEnd) {
+      this.element.removeEventListener("animationend", this.onAnimationEnd)
+      this.onAnimationEnd = null
     }
 
-    if (this.fadeFallbackTimeout) {
-      window.clearTimeout(this.fadeFallbackTimeout)
-      this.fadeFallbackTimeout = null
+    if (this.dismissFallbackTimeout) {
+      window.clearTimeout(this.dismissFallbackTimeout)
+      this.dismissFallbackTimeout = null
     }
   }
 }

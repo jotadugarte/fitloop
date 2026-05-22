@@ -12,3 +12,7 @@ configureTurboConfirm()
 configureWorkspaceTabLeave()
 configureWorkspaceTabHeaders()
 configureWorkspaceTabPresence()
+
+document.addEventListener("turbo:before-cache", () => {
+  document.querySelectorAll(".flash").forEach((element) => element.remove())
+})

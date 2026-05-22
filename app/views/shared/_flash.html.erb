@@ -4,6 +4,7 @@
   <div
     class="flash flash-<%= type %>"
     data-controller="flash-dismiss"
+    data-turbo-temporary
     data-action="mouseenter->flash-dismiss#pause mouseleave->flash-dismiss#resume"
     data-testid="flash-<%= type %>"
     role="<%= type.to_sym == :alert ? 'alert' : 'status' %>"
