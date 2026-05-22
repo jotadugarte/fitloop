@@ -111,7 +111,7 @@ export default class extends Controller {
     const sourceForm = this.element.closest("form")
     if (!sourceForm || sourceForm === targetForm) return
 
-    targetForm.querySelectorAll("[data-locale-sheet-draft]").forEach((node) => node.remove())
+    targetForm.querySelectorAll("[data-locale-workspace-draft]").forEach((node) => node.remove())
 
     this.visibleRows().forEach((row, index) => {
       const prefix = `project[sheet_stocks_attributes][${index}]`
@@ -123,7 +123,7 @@ export default class extends Controller {
         clone.type = "hidden"
         clone.name = `${prefix}[${name}]`
         clone.value = field.value
-        clone.dataset.localeSheetDraft = "true"
+        clone.setAttribute("data-locale-workspace-draft", "true")
         targetForm.appendChild(clone)
       })
     })
@@ -140,7 +140,7 @@ export default class extends Controller {
       clone.type = "hidden"
       clone.name = `composer_draft[${name}]`
       clone.value = source.value
-      clone.dataset.localeSheetDraft = "true"
+      clone.setAttribute("data-locale-workspace-draft", "true")
       targetForm.appendChild(clone)
     })
   }
