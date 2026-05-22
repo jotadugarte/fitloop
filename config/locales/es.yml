@@ -455,6 +455,7 @@ es:
       sign_up: "Crear cuenta"
       account: "Mi cuenta"
       payments: "Mis pagos"
+      workshop: "Mi taller"
       sign_out: "Cerrar sesión"
     sign_out:
       confirm_title: "¿Cerrar sesión?"

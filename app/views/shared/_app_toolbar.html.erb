@@ -1,0 +1,15 @@
+<header class="app-main__toolbar">
+  <div class="app-toolbar" data-testid="app-toolbar">
+    <div class="app-toolbar__start">
+      <%= render "shared/locale_switcher" %>
+    </div>
+
+    <div class="app-toolbar__end" data-testid="app-toolbar-actions">
+      <%= link_to t("auth.nav.workshop"),
+                  toolbar_workshop_path,
+                  class: toolbar_workshop_button_class,
+                  data: { testid: "toolbar-workshop", turbo_frame: "_top" } %>
+      <%= render "shared/account_nav" %>
+    </div>
+  </div>
+</header>

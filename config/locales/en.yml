@@ -440,6 +440,7 @@ en:
       sign_up: "Create account"
       account: "My account"
       payments: "My payments"
+      workshop: "My workshop"
       sign_out: "Sign out"
     sign_out:
       confirm_title: "Sign out?"

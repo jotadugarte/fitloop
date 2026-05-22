@@ -15,6 +15,26 @@ module ApplicationHelper
     session[:workspace_return_to].present? ? t("auth.nav.back") : t("auth.nav.home")
   end
 
+  def workspace_tab_id_from_request
+    request.headers[ResolvesWorkspaceTab::TAB_HEADER].presence ||
+      cookies[ResolvesWorkspaceTab::TAB_COOKIE].presence ||
+      Workspace::DEFAULT_TAB_ID
+  end
+
+  def toolbar_workspace_project
+    @toolbar_workspace_project ||= Workspace.find(session, tab_id: workspace_tab_id_from_request)
+  end
+
+  def toolbar_workshop_path
+    project = toolbar_workspace_project
+    project ? project_path(project) : start_project_path
+  end
+
+  def toolbar_workshop_button_class
+    base = "btn btn--compact toolbar-workshop__btn"
+    toolbar_workspace_project ? "#{base} btn-primary" : "#{base} btn-secondary"
+  end
+
   def auth_password_length_hint
     t("auth.password.length_hint", min: Devise.password_length.begin)
   end

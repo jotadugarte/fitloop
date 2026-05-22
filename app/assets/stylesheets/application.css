@@ -172,12 +172,37 @@ h3 {
   padding: 0.75rem 0 0;
 }
 
-.app-main__toolbar-actions {
+.app-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.app-toolbar__start,
+.app-toolbar__end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
+}
+
+.app-toolbar__end {
+  margin-left: auto;
+}
+
+.minimal-layout__toolbar {
+  align-self: stretch;
+  width: 100%;
+  max-width: 28rem;
+  margin-bottom: 1rem;
+}
+
+.minimal-layout__toolbar .app-main__toolbar {
+  max-width: none;
+  padding-top: 0;
 }
 
 .account-nav {
