@@ -80,6 +80,13 @@ es_panic:
         sort_order: Orden de sacrificio
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: no sirve o ya caducó
+              invalid: no sirve o ya caducó
+            email:
+              blank: falta el correo
         project:
           attributes:
             title:
@@ -436,8 +443,19 @@ es_panic:
     session:
       sign_in_title: Iniciar sesión
       submit: Entrar al taller
+    confirmation:
+      pending_title: Confirma el correo (sí, el buzón)
+      pending_body: Revise el correo y abra el enlace. Sin confirmar, no hay pago ni descarga.
+      resend_title: Reenviar confirmación
+      resend_intro: Ponga el correo con el que se registró; le mandamos el enlace otra vez.
+      resend_submit: Mandar enlace
+      resend_link: Reenviar correo de confirmación
+      activate_title: Confirmar correo
+      confirmed: Correo confirmado. Ya puede entrar.
+      invalid_token: Enlace inválido o caducado. Pida uno nuevo.
     password:
       forgot_title: ¿Olvidó la contraseña otra vez?
+      forgot_intro: Ponga su correo; le mandamos el salvavidas de contraseña.
       reset_title: Contraseña nueva (mínimo 12, sin excusas)
       length_hint: Mínimo %{min} caracteres (sin atajos).
       validation:
@@ -506,6 +524,9 @@ es_panic:
     registrations:
       signed_up: ¡Bienvenido al club! Registro exitoso.
       signed_up_but_unconfirmed: Mire el correo; ahí está el enlace de confirmación.
+    confirmations:
+      confirmed: Correo confirmado. El drama del buzón termina.
+      send_instructions: Si el correo existe en el sistema, llegará el enlace. Revise spam.
     mailer:
       confirmation_instructions:
         subject: Confirme que su correo existe

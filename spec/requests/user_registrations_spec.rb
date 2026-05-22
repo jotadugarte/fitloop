@@ -81,13 +81,13 @@ RSpec.describe "User registration", type: :request do
     it "[REQ-FIT-AUTH-002] blocks GET /planes" do
       get "/planes"
 
-      expect(response).to redirect_to("/confirmacion")
+      expect(response).to redirect_to("/confirmacion-pendiente")
     end
 
     it "[REQ-FIT-AUTH-002] blocks GET /checkout" do
       get "/checkout"
 
-      expect(response).to redirect_to("/confirmacion")
+      expect(response).to redirect_to("/confirmacion-pendiente")
     end
   end
 end

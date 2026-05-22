@@ -5,6 +5,12 @@ class ConfirmationsController < ApplicationController
   before_action :authenticate_user!
 
   def show
-    head :ok
+    precondition!(current_user.present?)
+  end
+
+  private
+
+  def precondition!(condition)
+    raise ArgumentError, "precondition failed" unless condition
   end
 end

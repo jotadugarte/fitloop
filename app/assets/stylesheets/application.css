@@ -269,6 +269,14 @@ h3 {
   text-align: center;
 }
 
+.auth-page__intro {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+  text-align: center;
+}
+
 .auth-page__form .field {
   margin-bottom: 1rem;
 }

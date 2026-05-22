@@ -82,6 +82,13 @@ es:
         sort_order: "Orden"
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: "no es válido o ya expiró"
+              invalid: "no es válido o ya expiró"
+            email:
+              blank: "no puede estar en blanco"
         project:
           attributes:
             title:
@@ -447,8 +454,19 @@ es:
     session:
       sign_in_title: "Iniciar sesión"
       submit: "Entrar"
+    confirmation:
+      pending_title: "Confirma tu correo"
+      pending_body: "Revisa tu bandeja de entrada y abre el enlace de confirmación. Cuando tu correo esté verificado podrás pagar y descargar."
+      resend_title: "Reenviar confirmación"
+      resend_intro: "Escribe el correo con el que te registraste y te enviaremos el enlace de nuevo."
+      resend_submit: "Enviar enlace"
+      resend_link: "Reenviar correo de confirmación"
+      activate_title: "Confirmar correo"
+      confirmed: "Tu correo quedó confirmado. Ya puedes iniciar sesión."
+      invalid_token: "Este enlace no es válido o ya expiró. Puedes solicitar uno nuevo."
     password:
       forgot_title: "¿Olvidaste tu contraseña?"
+      forgot_intro: "Escribe tu correo y te enviaremos instrucciones para restablecer la contraseña."
       reset_title: "Nueva contraseña"
       length_hint: "Mínimo %{min} caracteres."
       validation:
@@ -517,6 +535,9 @@ es:
     registrations:
       signed_up: "¡Bienvenido! Te registraste correctamente."
       signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."
+    confirmations:
+      confirmed: "Tu correo quedó confirmado."
+      send_instructions: "Si tu correo está registrado, recibirás instrucciones de confirmación en breve."
     mailer:
       confirmation_instructions:
         subject: "Instrucciones de confirmación"

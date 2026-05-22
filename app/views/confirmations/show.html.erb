@@ -1,0 +1,8 @@
+<%= render "devise/shared/auth_page", title: t("auth.confirmation.pending_title") do %>
+  <p class="auth-page__intro"><%= t("auth.confirmation.pending_body") %></p>
+
+  <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+    <%= link_to t("auth.confirmation.resend_link"), new_user_confirmation_path, class: "auth-page__link" %>
+    <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "auth-page__link" %>
+  </nav>
+<% end %>

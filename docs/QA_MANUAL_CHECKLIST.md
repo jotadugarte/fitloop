@@ -42,7 +42,7 @@ Use after automated specs are green. Record date, tester, and environment.
 
 - [ ] Header shows **Iniciar sesión** / **Crear cuenta** when logged out (Spanish routes)
 - [ ] Register with name, terms checkbox, password ≥12 chars; confirmation email sent (or stub in dev)
-- [ ] Unconfirmed user can browse workshop but `GET /checkout` and `GET /planes` redirect to `/confirmacion`
+- [ ] Unconfirmed user can browse workshop but `GET /checkout` and `GET /planes` redirect to `/confirmacion-pendiente`
 - [ ] Login mid-workflow returns to the same ephemeral project (`session[:workspaces]` tab bind)
 - [ ] Logout with active project shows confirm; discard clears workshop session
 - [ ] `/mi-cuenta` profile loads; link to **Mis pagos** works

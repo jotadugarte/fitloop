@@ -37,7 +37,7 @@ Rails.application.routes.draw do
   get "terminos", to: "legal#terms", as: :terminos
   get "privacidad", to: "legal#privacy", as: :privacidad
 
-  get "confirmacion", to: "confirmations#show", as: :email_confirmation_pending
+  get "confirmacion-pendiente", to: "confirmations#show", as: :email_confirmation_pending
   get "planes", to: "planes#show"
   post "planes/simular", to: "planes#simulate", as: :planes_simulate
   get "checkout", to: "checkout#show"

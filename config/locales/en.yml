@@ -67,6 +67,13 @@ en:
         sort_order: "Order"
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: "is invalid or has expired"
+              invalid: "is invalid or has expired"
+            email:
+              blank: "can't be blank"
         project:
           attributes:
             title:
@@ -432,8 +439,19 @@ en:
     session:
       sign_in_title: "Sign in"
       submit: "Log in"
+    confirmation:
+      pending_title: "Confirm your email"
+      pending_body: "Check your inbox and open the confirmation link. Once verified, you can pay and download."
+      resend_title: "Resend confirmation"
+      resend_intro: "Enter the email you used to sign up and we will send the link again."
+      resend_submit: "Send link"
+      resend_link: "Resend confirmation email"
+      activate_title: "Confirm email"
+      confirmed: "Your email is confirmed. You can sign in now."
+      invalid_token: "This link is invalid or has expired. You can request a new one."
     password:
       forgot_title: "Forgot your password?"
+      forgot_intro: "Enter your email and we will send password reset instructions."
       reset_title: "Set a new password"
       length_hint: "At least %{min} characters."
       validation:
@@ -502,6 +520,9 @@ en:
     registrations:
       signed_up: "Welcome! You signed up successfully."
       signed_up_but_unconfirmed: "Check your email for a confirmation link."
+    confirmations:
+      confirmed: "Your email has been confirmed."
+      send_instructions: "If your email is in our database, you will receive confirmation instructions shortly."
     mailer:
       confirmation_instructions:
         subject: "Confirmation instructions"
