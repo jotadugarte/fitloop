@@ -4,8 +4,9 @@
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <div class="field">
-      <%= f.label :email, t("auth.account.email") %>
-      <%= f.email_field :email, autocomplete: "email" %>
+      <span class="field__label" id="account-email-label"><%= t("auth.account.email") %></span>
+      <p class="auth-page__readonly-value" aria-labelledby="account-email-label"><%= resource.email %></p>
+      <span class="field__hint"><%= t("auth.account.email_readonly_hint") %></span>
     </div>
 
     <div class="field">
@@ -13,22 +14,31 @@
       <%= f.text_field :name, autocomplete: "name" %>
     </div>
 
-    <div class="field">
-      <%= f.label :password, t("auth.account.new_password") %>
-      <%= f.password_field :password, autocomplete: "new-password" %>
-      <span class="field__hint"><%= t("auth.account.new_password_hint") %></span>
-    </div>
+    <details class="auth-page__disclosure" <%= "open" if account_password_section_open?(resource) %>>
+      <summary class="auth-page__disclosure-summary">
+        <span class="auth-page__disclosure-title"><%= t("auth.account.change_password_toggle") %></span>
+        <span class="auth-page__disclosure-chevron" aria-hidden="true"></span>
+      </summary>
 
-    <div class="field">
-      <%= f.label :password_confirmation, t("auth.account.password_confirmation") %>
-      <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-    </div>
+      <div class="auth-page__disclosure-body">
+        <div class="field">
+          <%= f.label :current_password, t("auth.account.current_password") %>
+          <%= f.password_field :current_password, autocomplete: "current-password" %>
+          <span class="field__hint"><%= t("auth.account.current_password_hint") %></span>
+        </div>
 
-    <div class="field">
-      <%= f.label :current_password, t("auth.account.current_password") %>
-      <%= f.password_field :current_password, autocomplete: "current-password" %>
-      <span class="field__hint"><%= t("auth.account.current_password_hint") %></span>
-    </div>
+        <div class="field">
+          <%= f.label :password, t("auth.account.new_password") %>
+          <%= f.password_field :password, autocomplete: "new-password" %>
+          <span class="field__hint"><%= t("auth.account.new_password_hint") %></span>
+        </div>
+
+        <div class="field">
+          <%= f.label :password_confirmation, t("auth.account.password_confirmation") %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
+        </div>
+      </div>
+    </details>
 
     <div class="form-actions">
       <%= f.submit t("auth.account.submit"), class: "btn btn-primary" %>

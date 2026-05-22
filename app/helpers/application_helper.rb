@@ -19,6 +19,10 @@ module ApplicationHelper
     t("auth.password.length_hint", min: Devise.password_length.begin)
   end
 
+  def account_password_section_open?(user)
+    %i[current_password password password_confirmation].any? { |attr| user.errors.include?(attr) }
+  end
+
   def password_validation_form_data
     min = Devise.password_length.begin
     {

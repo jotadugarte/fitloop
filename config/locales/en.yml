@@ -473,6 +473,8 @@ en:
       title: "My account"
       submit: "Save changes"
       email: "Email"
+      email_readonly_hint: "Your email address cannot be changed."
+      change_password_toggle: "Change password"
       name: "Name"
       new_password: "New password"
       new_password_hint: "Leave blank if you do not want to change it."

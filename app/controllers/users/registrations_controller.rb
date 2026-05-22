@@ -25,7 +25,25 @@ module Users
     end
 
     def configure_account_update_params
-      devise_parameter_sanitizer.permit(:account_update, keys: %i[name])
+      devise_parameter_sanitizer.permit(
+        :account_update,
+        keys: %i[name password password_confirmation current_password]
+      )
+    end
+
+    def update_resource(resource, params)
+      params = params.except(:email)
+      if password_change_requested?(params)
+        resource.update_with_password(params)
+      else
+        resource.update_without_password(
+          params.except(:password, :password_confirmation, :current_password)
+        )
+      end
+    end
+
+    def password_change_requested?(params)
+      params[:password].present? || params[:password_confirmation].present?
     end
 
     def sign_up_params
