@@ -92,6 +92,23 @@ RSpec.describe "Checkout nested DXF retention after workspace loss", type: :requ
       expect(response.body).to include("MIS PAGOS RETAINED BLOB")
     end
 
+    it "[REQ-FIT-BILL-003] redirects to Mis pagos with auto-download after successful checkout (D54)" do
+      project = begin_workspace_session!
+      run = attach_nested_output!(project)
+      sign_in_user! user
+
+      post checkout_simulate_path,
+           params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" }
+
+      grant = DownloadGrant.find_by!(user: user, nesting_run: run)
+      expect(response).to redirect_to(mis_pagos_path(auto_download: grant.id))
+
+      follow_redirect!
+
+      expect(response.body).to include('data-testid="mis-pagos-auto-download"')
+      expect(response.body).to include(mis_pagos_download_path(grant))
+    end
+
     it "[REQ-FIT-BILL-003] lists downloadable row on Mis pagos after workshop discard (D54)" do
       project = begin_workspace_session!
       run = attach_nested_output!(project)

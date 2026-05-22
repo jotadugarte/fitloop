@@ -188,7 +188,7 @@ es_panic:
       simulate_failure: Pago fallido
       failure: El pago simulado falló. Otra vuelta.
       success_title: Pago recibido
-      success_retention: Descarga en marcha. También en Mis pagos 24 h aunque cierres el taller.
+      success_retention: Pago OK. Descarga en marcha; en Mis pagos 24 h aunque cierres el taller.
       download_now: Descargar ahora
       title: Pagar esta descarga
       single_download: Descarga suelta

@@ -179,7 +179,7 @@ en:
       simulate_failure: "Payment failed"
       failure: "Simulated payment failed. Please try again."
       success_title: "Payment received"
-      success_retention: "Download started. The file will also stay in My payments for 24 hours even if you leave the workshop."
+      success_retention: "Payment received. Your download has started and the file will stay in My payments for 24 hours even if you leave the workshop."
       download_now: "Download now"
       single_download: "Single download"
       overage_hint: "With plan quota exhausted (50%)"

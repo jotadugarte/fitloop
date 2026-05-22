@@ -59,6 +59,13 @@ module Billing
     end
 
     def record_success!
+      existing = DownloadGrant.find_by(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      if existing&.single_purchase? && existing.retention_active?
+        payment = @user.payments.succeeded.where(nesting_run_id: @nesting_run.id, purpose: :single_download)
+                         .order(created_at: :desc).first
+        return { payment: payment, grant: existing, project: @nesting_run.project }
+      end
+
       paid_at = Time.current
       result = nil
       ActiveRecord::Base.transaction do

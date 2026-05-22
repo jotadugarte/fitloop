@@ -194,7 +194,7 @@ es:
       simulate_failure: "Pago fallido"
       failure: "El pago simulado falló. Inténtalo de nuevo."
       success_title: "Pago recibido"
-      success_retention: "Descarga iniciada. El archivo también quedará en Mis pagos durante 24 horas aunque cierres el taller."
+      success_retention: "Pago recibido. La descarga se inició y el archivo quedará en Mis pagos durante 24 horas aunque cierres el taller."
       download_now: "Descargar ahora"
       single_download: "Descarga suelta"
       overage_hint: "Con cupo de plan agotado (50%)"

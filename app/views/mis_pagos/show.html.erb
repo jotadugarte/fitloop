@@ -1,4 +1,11 @@
 <div class="paywall-layout mis-pagos-page" data-testid="mis-pagos-page">
+  <% if @auto_download_grant %>
+    <div class="mis-pagos-auto-download"
+         data-controller="auto-download"
+         data-auto-download-url-value="<%= mis_pagos_download_path(@auto_download_grant) %>"
+         data-testid="mis-pagos-auto-download"
+         aria-hidden="true"></div>
+  <% end %>
   <article class="paywall-layout__main panel panel--chrome">
     <h1 class="billing-page__title"><%= t("billing.mis_pagos.title") %></h1>
 

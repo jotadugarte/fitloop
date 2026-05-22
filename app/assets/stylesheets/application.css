@@ -1165,6 +1165,16 @@ h3.fit-section__legend {
   text-align: center;
 }
 
+.mis-pagos-auto-download {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .mis-pagos-list__item {
     flex-direction: column;

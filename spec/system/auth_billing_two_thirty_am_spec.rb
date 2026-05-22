@@ -28,6 +28,9 @@ RSpec.describe "Auth billing 2:30 AM scenarios", type: :system do
         click_button I18n.t("billing.checkout.simulate_success")
       end
 
+      expect(page).to have_current_path(mis_pagos_path, ignore_query: true)
+      expect(page).to have_css('[data-testid="mis-pagos-auto-download"]')
+
       grant = DownloadGrant.find_by!(user: user, nesting_run: run)
       expect(grant.retained_nested_dxf).to be_attached
 

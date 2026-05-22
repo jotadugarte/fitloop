@@ -9,5 +9,15 @@ class MisPagosController < ApplicationController
     @quota_counter = Billing::QuotaCounter.for(@subscription) if @subscription
     @payments = current_user.payments.order(created_at: :desc).limit(100)
     @retained_grants = current_user.download_grants.single_purchase.order(created_at: :desc)
+    @auto_download_grant = auto_download_grant
+  end
+
+  private
+
+  def auto_download_grant
+    return unless params[:auto_download].present?
+
+    grant = current_user.download_grants.single_purchase.find_by(id: params[:auto_download])
+    grant if grant&.retention_active?
   end
 end

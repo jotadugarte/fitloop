@@ -51,6 +51,9 @@ RSpec.describe "Simulated single-download checkout", type: :request do
       end.to change(Payment, :count).by(1)
         .and change(DownloadGrant, :count).by(1)
 
+      grant = DownloadGrant.last
+      expect(response).to redirect_to(mis_pagos_path(auto_download: grant.id))
+
       payment = Payment.last
       expect(payment).to be_succeeded
       expect(payment.user_id).to eq(user.id)
@@ -82,6 +85,20 @@ RSpec.describe "Simulated single-download checkout", type: :request do
       expect(payment.purpose).to eq("single_download")
 
       expect(DownloadGrant.last.kind).to eq("single_purchase")
+      expect(response).to redirect_to(mis_pagos_path(auto_download: DownloadGrant.last.id))
+    end
+
+    it "[REQ-FIT-BILL-001] reuses existing grant on repeat success without error (D37)" do
+      post checkout_simulate_path,
+           params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" }
+      grant = DownloadGrant.last
+
+      expect do
+        post checkout_simulate_path,
+             params: { nesting_run_id: run.id, payment_method: "sinpe_crc", outcome: "success" }
+      end.not_to change(DownloadGrant, :count)
+
+      expect(response).to redirect_to(mis_pagos_path(auto_download: grant.id))
     end
 
     it "[REQ-FIT-BILL-001] records failed payment without grant when simulate fails (D37)" do

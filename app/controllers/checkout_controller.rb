@@ -23,11 +23,8 @@ class CheckoutController < ApplicationController
       return
     end
 
-    token = Billing::DownloadToken.issue(user: current_user, nesting_run: @nesting_run)
-    redirect_to nested_dxf_project_path(
-      result[:project],
-      download_token: token
-    ), notice: t("billing.checkout.success_retention")
+    redirect_to mis_pagos_path(auto_download: result[:grant].id),
+                notice: t("billing.checkout.success_retention")
   end
 
   private
