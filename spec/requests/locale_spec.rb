@@ -86,4 +86,19 @@ RSpec.describe "Locale switcher", type: :request do
       expect(cookies[:fitloop_locale]).to be_nil
     end
   end
+
+  describe "collapsible panel persistence [REQ-FIT-UI-005]" do
+    it "loads the Stimulus controller on project show for locale redirects" do
+      get start_project_path
+      follow_redirect!
+      project = Project.find(session[:workspace_project_id])
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-controller="collapsible-persistence"')
+      expect(response.body).to include('data-testid="show-sheet-inventory"')
+      expect(response.body).to include('data-testid="source-dxf-detail"')
+    end
+  end
 end

@@ -7,7 +7,7 @@ module Billing
       zone = ActiveSupport::TimeZone[time_zone] || Time.zone
       anchor = starts_at.in_time_zone(zone)
       end_day = anchor.to_date >> tier_months
-      zone.local(end_day.year, end_day.month, end_day.day, 23, 59, 59)
+      zone.local(end_day.year, end_day.month, end_day.day).end_of_day
     end
   end
 end

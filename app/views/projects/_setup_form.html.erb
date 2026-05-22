@@ -25,7 +25,8 @@
 
   <%= render "sheet_inventory", form: f, project: project, composer_draft: @composer_draft || {}, show_welcome: true %>
 
-  <details class="collapsible-panel panel panel--chrome fit-section project-setup__section">
+  <details class="collapsible-panel panel panel--chrome fit-section project-setup__section"
+           data-collapsible-key="setup-nesting-settings">
     <%= render "projects/fit_section_summary",
                title: t("projects.form.nesting_settings_legend"),
                meta: t("projects.show.nesting_parameters_meta",

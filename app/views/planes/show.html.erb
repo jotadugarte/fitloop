@@ -30,7 +30,7 @@
 
           <% if tier_active %>
             <p class="planes-tier__active-meta">
-              <%= t("billing.planes.active_until", ends_at: l(@active_subscription.ends_at, format: :long)) %>
+              <%= t("billing.planes.active_until", ends_at: l_in_user_zone(@active_subscription.ends_at, format: :long, user: current_user)) %>
             </p>
           <% end %>
 

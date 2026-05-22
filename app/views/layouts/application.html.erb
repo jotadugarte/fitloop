@@ -22,7 +22,7 @@
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
-  <body class="layout-app">
+  <body class="layout-app" data-controller="collapsible-persistence">
     <%= render "shared/sidebar" %>
     <%= render "shared/bottom_nav" %>
     <div class="app-main">

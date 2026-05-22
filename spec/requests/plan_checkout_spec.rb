@@ -84,7 +84,7 @@ RSpec.describe "Simulated plan checkout", type: :request do
         expect(subscription.user_id).to eq(user.id)
         expect(subscription.tier_months).to eq(1)
         expect(subscription.starts_at).to be_within(2.seconds).of(paid_at)
-        expect(subscription.ends_at).to eq(
+        expect(subscription.ends_at).to be_within(1.second).of(
           Billing::PlanPeriod.ends_at_for(
             starts_at: paid_at,
             tier_months: 1,
@@ -117,7 +117,7 @@ RSpec.describe "Simulated plan checkout", type: :request do
           .and change(Payment, :count).by(1)
 
         subscription = user.subscriptions.reload.sole
-        expect(subscription.ends_at).to eq(
+        expect(subscription.ends_at).to be_within(1.second).of(
           Billing::PlanPeriod.ends_at_for(
             starts_at: existing_ends,
             tier_months: 2,

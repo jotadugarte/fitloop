@@ -16,7 +16,7 @@
       <dt><%= t("billing.mis_pagos.period_started") %></dt>
       <dd>
         <time datetime="<%= subscription.starts_at.iso8601 %>">
-          <%= l(subscription.starts_at, format: :long) %>
+          <%= l_in_user_zone(subscription.starts_at, format: :long, user: current_user) %>
         </time>
       </dd>
     </div>
@@ -24,7 +24,7 @@
       <dt><%= t("billing.mis_pagos.period_ends") %></dt>
       <dd>
         <time datetime="<%= subscription.ends_at.iso8601 %>">
-          <%= l(subscription.ends_at, format: :long) %>
+          <%= l_in_user_zone(subscription.ends_at, format: :long, user: current_user) %>
         </time>
       </dd>
     </div>

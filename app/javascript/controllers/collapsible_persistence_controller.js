@@ -1,0 +1,82 @@
+import { Controller } from "@hotwired/stimulus"
+
+const STORAGE_KEY = "fitloop:collapsible-panels"
+
+function readStore() {
+  try {
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}")
+  } catch {
+    return {}
+  }
+}
+
+function writeStore(store) {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store))
+}
+
+function panelKey(details) {
+  const attachmentId = details.dataset.attachmentId
+  if (attachmentId) return `attachment:${attachmentId}`
+
+  const collapsibleKey = details.dataset.collapsibleKey
+  if (collapsibleKey) return collapsibleKey
+
+  const testId = details.dataset.testid
+  if (testId) return testId
+
+  return null
+}
+
+function pagePath() {
+  return window.location.pathname
+}
+
+export default class extends Controller {
+  connect() {
+    this.boundOnToggle = this.onToggle.bind(this)
+    this.boundOnTurboRender = this.restorePanels.bind(this)
+
+    document.addEventListener("toggle", this.boundOnToggle, true)
+    document.addEventListener("turbo:frame-render", this.boundOnTurboRender)
+    document.addEventListener("turbo:load", this.boundOnTurboRender)
+
+    this.restorePanels()
+  }
+
+  disconnect() {
+    document.removeEventListener("toggle", this.boundOnToggle, true)
+    document.removeEventListener("turbo:frame-render", this.boundOnTurboRender)
+    document.removeEventListener("turbo:load", this.boundOnTurboRender)
+  }
+
+  restorePanels() {
+    const path = pagePath()
+    const pageState = readStore()[path]
+    if (!pageState) return
+
+    document.querySelectorAll("details.collapsible-panel").forEach((details) => {
+      const key = panelKey(details)
+      if (!key) return
+
+      const saved = pageState[key]
+      if (saved === true) details.open = true
+      if (saved === false) details.open = false
+    })
+  }
+
+  onToggle(event) {
+    const details = event.target
+    if (!(details instanceof HTMLDetailsElement)) return
+    if (!details.classList.contains("collapsible-panel")) return
+
+    const key = panelKey(details)
+    if (!key) return
+
+    const path = pagePath()
+    const store = readStore()
+    if (!store[path]) store[path] = {}
+
+    store[path][key] = details.open
+    writeStore(store)
+  }
+}
