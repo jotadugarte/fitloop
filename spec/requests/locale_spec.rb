@@ -26,6 +26,8 @@ RSpec.describe "Locale switcher", type: :request do
       expect(response.body).to include("aria-label=\"#{I18n.t('locale.switcher_row_primary')}\"")
       expect(response.body).to include("EN")
       expect(response.body).to include("ES")
+      expect(response.body).to include('data-controller="locale-switcher"')
+      expect(response.body).to include("submit->locale-switcher#attachSheetInventory")
     end
 
     it "localizes the EN/ES group aria-label in Spanish" do
@@ -84,6 +86,29 @@ RSpec.describe "Locale switcher", type: :request do
 
       expect(response).to redirect_to(root_url)
       expect(cookies[:fitloop_locale]).to be_nil
+    end
+
+    it "[REQ-FIT-UI-005] persists sheet inventory when switching locale from setup" do
+      get start_project_path
+      follow_redirect!
+      project = Project.find(session[:workspace_project_id])
+      expect(project.sheet_stocks).to be_empty
+
+      patch locale_path,
+            params: {
+              locale: "en",
+              project: {
+                sheet_stocks_attributes: {
+                  "0" => { width_mm: 1200, height_mm: 2400, quantity: 2, sort_order: 0, _destroy: "0" }
+                }
+              }
+            },
+            headers: { "HTTP_REFERER" => edit_project_path(project) }
+
+      expect(response).to redirect_to(edit_project_path(project))
+      project.reload
+      expect(project.sheet_stocks.count).to eq(1)
+      expect(project.sheet_stocks.first).to have_attributes(width_mm: 1200, height_mm: 2400, quantity: 2)
     end
   end
 

@@ -107,6 +107,41 @@ export default class extends Controller {
     return true
   }
 
+  exportToForm(targetForm) {
+    const sourceForm = this.element.closest("form")
+    if (!sourceForm || sourceForm === targetForm) return
+
+    targetForm.querySelectorAll("[data-locale-sheet-draft]").forEach((node) => node.remove())
+
+    sourceForm.querySelectorAll("[name^='project[sheet_stocks_attributes]']").forEach((input) => {
+      const row = input.closest("[data-sheet-inventory-row]")
+      if (row?.dataset.destroyed === "true") return
+
+      const clone = document.createElement("input")
+      clone.type = "hidden"
+      clone.name = input.name
+      clone.value = input.value
+      clone.dataset.localeSheetDraft = "true"
+      targetForm.appendChild(clone)
+    })
+
+    this.exportComposerDraft(targetForm)
+  }
+
+  exportComposerDraft(targetForm) {
+    ;["width_mm", "height_mm", "quantity"].forEach((name) => {
+      const source = this.element.querySelector(`[name="composer_draft[${name}]"]`)
+      if (!source || source.value.trim() === "") return
+
+      const clone = document.createElement("input")
+      clone.type = "hidden"
+      clone.name = `composer_draft[${name}]`
+      clone.value = source.value
+      clone.dataset.localeSheetDraft = "true"
+      targetForm.appendChild(clone)
+    })
+  }
+
   readComposer() {
     return {
       width: this.widthTarget.value.trim(),

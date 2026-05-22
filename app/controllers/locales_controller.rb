@@ -9,6 +9,11 @@ class LocalesController < ApplicationController
       return
     end
 
+    PersistWorkspaceSheetInventoryDraft.call(
+      session: session,
+      params: params,
+      tab_id: workspace_tab_id
+    )
     persist_locale!(locale)
     redirect_back fallback_location: root_path, status: :see_other
   end

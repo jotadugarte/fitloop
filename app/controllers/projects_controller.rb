@@ -58,7 +58,7 @@ class ProjectsController < ApplicationController
 
   def new
     @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
-    @composer_draft = {}
+    @composer_draft = restored_composer_draft
   end
 
   def create
@@ -66,7 +66,7 @@ class ProjectsController < ApplicationController
   end
 
   def edit
-    @composer_draft = {}
+    @composer_draft = restored_composer_draft
     render :new
   end
 
@@ -239,6 +239,10 @@ class ProjectsController < ApplicationController
 
   def composer_draft_params
     params.fetch(:composer_draft, {}).permit(:width_mm, :height_mm, :quantity).to_h
+  end
+
+  def restored_composer_draft
+    session.delete(PersistWorkspaceSheetInventoryDraft::COMPOSER_SESSION_KEY) || {}
   end
 
   def sync_nesting_ui_state!

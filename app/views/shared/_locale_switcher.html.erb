@@ -2,7 +2,7 @@
 <% panic_locale = :es_panic %>
 <% panic_available = I18n.available_locales.include?(panic_locale) %>
 
-<nav class="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
+<nav class="locale-switcher" data-controller="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
   <div class="locale-switcher__group" role="group" aria-label="<%= t("locale.switcher_row_primary") %>">
     <% primary_locales.each do |locale| %>
       <% active = I18n.locale == locale %>
@@ -12,7 +12,10 @@
             method: :patch,
             class: btn_class,
             aria: { current: (active ? "true" : "false") },
-            form: { class: "locale-switcher__form" } %>
+            form: {
+              class: "locale-switcher__form",
+              data: { action: "submit->locale-switcher#attachSheetInventory" }
+            } %>
     <% end %>
   </div>
 
@@ -24,6 +27,9 @@
           method: :patch,
           class: panic_class,
           aria: { current: (active ? "true" : "false"), label: t("locale.labels.es_panic") },
-          form: { class: "locale-switcher__form" } %>
+          form: {
+            class: "locale-switcher__form",
+            data: { action: "submit->locale-switcher#attachSheetInventory" }
+          } %>
   <% end %>
 </nav>
