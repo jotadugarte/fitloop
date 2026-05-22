@@ -30,7 +30,7 @@ module Nesting
     def build_attrs
       attrs = {
         progress_percent: @snapshot.percent,
-        progress_message: @snapshot.message
+        progress_message: @snapshot.message_key
       }
 
       eta = ProgressEta.estimate(

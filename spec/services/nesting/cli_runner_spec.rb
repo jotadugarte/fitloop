@@ -60,7 +60,7 @@ RSpec.describe Nesting::CliRunner do
 
       project.reload
       expect(project.progress_percent).to eq(55)
-      expect(project.progress_message).to eq("Placing pieces on sheets")
+      expect(project.progress_message).to eq("nesting.phase.fill")
     end
 
     it "raises CancelledError when cancel_check is true during invoke polling" do

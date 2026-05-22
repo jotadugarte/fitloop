@@ -85,7 +85,7 @@ module Nesting
       @project.update!(
         status: terminal_status,
         progress_percent: 100,
-        progress_message: I18n.t("nesting.time_limit_notice")
+        progress_message: "nesting.time_limit_notice"
       )
       ProgressBroadcaster.call(
         project: @project,
@@ -152,9 +152,9 @@ module Nesting
 
     def terminal_progress_message
       case @project.reload.status
-      when "completed" then I18n.t("nesting.completed")
-      when "partial" then I18n.t("nesting.partial")
-      else I18n.t("nesting.failed")
+      when "completed" then "nesting.completed"
+      when "partial" then "nesting.partial"
+      else "nesting.failed"
       end
     end
   end

@@ -25,7 +25,7 @@ RSpec.describe Nesting::JobRunner do
 
       expect(nesting_run.status).to eq("failed")
       expect(project.status).to eq("failed")
-      expect(project.progress_message).to eq(I18n.t("nesting.cancelled"))
+      expect(project.progress_message).to eq("nesting.cancelled")
     end
 
     it "[REQ-FIT-SPLIT-001] invalidates draft split proposals when nesting is cancelled" do
@@ -60,7 +60,7 @@ RSpec.describe Nesting::JobRunner do
 
       expect(nesting_run.status).to eq("partial")
       expect(project.status).to eq("partial")
-      expect(project.progress_message).to eq(I18n.t("nesting.time_limit_notice"))
+      expect(project.progress_message).to eq("nesting.time_limit_notice")
     end
 
     it "marks failed and broadcasts when the CLI raises" do
@@ -74,7 +74,7 @@ RSpec.describe Nesting::JobRunner do
 
       expect(nesting_run.status).to eq("failed")
       expect(project.status).to eq("failed")
-      expect(project.progress_message).to eq(I18n.t("nesting.failed"))
+      expect(project.progress_message).to eq("nesting.failed")
       expect(Nesting::ProgressBroadcaster).to have_received(:call).with(
         hash_including(project: project, eta_overrun: false, time_limit_notice: false)
       )
@@ -103,7 +103,7 @@ RSpec.describe Nesting::JobRunner do
 
     it "uses pre-CLI phase label before invoking the CLI [REQ-FIT-JOB-001]" do
       allow(Nesting::CliRunner).to receive(:call)
-      project.update!(progress_percent: 8, progress_message: I18n.t("nesting.phase.preparing"))
+      project.update!(progress_percent: 8, progress_message: "nesting.phase.preparing")
       runner = described_class.new(nesting_run: nesting_run)
       allow(runner).to receive(:update_progress!).and_call_original
 

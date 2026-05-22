@@ -19,7 +19,7 @@ module StartsNesting
     project.update!(
       status: :processing,
       progress_percent: 3,
-      progress_message: I18n.t("nesting.phase.queued"),
+      progress_message: "nesting.phase.queued",
       estimated_finished_at: Time.current + project.nesting_time_limit_sec.seconds
     )
     Nesting::ProgressBroadcaster.call(project: project.reload, eta_overrun: false, time_limit_notice: false)

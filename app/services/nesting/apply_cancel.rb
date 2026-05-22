@@ -24,7 +24,7 @@ module Nesting
       @project.update!(
         status: :failed,
         progress_percent: 0,
-        progress_message: I18n.t("nesting.cancelled")
+        progress_message: "nesting.cancelled"
       )
       ProgressBroadcaster.call(project: @project.reload, eta_overrun: false, time_limit_notice: false)
       invalidate_split_previews!

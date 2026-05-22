@@ -54,7 +54,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
       project.reload
       expect(changed).to be(true)
       expect(project.progress_percent).to eq(42)
-      expect(project.progress_message).to eq(I18n.t("nesting.phase.fill"))
+      expect(project.progress_message).to eq("nesting.phase.fill")
       expect(Nesting::ProgressBroadcaster).to have_received(:call).with(
         project: project,
         eta_overrun: false,
@@ -103,7 +103,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
     it "skips broadcast when progress fields are unchanged" do
       project.update!(
         progress_percent: 42,
-        progress_message: I18n.t("nesting.phase.fill"),
+        progress_message: "nesting.phase.fill",
         estimated_finished_at: Nesting::ProgressEta.estimate(
           started_at: nesting_run.started_at,
           time_limit_sec: project.nesting_time_limit_sec,

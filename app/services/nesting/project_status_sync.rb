@@ -98,12 +98,12 @@ module Nesting
     end
 
     def terminal_progress_message(status, run: nil)
-      return I18n.t("nesting.cancelled") if run && cancelled_run?(run)
+      return "nesting.cancelled" if run && cancelled_run?(run)
 
       case status
-      when "completed" then I18n.t("nesting.completed")
-      when "partial" then I18n.t("nesting.partial")
-      else I18n.t("nesting.failed")
+      when "completed" then "nesting.completed"
+      when "partial" then "nesting.partial"
+      else "nesting.failed"
       end
     end
 
