@@ -86,6 +86,15 @@ RSpec.describe Workspace do
       expect(session[described_class::SESSION_KEY]).to be_nil
     end
 
+    it "[REQ-FIT-AUTH-001] finds a bound project on any tab when prefer_tab_id misses" do
+      tab_a = "tab-a"
+      tab_b = "tab-b"
+      project = Project.create!(ephemeral: true, title: "Workshop", status: :draft)
+      session = { described_class::WORKSPACES_KEY => { tab_a => project.id } }
+
+      expect(described_class.any_bound_project(session, prefer_tab_id: tab_b)).to eq(project)
+    end
+
     it "[REQ-FIT-AUTH-001] clears a stale bind when the ephemeral project was discarded" do
       project = Project.create!(ephemeral: true, title: "Gone", status: :draft)
       session = { described_class::WORKSPACES_KEY => { described_class::DEFAULT_TAB_ID => project.id } }

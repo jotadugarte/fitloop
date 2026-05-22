@@ -86,5 +86,16 @@ RSpec.describe "Account edit page", type: :request do
         expect(response.body).not_to include("translation missing")
       end
     end
+
+    it "[REQ-FIT-AUTH-002] returns to bound workshop after update when session still has a project" do
+      project = begin_workspace_session!
+      patch user_registration_path, params: { user: { name: "Workshop Keeper" } }
+
+      expect(response).to redirect_to(project_path(project))
+      follow_redirect!
+
+      expect(response).to have_http_status(:ok)
+      expect(user.reload.name).to eq("Workshop Keeper")
+    end
   end
 end

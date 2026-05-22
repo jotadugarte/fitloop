@@ -30,6 +30,21 @@ class Workspace
       project
     end
 
+    # First bound ephemeral project in this session (any tab). Used when the browser tab id drifted.
+    def any_bound_project(session, prefer_tab_id: nil)
+      if prefer_tab_id.present?
+        project = find(session, tab_id: prefer_tab_id)
+        return project if project
+      end
+
+      workspaces_hash(session).each_key do |tid|
+        project = find(session, tab_id: tid)
+        return project if project
+      end
+
+      find(session, tab_id: DEFAULT_TAB_ID)
+    end
+
     def bound_to_project?(session, project)
       project_id = project.is_a?(Project) ? project.id : Integer(project)
       workspaces_hash(session).values.any? { |bound_id| bound_id.to_i == project_id } ||

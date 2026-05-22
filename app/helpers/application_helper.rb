@@ -21,8 +21,22 @@ module ApplicationHelper
       Workspace::DEFAULT_TAB_ID
   end
 
+  def workspace_tab_id_for_client
+    hash = session[Workspace::WORKSPACES_KEY].to_h
+    return nil unless hash.size == 1
+
+    hash.keys.first
+  end
+
   def toolbar_workspace_project
-    @toolbar_workspace_project ||= Workspace.find(session, tab_id: workspace_tab_id_from_request)
+    @toolbar_workspace_project ||= begin
+      tid = workspace_tab_id_from_request
+      project = Workspace.any_bound_project(session, prefer_tab_id: tid)
+      if project && Workspace.tab_id_for_project(session, project.id) != tid
+        Workspace.bind!(session, project, tab_id: tid)
+      end
+      project
+    end
   end
 
   def toolbar_workshop_path

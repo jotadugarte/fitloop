@@ -94,12 +94,16 @@ module Users
       render :new, status: :unprocessable_entity
     end
 
+    def after_update_path_for(resource)
+      consume_workspace_return_to || workshop_resume_path || super
+    end
+
     def after_sign_up_path_for(resource)
-      consume_workspace_return_to || super
+      consume_workspace_return_to || workshop_resume_path || super
     end
 
     def after_inactive_sign_up_path_for(resource)
-      consume_workspace_return_to || super
+      consume_workspace_return_to || workshop_resume_path || super
     end
   end
 end

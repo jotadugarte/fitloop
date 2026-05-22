@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>" data-controller="workspace-tab">
+<html lang="<%= I18n.locale %>"
+      data-controller="workspace-tab"
+      <% if (tab_id = workspace_tab_id_for_client).present? %>
+        data-workspace-tab-preferred-value="<%= tab_id %>"
+      <% end %>>
   <head>
     <title><%= content_for(:title) || t("application.name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
