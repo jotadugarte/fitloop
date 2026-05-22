@@ -763,15 +763,11 @@ h3.fit-section__legend {
   border: 1px solid var(--fit-border-strong, #c5d0dc);
   border-radius: 10px;
   box-shadow: 0 8px 24px rgb(21 42 69 / 12%);
-  transition: opacity 0.32s ease, transform 0.32s ease, margin 0.32s ease, padding 0.32s ease;
+  transition: opacity 0.3s ease;
 }
 
 .flash--dismissing {
   opacity: 0;
-  transform: translateY(-0.35rem);
-  margin-bottom: 0;
-  padding-top: 0;
-  padding-bottom: 0;
   pointer-events: none;
 }
 
