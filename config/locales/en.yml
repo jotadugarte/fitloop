@@ -45,9 +45,11 @@ en:
   date:
     formats:
       short: "%b %-d, %Y"
+      long: "%B %-d, %Y"
   time:
     formats:
       short: "%b %-d, %Y %H:%M"
+      long: "%B %-d, %Y at %H:%M"
 
   activerecord:
     models:

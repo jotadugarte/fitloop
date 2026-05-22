@@ -45,6 +45,7 @@ es_panic:
     - Sábado de Amanecida
     formats:
       short: "%-d %b %Y"
+      long: "%-d de %B de %Y (fecha límite)"
     month_names:
     -
     - Enero
@@ -62,6 +63,7 @@ es_panic:
   time:
     formats:
       short: "%-d %b %Y %H:%M (hora del pánico)"
+      long: "%-d de %B de %Y %H:%M (cuenta regresiva)"
   activerecord:
     models:
       project:

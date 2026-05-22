@@ -46,6 +46,7 @@ es:
       - sábado
     formats:
       short: "%-d %b %Y"
+      long: "%-d de %B de %Y"
     month_names:
       -
       - enero
@@ -63,6 +64,7 @@ es:
   time:
     formats:
       short: "%-d %b %Y %H:%M"
+      long: "%-d de %B de %Y %H:%M"
 
   activerecord:
     models:
