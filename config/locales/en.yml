@@ -163,9 +163,13 @@ en:
     planes:
       title: "Plans"
       success: "Plan activated. You can download the nested DXF from your project."
+      browse_intro: "Compare pricing and duration. To activate a plan for a workshop in progress, return to the project and choose View plans from the download screen."
+      project_required: "Open a workshop project to activate a plan from here."
       tier_1: "1-month plan"
       tier_2: "2-month plan"
       tier_4: "4-month plan"
+      aside:
+        lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
       title: "Pay for this download"
       demo_badge: "Demo environment — simulated payments (QA)"

@@ -23,6 +23,30 @@ RSpec.describe "Simulated plan checkout", type: :request do
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
   end
 
+  describe "GET /planes [REQ-FIT-BILL-002]" do
+    let(:user) { create_billing_user! }
+
+    before { sign_in_user! user }
+
+    it "[REQ-FIT-BILL-002] renders plans page without project (browse from Mis pagos)" do
+      get planes_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="planes-checkout"')
+      expect(response.body).to include('data-testid="planes-tier-1"')
+      expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
+    end
+
+    it "[REQ-FIT-BILL-002] renders simulate actions when project is bound" do
+      project = begin_workspace_session!
+
+      get planes_path(project_id: project.id)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="checkout-pay-card-usd"')
+    end
+  end
+
   describe "POST /planes/simular [REQ-FIT-BILL-002]" do
     let(:user) { create_billing_user! }
     let(:project) { begin_workspace_session! }

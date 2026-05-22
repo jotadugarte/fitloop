@@ -1177,6 +1177,46 @@ h3.fit-section__legend {
   }
 }
 
+/* ——— Planes ——— */
+
+.planes-page .paywall-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planes-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planes-tier {
+  margin: 0;
+  padding: 1.15rem 1.25rem;
+}
+
+.planes-tier__title {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.planes-tier__pricing {
+  margin-bottom: 1rem;
+}
+
+.planes-tier__payments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.planes-tier__payments .checkout-method {
+  margin: 0;
+}
+
 /* ——— Locale switcher (toolbar row: EN | ES | PÁNICO) ——— */
 
 .locale-switcher {

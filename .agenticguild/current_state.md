@@ -1,5 +1,5 @@
 # Current state
 
-- **Phase:** auth-billing (maintenance)
-- **Step:** tab-close TTL fix (complete)
-- **Active task:** `task_auth-billing.md`
+- **Phase:** explore-task
+- **Step:** 1.2 (ONVO discovery — memory updated)
+- **Active task:** `task_onvo-payments.md`
