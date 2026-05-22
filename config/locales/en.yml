@@ -549,6 +549,9 @@ en:
     registrations:
       signed_up: "Welcome! You signed up successfully."
       signed_up_but_unconfirmed: "Check your email for a confirmation link."
+      updated: "Your account has been updated successfully."
+      user:
+        updated: "Your account has been updated successfully."
     confirmations:
       confirmed: "Your email has been confirmed."
       send_instructions: "If your email is in our database, you will receive confirmation instructions shortly."

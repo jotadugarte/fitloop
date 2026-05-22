@@ -564,6 +564,9 @@ es:
     registrations:
       signed_up: "¡Bienvenido! Te registraste correctamente."
       signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."
+      updated: "Tu cuenta se actualizó correctamente."
+      user:
+        updated: "Tu cuenta se actualizó correctamente."
     confirmations:
       confirmed: "Tu correo quedó confirmado."
       send_instructions: "Si tu correo está registrado, recibirás instrucciones de confirmación en breve."

@@ -47,5 +47,17 @@ RSpec.describe "Account edit page", type: :request do
       expect(user.name).to eq("Updated Name")
       expect(user.email).to eq("keeper@example.com")
     end
+
+    it "[REQ-FIT-AUTH-002] shows translated flash after update" do
+      I18n.with_locale(:es) do
+        patch user_registration_path, params: { user: { name: "Flash Test" } }
+
+        expect(response).to redirect_to(root_path)
+        follow_redirect!
+
+        expect(response.body).to include(I18n.t("devise.registrations.user.updated"))
+        expect(response.body).not_to include("translation missing")
+      end
+    end
   end
 end

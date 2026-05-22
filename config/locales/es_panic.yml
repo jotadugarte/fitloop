@@ -553,6 +553,9 @@ es_panic:
     registrations:
       signed_up: ¡Bienvenido al club! Registro exitoso.
       signed_up_but_unconfirmed: Mire el correo; ahí está el enlace de confirmación.
+      updated: Cuenta actualizada. Los cambios ya están en el sistema.
+      user:
+        updated: Cuenta actualizada. Los cambios ya están en el sistema.
     confirmations:
       confirmed: Correo confirmado. El drama del buzón termina.
       send_instructions: Si el correo existe en el sistema, llegará el enlace. Revise spam.
