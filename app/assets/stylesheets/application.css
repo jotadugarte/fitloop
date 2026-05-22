@@ -921,6 +921,7 @@ h3.fit-section__legend {
 
 /* ——— Checkout (simulated payment) ——— */
 
+.billing-page__title,
 .checkout-page .paywall-layout__main h1,
 .checkout-page__title {
   margin: 0 0 1rem;
@@ -1037,6 +1038,143 @@ h3.fit-section__legend {
 .checkout-footer .btn {
   flex: 1 1 12rem;
   text-align: center;
+}
+
+/* ——— Mis pagos ——— */
+
+.mis-pagos-page .paywall-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mis-pagos-section {
+  margin: 0;
+  padding: 1.15rem 1.25rem;
+}
+
+.mis-pagos-section__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-section__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--fit-text);
+}
+
+.mis-pagos-section__text + .mis-pagos-section__text {
+  margin-top: 0.5rem;
+}
+
+.mis-pagos-section__text--emphasis {
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-section__empty {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mis-pagos-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: var(--fit-bg);
+  border: 1px solid var(--fit-border);
+  border-radius: 8px;
+}
+
+.mis-pagos-list__item--payment {
+  align-items: flex-start;
+}
+
+.mis-pagos-list__primary {
+  display: flex;
+  flex: 1 1 12rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.mis-pagos-list__date {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-list__meta {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-list__meta--muted {
+  color: var(--fit-alert-text);
+}
+
+.mis-pagos-list__purpose {
+  font-size: 0.9rem;
+  color: var(--fit-text);
+}
+
+.mis-pagos-list__payment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mis-pagos-list__amount {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+  white-space: nowrap;
+}
+
+.mis-pagos-list__action {
+  flex-shrink: 0;
+}
+
+.mis-pagos-aside__action {
+  margin: 1.25rem 0 0;
+}
+
+.mis-pagos-aside__action .btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .mis-pagos-list__item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mis-pagos-list__action {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* ——— Locale switcher (toolbar row: EN | ES | PÁNICO) ——— */

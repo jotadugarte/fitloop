@@ -1,61 +1,92 @@
-<article data-testid="mis-pagos-page">
-  <h1><%= t("billing.mis_pagos.title") %></h1>
+<div class="paywall-layout mis-pagos-page" data-testid="mis-pagos-page">
+  <article class="paywall-layout__main panel panel--chrome">
+    <h1 class="billing-page__title"><%= t("billing.mis_pagos.title") %></h1>
 
-  <% if @subscription %>
-    <section data-testid="mis-pagos-active-plan">
-      <h2><%= t("billing.mis_pagos.active_plan") %></h2>
-      <p>
-        <%= t("billing.mis_pagos.plan_ends", ends_at: l(@subscription.ends_at, format: :long)) %>
-      </p>
-      <% if @quota_counter %>
-        <p data-testid="mis-pagos-quota">
-          <%= t("billing.mis_pagos.quota_remaining", remaining: @quota_counter.remaining, limit: @quota_counter.usage.quota_limit) %>
-        </p>
+    <section class="mis-pagos-section panel panel--inset">
+      <% if @subscription %>
+        <div data-testid="mis-pagos-active-plan">
+          <h2 class="mis-pagos-section__title"><%= t("billing.mis_pagos.active_plan") %></h2>
+          <p class="mis-pagos-section__text">
+            <%= t("billing.mis_pagos.plan_ends", ends_at: l(@subscription.ends_at, format: :long)) %>
+          </p>
+          <% if @quota_counter %>
+            <p class="mis-pagos-section__text mis-pagos-section__text--emphasis" data-testid="mis-pagos-quota">
+              <%= t("billing.mis_pagos.quota_remaining", remaining: @quota_counter.remaining, limit: @quota_counter.usage.quota_limit) %>
+            </p>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="mis-pagos-section__empty" data-testid="mis-pagos-no-plan"><%= t("billing.mis_pagos.no_active_plan") %></p>
       <% end %>
     </section>
-  <% else %>
-    <p data-testid="mis-pagos-no-plan"><%= t("billing.mis_pagos.no_active_plan") %></p>
-  <% end %>
 
-  <section data-testid="mis-pagos-single-purchases">
-    <h2><%= t("billing.mis_pagos.single_purchases") %></h2>
-    <% if @retained_grants.any? %>
-      <ul>
-        <% @retained_grants.each do |grant| %>
-          <li data-testid="mis-pagos-grant-row">
-            <%= l(grant.created_at, format: :short) %>
-            <% if grant.retention_active? %>
-              <%= link_to t("billing.mis_pagos.download"),
-                          mis_pagos_download_path(grant),
-                          class: "btn btn-secondary btn--small",
-                          data: { turbo: false, testid: "mis-pagos-download" } %>
-              <span class="mis-pagos__retention"><%= t("billing.mis_pagos.retained_until", until: l(grant.retained_until, format: :short)) %></span>
-            <% else %>
-              <span data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
-            <% end %>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p><%= t("billing.mis_pagos.no_single_purchases") %></p>
-    <% end %>
-  </section>
+    <section class="mis-pagos-section panel panel--inset" data-testid="mis-pagos-single-purchases">
+      <h2 class="mis-pagos-section__title"><%= t("billing.mis_pagos.single_purchases") %></h2>
+      <% if @retained_grants.any? %>
+        <ul class="mis-pagos-list">
+          <% @retained_grants.each do |grant| %>
+            <li class="mis-pagos-list__item" data-testid="mis-pagos-grant-row">
+              <div class="mis-pagos-list__primary">
+                <time class="mis-pagos-list__date" datetime="<%= grant.created_at.iso8601 %>">
+                  <%= l(grant.created_at, format: :short) %>
+                </time>
+                <% if grant.retention_active? %>
+                  <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.retained_until", until: l(grant.retained_until, format: :short)) %></span>
+                <% else %>
+                  <span class="mis-pagos-list__meta mis-pagos-list__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
+                <% end %>
+              </div>
+              <% if grant.retention_active? %>
+                <%= link_to t("billing.mis_pagos.download"),
+                            mis_pagos_download_path(grant),
+                            class: "btn btn-primary btn--small mis-pagos-list__action",
+                            data: { turbo: false, testid: "mis-pagos-download" } %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="mis-pagos-section__empty"><%= t("billing.mis_pagos.no_single_purchases") %></p>
+      <% end %>
+    </section>
 
-  <section data-testid="mis-pagos-payments">
-    <h2><%= t("billing.mis_pagos.payment_history") %></h2>
-    <% if @payments.any? %>
-      <ul>
-        <% @payments.each do |payment| %>
-          <li data-testid="mis-pagos-payment-row">
-            <%= l(payment.created_at, format: :short) %> —
-            <%= payment.purpose %> —
-            <%= payment.status %> —
-            <%= payment.currency.upcase %> <%= payment.amount %>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p><%= t("billing.mis_pagos.no_payments") %></p>
-    <% end %>
-  </section>
-</article>
+    <section class="mis-pagos-section panel panel--inset" data-testid="mis-pagos-payments">
+      <h2 class="mis-pagos-section__title"><%= t("billing.mis_pagos.payment_history") %></h2>
+      <% if @payments.any? %>
+        <ul class="mis-pagos-list">
+          <% @payments.each do |payment| %>
+            <li class="mis-pagos-list__item mis-pagos-list__item--payment" data-testid="mis-pagos-payment-row">
+              <div class="mis-pagos-list__primary">
+                <time class="mis-pagos-list__date" datetime="<%= payment.created_at.iso8601 %>">
+                  <%= l(payment.created_at, format: :short) %>
+                </time>
+                <span class="mis-pagos-list__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
+              </div>
+              <div class="mis-pagos-list__payment-meta">
+                <span class="status-badge <%= payment_status_badge_class(payment.status) %>">
+                  <%= t("billing.mis_pagos.status.#{payment.status}") %>
+                </span>
+                <span class="mis-pagos-list__amount"><%= payment.currency.upcase %> <%= payment.amount %></span>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="mis-pagos-section__empty"><%= t("billing.mis_pagos.no_payments") %></p>
+      <% end %>
+    </section>
+  </article>
+
+  <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="mis-pagos-aside-title">
+    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
+    <h2 id="mis-pagos-aside-title" class="paywall-aside__title"><%= t("billing.mis_pagos.aside.title") %></h2>
+    <p class="paywall-aside__lead"><%= t("billing.mis_pagos.aside.lead") %></p>
+    <ul class="paywall-aside__benefits">
+      <li><%= t("billing.paywall.aside.benefit_retention") %></li>
+      <li><%= t("billing.paywall.aside.benefit_plan") %></li>
+    </ul>
+    <p class="mis-pagos-aside__action">
+      <%= link_to t("billing.mis_pagos.aside.view_plans"), planes_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
+    </p>
+  </aside>
+</div>

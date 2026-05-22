@@ -149,6 +149,17 @@ en:
       retained_until: "Available until %{until}"
       payment_history: "Payment history"
       no_payments: "No payments recorded."
+      purpose:
+        single_download: "Single download"
+        plan_subscription: "Plan"
+      status:
+        succeeded: "Succeeded"
+        failed: "Failed"
+        pending: "Pending"
+      aside:
+        title: "Downloads and plans"
+        lead: "View your active plan, paid single downloads, and simulated payment history."
+        view_plans: "View plans"
     planes:
       title: "Plans"
       success: "Plan activated. You can download the nested DXF from your project."

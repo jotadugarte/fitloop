@@ -164,6 +164,17 @@ es:
       retained_until: "Disponible hasta %{until}"
       payment_history: "Historial de pagos"
       no_payments: "Sin pagos registrados."
+      purpose:
+        single_download: "Descarga suelta"
+        plan_subscription: "Plan"
+      status:
+        succeeded: "Exitoso"
+        failed: "Fallido"
+        pending: "Pendiente"
+      aside:
+        title: "Descargas y planes"
+        lead: "Aquí ves tu plan activo, las descargas sueltas que pagaste y el historial de pagos simulados."
+        view_plans: "Ver planes"
     planes:
       title: "Planes"
       success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."

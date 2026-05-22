@@ -159,6 +159,17 @@ es_panic:
       retained_until: Hasta %{until}
       payment_history: Historial de pagos
       no_payments: Sin pagos.
+      purpose:
+        single_download: Descarga suelta
+        plan_subscription: Plan
+      status:
+        succeeded: Exitoso
+        failed: Fallido
+        pending: Pendiente
+      aside:
+        title: Descargas y planes
+        lead: Tu plan, las sueltas que pagaste y el historial de pagos simulados.
+        view_plans: Ver planes
     planes:
       success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)
