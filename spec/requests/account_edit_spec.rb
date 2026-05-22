@@ -67,10 +67,10 @@ RSpec.describe "Account edit page", type: :request do
               }
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.body).to include(
-          I18n.t("activerecord.errors.models.user.attributes.current_password.invalid")
-        )
+        expect(response.body).to include(I18n.t("auth.account.current_password_invalid"))
         expect(response.body).not_to include("translation missing")
+        expect(response.body).not_to include('data-testid="auth-errors"')
+        expect(response.body.scan(I18n.t("auth.account.current_password_invalid")).size).to eq(1)
         expect(user.reload.encrypted_password).to eq(previous_digest)
       end
     end

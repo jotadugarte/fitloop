@@ -5,8 +5,6 @@
           class: "auth-page__form",
           data: password_validation_form_data(optional: true).merge(turbo: false)
         }) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
-
     <div class="field">
       <span class="field__label" id="account-email-label"><%= t("auth.account.email") %></span>
       <p class="auth-page__readonly-value" aria-labelledby="account-email-label"><%= resource.email %></p>

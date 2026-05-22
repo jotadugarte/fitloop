@@ -73,6 +73,12 @@ es:
         one: "Tipo de lámina"
         other: "Tipos de lámina"
     attributes:
+      user:
+        current_password: "Contraseña actual"
+        password: "Nueva contraseña"
+        password_confirmation: "Confirmar nueva contraseña"
+        name: "Nombre"
+        email: "Correo"
       project:
         title: "Título"
       sheet_stock:
@@ -504,7 +510,7 @@ es:
       password_confirmation: "Confirmar nueva contraseña"
       current_password: "Contraseña actual"
       current_password_hint: "Necesitamos tu contraseña actual para confirmar los cambios."
-      update_failed: "No se pudieron guardar los cambios. Revisa los campos marcados."
+      current_password_invalid: "La contraseña actual no es correcta."
     account_deletion:
       link: "Eliminar cuenta"
       title: "Eliminar cuenta"

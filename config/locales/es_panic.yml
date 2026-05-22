@@ -71,6 +71,12 @@ es_panic:
         one: Pedazo de material
         other: Materiales comprados
     attributes:
+      user:
+        current_password: Contraseña actual
+        password: Nueva contraseña
+        password_confirmation: Confirmar nueva contraseña
+        name: Nombre
+        email: Correo
       project:
         title: Nombre de la maqueta
       sheet_stock:
@@ -493,7 +499,7 @@ es_panic:
       password_confirmation: Confirmar nueva contraseña
       current_password: Contraseña actual
       current_password_hint: Contraseña actual para confirmar que eres tú.
-      update_failed: No se guardó. Revise los campos en rojo.
+      current_password_invalid: La contraseña actual no es correcta. Inténtelo otra vez.
     account_deletion:
       link: Eliminar cuenta (punto de no retorno)
       title: Eliminar cuenta

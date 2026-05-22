@@ -19,6 +19,12 @@ module ApplicationHelper
     t("auth.password.length_hint", min: Devise.password_length.begin)
   end
 
+  def account_current_password_error_message(user)
+    return t("auth.account.current_password_invalid") if user.errors.of_kind?(:current_password, :invalid)
+
+    user.errors.full_messages_for(:current_password).first
+  end
+
   def account_password_section_open?(user)
     %i[current_password password password_confirmation].any? { |attr| user.errors.include?(attr) }
   end

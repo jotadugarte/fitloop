@@ -58,6 +58,12 @@ en:
         one: "Sheet type"
         other: "Sheet types"
     attributes:
+      user:
+        current_password: "Current password"
+        password: "New password"
+        password_confirmation: "Password confirmation"
+        name: "Name"
+        email: "Email"
       project:
         title: "Title"
       sheet_stock:
@@ -489,7 +495,7 @@ en:
       password_confirmation: "Confirm new password"
       current_password: "Current password"
       current_password_hint: "We need your current password to confirm changes."
-      update_failed: "Your changes could not be saved. Please check the highlighted fields."
+      current_password_invalid: "Your current password is incorrect."
     account_deletion:
       link: "Delete account"
       title: "Delete account"

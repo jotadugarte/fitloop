@@ -85,12 +85,7 @@ module Users
     def handle_failed_account_update
       clean_up_passwords resource
       set_minimum_password_length
-      flash.now[:alert] = account_update_error_message if resource.errors.any?
       render :edit, status: :unprocessable_entity
-    end
-
-    def account_update_error_message
-      resource.errors.full_messages.first.presence || t("auth.account.update_failed")
     end
 
     def handle_failed_sign_up
