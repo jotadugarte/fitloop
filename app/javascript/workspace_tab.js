@@ -4,6 +4,14 @@ export const TAB_LEFT_COOKIE = "fitloop_workspace_tab_left_at"
 
 const INTERNAL_NAV_KEY = "fitloop_workspace_internal_nav"
 
+function isSameOriginUrl(url) {
+  try {
+    return new URL(url, window.location.href).origin === window.location.origin
+  } catch {
+    return false
+  }
+}
+
 export function ensureWorkspaceTabId() {
   let tabId = sessionStorage.getItem(WORKSPACE_TAB_STORAGE_KEY)
   if (!tabId) {
@@ -32,11 +40,45 @@ export function markTabLeft() {
   document.cookie = `${TAB_LEFT_COOKIE}=${Date.now()}; path=/; SameSite=Lax`
 }
 
-/** Tab-close TTL only when the browser tab is closed, not on in-app Turbo navigation. */
+/** In-app navigation (Mi cuenta, Mis pagos, planes, etc.) is not closing the workshop tab. */
+export function markInternalNavigation() {
+  sessionStorage.setItem(INTERNAL_NAV_KEY, "1")
+  clearTabLeft()
+}
+
+function configureWorkspaceInternalNavGuards() {
+  document.addEventListener(
+    "click",
+    (event) => {
+      const link = event.target.closest("a[href]")
+      if (!link || link.target === "_blank" || link.hasAttribute("download")) return
+      if (!isSameOriginUrl(link.href)) return
+
+      markInternalNavigation()
+    },
+    true
+  )
+
+  document.addEventListener(
+    "submit",
+    (event) => {
+      const form = event.target
+      if (!(form instanceof HTMLFormElement)) return
+      const action = form.getAttribute("action") || window.location.href
+      if (!isSameOriginUrl(action)) return
+
+      markInternalNavigation()
+    },
+    true
+  )
+}
+
+/** Tab-close TTL only when the browser tab is closed, not on in-app navigation. */
 export function configureWorkspaceTabLeave() {
+  configureWorkspaceInternalNavGuards()
+
   document.addEventListener("turbo:before-visit", () => {
-    sessionStorage.setItem(INTERNAL_NAV_KEY, "1")
-    clearTabLeft()
+    markInternalNavigation()
     const tabId = ensureWorkspaceTabId()
     persistWorkspaceTabCookie(tabId)
   })
@@ -60,6 +102,7 @@ export function configureWorkspaceTabPresence() {
   }
 
   document.addEventListener("turbo:load", clearIfVisible)
+  document.addEventListener("DOMContentLoaded", clearIfVisible)
   document.addEventListener("visibilitychange", clearIfVisible)
 }
 

@@ -3,6 +3,7 @@
 class Workspace
   # Expire ephemeral bind only after the user left the page/tab and returns after TTL (D20).
   module TabLeave
+    # Only after a real browser tab/window close (see workspace_tab.js), not Mi cuenta / Mis pagos navigation.
     TAB_LEAVE_TTL = 120.seconds
     TAB_LEFT_COOKIE = "fitloop_workspace_tab_left_at"
 
