@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Mis pagos retained download", type: :request do
+RSpec.describe "Mis pagos retained download", "[REQ-FIT-BILL-003]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   def sign_in_user!(user)

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nested DXF download paywall", type: :request do
+RSpec.describe "Nested DXF download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: :request do
   def sign_in_user!(user)
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
   end

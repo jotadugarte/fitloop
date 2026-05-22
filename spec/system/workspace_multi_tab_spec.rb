@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Workspace multi-tab and tab-close TTL", type: :system do
+RSpec.describe "Workspace multi-tab and tab-close TTL", "[REQ-FIT-AUTH-001]", type: :system do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:tab_a) { "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }

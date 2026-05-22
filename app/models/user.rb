@@ -76,5 +76,4 @@ class User < ApplicationRecord
 
     !persisted? || password.present? || password_confirmation.present?
   end
-
 end

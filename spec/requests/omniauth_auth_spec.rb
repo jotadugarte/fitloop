@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "OmniAuth sign-in UI", type: :request do
+RSpec.describe "OmniAuth sign-in UI", "[REQ-FIT-AUTH-002]", type: :request do
   PROVIDER_TEST_IDS = %w[oauth-google oauth-facebook oauth-apple oauth-email].freeze
 
   def position_of(body, test_id)

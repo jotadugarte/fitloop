@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Account edit page", type: :request do
+RSpec.describe "Account edit page", "[REQ-FIT-AUTH-002]", type: :request do
   let(:user) { create_billing_user!(email: "keeper@example.com") }
 
   before do

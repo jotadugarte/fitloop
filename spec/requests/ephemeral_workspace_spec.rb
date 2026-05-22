@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Ephemeral workspace", type: :request do
+RSpec.describe "Ephemeral workspace", "[REQ-FIT-AUTH-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   it "starts from home and shows initial parameters" do

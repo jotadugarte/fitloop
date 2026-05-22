@@ -15,8 +15,9 @@ module SetsWorkspaceProject
       @project = Workspace.resolve!(session, param_id, tab_id: workspace_tab_id)
     else
       assign_workspace_project_from_session!
-      return if performed?
     end
+    # Implicit return after redirect/render from assign_workspace_project_from_session! (RuboCop: no redundant `return`).
+    nil if performed?
   rescue ActiveRecord::RecordNotFound
     recover_workspace_project!(param_id) || redirect_to(
       start_project_path,

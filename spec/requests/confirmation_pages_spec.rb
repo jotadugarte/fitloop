@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Email confirmation pages", type: :request do
+RSpec.describe "Email confirmation pages", "[REQ-FIT-AUTH-002]", type: :request do
   describe "GET /confirmacion/new [REQ-FIT-AUTH-002]" do
     it "[REQ-FIT-AUTH-002] uses auth layout styling without Devise default OAuth links" do
       get new_user_confirmation_path

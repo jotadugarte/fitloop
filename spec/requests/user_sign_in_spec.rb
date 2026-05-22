@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "User sign in", type: :request do
+RSpec.describe "User sign in", "[REQ-FIT-AUTH-002]", type: :request do
   let(:user) { create_billing_user!(email: "signin@example.com") }
 
   describe "POST /iniciar-sesion [REQ-FIT-AUTH-002]" do

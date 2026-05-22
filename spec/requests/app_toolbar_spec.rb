@@ -2,9 +2,9 @@
 
 require "rails_helper"
 
-RSpec.describe "App toolbar", type: :request do
+RSpec.describe "App toolbar", "[REQ-FIT-UI-004] [REQ-FIT-AUTH-001]", type: :request do
   describe "GET / [REQ-FIT-UI-004]" do
-    it "places locale switcher before account actions and links Mi taller to empezar without workshop" do
+    it "[REQ-FIT-UI-004] places locale switcher before account actions and links Mi taller to empezar without workshop" do
       get root_path
 
       expect(response).to have_http_status(:ok)
@@ -17,7 +17,7 @@ RSpec.describe "App toolbar", type: :request do
   end
 
   describe "GET /taller with stale workshop bind [REQ-FIT-AUTH-001]" do
-    it "redirects to empezar when the bound project was discarded" do
+    it "[REQ-FIT-AUTH-001] redirects to empezar when the bound project was discarded" do
       project = begin_workspace_session!
       project.destroy!
 
@@ -31,7 +31,7 @@ RSpec.describe "App toolbar", type: :request do
   describe "GET /taller [REQ-FIT-AUTH-001]" do
     let(:user) { create_billing_user! }
 
-    it "links Mi taller to the bound ephemeral project" do
+    it "[REQ-FIT-AUTH-001] links Mi taller to the bound ephemeral project" do
       project = begin_workspace_session!
       sign_in user
 

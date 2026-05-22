@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "User registration", type: :request do
+RSpec.describe "User registration", "[REQ-FIT-AUTH-002]", type: :request do
   def registration_params(overrides = {})
     {
       user: {

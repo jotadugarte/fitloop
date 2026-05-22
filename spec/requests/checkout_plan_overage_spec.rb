@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Single download with plan overage pricing", type: :request do
+RSpec.describe "Single download with plan overage pricing", "[REQ-FIT-BILL-002]", type: :request do
   def sign_in_user!(user)
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
   end

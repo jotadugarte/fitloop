@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Auth billing 2:30 AM scenarios", type: :system do
+RSpec.describe "Auth billing 2:30 AM scenarios", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-003]", type: :system do
   around do |example|
     GoldenFixtures.assert_present!
     previous_adapter = ActiveJob::Base.queue_adapter

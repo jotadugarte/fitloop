@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Account email collision merge", type: :request do
+RSpec.describe "Account email collision merge", "[REQ-FIT-AUTH-002]", type: :request do
   def create_email_user!(email: "shared@example.com")
     User.new(
       email: email,

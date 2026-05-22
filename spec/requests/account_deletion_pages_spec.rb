@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Account deletion pages", type: :request do
+RSpec.describe "Account deletion pages", "[REQ-FIT-AUTH-002]", type: :request do
   let(:user) do
     User.create!(
       email: "delete-me@example.com",

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Mis pagos page", type: :request do
+RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-002]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:user) { create_billing_user! }
@@ -12,7 +12,7 @@ RSpec.describe "Mis pagos page", type: :request do
   end
 
   describe "GET /mis-pagos [REQ-FIT-BILL-002]" do
-    it "shows active plan tier, period, and monthly quota hint" do
+    it "[REQ-FIT-BILL-002] shows active plan tier, period, and monthly quota hint" do
       zone = ActiveSupport::TimeZone["America/Costa_Rica"]
       starts_at = zone.local(2026, 5, 22, 1, 58, 0)
       ends_at = Billing::PlanPeriod.ends_at_for(

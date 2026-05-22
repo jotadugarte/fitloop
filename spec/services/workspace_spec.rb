@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Workspace do
+RSpec.describe Workspace, "[REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
   before { Project.destroy_all }
 
   describe ".purge_all_ephemeral! [REQ-FIT-DOM-001]" do

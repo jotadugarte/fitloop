@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nested DXF re-download rules", type: :request do
+RSpec.describe "Nested DXF re-download rules", "[REQ-FIT-BILL-002] [REQ-FIT-BILL-003]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   def sign_in_user!(user)

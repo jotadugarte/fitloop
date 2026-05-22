@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Password recovery", type: :request do
+RSpec.describe "Password recovery", "[REQ-FIT-AUTH-002]", type: :request do
   def create_confirmed_user!(email: "recover@example.com")
     User.new(
       email: email,

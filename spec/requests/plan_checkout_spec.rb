@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Simulated plan checkout", type: :request do
+RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   describe "GET /planes without session [REQ-FIT-AUTH-002]" do

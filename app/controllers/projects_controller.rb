@@ -17,7 +17,8 @@ class ProjectsController < ApplicationController
   end
 
   def show
-    sync_nesting_ui_state!
+    return if sync_nesting_ui_state!
+
     @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
@@ -43,7 +44,8 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_sync
-    sync_nesting_ui_state!
+    return if sync_nesting_ui_state!
+
     @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
@@ -139,20 +141,20 @@ class ProjectsController < ApplicationController
 
   def render_workspace_turbo_stream(section, status: :ok)
     streams = case section
-              when :sheets
-                @project.reload
-                sheet_workspace_streams
-              when :layers
-                [
-                  turbo_stream.replace(
-                    project_dom_id(:source_dxf_detail),
-                    partial: "projects/show_source_dxf_detail",
-                    locals: { project: @project }
-                  )
-                ]
-              else
-                []
-              end
+    when :sheets
+      @project.reload
+      sheet_workspace_streams
+    when :layers
+      [
+        turbo_stream.replace(
+          project_dom_id(:source_dxf_detail),
+          partial: "projects/show_source_dxf_detail",
+          locals: { project: @project }
+        )
+      ]
+    else
+      []
+    end
 
     render turbo_stream: streams, status: status
   end
@@ -247,7 +249,10 @@ class ProjectsController < ApplicationController
 
   def sync_nesting_ui_state!
     @project = Nesting::ProjectStatusSync.call(project: @project)
-    return redirect_to(start_project_path, alert: I18n.t("workspace.expired")) unless @project
+    return false if @project.present?
+
+    redirect_to(start_project_path, alert: I18n.t("workspace.expired"))
+    true
   end
 
   def sheet_workspace_streams

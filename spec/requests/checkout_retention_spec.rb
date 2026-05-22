@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Checkout nested DXF retention after workspace loss", type: :request do
+RSpec.describe "Checkout nested DXF retention after workspace loss", "[REQ-FIT-BILL-003]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   def sign_in_user!(user)

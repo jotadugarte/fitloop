@@ -32,7 +32,7 @@ module MisPagos
 
     def set_grant
       @grant = DownloadGrant.single_purchase.find_by(id: params[:id])
-      return head(:forbidden) if @grant.nil? || @grant.user_id != current_user.id
+      head :forbidden unless @grant&.user_id == current_user.id
     end
   end
 end

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Legal placeholder pages", type: :request do
+RSpec.describe "Legal placeholder pages", "[REQ-FIT-AUTH-002]", type: :request do
   describe "GET /terminos [REQ-FIT-AUTH-002]" do
     it "[REQ-FIT-AUTH-002] renders placeholder terms (D16)" do
       get terminos_path

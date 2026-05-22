@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Auth preserves workspace project bind", type: :request do
+RSpec.describe "Auth preserves workspace project bind", "[REQ-FIT-AUTH-002]", type: :request do
   def registration_params(overrides = {})
     {
       user: {

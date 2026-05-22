@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Workspace project access", type: :request do
+RSpec.describe "Workspace project access", "[REQ-FIT-AUTH-001] [REQ-FIT-UI-003] [REQ-FIT-BILL-001]", type: :request do
   describe "GET /projects [REQ-FIT-UI-003]" do
     it "redirects to empezar (ephemeral-only; no saved project list)" do
       get projects_path

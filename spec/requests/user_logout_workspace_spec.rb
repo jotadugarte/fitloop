@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "User logout discards workspace", type: :request do
+RSpec.describe "User logout discards workspace", "[REQ-FIT-AUTH-002]", type: :request do
   def create_confirmed_user!(email: "logout@example.com")
     User.new(
       email: email,

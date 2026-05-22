@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Workspace tab isolation", type: :request do
+RSpec.describe "Workspace tab isolation", "[REQ-FIT-AUTH-001]", type: :request do
   def tab_headers(tab_id)
     { "X-Workspace-Tab-Id" => tab_id }
   end
@@ -58,6 +58,19 @@ RSpec.describe "Workspace tab isolation", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("preview_zone_project_#{project_b.id}")
       expect(response.body).not_to include("preview_zone_project_#{project_a.id}")
+    end
+  end
+
+  describe "missing tab identity [REQ-FIT-AUTH-001]" do
+    it "[REQ-FIT-AUTH-001] redirects from workshop when tab cookie and header are absent (D21)" do
+      project = start_workspace_for_tab!(tab_a)
+      cookies.delete(ResolvesWorkspaceTab::TAB_COOKIE)
+
+      get workshop_path
+
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+      expect(Project.exists?(project.id)).to be(true)
     end
   end
 
