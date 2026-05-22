@@ -23,11 +23,12 @@ module ApplicationHelper
     %i[current_password password password_confirmation].any? { |attr| user.errors.include?(attr) }
   end
 
-  def password_validation_form_data
+  def password_validation_form_data(optional: false)
     min = Devise.password_length.begin
     {
       controller: "password-validation",
       password_validation_min_value: min,
+      password_validation_optional_value: optional,
       password_validation_too_short_value: t("auth.password.validation.too_short", min: min),
       password_validation_mismatch_value: t("auth.password.validation.mismatch"),
       password_validation_match_value: t("auth.password.validation.match")

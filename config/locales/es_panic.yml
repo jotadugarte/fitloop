@@ -479,6 +479,7 @@ es_panic:
       email: Correo
       email_readonly_hint: El correo es para siempre; no se reescribe.
       change_password_toggle: Cambiar contraseña
+      password_change_intro: En blanco = no tocar la contraseña.
       name: Nombre
       new_password: Nueva contraseña
       new_password_hint: En blanco = no tocar la contraseña.

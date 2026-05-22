@@ -24,6 +24,11 @@ RSpec.describe "Account edit page", type: :request do
       expect(response.body).not_to include("time_zone")
       expect(response.body).not_to include('name="user[email]"')
       expect(response.body).to include("keeper@example.com")
+      expect(response.body).to include('data-controller="password-validation"')
+      expect(response.body).to include('data-password-validation-optional-value="true"')
+      expect(response.body).to include(
+        I18n.t("auth.password.validation.too_short", min: Devise.password_length.begin)
+      )
     end
 
     it "[REQ-FIT-AUTH-002] lists password fields in current → new → confirm order" do

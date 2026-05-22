@@ -1,9 +1,18 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["password", "confirmation", "submit", "lengthHint", "lengthError", "matchFeedback"]
+  static targets = [
+    "password",
+    "confirmation",
+    "submit",
+    "currentPassword",
+    "lengthHint",
+    "lengthError",
+    "matchFeedback"
+  ]
   static values = {
     min: Number,
+    optional: Boolean,
     tooShort: String,
     mismatch: String,
     match: String
@@ -64,11 +73,30 @@ export default class extends Controller {
   updateSubmit(password, confirmation, min) {
     if (!this.hasSubmitTarget) return
 
+    if (this.optionalValue && !this.passwordChangeAttempted(password, confirmation)) {
+      this.submitTarget.disabled = false
+      return
+    }
+
+    const currentOk =
+      !this.hasCurrentPasswordTarget || this.currentPasswordTarget.value.length > 0
     const valid =
+      currentOk &&
       password.length >= min &&
       confirmation.length > 0 &&
       password === confirmation
 
     this.submitTarget.disabled = !valid
+  }
+
+  passwordChangeAttempted(password, confirmation) {
+    const newFieldsTouched = password.length > 0 || confirmation.length > 0
+    if (!this.optionalValue) return true
+
+    if (this.hasCurrentPasswordTarget && this.currentPasswordTarget.value.length > 0) {
+      return true
+    }
+
+    return newFieldsTouched
   }
 }

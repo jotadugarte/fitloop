@@ -1,6 +1,6 @@
 <%= render "devise/shared/auth_page", title: t("auth.account.title") do %>
   <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
-        html: { method: :put, class: "auth-page__form" }) do |f| %>
+        html: { method: :put, class: "auth-page__form", data: password_validation_form_data(optional: true) }) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <div class="field">
@@ -21,27 +21,14 @@
       </summary>
 
       <div class="auth-page__disclosure-body">
-        <div class="field">
-          <%= f.label :current_password, t("auth.account.current_password") %>
-          <%= f.password_field :current_password, autocomplete: "current-password" %>
-          <span class="field__hint"><%= t("auth.account.current_password_hint") %></span>
-        </div>
-
-        <div class="field">
-          <%= f.label :password, t("auth.account.new_password") %>
-          <%= f.password_field :password, autocomplete: "new-password" %>
-          <span class="field__hint"><%= t("auth.account.new_password_hint") %></span>
-        </div>
-
-        <div class="field">
-          <%= f.label :password_confirmation, t("auth.account.password_confirmation") %>
-          <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-        </div>
+        <%= render "devise/shared/account_password_change_fields", f: f %>
       </div>
     </details>
 
     <div class="form-actions">
-      <%= f.submit t("auth.account.submit"), class: "btn btn-primary" %>
+      <%= f.submit t("auth.account.submit"),
+            class: "btn btn-primary",
+            data: { password_validation_target: "submit" } %>
     </div>
   <% end %>
 

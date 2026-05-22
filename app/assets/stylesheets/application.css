@@ -343,8 +343,14 @@ h3 {
   border-top: 1px solid var(--fit-border);
 }
 
-.auth-page__disclosure-body .field:first-child {
+.auth-page__disclosure-body .field:first-child,
+.auth-page__disclosure-body .auth-page__disclosure-intro + .field {
   margin-top: 1rem;
+}
+
+.auth-page__disclosure-intro {
+  margin: 1rem 0 0;
+  padding: 0;
 }
 
 .auth-page__form .field {
