@@ -193,4 +193,76 @@ _Entities `Subscription`, `DownloadGrant`, `Purchase` sin cambio semántico vs a
 
 ## Implementation plan
 
-_Pendiente — se insertará `<implementation_plan>` cuando el usuario confirme spec completa (explore-task step 1.2 → finalize)._
+<task_session>
+  <metadata>
+    <task_name>onvo-payments</task_name>
+    <type>Feature</type>
+    <req_id>REQ-FIT-BILL-004 (new); extends REQ-FIT-BILL-001..003</req_id>
+    <roadmap_item>Product &amp; platform — ONVO payments + BCCR FX + MEIC pricing</roadmap_item>
+    <phasing>P0 Governance → P1 Pricing CRC → P2 BCCR FX → P3 Payment domain → P4 ONVO core → P5 Checkout UX → P6 Card → P7 SINPE → P8 Planes → P9 Env gates → P10 QA/docs</phasing>
+    <external_blockers>FU-OPS-001 Obligado Tributario (ONVO prod); FU-ONVO-001 sandbox keys; FU-BCCR-001 BCCR token; FU-LEGAL-003 MEIC copy (prod copy gate)</external_blockers>
+  </metadata>
+
+  <implementation_plan>
+    <!-- P0 — Governance & anchors -->
+    <step id="1" status="pending">Write failing doc verifier test for REQ-FIT-BILL-004 in docs/core/SPEC.md and ADR-0006 presence (extend `AuthBillingSpecDocVerifier` or add `OnvoBillingSpecDocVerifier`).</step>
+    <step id="2" status="pending">Add docs/core/ADRs/0006-onvo-payments-bccr-fx-meic-pricing.md (extends ADR-0005; ONVO provider; CRC official/sinpe pairs; BCCR D15; dev hybrid D12; MEIC D4; no dual currency in UI D2).</step>
+    <step id="3" status="pending">Update docs/core/SPEC.md: REQ-FIT-BILL-004 detail; amend REQ-FIT-BILL-001 (ONVO replaces simulate in staging/prod); note BILL-002/003 unchanged entitlements; DATA_FLOW_MAP + SCHEMA_REFERENCE (`exchange_rates`, `payments` FX/ONVO columns); docs/ROADMAP.md backlog item with Depends on FU-OPS-001/FU-ONVO-001.</step>
+
+    <!-- P1 — CRC pricing (MEIC table D5) -->
+    <step id="4" status="pending">Write failing `Billing::Pricing` spec [REQ-FIT-BILL-004]: YAML keys `*_official_crc` + `*_sinpe_crc` per product; seed values match D5 table; overage 50% halves official and sinpe amounts (D6).</step>
+    <step id="5" status="pending">Migrate `config/billing.yml` (Spanish comments); implement `Billing::Pricing` refactor; update all callers (checkout, planes, simulate services) to use CRC pairs; remove legacy `*_usd` keys.</step>
+    <step id="6" status="pending">Write failing request spec: checkout/planes HTML shows only ₡ prices; official struck-through + SINPE prominent; savings badge text (D7); no USD amount in checkout body (D2).</step>
+
+    <!-- P2 — BCCR FX cache (D11, D14, D15) -->
+    <step id="7" status="pending">Write failing `Billing::FxRate` spec with WebMock BCCR SOAP fixture: parses indicator 318 venta; persists `ExchangeRate` for `Date.current`; idempotent same-day refresh.</step>
+    <step id="8" status="pending">Add `exchange_rates` migration + model; `Billing::BccrClient` (≤60 lines); `Billing::FxRate.refresh!` / `.current`; credentials `bccr.email`, `bccr.token`.</step>
+    <step id="9" status="pending">Write failing `Billing::CardChargeUsd` spec: `usd = ceil2(official_crc / rate)`; rejects missing/stale rate (&gt;24h); documents round-up policy in ADR.</step>
+    <step id="10" status="pending">Implement `CardChargeUsd`; Solid Queue `Billing::RefreshFxRateJob` cron ~06:00 `America/Costa_Rica`; lazy refresh on first card checkout of day (D15); max one retry if &gt;12h stale.</step>
+
+    <!-- P3 — Payment / ONVO intent domain -->
+    <step id="11" status="pending">Write failing Payment spec: columns `provider`, `provider_payment_id`, `amount_official_crc`, `amount_charged_usd`, `fx_rate`, `fx_effective_on`, `fx_source`; enum `payment_method` `card` | `sinpe` (migration from `card_usd`/`sinpe_crc`).</step>
+    <step id="12" status="pending">Add `onvo_payment_intents` (or `payment_intents`) migration: `user_id`, `purpose`, `nesting_run_id`/`plan_tier`, `status`, `payment_method`, `idempotency_key`, `cedula`, `telefono`, `expires_at`, JSON `metadata`.</step>
+    <step id="13" status="pending">Implement models; `Billing::PaymentGateway.onvo_enabled?` from ENV; keep simulate path when disabled (D12).</step>
+
+    <!-- P4 — ONVO client (sandbox-first) -->
+    <step id="14" status="pending">Write failing `Billing::Onvo::Client` spec with VCR/WebMock sandbox stubs: create card charge intent (USD amount from step 9); create SINPE validation (cedula+telefono); fetch payment status.</step>
+    <step id="15" status="pending">Implement `Billing::Onvo::Client`, `CreateCardIntent`, `CreateSinpePayment`, `SyncPaymentStatus` services (≤60 lines each, assertions); read API keys from credentials.</step>
+    <step id="16" status="pending">Write failing webhook request spec `POST /webhooks/onvo`: signature verify; terminal status updates intent + Payment; idempotent duplicate events.</step>
+    <step id="17" status="pending">Implement `Webhooks::OnvoController`; route outside locale scope; no grant/subscription side effects until `succeeded` (D13).</step>
+
+    <!-- P5 — Checkout UX + routing -->
+    <step id="18" status="pending">Write failing system/request spec: SINPE selected by default; switching method updates displayed ₡; green savings badge; card subtitle mentions BCCR FX without USD figure (D2, D7).</step>
+    <step id="19" status="pending">Refactor checkout/planes views + Stimulus `checkout_method_controller`: MEIC price anchor layout; hide simulate buttons when `onvo_enabled?`; block card method if no FX for today.</step>
+
+    <!-- P6 — Card checkout ONVO -->
+    <step id="20" status="pending">Write failing request spec: card checkout creates ONVO intent with computed USD; SDK/token endpoint returns client secret; success webhook creates Payment + DownloadGrant + retention (D54).</step>
+    <step id="21" status="pending">Implement `CheckoutController` card flow (`create_intent`, `confirm`); mount ONVO JS SDK on checkout; staging/prod require ONVO (no simulate).</step>
+
+    <!-- P7 — SINPE checkout ONVO + polling -->
+    <step id="22" status="pending">Write failing request spec: SINPE form requires valid CR cédula + teléfono; posts create pending intent; polling endpoint returns pending/succeeded/timeout; grant only on succeeded (D13).</step>
+    <step id="23" status="pending">Implement SINPE flow + `checkout/sinpe_waiting` Turbo/Stimulus poll (interval modest, e.g. 3s, max 10 min); i18n waiting copy; failure/timeout paths.</step>
+
+    <!-- P8 — Plan purchases ONVO -->
+    <step id="24" status="pending">Write failing planes checkout spec: plan tiers charge correct official/sinpe CRC; card uses FX USD; extends subscription from `ends_at` (D28); overage still 50% official/sinpe (D6).</step>
+    <step id="25" status="pending">Implement `PlanesController` ONVO paths mirroring checkout; redirect `project#show` on success (D43).</step>
+
+    <!-- P9 — Dev hybrid + regression -->
+    <step id="26" status="pending">Write failing spec: development without `ONVO_API_KEY` still uses `checkout#simulate`; with key uses ONVO routes; production config raises if ONVO missing (D12).</step>
+    <step id="27" status="pending">Wire `Rails.application.config.x.billing.gateway`; deprecate direct simulate in staging; update `Billing::Simulate*` to use new Pricing CRC keys.</step>
+    <step id="28" status="pending">Write failing spec: `/mis-pagos` shows charged USD + FX metadata for card payments only; SINPE rows CRC-only.</step>
+    <step id="29" status="pending">Update existing auth/billing request specs for new enums and prices; keep 2:30 AM retention scenario green.</step>
+
+    <!-- P10 — i18n, QA, architecture test -->
+    <step id="30" status="pending">i18n en/es (+ es_panic parity): checkout MEIC copy, SINPE waiting, FX unavailable, BCCR subtitle; placeholder FU-LEGAL-003 keys for MEIC discount wording.</step>
+    <step id="31" status="pending">Update docs/QA_MANUAL_CHECKLIST.md (ONVO sandbox card/SINPE, webhook, BCCR job, hybrid dev); run full REQ-tagged billing regression.</step>
+  </implementation_plan>
+
+  <working_notes>
+    ONVO API surface finalized against sandbox docs during step 14–15 (may adjust webhook field names).
+    Do not call BCCR from polling loop (D15). ONVO receives final USD/CRC amounts only (D14).
+    FU-LEGAL-003 blocks production marketing copy, not technical scaffold.
+    FU-OPS-001 blocks ONVO production credentials only; sandbox unblocks steps 14–25.
+    Payment method rename: data migration `card_usd` → `card`, `sinpe_crc` → `sinpe`.
+  </working_notes>
+</task_session>
