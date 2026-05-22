@@ -566,8 +566,10 @@ es_panic:
         timeout: La sesión murió. Vuelve a iniciar sesión.
         already_authenticated: Ya estás dentro. No hace falta volver a entrar.
     sessions:
+      signed_in: Sesión abierta. Bienvenido al taller.
       signed_out: Sesión cerrada. El taller queda vacío.
       user:
+        signed_in: Sesión abierta. Bienvenido al taller.
         signed_out: Sesión cerrada. El taller queda vacío.
     registrations:
       signed_up: ¡Bienvenido al club! Registro exitoso.

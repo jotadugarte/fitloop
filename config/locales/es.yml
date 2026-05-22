@@ -577,8 +577,10 @@ es:
         timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
         already_authenticated: "Ya iniciaste sesión."
     sessions:
+      signed_in: "Iniciaste sesión correctamente."
       signed_out: "Cerraste sesión correctamente."
       user:
+        signed_in: "Iniciaste sesión correctamente."
         signed_out: "Cerraste sesión correctamente."
     registrations:
       signed_up: "¡Bienvenido! Te registraste correctamente."
