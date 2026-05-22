@@ -70,5 +70,5 @@ Fitloop v1 shipped **ephemeral workspace access only** (ADR-0004 / `REQ-FIT-AUTH
 
 ## More information
 
-- Session task: `.agenticguild/active_sessions/task_auth-billing.md`
+- Requirements: `docs/core/SPEC.md` (REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003 detail sections)
 - Extends: `docs/core/ADRs/0004-ephemeral-session-access.md` (does not supersede)

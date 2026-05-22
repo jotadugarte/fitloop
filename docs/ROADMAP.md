@@ -1,12 +1,12 @@
 # Project Roadmap — Fitloop
 
-Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live progress, nested DXF + preview. Product spec is locked in `.agenticguild/active_sessions/task_dxf-nesting.md`.
+Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live progress, nested DXF + preview. Product requirements are locked in `docs/core/SPEC.md`; historical agent session logs live under `.agenticguild/completed_sessions/` (e.g. `task_dxf-nesting_2026-05-17.md`).
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked
 
-**Last audit:** 2026-05-20 — auth + billing spec locked (ADR-0005, REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003); implementation in progress.
+**Last audit:** 2026-05-21 — P6 auth + P7 simulated billing shipped on branch `auth-billing` (ADR-0005, REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003).
 
-**Next action:** P6 Auth (Devise + OmniAuth) → P7 Billing (simulated paywall).
+**Next action:** User analytics / admin bitácora (post-merge); then ONVO payments when external gates are met.
 
 ---
 
@@ -118,4 +118,4 @@ _(no pending engine items)_
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 
-<!-- Reference: full decision log and step-level TDD plan in .agenticguild/active_sessions/task_dxf-nesting.md -->
+<!-- Reference: archived decision log in .agenticguild/completed_sessions/task_dxf-nesting_2026-05-17.md -->

@@ -65,4 +65,4 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 - Binding / production tests: `nesting_engine/tests/test_libnest2d_binding.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_full_sheet_*.py`, `nesting_engine/tests/test_nest_multi_bin_epic_integration.py`
 - ADR parity: `nesting_engine/tests/test_nest_spike.py`
 - Package pin: `python-libnest2d==0.1.3` in repo `requirements.txt`
-- Sessions: `task_libnest2d-integration.md`, `task_full-sheet-libnest2d-epic.md` (under `.agenticguild/active_sessions/`)
+- Archived session logs: `.agenticguild/completed_sessions/task_libnest2d-integration_2026-05-17.md`, `task_full-sheet-libnest2d-epic_2026-05-18.md`
