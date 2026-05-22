@@ -72,8 +72,15 @@ en:
             confirmation_token:
               blank: "is invalid or has expired"
               invalid: "is invalid or has expired"
+            current_password:
+              blank: "can't be blank"
+              invalid: "is invalid"
             email:
               blank: "can't be blank"
+            password:
+              too_short: "is too short (minimum is %{count} characters)"
+            password_confirmation:
+              confirmation: "doesn't match Password"
         project:
           attributes:
             title:
@@ -482,6 +489,7 @@ en:
       password_confirmation: "Confirm new password"
       current_password: "Current password"
       current_password_hint: "We need your current password to confirm changes."
+      update_failed: "Your changes could not be saved. Please check the highlighted fields."
     account_deletion:
       link: "Delete account"
       title: "Delete account"

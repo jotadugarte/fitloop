@@ -53,6 +53,28 @@ RSpec.describe "Account edit page", type: :request do
       expect(user.email).to eq("keeper@example.com")
     end
 
+    it "[REQ-FIT-AUTH-002] re-renders edit with error when current password is wrong" do
+      I18n.with_locale(:es) do
+        previous_digest = user.encrypted_password
+
+        patch user_registration_path,
+              params: {
+                user: {
+                  password: "newsecurepass12",
+                  password_confirmation: "newsecurepass12",
+                  current_password: "wrong-password"
+                }
+              }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.body).to include(
+          I18n.t("activerecord.errors.models.user.attributes.current_password.invalid")
+        )
+        expect(response.body).not_to include("translation missing")
+        expect(user.reload.encrypted_password).to eq(previous_digest)
+      end
+    end
+
     it "[REQ-FIT-AUTH-002] shows translated flash after update" do
       I18n.with_locale(:es) do
         patch user_registration_path, params: { user: { name: "Flash Test" } }

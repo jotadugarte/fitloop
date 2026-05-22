@@ -85,8 +85,15 @@ es_panic:
             confirmation_token:
               blank: no sirve o ya caducó
               invalid: no sirve o ya caducó
+            current_password:
+              blank: falta la contraseña actual
+              invalid: no es la correcta
             email:
               blank: falta el correo
+            password:
+              too_short: muy corta (mínimo %{count})
+            password_confirmation:
+              confirmation: no coincide con la nueva
         project:
           attributes:
             title:
@@ -486,6 +493,7 @@ es_panic:
       password_confirmation: Confirmar nueva contraseña
       current_password: Contraseña actual
       current_password_hint: Contraseña actual para confirmar que eres tú.
+      update_failed: No se guardó. Revise los campos en rojo.
     account_deletion:
       link: Eliminar cuenta (punto de no retorno)
       title: Eliminar cuenta

@@ -87,8 +87,15 @@ es:
             confirmation_token:
               blank: "no es válido o ya expiró"
               invalid: "no es válido o ya expiró"
+            current_password:
+              blank: "no puede estar en blanco"
+              invalid: "no es correcta"
             email:
               blank: "no puede estar en blanco"
+            password:
+              too_short: "debe tener al menos %{count} caracteres"
+            password_confirmation:
+              confirmation: "no coincide con la contraseña"
         project:
           attributes:
             title:
@@ -497,6 +504,7 @@ es:
       password_confirmation: "Confirmar nueva contraseña"
       current_password: "Contraseña actual"
       current_password_hint: "Necesitamos tu contraseña actual para confirmar los cambios."
+      update_failed: "No se pudieron guardar los cambios. Revisa los campos marcados."
     account_deletion:
       link: "Eliminar cuenta"
       title: "Eliminar cuenta"

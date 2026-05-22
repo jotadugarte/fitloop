@@ -1,6 +1,10 @@
 <%= render "devise/shared/auth_page", title: t("auth.account.title") do %>
   <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
-        html: { method: :put, class: "auth-page__form", data: password_validation_form_data(optional: true) }) do |f| %>
+        html: {
+          method: :put,
+          class: "auth-page__form",
+          data: password_validation_form_data(optional: true).merge(turbo: false)
+        }) do |f| %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <div class="field">
