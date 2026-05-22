@@ -1,0 +1,20 @@
+<%= render layout: "accounts/deletions/page_shell",
+           locals: { title: t("auth.account_deletion.title"), testid: "account-deletion-new" } do %>
+  <section class="account-deletion-section panel panel--inset">
+    <p class="account-deletion-section__text"><%= t("auth.account_deletion.intro") %></p>
+
+    <% if @active_plan %>
+      <p class="account-deletion-section__warning" data-testid="account-deletion-active-plan-warning" role="status">
+        <%= t("auth.account_deletion.active_plan_warning") %>
+      </p>
+    <% end %>
+  </section>
+
+  <footer class="account-deletion-actions paywall-actions">
+    <%= button_to t("auth.account_deletion.continue"),
+                  account_deletion_path,
+                  method: :post,
+                  class: "btn btn-primary account-deletion-actions__continue" %>
+    <%= link_to t("auth.account_deletion.cancel"), edit_user_registration_path, class: "btn btn-secondary" %>
+  </footer>
+<% end %>

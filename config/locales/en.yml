@@ -32,6 +32,7 @@ en:
     name: "Fitloop"
     dialog_title: "Fitloop"
     dialog_accept: "OK"
+    dialog_cancel: "Cancel"
 
   locale:
     switcher_label: "Language"
@@ -44,9 +45,11 @@ en:
   date:
     formats:
       short: "%b %-d, %Y"
+      long: "%B %-d, %Y"
   time:
     formats:
       short: "%b %-d, %Y %H:%M"
+      long: "%B %-d, %Y at %H:%M"
 
   activerecord:
     models:
@@ -57,6 +60,12 @@ en:
         one: "Sheet type"
         other: "Sheet types"
     attributes:
+      user:
+        current_password: "Current password"
+        password: "New password"
+        password_confirmation: "Password confirmation"
+        name: "Name"
+        email: "Email"
       project:
         title: "Title"
       sheet_stock:
@@ -66,6 +75,20 @@ en:
         sort_order: "Order"
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: "is invalid or has expired"
+              invalid: "is invalid or has expired"
+            current_password:
+              blank: "can't be blank"
+              invalid: "is invalid"
+            email:
+              blank: "can't be blank"
+            password:
+              too_short: "is too short (minimum is %{count} characters)"
+            password_confirmation:
+              confirmation: "doesn't match Password"
         project:
           attributes:
             title:
@@ -95,6 +118,82 @@ en:
   workspace:
     default_title: "Nesting session"
     expired: "This session is no longer available. Please start again."
+    tab_closed_expired: "You left the workshop more than 2 minutes ago without signing out. Please start again."
+
+  billing:
+    paywall:
+      title: "Payment or plan required"
+      intro: "To download the nested DXF you need to pay for this download or have an active plan."
+      pay_this_download: "Pay for this download"
+      view_plans: "View plans"
+      back_to_project: "Back to project"
+      aside:
+        title: "Your nested DXF is ready"
+        lead: "Nesting finished. Choose how to unlock the download:"
+        benefit_ready: "One-time payment for this run"
+        benefit_plan: "Monthly plan with a download quota"
+        benefit_retention: "24 hours in My payments even if you leave the workshop"
+    single_download:
+      retention_24h: "If you pay for this download only (not a plan), after payment the file stays in My payments for 24 hours even if you leave the workshop. Plans do not keep a copy in My payments."
+    suspended: "Your account is suspended. You cannot pay or download."
+    download:
+      plan_included: "Included in your plan"
+      retention_expired: "The retained download has expired. The file is no longer available."
+    mis_pagos:
+      title: "My payments"
+      active_plan: "Active plan"
+      no_active_plan: "You do not have an active plan."
+      plan_ends: "Expires on %{ends_at}"
+      plan_access_duration:
+        one: "1 month of plan access"
+        other: "%{count} months of plan access"
+      period_started: "Started"
+      period_ends: "Expires"
+      quota_monthly_heading: "Monthly download quota"
+      quota_monthly_hint: "Quota resets each calendar month; it is not the total for your full plan term."
+      quota_remaining: "%{remaining} of %{limit} downloads this month"
+      single_purchases: "Paid single downloads"
+      no_single_purchases: "No paid single downloads yet."
+      download: "Download"
+      retained_until: "Available until %{until}"
+      payment_history: "Payment history"
+      no_payments: "No payments recorded."
+      purpose:
+        single_download: "Single download"
+        plan_subscription: "Plan"
+      status:
+        succeeded: "Succeeded"
+        failed: "Failed"
+        pending: "Pending"
+      aside:
+        title: "Downloads and plans"
+        lead: "View your active plan, paid single downloads, and simulated payment history."
+        view_plans: "View plans"
+    planes:
+      title: "Plans"
+      success: "Plan activated. You can download the nested DXF from your project."
+      browse_intro: "Compare pricing and duration. To activate a plan for a workshop in progress, return to the project and choose View plans from the download screen."
+      project_required: "Open a workshop project to activate a plan from here."
+      tier_1: "1-month plan"
+      tier_2: "2-month plan"
+      tier_4: "4-month plan"
+      active_badge: "Active"
+      active_until: "Valid until %{ends_at}"
+      aside:
+        lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
+    checkout:
+      title: "Pay for this download"
+      demo_badge: "Demo environment — simulated payments (QA)"
+      card_usd: "Card (USD)"
+      sinpe_crc: "SINPE Mobile (CRC)"
+      simulate_success: "Payment succeeded"
+      simulate_failure: "Payment failed"
+      failure: "Simulated payment failed. Please try again."
+      success_title: "Payment received"
+      success_retention: "Payment received. Your download has started and the file will stay in My payments for 24 hours even if you leave the workshop."
+      download_now: "Download now"
+      single_download: "Single download"
+      overage_hint: "With plan quota exhausted (50%)"
 
   home:
     index:
@@ -169,6 +268,7 @@ en:
       adjust_setup: "Adjust parameters"
       layers: "DXF layers"
       download_nested_dxf: "Download nested DXF"
+      nested_dxf_unavailable: "There is no nested layout ready to download. Run nesting again or check the project status."
       back: "Home"
       actions_title: "Nesting actions"
       manage_title: "Settings"
@@ -341,3 +441,182 @@ en:
       files_attached:
         one: "1 DXF file attached"
         other: "%{count} DXF files attached"
+
+  auth:
+    nav:
+      label: "Account"
+      back: "Back"
+      home: "Home"
+      sign_in: "Sign in"
+      sign_up: "Create account"
+      account: "My account"
+      payments: "My payments"
+      workshop: "My workshop"
+      sign_out: "Sign out"
+    sign_out:
+      confirm_title: "Sign out?"
+      confirm_warning: "You have a project in progress in the workshop. Signing out will discard that work."
+      confirm_submit: "Sign out and discard project"
+      cancel: "Back to workshop"
+    merge:
+      offer_title: "Merge accounts?"
+      offer_body: "An account already exists for %{email} with a different sign-in method. Enter your password to link this sign-in, or decline to keep accounts separate."
+      password_label: "Current account password"
+      accept: "Merge accounts"
+      decline: "Keep separate"
+      declined: "Accounts were not merged. Sign in with your original method."
+      accepted: "Accounts merged. You are now signed in."
+      expired: "This merge offer has expired. Try signing in again."
+      invalid_password: "Password is incorrect."
+    shared:
+      or_email: "Or continue with email"
+      footer_nav: "Account links"
+    oauth:
+      google_oauth2: "Continue with Google"
+      facebook: "Continue with Facebook"
+      apple: "Continue with Apple"
+      failure: "Could not sign in with that provider."
+    session:
+      sign_in_title: "Sign in"
+      submit: "Log in"
+    confirmation:
+      pending_title: "Confirm your email"
+      pending_body: "Check your inbox and open the confirmation link. Once verified, you can pay and download."
+      resend_title: "Resend confirmation"
+      resend_intro: "Enter the email you used to sign up and we will send the link again."
+      resend_submit: "Send link"
+      resend_link: "Resend confirmation email"
+      activate_title: "Confirm email"
+      confirmed: "Your email is confirmed. You can sign in now."
+      invalid_token: "This link is invalid or has expired. You can request a new one."
+    password:
+      forgot_title: "Forgot your password?"
+      forgot_intro: "Enter your email and we will send password reset instructions."
+      reset_title: "Set a new password"
+      length_hint: "At least %{min} characters."
+      validation:
+        too_short: "Use at least %{min} characters."
+        mismatch: "Passwords do not match."
+        match: "Passwords match."
+      new_password: "New password"
+      send_reset: "Send reset instructions"
+      change_password: "Change password"
+      reset_sent: "Check your email for password reset instructions."
+      updated: "Your password has been changed. You can sign in now."
+    registration:
+      title: "Create account"
+      terms_label: "I accept the terms of service and privacy policy"
+      terms_prefix: "I accept the"
+      terms_connector: "and"
+      submit: "Sign up"
+    account:
+      title: "My account"
+      submit: "Save changes"
+      email: "Email"
+      email_readonly_hint: "Your email address cannot be changed."
+      change_password_toggle: "Change password"
+      password_change_intro: "Leave the fields below blank if you do not want to change your password."
+      name: "Name"
+      new_password: "New password"
+      new_password_hint: "Leave blank if you do not want to change it."
+      password_confirmation: "Confirm new password"
+      current_password: "Current password"
+      current_password_hint: "We need your current password to confirm changes."
+      current_password_invalid: "Your current password is incorrect."
+    account_deletion:
+      link: "Delete account"
+      title: "Delete account"
+      intro: "This action is permanent. You will lose access to your account and payment history."
+      active_plan_warning: "You have an active plan. Deleting your account forfeits any remaining plan benefit."
+      aside:
+        title: "Before you continue"
+        lead: "Deletion is permanent. If you only want a break, sign out and come back when you are ready."
+        benefit_permanent: "You lose access to your account, in-progress workshop, and payment history."
+        benefit_plan: "With an active plan, unused downloads and quota are forfeited."
+        benefit_support: "If you are unsure, cancel and review My payments or My account."
+        back_to_account: "Back to My account"
+      continue: "Continue"
+      cancel: "Cancel"
+      confirm_title: "Confirm deletion"
+      confirm_instructions: "Type %{phrase} to confirm."
+      confirm_phrase_label: "Confirmation phrase"
+      confirm_phrase_expected: "DELETE"
+      current_password_label: "Current password"
+      submit: "Permanently delete my account"
+      done: "Your account has been deleted."
+      restart: "Start the deletion process again."
+      invalid_password: "Password is incorrect."
+      invalid_phrase: "Confirmation phrase does not match."
+  legal:
+    placeholder_notice: "Placeholder text. Final legal copy will ship in a later update (FU-LEGAL-001)."
+    terms:
+      title: "Terms of service"
+      link: "terms of service"
+      version: "Version: %{version}"
+      body: "These terms will describe how you may use Fitloop, downloads, plans, and user responsibilities. Replace this paragraph when legal approves the final document."
+    privacy:
+      title: "Privacy policy"
+      link: "privacy policy"
+      version: "Version: %{version}"
+      body: "This policy will explain what data we collect, how we use it, and your rights. Replace this paragraph when legal approves the final document."
+    account:
+      title: "My account"
+      submit: "Save changes"
+      new_password_hint: "New password (leave blank if unchanged)"
+      current_password_hint: "We need your current password to confirm changes"
+    account_deletion:
+      link: "Delete account"
+      title: "Delete account"
+      intro: "This action is permanent. You will lose access to your account and payment history."
+      active_plan_warning: "You have an active plan. Deleting your account forfeits any remaining plan benefit."
+      aside:
+        title: "Before you continue"
+        lead: "Deletion is permanent. If you only want a break, sign out and come back when you are ready."
+        benefit_permanent: "You lose access to your account, in-progress workshop, and payment history."
+        benefit_plan: "With an active plan, unused downloads and quota are forfeited."
+        benefit_support: "If you are unsure, cancel and review My payments or My account."
+        back_to_account: "Back to My account"
+      continue: "Continue"
+      cancel: "Cancel"
+      confirm_title: "Confirm deletion"
+      confirm_instructions: "Type %{phrase} to confirm."
+      confirm_phrase_label: "Confirmation phrase"
+      confirm_phrase_expected: "DELETE"
+      current_password_label: "Current password"
+      submit: "Permanently delete my account"
+      done: "Your account has been deleted."
+      restart: "Start the deletion process again."
+      invalid_password: "Password is incorrect."
+      invalid_phrase: "Confirmation phrase does not match."
+
+  devise:
+    failure:
+      unauthenticated: "You need to sign in to continue."
+      unconfirmed: "Confirm your email before paying or downloading."
+      invalid: "Invalid email or password."
+      timeout: "Your session expired. Please sign in again."
+      already_authenticated: "You are already signed in."
+      user:
+        unauthenticated: "You need to sign in to continue."
+        unconfirmed: "Confirm your email before paying or downloading."
+        invalid: "Invalid email or password."
+        timeout: "Your session expired. Please sign in again."
+        already_authenticated: "You are already signed in."
+    sessions:
+      signed_in: "Signed in successfully."
+      signed_out: "Signed out successfully."
+      user:
+        signed_in: "Signed in successfully."
+        signed_out: "Signed out successfully."
+    registrations:
+      signed_up: "Welcome! You signed up successfully."
+      signed_up_but_unconfirmed: "Check your email for a confirmation link."
+      updated: "Your account has been updated successfully."
+      user:
+        updated: "Your account has been updated successfully."
+    confirmations:
+      confirmed: "Your email has been confirmed."
+      send_instructions: "If your email is in our database, you will receive confirmation instructions shortly."
+    mailer:
+      confirmation_instructions:
+        subject: "Confirmation instructions"

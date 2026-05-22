@@ -32,5 +32,4 @@ class NestingRunsController < ApplicationController
     nesting_run.update!(cancel_requested_at: Time.current)
     redirect_to @project, notice: I18n.t("nesting.cancelling")
   end
-
 end

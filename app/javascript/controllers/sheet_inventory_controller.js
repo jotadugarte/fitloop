@@ -107,6 +107,44 @@ export default class extends Controller {
     return true
   }
 
+  exportToForm(targetForm) {
+    const sourceForm = this.element.closest("form")
+    if (!sourceForm || sourceForm === targetForm) return
+
+    targetForm.querySelectorAll("[data-locale-workspace-draft]").forEach((node) => node.remove())
+
+    this.visibleRows().forEach((row, index) => {
+      const prefix = `project[sheet_stocks_attributes][${index}]`
+      row.querySelectorAll("[data-sheet-inventory-field]").forEach((field) => {
+        const name = field.dataset.sheetInventoryField
+        if (!name) return
+
+        const clone = document.createElement("input")
+        clone.type = "hidden"
+        clone.name = `${prefix}[${name}]`
+        clone.value = field.value
+        clone.setAttribute("data-locale-workspace-draft", "true")
+        targetForm.appendChild(clone)
+      })
+    })
+
+    this.exportComposerDraft(targetForm)
+  }
+
+  exportComposerDraft(targetForm) {
+    ;["width_mm", "height_mm", "quantity"].forEach((name) => {
+      const source = this.element.querySelector(`[name="composer_draft[${name}]"]`)
+      if (!source || source.value.trim() === "") return
+
+      const clone = document.createElement("input")
+      clone.type = "hidden"
+      clone.name = `composer_draft[${name}]`
+      clone.value = source.value
+      clone.setAttribute("data-locale-workspace-draft", "true")
+      targetForm.appendChild(clone)
+    })
+  }
+
   readComposer() {
     return {
       width: this.widthTarget.value.trim(),

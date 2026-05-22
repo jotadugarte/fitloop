@@ -69,17 +69,9 @@ RSpec.describe "Project orphan DXF download", type: :request do
 
     it "[REQ-FIT-AUTH-001] requires workspace session bind" do
       attach_orphan_placements!
+      Workspace.discard!(session, tab_id: Workspace::DEFAULT_TAB_ID)
 
-      foreign = Project.create!(
-        ephemeral: true,
-        title: "Other orphan project",
-        status: :partial,
-        sheet_stocks_attributes: {
-          "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
-        }
-      )
-
-      get orphan_dxf_project_path(foreign, piece_index: 0)
+      get orphan_dxf_workshop_path(piece_index: 0)
 
       expect(response).to redirect_to(start_project_path)
       expect(flash[:alert]).to eq(I18n.t("workspace.expired"))

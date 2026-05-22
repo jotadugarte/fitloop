@@ -3,25 +3,35 @@
 # [REQ-FIT-UI-001] Ephemeral workspace setup and project show.
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
+  include RequiresNestedDownloadAuthorization
 
   layout "application"
 
   before_action :set_workspace_project, only: %i[
     show edit update nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :authorize_nested_download!, only: :nested_dxf
 
   def index
     redirect_to start_project_path
   end
 
   def show
-    sync_nesting_ui_state!
-    @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
+    return if sync_nesting_ui_state!
+
+    @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
+    @plan_download_included = Billing::PlanDownloadAvailability.plan_included?(user: current_user)
   end
 
   def nested_dxf
+    Billing::RecordPlanDownload.call(
+      user: current_user,
+      nesting_run: @nesting_run,
+      via_download_token: params[:download_token].present?
+    )
+
     attachment = @project.nested_dxf
     return head(:not_found) unless attachment.attached?
 
@@ -34,8 +44,9 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_sync
-    sync_nesting_ui_state!
-    @time_limit_notice = @project.partial? && @project.progress_message == I18n.t("nesting.time_limit_notice")
+    return if sync_nesting_ui_state!
+
+    @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
 
@@ -43,13 +54,13 @@ class ProjectsController < ApplicationController
   end
 
   def start
-    Workspace.discard!(session)
+    Workspace.discard!(session, tab_id: workspace_tab_id)
     redirect_to new_project_path
   end
 
   def new
-    @project = Workspace.find_or_create!(session)
-    @composer_draft = {}
+    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    @composer_draft = restored_composer_draft
   end
 
   def create
@@ -57,7 +68,7 @@ class ProjectsController < ApplicationController
   end
 
   def edit
-    @composer_draft = {}
+    @composer_draft = restored_composer_draft
     render :new
   end
 
@@ -79,7 +90,7 @@ class ProjectsController < ApplicationController
             locals: { project: @project }
           )
         end
-        format.html { redirect_to @project, notice: t("projects.nesting_parameters_updated") }
+        format.html { redirect_to workshop_path, notice: t("projects.nesting_parameters_updated") }
       end
     else
       respond_to do |format|
@@ -90,7 +101,7 @@ class ProjectsController < ApplicationController
             locals: { project: @project }
           ), status: :unprocessable_content
         end
-        format.html { redirect_to @project, alert: @project.errors.full_messages.to_sentence }
+        format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
       end
     end
   end
@@ -130,20 +141,20 @@ class ProjectsController < ApplicationController
 
   def render_workspace_turbo_stream(section, status: :ok)
     streams = case section
-              when :sheets
-                @project.reload
-                sheet_workspace_streams
-              when :layers
-                [
-                  turbo_stream.replace(
-                    project_dom_id(:source_dxf_detail),
-                    partial: "projects/show_source_dxf_detail",
-                    locals: { project: @project }
-                  )
-                ]
-              else
-                []
-              end
+    when :sheets
+      @project.reload
+      sheet_workspace_streams
+    when :layers
+      [
+        turbo_stream.replace(
+          project_dom_id(:source_dxf_detail),
+          partial: "projects/show_source_dxf_detail",
+          locals: { project: @project }
+        )
+      ]
+    else
+      []
+    end
 
     render turbo_stream: streams, status: status
   end
@@ -180,9 +191,9 @@ class ProjectsController < ApplicationController
       return
     end
 
-    Workspace.bind!(session, @project)
+    Workspace.bind!(session, @project, tab_id: workspace_tab_id)
     @project.update!(status: :ready)
-    redirect_to @project
+    redirect_to workshop_path
   end
 
   def nesting_parameters_params
@@ -232,9 +243,16 @@ class ProjectsController < ApplicationController
     params.fetch(:composer_draft, {}).permit(:width_mm, :height_mm, :quantity).to_h
   end
 
+  def restored_composer_draft
+    session.delete(PersistWorkspaceSheetInventoryDraft::COMPOSER_SESSION_KEY) || {}
+  end
+
   def sync_nesting_ui_state!
-    Nesting::ProjectStatusSync.call(project: @project)
-    @project.reload
+    @project = Nesting::ProjectStatusSync.call(project: @project)
+    return false if @project.present?
+
+    redirect_to(start_project_path, alert: I18n.t("workspace.expired"))
+    true
   end
 
   def sheet_workspace_streams
@@ -283,7 +301,8 @@ class ProjectsController < ApplicationController
         locals: {
           project: @project,
           preview: @nesting_preview,
-          orphans: @nesting_orphans
+          orphans: @nesting_orphans,
+          plan_download_included: Billing::PlanDownloadAvailability.plan_included?(user: current_user)
         }
       )
     end

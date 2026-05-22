@@ -1,0 +1,9 @@
+<div class="terms-acceptance" data-testid="terms-acceptance">
+  <%= f.label :terms_accepted do %>
+    <%= f.check_box :terms_accepted, { checked: true }, "1", "0" %>
+    <%= t("auth.registration.terms_prefix") %>
+    <%= link_to t("legal.terms.link"), terminos_path, target: "_blank", rel: "noopener" %>
+    <%= t("auth.registration.terms_connector") %>
+    <%= link_to t("legal.privacy.link"), privacidad_path, target: "_blank", rel: "noopener" %>
+  <% end %>
+</div>

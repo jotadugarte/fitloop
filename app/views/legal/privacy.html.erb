@@ -1,0 +1,9 @@
+<% content_for :title, t("legal.privacy.title") %>
+
+<article data-testid="legal-privacy">
+  <h1><%= t("legal.privacy.title") %></h1>
+  <p><%= t("legal.placeholder_notice") %></p>
+  <p><%= t("legal.privacy.version", version: @version) %></p>
+  <p><%= t("legal.privacy.body") %></p>
+  <p><%= link_to t("legal.terms.link"), terminos_path %></p>
+</article>

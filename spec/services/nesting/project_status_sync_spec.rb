@@ -22,7 +22,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     project.reload
     expect(project).to be_completed
     expect(project.progress_percent).to eq(100)
-    expect(project.progress_message).to eq(I18n.t("nesting.completed"))
+    expect(project.progress_message).to eq("nesting.completed")
   end
 
   it "leaves the project unchanged while the nesting run is still processing" do
@@ -81,7 +81,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     run.reload
     expect(run.status).to eq("failed")
     expect(project).to be_failed
-    expect(project.progress_message).to eq(I18n.t("nesting.cancelled"))
+    expect(project.progress_message).to eq("nesting.cancelled")
   end
 
   it "reconciles a stuck processing run from work_dir report.json [REQ-FIT-JOB-001]" do

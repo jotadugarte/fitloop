@@ -1,0 +1,9 @@
+<% if resource.errors.any? %>
+  <div class="auth-page__errors panel panel--alert" id="error_explanation" role="alert" data-testid="auth-errors">
+    <ul class="auth-page__errors-list">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

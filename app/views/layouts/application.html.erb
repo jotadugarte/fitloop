@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>">
+<html lang="<%= I18n.locale %>"
+      data-controller="workspace-tab"
+      <% if (tab_id = workspace_tab_id_for_client).present? %>
+        data-workspace-tab-preferred-value="<%= tab_id %>"
+      <% end %>>
   <head>
     <title><%= content_for(:title) || t("application.name") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -18,14 +22,12 @@
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
-  <body class="layout-app">
+  <body class="layout-app" data-controller="collapsible-persistence">
     <%= render "shared/sidebar" %>
     <%= render "shared/bottom_nav" %>
     <div class="app-main">
-      <header class="app-main__toolbar">
-        <%= render "shared/locale_switcher" %>
-      </header>
-      <%= render "shared/flash" %>
+      <%= render "shared/app_toolbar" %>
+      <%= render "shared/flash" unless content_for?(:inline_flash) %>
       <%= render "shared/fitloop_dialog" %>
       <%= yield %>
     </div>

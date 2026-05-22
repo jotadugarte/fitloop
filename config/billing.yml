@@ -1,0 +1,18 @@
+# Fitloop — precios simulados (v1, REQ-FIT-BILL-001 / D53).
+# Abra este archivo, edite los valores y guarde; la app recarga sola al cambiar el archivo (mtime).
+# Moneda: descarga suelta y planes en USD (tarjeta) o CRC (SINPE Móvil).
+
+# --- Descarga suelta (un nested DXF por pago exitoso) ---
+single_download_usd: 2.00
+single_download_sinpe_crc: 1000
+
+# Porcentaje del precio suelta cuando el cupo mensual del plan está agotado (D34: 50 → mitad)
+plan_quota_overage_percent: 50
+
+# --- Planes por duración (1, 2 y 4 meses; no existe tier de 3 meses) ---
+plan_1_month_card_usd: 6
+plan_1_month_sinpe_crc: 3000
+plan_2_months_card_usd: 10
+plan_2_months_sinpe_crc: 5000
+plan_4_months_card_usd: 16
+plan_4_months_sinpe_crc: 8000

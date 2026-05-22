@@ -1,10 +1,11 @@
-<%# [REQ-FIT-UI-001] Sheet inventory: composer, legend, then sortable list. %>
+<%# [REQ-FIT-UI-001] Sheet inventory: composer (left), priority table (right). %>
 <% composer_draft = local_assigns.fetch(:composer_draft, {}) %>
 <% show_welcome = local_assigns.fetch(:show_welcome, false) %>
+
 <fieldset class="sheet-inventory-fieldset<%= " sheet-inventory-fieldset--setup" if show_welcome %>">
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
-  <% sheet_inventory_body = capture do %>
+  <% composer_panel = capture do %>
     <div class="sheet-inventory__composer panel panel--inset">
       <div class="sheet-inventory__composer-fields">
         <div class="field">
@@ -62,48 +63,55 @@
         <%= t("projects.form.add_sheet") %>
       </button>
     </div>
+  <% end %>
 
-    <p class="sheet-inventory__legend"><%= t("projects.form.consumption_order_legend") %></p>
+  <% list_panel = capture do %>
+    <div class="sheet-inventory__list panel panel--inset">
+      <p class="sheet-inventory__legend"><%= t("projects.form.consumption_order_legend") %></p>
 
-    <div class="sheet-inventory__table panel panel--inset">
-      <table class="sheet-inventory-table">
-        <colgroup>
-          <col class="sheet-inventory-table__col-priority">
-          <col class="sheet-inventory-table__col-dim">
-          <col class="sheet-inventory-table__col-dim">
-          <col class="sheet-inventory-table__col-qty">
-          <col class="sheet-inventory-table__col-actions">
-        </colgroup>
-        <thead>
-          <tr>
-            <th scope="col" class="sheet-inventory-table__priority-head"><%= t("projects.form.consumption_priority") %></th>
-            <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:width_mm) %></th>
-            <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:height_mm) %></th>
-            <th scope="col" class="sheet-inventory-table__qty-head"><%= SheetStock.human_attribute_name(:quantity) %></th>
-            <th scope="col" class="sheet-inventory-table__actions-head"><%= t("projects.form.sheet_actions") %></th>
-          </tr>
-        </thead>
-        <tbody data-sheet-inventory-target="list" data-sortable="true">
-          <%= form.fields_for :sheet_stocks do |sheet_form| %>
-            <% next if sheet_form.object.marked_for_destruction? %>
-            <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
-          <% end %>
-        </tbody>
-      </table>
+      <div class="sheet-inventory__table">
+        <table class="sheet-inventory-table">
+          <colgroup>
+            <col class="sheet-inventory-table__col-priority">
+            <col class="sheet-inventory-table__col-dim">
+            <col class="sheet-inventory-table__col-dim">
+            <col class="sheet-inventory-table__col-qty">
+            <col class="sheet-inventory-table__col-actions">
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" class="sheet-inventory-table__priority-head"><%= t("projects.form.consumption_priority") %></th>
+              <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:width_mm) %></th>
+              <th scope="col" class="sheet-inventory-table__dim-head"><%= SheetStock.human_attribute_name(:height_mm) %></th>
+              <th scope="col" class="sheet-inventory-table__qty-head"><%= SheetStock.human_attribute_name(:quantity) %></th>
+              <th scope="col" class="sheet-inventory-table__actions-head"><%= t("projects.form.sheet_actions") %></th>
+            </tr>
+          </thead>
+          <tbody data-sheet-inventory-target="list" data-sortable="true">
+            <%= form.fields_for :sheet_stocks do |sheet_form| %>
+              <% next if sheet_form.object.marked_for_destruction? %>
+              <%= render "sheet_stock_list_item", sheet_form: sheet_form %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+
+  <% workspace = capture do %>
+    <div class="sheet-inventory__workspace">
+      <%= composer_panel %>
+      <%= list_panel %>
     </div>
   <% end %>
 
   <% if show_welcome %>
     <div class="sheet-inventory__layout sheet-inventory__layout--setup">
-      <div class="sheet-inventory__primary">
-        <%= sheet_inventory_body %>
-      </div>
+      <%= workspace %>
       <%= render "projects/setup_welcome" %>
     </div>
   <% else %>
-    <div class="sheet-inventory__stack">
-      <%= sheet_inventory_body %>
-    </div>
+    <%= workspace %>
   <% end %>
 
   <template data-sheet-inventory-target="template">

@@ -1,0 +1,53 @@
+# frozen_string_literal: true
+
+module Auth
+  # [REQ-FIT-AUTH-002] OAuth buttons: Google when registered; production requires ENV credentials.
+  class OmniauthProviders
+    Provider = Data.define(:key, :test_id, :client_id_env, :client_secret_env)
+
+    OAUTH = [
+      Provider.new(:google_oauth2, "oauth-google", "GOOGLE_OAUTH_CLIENT_ID", "GOOGLE_OAUTH_CLIENT_SECRET"),
+      Provider.new(:facebook, "oauth-facebook", "FACEBOOK_APP_ID", "FACEBOOK_APP_SECRET"),
+      Provider.new(:apple, "oauth-apple", "APPLE_CLIENT_ID", "APPLE_CLIENT_SECRET")
+    ].freeze
+
+    def self.for_ui
+      ordered = []
+      google = OAUTH.find { |p| p.key == :google_oauth2 }
+      ordered << google if google && google_in_ui?(google)
+      ordered.concat(
+        OAUTH.reject { |p| p.key == :google_oauth2 }.select { |p| registered?(p) }
+      )
+      ordered
+    end
+
+    def self.authorize_path_name(provider)
+      precondition!(provider.is_a?(Provider))
+      "user_#{provider.key}_omniauth_authorize_path"
+    end
+
+    def self.registered?(provider)
+      precondition!(provider.is_a?(Provider))
+      Rails.application.routes.url_helpers.respond_to?(authorize_path_name(provider))
+    end
+
+    def self.google_in_ui?(provider)
+      precondition!(provider.is_a?(Provider))
+      return false unless registered?(provider)
+
+      return true if Rails.env.development? || Rails.env.test?
+
+      credentials_present?(provider)
+    end
+
+    def self.credentials_present?(provider)
+      precondition!(provider.is_a?(Provider))
+      ENV[provider.client_id_env].present? && ENV[provider.client_secret_env].present?
+    end
+
+    def self.precondition!(condition)
+      raise ArgumentError, "precondition failed" unless condition
+    end
+    private_class_method :precondition!
+  end
+end

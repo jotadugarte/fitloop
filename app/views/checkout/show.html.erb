@@ -1,0 +1,63 @@
+<div class="paywall-layout checkout-page" data-testid="checkout-page">
+  <article class="paywall-layout__main panel panel--chrome">
+    <p class="checkout-demo-badge" data-testid="checkout-demo" role="status">
+      <%= t("billing.checkout.demo_badge") %>
+    </p>
+
+    <h1 class="billing-page__title"><%= t("billing.checkout.title") %></h1>
+
+    <div class="checkout-pricing panel panel--inset" data-testid="checkout-pricing-block">
+      <dl class="checkout-pricing__list">
+        <div class="checkout-pricing__row" data-testid="checkout-pricing">
+          <dt><%= t("billing.checkout.single_download") %></dt>
+          <dd>USD <%= Billing::Pricing.single_download_usd %> / CRC <%= Billing::Pricing.single_download_sinpe_crc %></dd>
+        </div>
+        <div class="checkout-pricing__row checkout-pricing__row--muted" data-testid="checkout-overage-pricing">
+          <dt><%= t("billing.checkout.overage_hint") %></dt>
+          <dd>USD <%= Billing::Pricing.single_download_overage_usd %> / CRC <%= Billing::Pricing.single_download_overage_sinpe_crc %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
+
+    <div class="checkout-methods">
+      <%= render "checkout/payment_method",
+                 testid: "checkout-pay-card-usd",
+                 title: t("billing.checkout.card_usd"),
+                 nesting_run_id: @nesting_run.id,
+                 payment_method: "card_usd" %>
+      <%= render "checkout/payment_method",
+                 testid: "checkout-pay-sinpe-crc",
+                 title: t("billing.checkout.sinpe_crc"),
+                 nesting_run_id: @nesting_run.id,
+                 payment_method: "sinpe_crc" %>
+    </div>
+
+    <footer class="checkout-footer paywall-actions">
+      <%= link_to t("billing.checkout.download_now"),
+                  nested_dxf_project_path(@project),
+                  class: "btn btn-secondary",
+                  data: { testid: "checkout-download-now", turbo: false } %>
+      <%= link_to t("billing.paywall.back_to_project"),
+                  project_path(@project),
+                  class: "btn btn-secondary",
+                  data: { testid: "checkout-back-to-project", turbo: false } %>
+    </footer>
+  </article>
+
+  <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="checkout-aside-title">
+    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
+    <h2 id="checkout-aside-title" class="paywall-aside__title"><%= t("billing.paywall.aside.title") %></h2>
+    <p class="paywall-aside__lead"><%= t("billing.paywall.aside.lead") %></p>
+    <ul class="paywall-aside__benefits">
+      <li>
+        <%= t("billing.paywall.aside.benefit_ready") %>
+        <ul class="paywall-aside__benefits-nested">
+          <li><%= t("billing.paywall.aside.benefit_retention") %></li>
+        </ul>
+      </li>
+      <li><%= t("billing.paywall.aside.benefit_plan") %></li>
+    </ul>
+  </aside>
+</div>

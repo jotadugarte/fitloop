@@ -67,7 +67,7 @@ RSpec.describe "Nest with updated pieces", type: :request do
       project.reload
       expect(project).to be_processing
       expect(project.placements_json).not_to be_attached
-      expect(project.progress_message).to eq(I18n.t("nesting.phase.queued"))
+      expect(project.progress_message).to eq("nesting.phase.queued")
 
       follow_redirect!
       expect(response.body).to include('data-testid="nesting-progress"')

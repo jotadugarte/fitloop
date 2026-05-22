@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { fitloopAlert } from "fitloop_dialog"
+import { withWorkspaceTabHeaders } from "workspace_tab"
 
 export default class extends Controller {
   static targets = ["input"]
@@ -17,10 +18,10 @@ export default class extends Controller {
     fetch(this.urlValue, {
       method: "POST",
       body,
-      headers: {
+      headers: withWorkspaceTabHeaders({
         Accept: "text/vnd.turbo-stream.html",
         "X-CSRF-Token": token
-      },
+      }),
       credentials: "same-origin"
     })
       .then(async (response) => {

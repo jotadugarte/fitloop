@@ -1,0 +1,20 @@
+<section class="checkout-method panel panel--inset" data-testid="<%= testid %>">
+  <h3 class="checkout-method__title"><%= title %></h3>
+  <%= form_with url: planes_simulate_path, method: :post, data: { turbo: false }, class: "checkout-method__form" do %>
+    <%= hidden_field_tag :project_id, project_id %>
+    <%= hidden_field_tag :tier_months, tier_months %>
+    <%= hidden_field_tag :payment_method, payment_method %>
+    <div class="checkout-simulate-actions">
+      <%= button_tag t("billing.checkout.simulate_success"),
+                     name: "outcome",
+                     value: "success",
+                     class: "btn btn-primary",
+                     data: { testid: "checkout-simulate-success" } %>
+      <%= button_tag t("billing.checkout.simulate_failure"),
+                     name: "outcome",
+                     value: "failure",
+                     class: "btn btn-secondary",
+                     data: { testid: "checkout-simulate-failure" } %>
+    </div>
+  <% end %>
+</section>

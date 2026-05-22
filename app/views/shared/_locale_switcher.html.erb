@@ -2,28 +2,40 @@
 <% panic_locale = :es_panic %>
 <% panic_available = I18n.available_locales.include?(panic_locale) %>
 
-<nav class="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
-  <div class="locale-switcher__row" role="group" aria-label="<%= t("locale.switcher_row_primary") %>">
+<nav class="locale-switcher" data-controller="locale-switcher" aria-label="<%= t("locale.switcher_label") %>">
+  <div class="locale-switcher__group" role="group" aria-label="<%= t("locale.switcher_row_primary") %>">
     <% primary_locales.each do |locale| %>
       <% active = I18n.locale == locale %>
+      <% btn_class = "btn btn--compact #{active ? 'btn-primary' : 'btn-secondary'}" %>
       <%= button_to t("locale.labels.#{locale}"),
             locale_path(locale: locale),
             method: :patch,
-            class: "locale-switcher__btn#{' locale-switcher__btn--active' if active}",
+            class: btn_class,
             aria: { current: (active ? "true" : "false") },
-            form: { class: "locale-switcher__form" } %>
+            form: {
+              class: "locale-switcher__form",
+              data: {
+                turbo: false,
+                action: "submit->locale-switcher#attachWorkspaceDraft"
+              }
+            } %>
     <% end %>
   </div>
 
   <% if panic_available %>
-    <div class="locale-switcher__row locale-switcher__row--panic" role="group" aria-label="<%= t("locale.labels.es_panic") %>">
-      <% active = I18n.locale == panic_locale %>
-      <%= button_to t("locale.labels.es_panic"),
-            locale_path(locale: panic_locale),
-            method: :patch,
-            class: "locale-switcher__btn locale-switcher__btn--wide#{' locale-switcher__btn--active' if active}",
-            aria: { current: (active ? "true" : "false") },
-            form: { class: "locale-switcher__form" } %>
-    </div>
+    <% active = I18n.locale == panic_locale %>
+    <% panic_class = "btn btn--compact locale-switcher__btn--panic #{active ? 'btn-primary' : 'btn-secondary'}" %>
+    <%= button_to t("locale.labels.es_panic"),
+          locale_path(locale: panic_locale),
+          method: :patch,
+          class: panic_class,
+          aria: { current: (active ? "true" : "false"), label: t("locale.labels.es_panic") },
+          form: {
+            class: "locale-switcher__form",
+            data: {
+              turbo: false,
+              action: "submit->locale-switcher#attachWorkspaceDraft"
+            }
+          } %>
   <% end %>
 </nav>

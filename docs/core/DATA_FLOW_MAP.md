@@ -44,7 +44,7 @@ Browser (project#show)
 
 | Stage | Trigger | DB / storage changes |
 |-------|---------|----------------------|
-| Create | `Workspace.create!` / `find_or_create!` via `ProjectsController#start` / `#new` | `Project(ephemeral: true)` row; `session[:workspace_project_id]` via `Workspace.bind!` |
+| Create | `Workspace.create!` / `find_or_create!` via `ProjectsController#start` / `#new` | `Project(ephemeral: true)` row; `session[:workspaces][tab_id]` via `Workspace.bind!(session, project, tab_id:)` |
 | Draft | Default after create | `status: draft`; may have `input_dxf` attachments |
 | Ready | Layers selected + pieces extractable (implicit or explicit) | User can start nesting when `ProjectReadinessValidator` passes |
 | Processing | `NestingRunsController#create` | `status: processing`; progress fields updated by `JobRunner` |
@@ -218,6 +218,32 @@ orphan CompositePiece (mother has decorations)
 ```
 
 **Forbidden:** nest auxiliary layers as standalone pieces when `layer_role: primary` is configured; composite association math in Ruby; drop original layer names in composite `nested.dxf` output.
+
+---
+
+## 10. Accounts, paywall, and billing (W6)
+
+**REQ:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`, `REQ-FIT-BILL-002`, `REQ-FIT-BILL-003` — ADR-0005.
+
+```
+Browser (anonymous or logged-in)
+  → nest + preview (no account required)
+  → GET nested DXF download
+  → Billing::Entitlement (grant? plan quota? email confirmed?)
+       → deny → paywall (/planes, single checkout, /iniciar-sesion)
+       → allow → SignedDownloadToken → stream blob
+```
+
+| Stage | Component | Side effects |
+|-------|-----------|--------------|
+| Register/login | Devise + OmniAuth | `users` row; `email_confirmed_at`; `terms_accepted_at`; optional merge flow |
+| Workspace bind | `session[:workspaces][tab_id]` | Ephemeral `Project` unchanged ownership model |
+| Single purchase | Simulated checkout | `Payment` succeeded → `DownloadGrant` + copy `nested_dxf` → `retained_nested_dxf`; `retained_until` +24h |
+| Plan purchase | `/planes` checkout | `Subscription` active; `PlanMonthlyUsage` counter; extend `ends_at` from prior end |
+| Mis pagos | `/mis-pagos` | List grants; download retained blob while `retained_until` valid (ignores workspace TTL) |
+| Purge | job / lazy | Drop `retained_nested_dxf` after `retained_until` |
+
+**Data separation:** `Project#nested_dxf` remains on ephemeral project until discard; **durable** copy only on single-purchase success. Plan downloads require live workspace bind + quota.
 
 ---
 

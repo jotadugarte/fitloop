@@ -71,5 +71,5 @@ This ADR **supersedes** the access model described for **REQ-FIT-AUTH-001** in p
 
 ## More information
 
-- Session task: `.agenticguild/active_sessions/task_remove-pin.md` (decisions D1–D5)
+- Archived session log: `.agenticguild/completed_sessions/task_remove-pin_2026-05-20.md` (decisions D1–D5)
 - Prior PIN behavior: git history / ADR-0004 supersedes REQ-FIT-AUTH-001 PIN bullets in specs predating 2026-05-19

@@ -41,7 +41,7 @@ RSpec.describe "Nesting enqueue ETA", type: :request do
         before_enqueue + 30.seconds,
         after_enqueue + 30.seconds
       )
-      expect(project.progress_message).to eq(I18n.t("nesting.phase.queued"))
+      expect(project.progress_message).to eq("nesting.phase.queued")
     end
   end
 end

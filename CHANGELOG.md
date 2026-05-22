@@ -6,6 +6,9 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Added
 
+- User accounts: email/password sign-up and sign-in, email verification, OAuth (Google, Facebook, Apple when configured), account edit, password reset, and account deletion (`REQ-FIT-AUTH-002`).
+- Simulated billing: paywall on nested DXF download only; single-purchase checkout (USD card / CRC SINPE); subscription plans (1, 2, or 4 months) with monthly download quota; **Mis pagos** for plan status and retained downloads within 24h (`REQ-FIT-BILL-001`..`003`).
+- Workshop multi-tab support: independent ephemeral projects per browser tab with tab-close expiry rules (`REQ-FIT-AUTH-001`, ADR-0005).
 - Nesting progress bar with phased labels (queued through writing outputs), live percent from CLI `progress.json`, and cancel in the progress panel (`REQ-FIT-JOB-001`).
 - Auto-split orphan resolution: split proposals, derived pieces, manual CAD path, and re-nest with updated pieces (`REQ-FIT-SPLIT-001`).
 - Composite DXF layers: primary/auxiliary roles, clipped decorations in preview, layer-preserved nested output (`REQ-FIT-DXF-002`).
@@ -13,6 +16,7 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Changed
 
+- Nested DXF download requires sign-in, confirmed email, and payment or active plan (preview and nesting progress remain free).
 - Ephemeral workspace access without project PIN (ADR-0004).
 - Locale switcher uses translated `aria-label` for the EN/ES group in all locales.
 

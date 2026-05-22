@@ -9,7 +9,7 @@
       1. State Tracking: When executing any skill, you MUST write your current `<phase>` and `<step>` to `.agenticguild/current_state.md`. When a task is active, you MUST also write the active session filename to `<active_task_pointer>` (e.g. `task_foo.md`) so the active task is unambiguous across IDEs and chats.
       2. Resuming: If the user says "Resume Task", "Status Check", or "Where were we?", you MUST read `.agenticguild/current_state.md` to rehydrate your context before answering.
       3. Artifact Generation: Log any identified tech-debt, blocked tasks, or test-coverage gaps into the appropriate artifact files within `.agenticguild/` rather than keeping them in temporary chat context.
-      4. Git hygiene: Do not commit `.agenticguild/current_state.md` or `.agenticguild/completed_sessions/*.md` (listed in `.gitignore`). Keep `active_sessions/task_template.md` only when session notes must live in-repo.
+      4. Git hygiene: `.agenticguild/*` is in `.gitignore`. In-repo only `.gitkeep`, `active_sessions/task_template.md`, and `completed_sessions/**`. Do not commit `current_state.md`, active `active_sessions/task_*.md`, `config.json`, `blocker_log.md`, or other agent runtime files.
     </rules>
   </memory_management>
 
@@ -91,6 +91,10 @@
       20. Composite DXF layers: `ProjectLayer.layer_role` (`primary` | `auxiliary`) per input attachment; extract/preview in Python (`composite_extract`, `dxf_preview`); `DerivedPiece#decorations_json` for composite splits; do not nest auxiliary layers as standalone pieces when a primary is configured.
       21. Service specs: use `RSpec.describe ClassName, "[REQ-ID]"` (constant), not a string class name in the outer `describe`.
       22. `dxf_preview.build_source_preview` stays a thin orchestrator (≤60 lines); file placement and bounds logic live in helpers (`_file_preview_placement`, `_merge_shifted_layers`, etc.).
+      23. Workspace multi-tab: resolve ephemeral projects with `X-Workspace-Tab-Id` and cookie `fitloop_workspace_tab_id` (`ResolvesWorkspaceTab`). If `session[:workspaces]` has non-default tab binds and both header and cookie are absent, redirect to start (`SetsWorkspaceProject#missing_tab_id_for_bound_workspaces?`). See ADR-0005 and `Workspace::WORKSPACES_KEY`.
+      24. Paywall nested DXF only: gate downloads with `RequiresNestedDownloadAuthorization`; preview, `nesting_sync`, and placements JSON stay free. Prices live in `config/billing.yml` (hot-reload), not hardcoded in controllers.
+      25. Billing v1 is simulated only: use `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` until an ADR introduces a live payment gateway (see `SYSTEM_ARCHITECTURE.md` kill list).
+      26. Request specs: root `RSpec.describe` must include `[REQ-FIT-*]` constant(s) for the domain under test (auth, billing, workspace), in addition to nested `it` tags — complements rule 21 (service class describes).
     </rules>
   </project_rules>
 </agentic_guild_os>

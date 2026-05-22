@@ -1,0 +1,46 @@
+<div class="paywall-layout" data-testid="download-paywall">
+  <article class="paywall-layout__main panel panel--chrome">
+    <h1><%= t("billing.paywall.title") %></h1>
+    <p><%= t("billing.paywall.intro") %></p>
+    <p><%= t("billing.single_download.retention_24h") %></p>
+
+    <ul class="paywall-options">
+      <% if @nesting_run %>
+        <li>
+          <%= link_to t("billing.paywall.pay_this_download"),
+                      checkout_path(nesting_run_id: @nesting_run.id),
+                      class: "btn btn-primary",
+                      data: { testid: "paywall-checkout", turbo: false } %>
+        </li>
+      <% end %>
+      <li>
+        <%= link_to t("billing.paywall.view_plans"),
+                    planes_path(project_id: @project.id),
+                    class: "btn btn-secondary",
+                    data: { testid: "paywall-planes", turbo: false } %>
+      </li>
+    </ul>
+
+    <div class="paywall-actions">
+      <%= link_to t("billing.paywall.back_to_project"),
+                  project_path(@project),
+                  class: "btn btn-secondary",
+                  data: { testid: "paywall-back-to-project", turbo: false } %>
+    </div>
+  </article>
+
+  <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="paywall-aside-title">
+    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
+    <h2 id="paywall-aside-title" class="paywall-aside__title"><%= t("billing.paywall.aside.title") %></h2>
+    <p class="paywall-aside__lead"><%= t("billing.paywall.aside.lead") %></p>
+    <ul class="paywall-aside__benefits">
+      <li>
+        <%= t("billing.paywall.aside.benefit_ready") %>
+        <ul class="paywall-aside__benefits-nested">
+          <li><%= t("billing.paywall.aside.benefit_retention") %></li>
+        </ul>
+      </li>
+      <li><%= t("billing.paywall.aside.benefit_plan") %></li>
+    </ul>
+  </aside>
+</div>

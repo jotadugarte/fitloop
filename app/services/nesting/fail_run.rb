@@ -37,9 +37,9 @@ module Nesting
     private
 
     def failure_message(error)
-      return I18n.t("nesting.input_file_missing") if error.is_a?(ActiveStorage::FileNotFoundError)
+      return "nesting.input_file_missing" if error.is_a?(ActiveStorage::FileNotFoundError)
 
-      I18n.t("nesting.failed")
+      "nesting.failed"
     end
 
     def failure_report(error)

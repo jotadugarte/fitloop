@@ -24,7 +24,8 @@
   <%= render "show_preview_zone",
              project: @project,
              preview: @nesting_preview,
-             orphans: @nesting_orphans %>
+             orphans: @nesting_orphans,
+             plan_download_included: @plan_download_included %>
 
   <%= render "show_actions", project: @project %>
 

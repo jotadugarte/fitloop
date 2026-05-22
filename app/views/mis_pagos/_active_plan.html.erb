@@ -1,0 +1,44 @@
+<div class="mis-pagos-active-plan" data-testid="mis-pagos-active-plan">
+  <div class="mis-pagos-active-plan__header">
+    <h2 class="mis-pagos-active-plan__title"><%= t("billing.mis_pagos.active_plan") %></h2>
+    <span class="mis-pagos-active-plan__badge"><%= t("billing.planes.active_badge") %></span>
+  </div>
+
+  <p class="mis-pagos-active-plan__tier" data-testid="mis-pagos-plan-tier">
+    <%= plan_tier_label(subscription.tier_months) %>
+  </p>
+  <p class="mis-pagos-active-plan__duration">
+    <%= t("billing.mis_pagos.plan_access_duration", count: subscription.tier_months) %>
+  </p>
+
+  <dl class="mis-pagos-active-plan__period">
+    <div class="mis-pagos-active-plan__period-row">
+      <dt><%= t("billing.mis_pagos.period_started") %></dt>
+      <dd>
+        <time datetime="<%= subscription.starts_at.iso8601 %>">
+          <%= l_in_user_zone(subscription.starts_at, format: :long, user: current_user) %>
+        </time>
+      </dd>
+    </div>
+    <div class="mis-pagos-active-plan__period-row">
+      <dt><%= t("billing.mis_pagos.period_ends") %></dt>
+      <dd>
+        <time datetime="<%= subscription.ends_at.iso8601 %>">
+          <%= l_in_user_zone(subscription.ends_at, format: :long, user: current_user) %>
+        </time>
+      </dd>
+    </div>
+  </dl>
+
+  <% if quota_counter %>
+    <section class="mis-pagos-active-plan__quota panel panel--inset" data-testid="mis-pagos-quota">
+      <h3 class="mis-pagos-active-plan__quota-title"><%= t("billing.mis_pagos.quota_monthly_heading") %></h3>
+      <p class="mis-pagos-active-plan__quota-value">
+        <%= t("billing.mis_pagos.quota_remaining",
+              remaining: quota_counter.remaining,
+              limit: quota_counter.usage.quota_limit) %>
+      </p>
+      <p class="mis-pagos-active-plan__quota-hint"><%= t("billing.mis_pagos.quota_monthly_hint") %></p>
+    </section>
+  <% end %>
+</div>

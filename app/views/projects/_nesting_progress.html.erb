@@ -23,7 +23,7 @@
             <% if percent.positive? %>
               <span class="nesting-progress__percent"><%= percent %>%</span>
             <% end %>
-            <%= project.progress_message %>
+            <%= nesting_progress_message(project) %>
           </p>
           <% if eta_overrun %>
             <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
@@ -49,7 +49,7 @@
       <h2 class="fit-section__legend"><%= t("nesting.progress_heading") %></h2>
       <div class="fit-section__content">
         <div class="panel panel--inset">
-          <p data-testid="progress-message"><%= project.progress_message %></p>
+          <p data-testid="progress-message"><%= nesting_progress_message(project) %></p>
           <% if time_limit_notice %>
             <p class="time-limit-notice" data-testid="time-limit-notice"><%= t("nesting.time_limit_notice") %></p>
           <% end %>

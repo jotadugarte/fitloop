@@ -6,6 +6,11 @@
       <div class="panel panel--inset nesting-preview-panel">
         <%= render "projects/nesting_preview", project: project, preview: preview, heading_level: 3 %>
         <% if project.nested_dxf.attached? %>
+          <% if local_assigns[:plan_download_included] %>
+            <p class="preview-zone__plan-hint" data-testid="plan-included-download-hint">
+              <%= t("billing.download.plan_included") %>
+            </p>
+          <% end %>
           <p class="preview-zone__download form-actions form-actions--inline">
             <%= link_to t("projects.show.download_nested_dxf"),
                         nested_dxf_project_path(project),

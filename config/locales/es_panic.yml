@@ -4,6 +4,7 @@ es_panic:
     name: Fitloop
     dialog_title: El Oráculo del Láser
     dialog_accept: Diay, a jugársela
+    dialog_cancel: Mejor no
   locale:
     switcher_label: Nivel de Estrés
     switcher_row_primary: EN / ES (antes del pánico)
@@ -44,6 +45,7 @@ es_panic:
     - Sábado de Amanecida
     formats:
       short: "%-d %b %Y"
+      long: "%-d de %B de %Y (fecha límite)"
     month_names:
     -
     - Enero
@@ -61,6 +63,7 @@ es_panic:
   time:
     formats:
       short: "%-d %b %Y %H:%M (hora del pánico)"
+      long: "%-d de %B de %Y %H:%M (cuenta regresiva)"
   activerecord:
     models:
       project:
@@ -70,6 +73,12 @@ es_panic:
         one: Pedazo de material
         other: Materiales comprados
     attributes:
+      user:
+        current_password: Contraseña actual
+        password: Nueva contraseña
+        password_confirmation: Confirmar nueva contraseña
+        name: Nombre
+        email: Correo
       project:
         title: Nombre de la maqueta
       sheet_stock:
@@ -79,6 +88,20 @@ es_panic:
         sort_order: Orden de sacrificio
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: no sirve o ya caducó
+              invalid: no sirve o ya caducó
+            current_password:
+              blank: falta la contraseña actual
+              invalid: no es la correcta
+            email:
+              blank: falta el correo
+            password:
+              too_short: muy corta (mínimo %{count})
+            password_confirmation:
+              confirmation: no coincide con la nueva
         project:
           attributes:
             title:
@@ -106,6 +129,81 @@ es_panic:
   workspace:
     default_title: Noche de desvelo
     expired: Se cerró AutoCAD sin guardar. Toca empezar de cero.
+    tab_closed_expired: Cerraste el taller hace >2 min sin logout. Empezar de cero, sin llanto en el teclado.
+  billing:
+    paywall:
+      title: Se requiere pago o plan (sin drama)
+      intro: Para bajar el DXF anidado hay que pagar esta vuelta o tener plan activo.
+      pay_this_download: Pagar esta descarga
+      view_plans: Ver planes
+      back_to_project: Volver al proyecto
+      aside:
+        title: El DXF anidado ya está (no lo toques sin pagar)
+        lead: "El Tetris terminó. Desbloquea la bajada así:"
+        benefit_ready: Una vuelta, un pago, un DXF
+        benefit_plan: Plan con cupo mensual de descargas
+        benefit_retention: 24 h en Mis pagos aunque cierres el taller
+    single_download:
+      retention_24h: Si pagas solo esta descarga (no plan), tras pagar queda en Mis pagos 24 h aunque cierres el taller. Los planes no guardan copia en Mis pagos.
+    suspended: Cuenta suspendida. Sin pagos ni descargas.
+    download:
+      plan_included: Incluido en tu plan
+      retention_expired: La descarga retenida caducó. Ya no está el archivo.
+    mis_pagos:
+      title: Mis pagos
+      active_plan: Plan activo
+      no_active_plan: Sin plan activo.
+      plan_ends: Vence el %{ends_at}
+      plan_access_duration:
+        one: 1 mes de acceso al plan
+        other: "%{count} meses de acceso al plan"
+      period_started: Inicio
+      period_ends: Vence
+      quota_monthly_heading: Cupo mensual de descargas
+      quota_monthly_hint: El cupo se renueva cada mes del calendario; no es el botín total del plan.
+      quota_remaining: "%{remaining} / %{limit} descargas este mes"
+      single_purchases: Descargas sueltas pagadas
+      no_single_purchases: Sin descargas sueltas todavía.
+      download: Descargar
+      retained_until: Hasta %{until}
+      payment_history: Historial de pagos
+      no_payments: Sin pagos.
+      purpose:
+        single_download: Descarga suelta
+        plan_subscription: Plan
+      status:
+        succeeded: Exitoso
+        failed: Fallido
+        pending: Pendiente
+      aside:
+        title: Descargas y planes
+        lead: Tu plan, las sueltas que pagaste y el historial de pagos simulados.
+        view_plans: Ver planes
+    planes:
+      success: Plan activado. Baja el DXF anidado desde el proyecto.
+      title: Planes (elige tu sufrimiento)
+      browse_intro: Mira precios. Para activar plan con taller abierto, vuelve al proyecto y «Ver planes» en descarga.
+      project_required: Abre un taller para activar plan desde aquí.
+      tier_1: Plan 1 mes
+      tier_2: Plan 2 meses
+      tier_4: Plan 4 meses
+      active_badge: Activo (ahora mismo)
+      active_until: "Vigente hasta %{ends_at}"
+      aside:
+        lead: Planes con cupo mensual. Elige meses y simula pago USD o CRC.
+    checkout:
+      demo_badge: DEMO — pagos simulados (QA)
+      card_usd: Tarjeta (USD)
+      sinpe_crc: SINPE Móvil (CRC)
+      simulate_success: Pago exitoso
+      simulate_failure: Pago fallido
+      failure: El pago simulado falló. Otra vuelta.
+      success_title: Pago recibido
+      success_retention: Pago OK. Descarga en marcha; en Mis pagos 24 h aunque cierres el taller.
+      download_now: Descargar ahora
+      title: Pagar esta descarga
+      single_download: Descarga suelta
+      overage_hint: Cupo del plan muerto (50%)
   home:
     index:
       tagline: Tetris de supervivencia DXF
@@ -178,6 +276,7 @@ es_panic:
       adjust_setup: Configurar láser
       layers: Capas (Layers)
       download_nested_dxf: Llevar al plotter (Descargar DXF anidado)
+      nested_dxf_unavailable: No hay anidado listo. Re-anidar o revisar el estado del proyecto.
       back: Jalar de aquí (Atrás)
       actions_title: Botón de pánico
       manage_title: Administrar este dolor de cabeza
@@ -346,3 +445,182 @@ es_panic:
       files_attached:
         one: 1 triste archivo subido
         other: "%{count} archivos flotando en el espacio"
+
+  auth:
+    nav:
+      label: Cuenta (drama incluido)
+      back: Volver
+      home: Inicio
+      sign_in: Iniciar sesión
+      sign_up: Crear cuenta
+      account: Mi cuenta
+      payments: Mis pagos
+      workshop: Mi taller
+      sign_out: Cerrar sesión
+    sign_out:
+      confirm_title: ¿Cerrar sesión o abandonar el taller en llamas?
+      confirm_warning: Hay un proyecto en curso. Si cierras sesión, ese trabajo se va al limbo (sin vuelta atrás).
+      confirm_submit: Cerrar sesión y tirar el proyecto
+      cancel: Volver al taller
+    merge:
+      offer_title: ¿Fusionar cuentas o seguir en guerra civil?
+      offer_body: Ya hay una cuenta con %{email} y otro método de acceso. Ponga la contraseña para unificar bandos o rechace y siga la novela.
+      password_label: Contraseña de la cuenta que ya existía
+      accept: Fusionar cuentas
+      decline: Mantener separadas (drama garantizado)
+      declined: No hubo fusión. Use su método de acceso original.
+      accepted: Cuentas fusionadas. Sesión abierta.
+      expired: La oferta de fusión caducó. Vuelva a intentar.
+      invalid_password: Contraseña incorrecta. El drama continúa.
+    shared:
+      or_email: O sigue con tu correo (sin OAuth si no quieres)
+      footer_nav: Enlaces de acceso
+    oauth:
+      google_oauth2: Entrar con Google (un clic y listo)
+      facebook: Entrar con Facebook
+      apple: Entrar con Apple
+      failure: Ese proveedor nos dejó en visto. Intente otra vía.
+    session:
+      sign_in_title: Iniciar sesión
+      submit: Entrar al taller
+    confirmation:
+      pending_title: Confirma el correo (sí, el buzón)
+      pending_body: Revise el correo y abra el enlace. Sin confirmar, no hay pago ni descarga.
+      resend_title: Reenviar confirmación
+      resend_intro: Ponga el correo con el que se registró; le mandamos el enlace otra vez.
+      resend_submit: Mandar enlace
+      resend_link: Reenviar correo de confirmación
+      activate_title: Confirmar correo
+      confirmed: Correo confirmado. Ya puede entrar.
+      invalid_token: Enlace inválido o caducado. Pida uno nuevo.
+    password:
+      forgot_title: ¿Olvidó la contraseña otra vez?
+      forgot_intro: Ponga su correo; le mandamos el salvavidas de contraseña.
+      reset_title: Contraseña nueva (mínimo 12, sin excusas)
+      length_hint: Mínimo %{min} caracteres (sin atajos).
+      validation:
+        too_short: Al menos %{min} caracteres; menos no cuenta.
+        mismatch: Las contraseñas no coinciden. Revise el drama.
+        match: Las contraseñas coinciden. Puede respirar.
+      new_password: Nueva contraseña
+      send_reset: Mandar el salvavidas al correo
+      change_password: Cambiar contraseña
+      reset_sent: Revise el correo; ahí va el enlace de rescate.
+      updated: Contraseña cambiada. Puede entrar otra vez.
+    registration:
+      title: Crear cuenta (sin vuelta atrás)
+      terms_label: Acepto el contrato letra chiquita y la política de privacidad
+      terms_prefix: Acepto los
+      terms_connector: y la
+      submit: Firmar el contrato
+    account:
+      title: Mi cuenta (el drama personal)
+      submit: Guardar cambios
+      email: Correo
+      email_readonly_hint: El correo es para siempre; no se reescribe.
+      change_password_toggle: Cambiar contraseña
+      password_change_intro: En blanco = no tocar la contraseña.
+      name: Nombre
+      new_password: Nueva contraseña
+      new_password_hint: En blanco = no tocar la contraseña.
+      password_confirmation: Confirmar nueva contraseña
+      current_password: Contraseña actual
+      current_password_hint: Contraseña actual para confirmar que eres tú.
+      current_password_invalid: La contraseña actual no es correcta. Inténtelo otra vez.
+    account_deletion:
+      link: Eliminar cuenta (punto de no retorno)
+      title: Eliminar cuenta
+      intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
+      active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      aside:
+        title: Antes de saltar al vacío
+        lead: Es definitivo. Si solo necesitas aire, cierra sesión y vuelve cuando el caos lo permita.
+        benefit_permanent: Desaparecen cuenta, taller en curso e historial de pagos.
+        benefit_plan: Plan activo = adiós a descargas y cuota que no hayas quemado.
+        benefit_support: ¿Dudas? Cancela y mira Mis pagos o Mi cuenta.
+        back_to_account: Volver a Mi cuenta
+      continue: Continuar hacia el abismo
+      cancel: Cancelar y respirar
+      confirm_title: Confirmar eliminación
+      confirm_instructions: Escribe %{phrase} para sellar el destino.
+      confirm_phrase_label: Frase de confirmación
+      confirm_phrase_expected: ELIMINAR
+      current_password_label: Contraseña actual
+      submit: Eliminar mi cuenta para siempre
+      done: Cuenta eliminada. Fin del capítulo.
+      restart: Vuelve a empezar el proceso de eliminación.
+      invalid_password: Contraseña incorrecta.
+      invalid_phrase: La frase no coincide. El universo te da otra oportunidad.
+  legal:
+    placeholder_notice: Texto de relleno. El abogado llegará después (FU-LEGAL-001).
+    terms:
+      title: Términos de servicio (letra chiquita)
+      link: términos de servicio
+      version: 'Versión: %{version}'
+      body: Aquí irá el contrato real. Por ahora es un cartel de «obras en construcción».
+    privacy:
+      title: Política de privacidad
+      link: política de privacidad
+      version: 'Versión: %{version}'
+      body: Aquí irá qué hacemos con tus datos. Spoiler del futuro legal, no del presente.
+    account:
+      title: Mi cuenta (el drama personal)
+      submit: Guardar cambios
+      new_password_hint: Nueva contraseña (en blanco = no tocar)
+      current_password_hint: Contraseña actual para confirmar que eres tú
+    account_deletion:
+      link: Eliminar cuenta (punto de no retorno)
+      title: Eliminar cuenta
+      intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
+      active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      aside:
+        title: Antes de saltar al vacío
+        lead: Es definitivo. Si solo necesitas aire, cierra sesión y vuelve cuando el caos lo permita.
+        benefit_permanent: Desaparecen cuenta, taller en curso e historial de pagos.
+        benefit_plan: Plan activo = adiós a descargas y cuota que no hayas quemado.
+        benefit_support: ¿Dudas? Cancela y mira Mis pagos o Mi cuenta.
+        back_to_account: Volver a Mi cuenta
+      continue: Continuar hacia el abismo
+      cancel: Cancelar y respirar
+      confirm_title: Confirmar eliminación
+      confirm_instructions: Escribe %{phrase} para sellar el destino.
+      confirm_phrase_label: Frase de confirmación
+      confirm_phrase_expected: ELIMINAR
+      current_password_label: Contraseña actual
+      submit: Eliminar mi cuenta para siempre
+      done: Cuenta eliminada. Fin del capítulo.
+      restart: Vuelve a empezar el proceso de eliminación.
+      invalid_password: Contraseña incorrecta.
+      invalid_phrase: La frase no coincide. El universo te da otra oportunidad.
+
+  devise:
+    failure:
+      unauthenticated: Inicia sesión primero; sin cuenta no hay taller.
+      unconfirmed: Confirma el correo antes de pagar o descargar. El buzón no se revisa solo.
+      invalid: Correo o contraseña incorrectos. El drama continúa.
+      timeout: La sesión murió. Vuelve a iniciar sesión.
+      already_authenticated: Ya estás dentro. No hace falta volver a entrar.
+      user:
+        unauthenticated: Inicia sesión primero; sin cuenta no hay taller.
+        unconfirmed: Confirma el correo antes de pagar o descargar. El buzón no se revisa solo.
+        invalid: Correo o contraseña incorrectos. El drama continúa.
+        timeout: La sesión murió. Vuelve a iniciar sesión.
+        already_authenticated: Ya estás dentro. No hace falta volver a entrar.
+    sessions:
+      signed_in: Sesión abierta. Bienvenido al taller.
+      signed_out: Sesión cerrada. El taller queda vacío.
+      user:
+        signed_in: Sesión abierta. Bienvenido al taller.
+        signed_out: Sesión cerrada. El taller queda vacío.
+    registrations:
+      signed_up: ¡Bienvenido al club! Registro exitoso.
+      signed_up_but_unconfirmed: Mire el correo; ahí está el enlace de confirmación.
+      updated: Cuenta actualizada. Los cambios ya están en el sistema.
+      user:
+        updated: Cuenta actualizada. Los cambios ya están en el sistema.
+    confirmations:
+      confirmed: Correo confirmado. El drama del buzón termina.
+      send_instructions: Si el correo existe en el sistema, llegará el enlace. Revise spam.
+    mailer:
+      confirmation_instructions:
+        subject: Confirme que su correo existe

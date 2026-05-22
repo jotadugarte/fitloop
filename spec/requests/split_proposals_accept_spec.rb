@@ -72,7 +72,7 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
         ]
       )
 
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       derived = project.derived_pieces.order(:sort_order)
       expect(derived.map(&:decorations_json)).to all(be_present)
@@ -94,7 +94,7 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
     end
 
     it "[REQ-FIT-SPLIT-001] materializes DerivedPiece rows and resolves the mother orphan" do
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       expect(response).to redirect_to(project_path(project))
       expect(proposal.reload.status).to eq("accepted")
@@ -109,7 +109,7 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
     end
 
     it "[REQ-FIT-SPLIT-001] appends split_accepted to session_workflow_log" do
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       project.reload
       accepted_event = project.session_workflow_log.find { |entry| entry["event"] == "split_accepted" }
@@ -127,7 +127,7 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
         content_type: "application/dxf"
       )
 
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       project.reload
       expect(project.session_workflow_log.last).to include(
@@ -164,7 +164,7 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
         content_type: "application/json"
       )
 
-      post project_accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
 
       get project_path(project)
 

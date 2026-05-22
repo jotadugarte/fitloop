@@ -1,0 +1,16 @@
+<%= render "devise/shared/auth_page", title: t("auth.confirmation.activate_title") do %>
+  <%= render "devise/shared/error_messages", resource: resource %>
+
+  <% if resource.errors.empty? %>
+    <p class="auth-page__intro"><%= t("auth.confirmation.confirmed") %></p>
+    <div class="form-actions">
+      <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "btn btn-primary" %>
+    </div>
+  <% else %>
+    <p class="auth-page__intro"><%= t("auth.confirmation.invalid_token") %></p>
+    <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+      <%= link_to t("auth.confirmation.resend_link"), new_user_confirmation_path, class: "auth-page__link" %>
+      <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "auth-page__link" %>
+    </nav>
+  <% end %>
+<% end %>

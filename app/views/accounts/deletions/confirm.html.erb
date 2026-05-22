@@ -1,0 +1,42 @@
+<%= render layout: "accounts/deletions/page_shell",
+           locals: { title: t("auth.account_deletion.confirm_title"), testid: "account-deletion-confirm" } do %>
+  <% if @active_plan %>
+    <div class="account-deletion-section panel panel--inset account-deletion-section--warning">
+      <p class="account-deletion-section__warning" data-testid="account-deletion-active-plan-warning" role="status">
+        <%= t("auth.account_deletion.active_plan_warning") %>
+      </p>
+    </div>
+  <% end %>
+
+  <%= form_with url: account_deletion_path,
+                method: :delete,
+                class: "account-deletion-form",
+                data: { testid: "account-deletion-form" } do |f| %>
+    <section class="account-deletion-section panel panel--inset">
+      <p class="account-deletion-section__text">
+        <%= t("auth.account_deletion.confirm_instructions",
+              phrase: t("auth.account_deletion.confirm_phrase_expected")) %>
+      </p>
+
+      <div class="field">
+        <%= label_tag "user_confirm_phrase", t("auth.account_deletion.confirm_phrase_label") %>
+        <%= text_field_tag "user[confirm_phrase]",
+                           nil,
+                           autocomplete: "off",
+                           class: "account-deletion-form__phrase" %>
+      </div>
+
+      <div class="field">
+        <%= label_tag "user_current_password", t("auth.account_deletion.current_password_label") %>
+        <%= password_field_tag "user[current_password]",
+                               nil,
+                               autocomplete: "current-password" %>
+      </div>
+    </section>
+
+    <footer class="account-deletion-actions paywall-actions">
+      <%= f.submit t("auth.account_deletion.submit"), class: "btn account-deletion-form__submit" %>
+      <%= link_to t("auth.account_deletion.cancel"), edit_user_registration_path, class: "btn btn-secondary" %>
+    </footer>
+  <% end %>
+<% end %>

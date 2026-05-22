@@ -55,9 +55,14 @@ Thumbs.db
 # Local DXF scratch (fixtures live under nesting_engine/tests/fixtures/)
 xf-test-temp/
 
-# agentic:guild local state (not product code)
-.agenticguild/current_state.md
-.agenticguild/completed_sessions/*.md
+# agentic:guild — local agent memory (decisions belong in docs/core/; archive completed tasks in-repo)
+.agenticguild/*
+!.agenticguild/.gitkeep
+!.agenticguild/active_sessions/
+!.agenticguild/active_sessions/.gitkeep
+!.agenticguild/active_sessions/task_template.md
+!.agenticguild/completed_sessions/
+!.agenticguild/completed_sessions/**
 
 
 

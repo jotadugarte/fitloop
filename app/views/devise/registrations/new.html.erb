@@ -1,0 +1,39 @@
+<%= render "devise/shared/auth_page", title: t("auth.registration.title") do %>
+  <%= render "devise/shared/oauth_buttons" %>
+
+  <p class="auth-page__divider"><%= t("auth.shared.or_email") %></p>
+
+  <section class="auth-page__email" data-testid="oauth-email" data-controller="timezone-capture">
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+          html: { class: "auth-page__form", data: password_validation_form_data }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, autocomplete: "email" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :name %>
+        <%= f.text_field :name, autocomplete: "name" %>
+      </div>
+
+      <%= render "devise/shared/password_fields_with_validation", f: f %>
+
+      <%= f.hidden_field :time_zone, data: { timezone_capture_target: "timeZone" } %>
+
+      <%= render "devise/shared/terms_acceptance", f: f %>
+
+      <div class="form-actions">
+        <%= f.submit t("auth.registration.submit"),
+              class: "btn btn-primary",
+              disabled: true,
+              data: { password_validation_target: "submit" } %>
+      </div>
+    <% end %>
+
+    <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+      <%= link_to t("auth.nav.sign_in"), new_user_session_path, class: "auth-page__link" %>
+    </nav>
+  </section>
+<% end %>

@@ -1,7 +1,79 @@
 module ApplicationHelper
+  include WorkshopUrlHelper
   include NestingProgressHelper
   include UiHelper
   include NestingPreviewHelper
+
+  def user_omniauth_authorize_path(provider)
+    public_send(Auth::OmniauthProviders.authorize_path_name(provider).to_sym)
+  end
+
+  def auth_back_path
+    session[:workspace_return_to].presence || root_path
+  end
+
+  def auth_back_label
+    session[:workspace_return_to].present? ? t("auth.nav.back") : t("auth.nav.home")
+  end
+
+  def workspace_tab_id_from_request
+    request.headers[ResolvesWorkspaceTab::TAB_HEADER].presence ||
+      cookies[ResolvesWorkspaceTab::TAB_COOKIE].presence ||
+      Workspace::DEFAULT_TAB_ID
+  end
+
+  def workspace_tab_id_for_client
+    hash = session[Workspace::WORKSPACES_KEY].to_h
+    return nil unless hash.size == 1
+
+    hash.keys.first
+  end
+
+  def toolbar_workspace_project
+    @toolbar_workspace_project ||= begin
+      tid = workspace_tab_id_from_request
+      project = Workspace.any_bound_project(session, prefer_tab_id: tid)
+      if project && Workspace.tab_id_for_project(session, project.id) != tid
+        Workspace.bind!(session, project, tab_id: tid)
+      end
+      project
+    end
+  end
+
+  def toolbar_workshop_path
+    toolbar_workspace_project ? workshop_path : start_project_path
+  end
+
+  def toolbar_workshop_button_class
+    base = "btn btn--compact toolbar-workshop__btn"
+    toolbar_workspace_project ? "#{base} btn-primary" : "#{base} btn-secondary"
+  end
+
+  def auth_password_length_hint
+    t("auth.password.length_hint", min: Devise.password_length.begin)
+  end
+
+  def account_current_password_error_message(user)
+    return t("auth.account.current_password_invalid") if user.errors.of_kind?(:current_password, :invalid)
+
+    user.errors.full_messages_for(:current_password).first
+  end
+
+  def account_password_section_open?(user)
+    %i[current_password password password_confirmation].any? { |attr| user.errors.include?(attr) }
+  end
+
+  def password_validation_form_data(optional: false)
+    min = Devise.password_length.begin
+    {
+      controller: "password-validation",
+      password_validation_min_value: min,
+      password_validation_optional_value: optional,
+      password_validation_too_short_value: t("auth.password.validation.too_short", min: min),
+      password_validation_mismatch_value: t("auth.password.validation.mismatch"),
+      password_validation_match_value: t("auth.password.validation.match")
+    }
+  end
 
   def sheet_stock_dimension_mm(value)
     number_with_precision(value, precision: 1, strip_insignificant_zeros: true)

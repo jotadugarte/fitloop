@@ -1,0 +1,41 @@
+<%= render "devise/shared/auth_page", title: t("auth.account.title") do %>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+        html: {
+          method: :put,
+          class: "auth-page__form",
+          data: password_validation_form_data(optional: true).merge(turbo: false)
+        }) do |f| %>
+    <div class="field">
+      <span class="field__label" id="account-email-label"><%= t("auth.account.email") %></span>
+      <p class="auth-page__readonly-value" aria-labelledby="account-email-label"><%= resource.email %></p>
+      <span class="field__hint"><%= t("auth.account.email_readonly_hint") %></span>
+    </div>
+
+    <div class="field">
+      <%= f.label :name, t("auth.account.name") %>
+      <%= f.text_field :name, autocomplete: "name" %>
+    </div>
+
+    <details class="auth-page__disclosure" <%= "open" if account_password_section_open?(resource) %>>
+      <summary class="auth-page__disclosure-summary">
+        <span class="auth-page__disclosure-title"><%= t("auth.account.change_password_toggle") %></span>
+        <span class="auth-page__disclosure-chevron" aria-hidden="true"></span>
+      </summary>
+
+      <div class="auth-page__disclosure-body">
+        <%= render "devise/shared/account_password_change_fields", f: f %>
+      </div>
+    </details>
+
+    <div class="form-actions">
+      <%= f.submit t("auth.account.submit"),
+            class: "btn btn-primary",
+            data: { password_validation_target: "submit" } %>
+    </div>
+  <% end %>
+
+  <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+    <%= link_to t("auth.account_deletion.link"), account_deletion_path, class: "auth-page__link" %>
+    <%= link_to t("auth.nav.payments"), mis_pagos_path, class: "auth-page__link" %>
+  </nav>
+<% end %>

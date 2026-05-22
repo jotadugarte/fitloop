@@ -18,6 +18,6 @@ RSpec.describe Nesting::FailRun do
     nesting_run.reload
     expect(nesting_run.status).to eq("failed")
     expect(project).to be_failed
-    expect(project.progress_message).to eq(I18n.t("nesting.input_file_missing"))
+    expect(project.progress_message).to eq("nesting.input_file_missing")
   end
 end

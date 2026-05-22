@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Workspace project access", type: :request do
+RSpec.describe "Workspace project access", "[REQ-FIT-AUTH-001] [REQ-FIT-UI-003] [REQ-FIT-BILL-001]", type: :request do
   describe "GET /projects [REQ-FIT-UI-003]" do
     it "redirects to empezar (ephemeral-only; no saved project list)" do
       get projects_path
@@ -11,20 +11,13 @@ RSpec.describe "Workspace project access", type: :request do
     end
   end
 
-  describe "GET /projects/:id without session bind [REQ-FIT-AUTH-001]" do
-    it "redirects to empezar when the project is not bound to the session" do
+  describe "GET /taller without session bind [REQ-FIT-AUTH-001]" do
+    it "redirects to empezar when no workshop is bound to the session" do
       get start_project_path
       follow_redirect!
+      Workspace.discard!(session, tab_id: Workspace::DEFAULT_TAB_ID)
 
-      foreign = ProjectSpecFactory.create!(
-        title: "Other workspace",
-        status: :completed,
-        sheet_stocks_attributes: {
-          "0" => { width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0 }
-        }
-      )
-
-      get project_path(foreign)
+      get workshop_path
 
       expect(response).to redirect_to(start_project_path)
       expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
@@ -70,7 +63,8 @@ RSpec.describe "Workspace project access", type: :request do
       expect(response.body).to include('data-turbo="false"')
     end
 
-    it "serves the nested DXF as a file download" do
+    it "redirects nested DXF download to paywall without entitlement [REQ-FIT-BILL-001]" do
+      project.nesting_runs.create!(status: "completed")
       project.nested_dxf.attach(
         io: StringIO.new("NESTED DXF CONTENT"),
         filename: "nested.dxf",
@@ -79,10 +73,7 @@ RSpec.describe "Workspace project access", type: :request do
 
       get nested_dxf_project_path(project)
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("NESTED DXF CONTENT")
-      expect(response.headers["Content-Disposition"]).to include("attachment")
-      expect(response.headers["Content-Disposition"]).to include("nested.dxf")
+      expect(response).to redirect_to(download_paywall_project_path(project))
     end
   end
 end

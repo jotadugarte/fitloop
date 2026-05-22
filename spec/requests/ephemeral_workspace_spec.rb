@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Ephemeral workspace", type: :request do
+RSpec.describe "Ephemeral workspace", "[REQ-FIT-AUTH-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   it "starts from home and shows initial parameters" do
@@ -49,7 +49,7 @@ RSpec.describe "Ephemeral workspace", type: :request do
     expect(response.body).to include(I18n.t("projects.show.session_title"))
   end
 
-  it "[REQ-FIT-AUTH-001] redirects to empezar when opening another ephemeral project without bind" do
+  it "[REQ-FIT-AUTH-001] serves only the session-bound workshop at /taller" do
     get start_project_path
     follow_redirect!
     bound = Project.find(session[:workspace_project_id])
@@ -63,10 +63,11 @@ RSpec.describe "Ephemeral workspace", type: :request do
       }
     )
 
-    get project_path(other)
+    get workshop_path
 
-    expect(response).to redirect_to(start_project_path)
-    expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("preview_zone_project_#{bound.id}")
+    expect(response.body).not_to include("preview_zone_project_#{other.id}")
     expect(bound).to be_persisted
   end
 

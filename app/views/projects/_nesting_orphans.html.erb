@@ -82,12 +82,6 @@
             <p class="orphan-card__dimensions" data-testid="orphan-dimensions">
               <%= orphan_preview_dimensions(orphan) %>
             </p>
-            <p class="orphan-card__actions">
-              <%= link_to t("nesting.orphan_preview.download_dxf"),
-                          orphan_dxf_project_path(project, piece_index: orphan.piece_index),
-                          class: "btn btn-secondary btn--small",
-                          data: { turbo: false, turbo_frame: "_top", testid: "download-orphan-dxf" } %>
-            </p>
           <% end %>
 
           <% if orphan.split_not_feasible? %>
@@ -96,7 +90,7 @@
             </p>
             <div class="orphan-card__actions">
               <%= button_to t("nesting.split.reject"),
-                            project_reject_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            reject_project_orphan_split_proposal_path(project, orphan.piece_key),
                             method: :post,
                             class: "btn btn-secondary btn--small",
                             form: { data: { turbo: true } } %>
@@ -107,12 +101,12 @@
             </div>
             <div class="orphan-card__actions">
               <%= button_to t("nesting.split.accept"),
-                            project_accept_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            accept_project_orphan_split_proposal_path(project, orphan.piece_key),
                             method: :post,
                             class: "btn btn-primary btn--small",
                             form: { data: { turbo: true } } %>
               <%= button_to t("nesting.split.reject"),
-                            project_reject_project_orphan_split_proposal_path(project, orphan.piece_key),
+                            reject_project_orphan_split_proposal_path(project, orphan.piece_key),
                             method: :post,
                             class: "btn btn-secondary btn--small",
                             form: { data: { turbo: true } } %>

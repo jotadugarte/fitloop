@@ -3,6 +3,7 @@ es:
     name: "Fitloop"
     dialog_title: "Fitloop"
     dialog_accept: "Aceptar"
+    dialog_cancel: "Cancelar"
 
   locale:
     switcher_label: "Idioma"
@@ -45,6 +46,7 @@ es:
       - sábado
     formats:
       short: "%-d %b %Y"
+      long: "%-d de %B de %Y"
     month_names:
       -
       - enero
@@ -62,6 +64,7 @@ es:
   time:
     formats:
       short: "%-d %b %Y %H:%M"
+      long: "%-d de %B de %Y %H:%M"
 
   activerecord:
     models:
@@ -72,6 +75,12 @@ es:
         one: "Tipo de lámina"
         other: "Tipos de lámina"
     attributes:
+      user:
+        current_password: "Contraseña actual"
+        password: "Nueva contraseña"
+        password_confirmation: "Confirmar nueva contraseña"
+        name: "Nombre"
+        email: "Correo"
       project:
         title: "Título"
       sheet_stock:
@@ -81,6 +90,20 @@ es:
         sort_order: "Orden"
     errors:
       models:
+        user:
+          attributes:
+            confirmation_token:
+              blank: "no es válido o ya expiró"
+              invalid: "no es válido o ya expiró"
+            current_password:
+              blank: "no puede estar en blanco"
+              invalid: "no es correcta"
+            email:
+              blank: "no puede estar en blanco"
+            password:
+              too_short: "debe tener al menos %{count} caracteres"
+            password_confirmation:
+              confirmation: "no coincide con la contraseña"
         project:
           attributes:
             title:
@@ -110,6 +133,82 @@ es:
   workspace:
     default_title: "Sesión de anidado"
     expired: "Esta sesión ya no está disponible. Vuelve a empezar."
+    tab_closed_expired: "Cerraste el taller hace más de 2 minutos sin cerrar sesión. Vuelve a empezar."
+
+  billing:
+    paywall:
+      title: "Se requiere pago o plan"
+      intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
+      pay_this_download: "Pagar esta descarga"
+      view_plans: "Ver planes"
+      back_to_project: "Volver al proyecto"
+      aside:
+        title: "Tu DXF anidado está listo"
+        lead: "El anidado terminó. Elige cómo desbloquear la descarga:"
+        benefit_ready: "Pago único para esta ejecución"
+        benefit_plan: "Plan mensual con cupo de descargas"
+        benefit_retention: "24 h en Mis pagos aunque cierres el taller"
+    single_download:
+      retention_24h: "Si pagas solo esta descarga (no un plan), tras el pago el archivo estará en Mis pagos durante 24 horas aunque cierres el taller. Los planes no guardan copia en Mis pagos."
+    suspended: "Tu cuenta está suspendida. No puedes pagar ni descargar."
+    download:
+      plan_included: "Incluido en tu plan"
+      retention_expired: "La descarga retenida expiró. El archivo ya no está disponible."
+    mis_pagos:
+      title: "Mis pagos"
+      active_plan: "Plan activo"
+      no_active_plan: "No tienes un plan activo."
+      plan_ends: "Vence el %{ends_at}"
+      plan_access_duration:
+        one: "1 mes de acceso al plan"
+        other: "%{count} meses de acceso al plan"
+      period_started: "Inicio"
+      period_ends: "Vence"
+      quota_monthly_heading: "Cupo mensual de descargas"
+      quota_monthly_hint: "El cupo se renueva cada mes natural del calendario; no es el total de descargas del plan completo."
+      quota_remaining: "%{remaining} de %{limit} descargas este mes"
+      single_purchases: "Descargas sueltas pagadas"
+      no_single_purchases: "Aún no tienes descargas sueltas pagadas."
+      download: "Descargar"
+      retained_until: "Disponible hasta %{until}"
+      payment_history: "Historial de pagos"
+      no_payments: "Sin pagos registrados."
+      purpose:
+        single_download: "Descarga suelta"
+        plan_subscription: "Plan"
+      status:
+        succeeded: "Exitoso"
+        failed: "Fallido"
+        pending: "Pendiente"
+      aside:
+        title: "Descargas y planes"
+        lead: "Aquí ves tu plan activo, las descargas sueltas que pagaste y el historial de pagos simulados."
+        view_plans: "Ver planes"
+    planes:
+      title: "Planes"
+      success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."
+      browse_intro: "Consulta precios y duración. Para activar un plan desde un proyecto en curso, vuelve al taller y elige «Ver planes» desde la pantalla de descarga."
+      project_required: "Abre un proyecto en el taller para activar un plan desde aquí."
+      tier_1: "Plan 1 mes"
+      tier_2: "Plan 2 meses"
+      tier_4: "Plan 4 meses"
+      active_badge: "Activo"
+      active_until: "Vigente hasta %{ends_at}"
+      aside:
+        lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
+    checkout:
+      title: "Pagar esta descarga"
+      demo_badge: "Entorno de demostración — pagos simulados (QA)"
+      card_usd: "Tarjeta (USD)"
+      sinpe_crc: "SINPE Móvil (CRC)"
+      simulate_success: "Pago exitoso"
+      simulate_failure: "Pago fallido"
+      failure: "El pago simulado falló. Inténtalo de nuevo."
+      success_title: "Pago recibido"
+      success_retention: "Pago recibido. La descarga se inició y el archivo quedará en Mis pagos durante 24 horas aunque cierres el taller."
+      download_now: "Descargar ahora"
+      single_download: "Descarga suelta"
+      overage_hint: "Con cupo de plan agotado (50%)"
 
   home:
     index:
@@ -184,6 +283,7 @@ es:
       adjust_setup: "Ajustar parámetros"
       layers: "Capas DXF"
       download_nested_dxf: "Descargar DXF anidado"
+      nested_dxf_unavailable: "No hay un anidado listo para descargar. Vuelve a anidar o revisa el estado del proyecto."
       back: "Inicio"
       actions_title: "Acciones de anidado"
       manage_title: "Ajustes"
@@ -356,3 +456,182 @@ es:
       files_attached:
         one: "1 archivo DXF adjunto"
         other: "%{count} archivos DXF adjuntos"
+
+  auth:
+    nav:
+      label: "Cuenta"
+      back: "Volver"
+      home: "Inicio"
+      sign_in: "Iniciar sesión"
+      sign_up: "Crear cuenta"
+      account: "Mi cuenta"
+      payments: "Mis pagos"
+      workshop: "Mi taller"
+      sign_out: "Cerrar sesión"
+    sign_out:
+      confirm_title: "¿Cerrar sesión?"
+      confirm_warning: "Tienes un proyecto en curso en el taller. Si cierras sesión, se perderá ese trabajo."
+      confirm_submit: "Cerrar sesión y descartar el proyecto"
+      cancel: "Volver al taller"
+    merge:
+      offer_title: "¿Fusionar cuentas?"
+      offer_body: "Ya existe una cuenta para %{email} con otro método de acceso. Escribe tu contraseña para vincular este inicio de sesión, o rechaza para mantenerlas separadas."
+      password_label: "Contraseña de la cuenta actual"
+      accept: "Fusionar cuentas"
+      decline: "Mantener separadas"
+      declined: "No se fusionaron las cuentas. Inicia sesión con tu método original."
+      accepted: "Cuentas fusionadas. Ya iniciaste sesión."
+      expired: "Esta oferta de fusión expiró. Intenta iniciar sesión de nuevo."
+      invalid_password: "La contraseña no es correcta."
+    shared:
+      or_email: "O continúa con tu correo"
+      footer_nav: "Enlaces de acceso"
+    oauth:
+      google_oauth2: "Continuar con Google"
+      facebook: "Continuar con Facebook"
+      apple: "Continuar con Apple"
+      failure: "No se pudo iniciar sesión con ese proveedor."
+    session:
+      sign_in_title: "Iniciar sesión"
+      submit: "Entrar"
+    confirmation:
+      pending_title: "Confirma tu correo"
+      pending_body: "Revisa tu bandeja de entrada y abre el enlace de confirmación. Cuando tu correo esté verificado podrás pagar y descargar."
+      resend_title: "Reenviar confirmación"
+      resend_intro: "Escribe el correo con el que te registraste y te enviaremos el enlace de nuevo."
+      resend_submit: "Enviar enlace"
+      resend_link: "Reenviar correo de confirmación"
+      activate_title: "Confirmar correo"
+      confirmed: "Tu correo quedó confirmado. Ya puedes iniciar sesión."
+      invalid_token: "Este enlace no es válido o ya expiró. Puedes solicitar uno nuevo."
+    password:
+      forgot_title: "¿Olvidaste tu contraseña?"
+      forgot_intro: "Escribe tu correo y te enviaremos instrucciones para restablecer la contraseña."
+      reset_title: "Nueva contraseña"
+      length_hint: "Mínimo %{min} caracteres."
+      validation:
+        too_short: "Usa al menos %{min} caracteres."
+        mismatch: "Las contraseñas no coinciden."
+        match: "Las contraseñas coinciden."
+      new_password: "Nueva contraseña"
+      send_reset: "Enviar instrucciones"
+      change_password: "Cambiar contraseña"
+      reset_sent: "Revisa tu correo para restablecer la contraseña."
+      updated: "Contraseña actualizada. Ya puedes iniciar sesión."
+    registration:
+      title: "Crear cuenta"
+      terms_label: "Acepto los términos de servicio y la política de privacidad"
+      terms_prefix: "Acepto los"
+      terms_connector: "y la"
+      submit: "Registrarse"
+    account:
+      title: "Mi cuenta"
+      submit: "Guardar cambios"
+      email: "Correo"
+      email_readonly_hint: "El correo no se puede cambiar."
+      change_password_toggle: "Cambiar contraseña"
+      password_change_intro: "Déjala en blanco si no quieres cambiar la contraseña."
+      name: "Nombre"
+      new_password: "Nueva contraseña"
+      new_password_hint: "Déjala en blanco si no quieres cambiarla."
+      password_confirmation: "Confirmar nueva contraseña"
+      current_password: "Contraseña actual"
+      current_password_hint: "Necesitamos tu contraseña actual para confirmar los cambios."
+      current_password_invalid: "La contraseña actual no es correcta."
+    account_deletion:
+      link: "Eliminar cuenta"
+      title: "Eliminar cuenta"
+      intro: "Esta acción es permanente. Perderás el acceso a tu cuenta y al historial de pagos."
+      active_plan_warning: "Tienes un plan activo. Si eliminas la cuenta, perderás el beneficio restante del plan."
+      aside:
+        title: "Antes de continuar"
+        lead: "La eliminación es definitiva. Si solo quieres dejar de usar Fitloop por un tiempo, cierra sesión y vuelve cuando quieras."
+        benefit_permanent: "Se borra el acceso a tu cuenta, taller en curso e historial de pagos."
+        benefit_plan: "Con plan activo, pierdes las descargas y la cuota que aún no hayas usado."
+        benefit_support: "Si tienes dudas, cancela y revisa Mis pagos o Mi cuenta."
+        back_to_account: "Volver a Mi cuenta"
+      continue: "Continuar"
+      cancel: "Cancelar"
+      confirm_title: "Confirmar eliminación"
+      confirm_instructions: "Escribe %{phrase} para confirmar."
+      confirm_phrase_label: "Frase de confirmación"
+      confirm_phrase_expected: "ELIMINAR"
+      current_password_label: "Contraseña actual"
+      submit: "Eliminar mi cuenta definitivamente"
+      done: "Tu cuenta fue eliminada."
+      restart: "Vuelve a iniciar el proceso de eliminación."
+      invalid_password: "La contraseña no es correcta."
+      invalid_phrase: "La frase de confirmación no coincide."
+  legal:
+    placeholder_notice: "Texto provisional. El contenido legal definitivo se publicará en una actualización posterior (FU-LEGAL-001)."
+    terms:
+      title: "Términos de servicio"
+      link: "términos de servicio"
+      version: "Versión: %{version}"
+      body: "Estos términos describirán el uso de Fitloop, descargas, planes y responsabilidades del usuario. Sustituya este párrafo cuando el equipo legal apruebe el documento final."
+    privacy:
+      title: "Política de privacidad"
+      link: "política de privacidad"
+      version: "Versión: %{version}"
+      body: "Esta política explicará qué datos recopilamos, cómo los usamos y sus derechos. Sustituya este párrafo cuando el equipo legal apruebe el documento final."
+    account:
+      title: "Mi cuenta"
+      submit: "Guardar cambios"
+      new_password_hint: "Nueva contraseña (déjala en blanco si no cambia)"
+      current_password_hint: "Necesitamos tu contraseña actual para confirmar los cambios"
+    account_deletion:
+      link: "Eliminar cuenta"
+      title: "Eliminar cuenta"
+      intro: "Esta acción es permanente. Perderás el acceso a tu cuenta y al historial de pagos."
+      active_plan_warning: "Tienes un plan activo. Si eliminas la cuenta, perderás el beneficio restante del plan."
+      aside:
+        title: "Antes de continuar"
+        lead: "La eliminación es definitiva. Si solo quieres dejar de usar Fitloop por un tiempo, cierra sesión y vuelve cuando quieras."
+        benefit_permanent: "Se borra el acceso a tu cuenta, taller en curso e historial de pagos."
+        benefit_plan: "Con plan activo, pierdes las descargas y la cuota que aún no hayas usado."
+        benefit_support: "Si tienes dudas, cancela y revisa Mis pagos o Mi cuenta."
+        back_to_account: "Volver a Mi cuenta"
+      continue: "Continuar"
+      cancel: "Cancelar"
+      confirm_title: "Confirmar eliminación"
+      confirm_instructions: "Escribe %{phrase} para confirmar."
+      confirm_phrase_label: "Frase de confirmación"
+      confirm_phrase_expected: "ELIMINAR"
+      current_password_label: "Contraseña actual"
+      submit: "Eliminar mi cuenta definitivamente"
+      done: "Tu cuenta fue eliminada."
+      restart: "Vuelve a iniciar el proceso de eliminación."
+      invalid_password: "La contraseña no es correcta."
+      invalid_phrase: "La frase de confirmación no coincide."
+
+  devise:
+    failure:
+      unauthenticated: "Debes iniciar sesión para continuar."
+      unconfirmed: "Confirma tu correo antes de pagar o descargar."
+      invalid: "Correo o contraseña no válidos."
+      timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
+      already_authenticated: "Ya iniciaste sesión."
+      user:
+        unauthenticated: "Debes iniciar sesión para continuar."
+        unconfirmed: "Confirma tu correo antes de pagar o descargar."
+        invalid: "Correo o contraseña no válidos."
+        timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
+        already_authenticated: "Ya iniciaste sesión."
+    sessions:
+      signed_in: "Iniciaste sesión correctamente."
+      signed_out: "Cerraste sesión correctamente."
+      user:
+        signed_in: "Iniciaste sesión correctamente."
+        signed_out: "Cerraste sesión correctamente."
+    registrations:
+      signed_up: "¡Bienvenido! Te registraste correctamente."
+      signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."
+      updated: "Tu cuenta se actualizó correctamente."
+      user:
+        updated: "Tu cuenta se actualizó correctamente."
+    confirmations:
+      confirmed: "Tu correo quedó confirmado."
+      send_instructions: "Si tu correo está registrado, recibirás instrucciones de confirmación en breve."
+    mailer:
+      confirmation_instructions:
+        subject: "Instrucciones de confirmación"
