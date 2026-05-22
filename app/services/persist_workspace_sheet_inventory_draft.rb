@@ -21,6 +21,7 @@ class PersistWorkspaceSheetInventoryDraft
 
     sheet_stocks_attributes = extract_sheet_stocks_attributes
     return false if sheet_stocks_attributes.blank?
+    return false if omitting_persisted_stock_ids?(project, sheet_stocks_attributes)
 
     SheetStocks::SyncInventory.call(
       project: project,
@@ -51,6 +52,21 @@ class PersistWorkspaceSheetInventoryDraft
 
       quantity = attrs[:quantity].presence || attrs["quantity"].presence
       attrs[:quantity] = quantity.present? ? quantity.to_i : nil
+    end
+  end
+
+  def omitting_persisted_stock_ids?(project, sheet_stocks_attributes)
+    return false unless project.sheet_stocks.exists?
+
+    kept_sheet_stock_ids(sheet_stocks_attributes).empty?
+  end
+
+  def kept_sheet_stock_ids(sheet_stocks_attributes)
+    sheet_stocks_attributes.each_value.filter_map do |attrs|
+      next unless attrs.is_a?(Hash)
+
+      id = attrs[:id] || attrs["id"]
+      id.presence&.to_i
     end
   end
 

@@ -113,16 +113,19 @@ export default class extends Controller {
 
     targetForm.querySelectorAll("[data-locale-sheet-draft]").forEach((node) => node.remove())
 
-    sourceForm.querySelectorAll("[name^='project[sheet_stocks_attributes]']").forEach((input) => {
-      const row = input.closest("[data-sheet-inventory-row]")
-      if (row?.dataset.destroyed === "true") return
+    this.visibleRows().forEach((row, index) => {
+      const prefix = `project[sheet_stocks_attributes][${index}]`
+      row.querySelectorAll("[data-sheet-inventory-field]").forEach((field) => {
+        const name = field.dataset.sheetInventoryField
+        if (!name) return
 
-      const clone = document.createElement("input")
-      clone.type = "hidden"
-      clone.name = input.name
-      clone.value = input.value
-      clone.dataset.localeSheetDraft = "true"
-      targetForm.appendChild(clone)
+        const clone = document.createElement("input")
+        clone.type = "hidden"
+        clone.name = `${prefix}[${name}]`
+        clone.value = field.value
+        clone.dataset.localeSheetDraft = "true"
+        targetForm.appendChild(clone)
+      })
     })
 
     this.exportComposerDraft(targetForm)

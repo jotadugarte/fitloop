@@ -27,7 +27,8 @@ RSpec.describe "Locale switcher", type: :request do
       expect(response.body).to include("EN")
       expect(response.body).to include("ES")
       expect(response.body).to include('data-controller="locale-switcher"')
-      expect(response.body).to include("submit->locale-switcher#attachSheetInventory")
+      expect(response.body).to include('data-turbo="false"')
+      expect(response.body).to include("locale-switcher#attachSheetInventory")
     end
 
     it "localizes the EN/ES group aria-label in Spanish" do
@@ -109,6 +110,37 @@ RSpec.describe "Locale switcher", type: :request do
       project.reload
       expect(project.sheet_stocks.count).to eq(1)
       expect(project.sheet_stocks.first).to have_attributes(width_mm: 1200, height_mm: 2400, quantity: 2)
+    end
+
+    it "[REQ-FIT-UI-005] keeps sheet inventory on repeated locale switches" do
+      get start_project_path
+      follow_redirect!
+      project = Project.find(session[:workspace_project_id])
+      stock_attrs = { width_mm: 1200, height_mm: 2400, quantity: 2, sort_order: 0, _destroy: "0" }
+
+      patch locale_path,
+            params: { locale: "en", project: { sheet_stocks_attributes: { "0" => stock_attrs } } },
+            headers: { "HTTP_REFERER" => edit_project_path(project) }
+      follow_redirect!
+      stock = project.reload.sheet_stocks.sole
+
+      patch locale_path,
+            params: {
+              locale: "es",
+              project: {
+                sheet_stocks_attributes: {
+                  "0" => stock_attrs.merge(id: stock.id)
+                }
+              }
+            },
+            headers: { "HTTP_REFERER" => edit_project_path(project) }
+      follow_redirect!
+      expect(project.reload.sheet_stocks).to contain_exactly(stock)
+
+      patch locale_path,
+            params: { locale: "es_panic", project: { sheet_stocks_attributes: { "0" => stock_attrs } } },
+            headers: { "HTTP_REFERER" => edit_project_path(project) }
+      expect(project.reload.sheet_stocks).to contain_exactly(stock)
     end
   end
 

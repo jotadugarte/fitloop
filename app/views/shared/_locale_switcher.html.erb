@@ -14,7 +14,10 @@
             aria: { current: (active ? "true" : "false") },
             form: {
               class: "locale-switcher__form",
-              data: { action: "submit->locale-switcher#attachSheetInventory" }
+              data: {
+                turbo: false,
+                action: "submit->locale-switcher#attachSheetInventory"
+              }
             } %>
     <% end %>
   </div>
@@ -29,7 +32,10 @@
           aria: { current: (active ? "true" : "false"), label: t("locale.labels.es_panic") },
           form: {
             class: "locale-switcher__form",
-            data: { action: "submit->locale-switcher#attachSheetInventory" }
+            data: {
+              turbo: false,
+              action: "submit->locale-switcher#attachSheetInventory"
+            }
           } %>
   <% end %>
 </nav>
