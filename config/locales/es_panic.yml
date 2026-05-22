@@ -473,6 +473,33 @@ es_panic:
       terms_prefix: Acepto los
       terms_connector: y la
       submit: Firmar el contrato
+    account:
+      title: Mi cuenta (el drama personal)
+      submit: Guardar cambios
+      email: Correo
+      name: Nombre
+      new_password: Nueva contraseña
+      new_password_hint: En blanco = no tocar la contraseña.
+      password_confirmation: Confirmar nueva contraseña
+      current_password: Contraseña actual
+      current_password_hint: Contraseña actual para confirmar que eres tú.
+    account_deletion:
+      link: Eliminar cuenta (punto de no retorno)
+      title: Eliminar cuenta
+      intro: Acción permanente. Adiós cuenta, adiós historial de pagos.
+      active_plan_warning: Tienes plan activo. Si borras la cuenta, pierdes lo que quede del plan.
+      continue: Continuar hacia el abismo
+      cancel: Cancelar y respirar
+      confirm_title: Confirmar eliminación
+      confirm_instructions: Escribe %{phrase} para sellar el destino.
+      confirm_phrase_label: Frase de confirmación
+      confirm_phrase_expected: ELIMINAR
+      current_password_label: Contraseña actual
+      submit: Eliminar mi cuenta para siempre
+      done: Cuenta eliminada. Fin del capítulo.
+      restart: Vuelve a empezar el proceso de eliminación.
+      invalid_password: Contraseña incorrecta.
+      invalid_phrase: La frase no coincide. El universo te da otra oportunidad.
   legal:
     placeholder_notice: Texto de relleno. El abogado llegará después (FU-LEGAL-001).
     terms:

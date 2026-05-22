@@ -25,7 +25,7 @@ module Users
     end
 
     def configure_account_update_params
-      devise_parameter_sanitizer.permit(:account_update, keys: %i[name time_zone])
+      devise_parameter_sanitizer.permit(:account_update, keys: %i[name])
     end
 
     def sign_up_params
