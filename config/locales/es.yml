@@ -576,6 +576,10 @@ es:
         invalid: "Correo o contraseña no válidos."
         timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
         already_authenticated: "Ya iniciaste sesión."
+    sessions:
+      signed_out: "Cerraste sesión correctamente."
+      user:
+        signed_out: "Cerraste sesión correctamente."
     registrations:
       signed_up: "¡Bienvenido! Te registraste correctamente."
       signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."

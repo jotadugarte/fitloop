@@ -565,6 +565,10 @@ es_panic:
         invalid: Correo o contraseña incorrectos. El drama continúa.
         timeout: La sesión murió. Vuelve a iniciar sesión.
         already_authenticated: Ya estás dentro. No hace falta volver a entrar.
+    sessions:
+      signed_out: Sesión cerrada. El taller queda vacío.
+      user:
+        signed_out: Sesión cerrada. El taller queda vacío.
     registrations:
       signed_up: ¡Bienvenido al club! Registro exitoso.
       signed_up_but_unconfirmed: Mire el correo; ahí está el enlace de confirmación.

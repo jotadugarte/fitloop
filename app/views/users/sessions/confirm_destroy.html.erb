@@ -1,11 +1,18 @@
-<h1><%= t("auth.sign_out.confirm_title") %></h1>
+<%= render "devise/shared/auth_page", title: t("auth.sign_out.confirm_title") do %>
+  <p class="auth-page__intro" data-testid="sign-out-confirm-warning">
+    <%= t("auth.sign_out.confirm_warning") %>
+  </p>
 
-<p data-testid="sign-out-confirm-warning"><%= t("auth.sign_out.confirm_warning") %></p>
+  <div class="form-actions">
+    <%= button_to t("auth.sign_out.confirm_submit"),
+          destroy_user_session_path,
+          method: :delete,
+          params: { confirm_workspace_discard: "1" },
+          class: "btn btn-primary",
+          form: { data: { turbo: false, testid: "sign-out-confirm-submit" } } %>
+  </div>
 
-<%= button_to t("auth.sign_out.confirm_submit"),
-              destroy_user_session_path,
-              method: :delete,
-              params: { confirm_workspace_discard: "1" },
-              data: { testid: "sign-out-confirm-submit" } %>
-
-<p><%= link_to t("auth.sign_out.cancel"), :back %></p>
+  <nav class="auth-page__footer" aria-label="<%= t("auth.shared.footer_nav") %>">
+    <%= link_to t("auth.sign_out.cancel"), :back, class: "auth-page__link" %>
+  </nav>
+<% end %>

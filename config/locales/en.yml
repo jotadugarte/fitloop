@@ -561,6 +561,10 @@ en:
         invalid: "Invalid email or password."
         timeout: "Your session expired. Please sign in again."
         already_authenticated: "You are already signed in."
+    sessions:
+      signed_out: "Signed out successfully."
+      user:
+        signed_out: "Signed out successfully."
     registrations:
       signed_up: "Welcome! You signed up successfully."
       signed_up_but_unconfirmed: "Check your email for a confirmation link."

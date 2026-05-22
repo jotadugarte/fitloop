@@ -68,6 +68,19 @@ RSpec.describe "User logout discards workspace", type: :request do
         get edit_user_registration_path
         expect(response).to redirect_to(new_user_session_path)
       end
+
+      it "[REQ-FIT-AUTH-002] signs out from Mi cuenta without confirmation when no active project" do
+        I18n.with_locale(:es) do
+          user = create_confirmed_user!
+          sign_in_user! user
+
+          delete destroy_user_session_path
+
+          follow_redirect!
+          expect(response.body).to include(I18n.t("devise.sessions.user.signed_out"))
+          expect(response.body).not_to include("translation missing")
+        end
+      end
     end
   end
 end

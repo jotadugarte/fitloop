@@ -9,18 +9,16 @@ module Users
         return
       end
 
-      Workspace.discard!(session) if workspace_bound?
+      Workspace.discard!(session) if Workspace.active_project?(session)
       super
     end
 
     private
 
     def workspace_logout_requires_confirmation?
-      workspace_bound? && params[:confirm_workspace_discard].blank?
-    end
+      return false if params[:confirm_workspace_discard].present?
 
-    def workspace_bound?
-      Workspace.bound?(session)
+      Workspace.active_project?(session)
     end
   end
 end

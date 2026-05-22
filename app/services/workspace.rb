@@ -16,6 +16,10 @@ class Workspace
       session[SESSION_KEY].present? || workspaces_hash(session).present?
     end
 
+    def active_project?(session)
+      tab_ids(session).any? { |tab_id| find(session, tab_id: tab_id).present? }
+    end
+
     def find(session, tab_id: nil)
       project_id = bound_project_id(session, tab_id: tab_id)
       return nil if project_id.blank?
