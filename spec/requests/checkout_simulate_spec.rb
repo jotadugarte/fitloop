@@ -28,6 +28,7 @@ RSpec.describe "Simulated single-download checkout", type: :request do
       get checkout_path(nesting_run_id: run.id)
 
       expect(response).to have_http_status(:ok)
+      expect(response.body).to include('class="paywall-layout checkout-page"')
       expect(response.body).to include('data-testid="checkout-demo"')
       expect(response.body).to include('data-testid="checkout-pay-card-usd"')
       expect(response.body).to include('data-testid="checkout-pay-sinpe-crc"')
