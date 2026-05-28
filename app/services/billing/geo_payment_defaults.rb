@@ -11,7 +11,8 @@ module Billing
     def self.from_request(request)
       raise ArgumentError, "request must respond to headers" unless request.respond_to?(:headers)
 
-      country_code = request.headers["CF-IPCountry"]
+      country_code = dev_country_override
+      country_code ||= request.headers["CF-IPCountry"]
       if country_code.nil? || country_code.strip.empty?
         remote_ip = request.respond_to?(:remote_ip) ? request.remote_ip : nil
         country_code = Billing::GeoLite2.country_code_for_ip(remote_ip)
@@ -25,6 +26,16 @@ module Billing
         available_payment_methods: defaults.fetch(:available_payment_methods)
       }
     end
+
+    def self.dev_country_override
+      return nil unless defined?(Rails) && Rails.respond_to?(:env) && Rails.env.development?
+
+      value = ENV["FITLOOP_BILLING_COUNTRY_OVERRIDE"]
+      return nil if value.nil? || value.strip.empty?
+
+      value.strip.upcase
+    end
+    private_class_method :dev_country_override
 
     def self.defaults_for_country(country_code)
       return { currency: :crc, payment_method: :sinpe, available_payment_methods: [ :sinpe, :card ] } if country_code == "CR"
