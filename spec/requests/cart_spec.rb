@@ -13,5 +13,21 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect(response.body).to include("Carrito")
     end
   end
+
+  describe "POST /carrito [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] creates a single_download cart for the latest downloadable run (D6)" do
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      expect do
+        post "/carrito", params: { kind: "single_download", nesting_run_id: run.id, currency_mode: "usd" }
+      end.to change(Cart, :count).by(1)
+
+      cart = Cart.last
+      expect(cart.kind).to eq("single_download")
+      expect(cart.nesting_run_id).to eq(run.id)
+    end
+  end
 end
 
