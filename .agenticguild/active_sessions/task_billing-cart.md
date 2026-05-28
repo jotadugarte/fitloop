@@ -194,52 +194,52 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   </meta>
 
   <phase id="P0" name="Baseline + discovery verification">
-    <step>Run existing Rails test suite for billing/auth to ensure green baseline.</step>
-    <step>Confirm current `/taller/descarga-pago`, `/planes`, `/checkout` behavior manually.</step>
+    <step status="pending">Run existing Rails test suite for billing/auth to ensure green baseline.</step>
+    <step status="pending">Confirm current `/taller/descarga-pago`, `/planes`, `/checkout` behavior manually.</step>
   </phase>
 
   <phase id="P1" name="Pricing config & APIs">
     <step status="complete">Write failing unit/spec tests for `Billing::Pricing` new keys: official+sinpe for CRC and USD, including explicit overage amounts (no percent).</step>
-    <step>Update `config/billing.yml` structure to be easy to change: per-product official/sinpe in both currencies + explicit overage entries.</step>
+    <step status="complete">Update `config/billing.yml` structure to be easy to change: per-product official/sinpe in both currencies + explicit overage entries.</step>
     <step status="complete">Update `Billing::Pricing` to expose a clean API (e.g. `price(product:, currency:, tier_months:, overage:, kind:)`) and to validate positivity.</step>
-    <step>Remove reliance on `plan_quota_overage_percent` for display + checkout math (keep key only if needed for backwards compat; otherwise deprecate).</step>
+    <step status="complete">Remove reliance on `plan_quota_overage_percent` for display + checkout math (keep key only if needed for backwards compat; otherwise deprecate).</step>
   </phase>
 
   <phase id="P2" name="Geo default + manual selector">
-    <step>Write request/unit tests for `Billing::GeoPaymentDefaults.from_request` using `CF-IPCountry` when present; fallback to GeoLite2; allow env override in development.</step>
-    <step>Add manual selector on paywall/cart to switch currency/method (CRC/SINPE default for CR; USD/card default outside CR). Selecting overrides IP default.</step>
-    <step>Ensure SINPE is not offered when country != CR (unless explicitly overridden by owner later).</step>
+    <step status="complete">Write request/unit tests for `Billing::GeoPaymentDefaults.from_request` using `CF-IPCountry` when present; fallback to GeoLite2; allow env override in development.</step>
+    <step status="complete">Add manual selector on paywall/cart to switch currency/method (CRC/SINPE default for CR; USD/card default outside CR). Selecting overrides IP default.</step>
+    <step status="complete">Ensure SINPE is not offered when country != CR (unless explicitly overridden by owner later).</step>
   </phase>
 
   <phase id="P3" name="Cart domain (DB + merge behavior)">
-    <step>Write failing request/service specs for single-item cart invariants, including replace-confirm flow.</step>
-    <step>Add `Cart` model & migration supporting guest + user carts (guest_token, user_id, kind, nesting_run_id/tier_months, snapshot prices in chosen currency, overage flag).</step>
-    <step>Implement merge-on-login rule: user cart wins; guest cart discarded when both exist.</step>
-    <step>Add `Billing::CartTotals` and `Billing::PlanExpiryPreview` services (projected ends_at shown for plan cart line).</step>
+    <step status="pending">Write failing request/service specs for single-item cart invariants, including replace-confirm flow.</step>
+    <step status="complete">Add `Cart` model & migration supporting guest + user carts (guest_token, user_id, kind, nesting_run_id/tier_months, snapshot prices in chosen currency, overage flag).</step>
+    <step status="pending">Implement merge-on-login rule: user cart wins; guest cart discarded when both exist.</step>
+    <step status="pending">Add `Billing::CartTotals` and `Billing::PlanExpiryPreview` services (projected ends_at shown for plan cart line).</step>
   </phase>
 
   <phase id="P4" name="Routes + controllers + views">
-    <step>Introduce `/carrito` (GET review; POST add; PATCH replace-confirm; DELETE clear). Add i18n copy for cart, replace confirmation, SINPE promo hints.</step>
-    <step>Refactor `/taller/descarga-pago` view to show: download (if downloadable run) + 3 plans inline, each with “Añadir al carrito”. Remove “ver planes”.</step>
-    <step>Redirect `/planes` permanently to `/carrito` when cart has an item; else to `/taller/descarga-pago`.</step>
-    <step>Update `/checkout` to read from `current_cart` instead of query `nesting_run_id`. Enforce auth gate: guests must sign in/create account to proceed.</step>
-    <step>Implement dynamic checkout breakdown: list subtotal, SINPE discount line (only when SINPE), IVA line, total line; computed server-side with lightweight Stimulus update for method toggle.</step>
+    <step status="pending">Introduce `/carrito` (GET review; POST add; PATCH replace-confirm; DELETE clear). Add i18n copy for cart, replace confirmation, SINPE promo hints.</step>
+    <step status="pending">Refactor `/taller/descarga-pago` view to show: download (if downloadable run) + 3 plans inline, each with “Añadir al carrito”. Remove “ver planes”.</step>
+    <step status="pending">Redirect `/planes` permanently to `/carrito` when cart has an item; else to `/taller/descarga-pago`.</step>
+    <step status="pending">Update `/checkout` to read from `current_cart` instead of query `nesting_run_id`. Enforce auth gate: guests must sign in/create account to proceed.</step>
+    <step status="pending">Implement dynamic checkout breakdown: list subtotal, SINPE discount line (only when SINPE), IVA line, total line; computed server-side with lightweight Stimulus update for method toggle.</step>
   </phase>
 
   <phase id="P5" name="Payment recording snapshots (admin reporting-ready)">
-    <step>Write failing model/service specs asserting snapshot fields persisted for both succeeded and failed payments (name/email/product/list/discount/subtotal/tax/total/currency/method).</step>
-    <step>Add migration to extend `payments` with immutable snapshot columns (do not rely on current user profile for reporting).</step>
-    <step>Update `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` (or their callers) to populate snapshot fields from the cart attempt and user at pay time.</step>
+    <step status="pending">Write failing model/service specs asserting snapshot fields persisted for both succeeded and failed payments (name/email/product/list/discount/subtotal/tax/total/currency/method).</step>
+    <step status="pending">Add migration to extend `payments` with immutable snapshot columns (do not rely on current user profile for reporting).</step>
+    <step status="pending">Update `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` (or their callers) to populate snapshot fields from the cart attempt and user at pay time.</step>
   </phase>
 
   <phase id="P6" name="Edge cases + regression tests">
-    <step>Add request specs for: cupo plan download bypass; no nesting_run hides download option; overage pricing displayed; replace-confirm; redirect `/planes`; cart persistence across logout/login.</step>
-    <step>Ensure tests are tagged with appropriate `[REQ-FIT-BILL-*]` in root `RSpec.describe` where applicable.</step>
+    <step status="pending">Add request specs for: cupo plan download bypass; no nesting_run hides download option; overage pricing displayed; replace-confirm; redirect `/planes`; cart persistence across logout/login.</step>
+    <step status="pending">Ensure tests are tagged with appropriate `[REQ-FIT-BILL-*]` in root `RSpec.describe` where applicable.</step>
   </phase>
 
   <phase id="P7" name="Polish + docs">
-    <step>Update relevant i18n keys (`billing.paywall.*`, new `billing.cart.*`, checkout MEIC promo copy) and ensure locale parity (`es_panic` mirror) if keys added.</step>
-    <step>Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
-    <step>Confirm roadmap item added for Admin ventas UI (already appended).</step>
+    <step status="pending">Update relevant i18n keys (`billing.paywall.*`, new `billing.cart.*`, checkout MEIC promo copy) and ensure locale parity (`es_panic` mirror) if keys added.</step>
+    <step status="pending">Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
+    <step status="pending">Confirm roadmap item added for Admin ventas UI (already appended).</step>
   </phase>
 </implementation_plan>
