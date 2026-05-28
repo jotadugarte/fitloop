@@ -85,6 +85,25 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       expect(DownloadGrant.last.kind).to eq("single_purchase")
     end
 
+    it "[REQ-FIT-BILL-001] records succeeded card CRC payment with 13% IVA for CR clients (D37)" do
+      expect do
+        post checkout_simulate_path,
+             params: { nesting_run_id: run.id, payment_method: "card_crc", outcome: "success" },
+             headers: { "CF-IPCountry" => "CR" }
+      end.to change(Payment, :count).by(1)
+        .and change(DownloadGrant, :count).by(1)
+
+      payment = Payment.last
+      expect(payment).to be_succeeded
+      expect(payment.payment_method).to eq("card_crc")
+      expect(payment.currency).to eq("crc")
+      expect(payment.amount).to eq(Billing::Pricing.single_download_official_crc)
+      expect(payment.subtotal).to eq(1200)
+      expect(payment.tax_amount).to eq(156)
+      expect(payment.total_amount).to eq(1356)
+      expect(DownloadGrant.last.kind).to eq("single_purchase")
+    end
+
     it "[REQ-FIT-BILL-001] reuses existing grant on repeat success without error (D37)" do
       post checkout_simulate_path,
            params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" },
