@@ -46,6 +46,12 @@ module Billing
     end
 
     def unit_amount
+      if (cart = cart_for_run)
+        currency = config.fetch(:currency)
+        cents = config.fetch(:card) ? cart.list_price_cents : cart.sinpe_price_cents
+        return cents_to_amount(cents, currency)
+      end
+
       overage = plan_quota_exhausted?
       Pricing.price(
         product: :single_download,
@@ -121,10 +127,15 @@ module Billing
     end
 
     def snapshot_fields
-      breakdown = CheckoutBreakdown.for_single_download(
-        billing_context: billing_context,
-        overage: plan_quota_exhausted?
-      )
+      breakdown =
+        if (cart = cart_for_run)
+          CheckoutBreakdown.for_cart(cart: cart, billing_context: billing_context)
+        else
+          CheckoutBreakdown.for_single_download(
+            billing_context: billing_context,
+            overage: plan_quota_exhausted?
+          )
+        end
       {
         purchaser_name: @user.name.to_s,
         purchaser_email: @user.email.to_s,
@@ -135,6 +146,14 @@ module Billing
         tax_amount: breakdown.fetch(:tax_amount).to_f,
         total_amount: breakdown.fetch(:total_amount).to_f
       }
+    end
+
+    def cart_for_run
+      Cart.find_by(user_id: @user.id, nesting_run_id: @nesting_run.id)
+    end
+
+    def cents_to_amount(cents, currency)
+      currency == :crc ? cents.to_i : (cents / 100.0)
     end
   end
 end

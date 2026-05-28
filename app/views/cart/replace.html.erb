@@ -1,0 +1,18 @@
+<div class="checkout-page cart-replace-page" data-testid="cart-replace-page">
+  <h1 class="billing-page__title"><%= t("billing.cart.replace.title") %></h1>
+
+  <p class="checkout-page__intro"><%= t("billing.cart.replace.intro") %></p>
+
+  <div class="checkout-methods">
+    <%= button_to t("billing.cart.replace.confirm"),
+                  cart_path,
+                  method: :patch,
+                  class: "btn btn-primary",
+                  data: { testid: "cart-replace-confirm", turbo: false } %>
+
+    <%= link_to t("billing.cart.replace.cancel"),
+                download_paywall_workshop_path,
+                class: "btn btn-secondary",
+                data: { testid: "cart-replace-cancel", turbo: false } %>
+  </div>
+</div>

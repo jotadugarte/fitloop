@@ -11,10 +11,10 @@ class CheckoutController < ApplicationController
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate], if: :single_download_checkout?
 
   def show
-    @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
-    @available_payment_methods = @billing_selection.fetch(:available_payment_methods)
+    @billing_selection = billing_selection
+    @available_payment_methods = billing_selection.fetch(:available_payment_methods)
     @simulate_outcome = resolve_simulate_outcome
-    @selected_payment_method = resolve_selected_payment_method(selection: @billing_selection)
+    @selected_payment_method = resolve_selected_payment_method(selection: billing_selection)
     @sinpe_savings_amount = sinpe_savings_amount_preview
     @checkout_breakdown = checkout_breakdown_preview
     @plan_quota_exhausted =
@@ -23,7 +23,10 @@ class CheckoutController < ApplicationController
   end
 
   def simulate
-    billing_context = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
+    billing_context = {
+      currency: billing_selection.fetch(:currency),
+      iva_applicable: billing_selection.fetch(:iva_applicable)
+    }
 
     if plan_checkout?
       result = Billing::SimulatePlanPurchase.call(
@@ -118,13 +121,16 @@ class CheckoutController < ApplicationController
   end
 
   def billing_context_for_checkout
-    selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
-    payment_method = resolve_breakdown_payment_method(selection: selection)
+    payment_method = resolve_breakdown_payment_method(selection: billing_selection)
     {
-      currency: selection.fetch(:currency),
+      currency: billing_selection.fetch(:currency),
       payment_method: payment_method,
-      iva_applicable: selection.fetch(:iva_applicable)
+      iva_applicable: billing_selection.fetch(:iva_applicable)
     }
+  end
+
+  def billing_selection
+    @billing_selection ||= Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
   end
 
   def resolve_selected_payment_method(selection:)
@@ -167,14 +173,13 @@ class CheckoutController < ApplicationController
   end
 
   def sinpe_savings_amount_preview
-    selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
-    return nil unless selection.fetch(:currency) == :crc
+    return nil unless billing_selection.fetch(:currency) == :crc
     return nil unless @available_payment_methods.include?(:sinpe)
 
     billing_context = {
       currency: :crc,
       payment_method: :sinpe,
-      iva_applicable: selection.fetch(:iva_applicable)
+      iva_applicable: billing_selection.fetch(:iva_applicable)
     }
 
     breakdown = if plan_checkout?

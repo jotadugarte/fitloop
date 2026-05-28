@@ -70,7 +70,7 @@ module Billing
         subscription: subscription,
         status: status,
         payment_method: @payment_method,
-        currency: @payment_method == "card_usd" ? "usd" : "crc", # card_crc and sinpe_crc are CRC
+        currency: @payment_method == "card_usd" ? "usd" : "crc",
         amount: plan_amount,
         purpose: "plan_subscription",
         paid_at: paid_at
@@ -78,31 +78,35 @@ module Billing
     end
 
     def plan_amount
-      Pricing.public_send(plan_pricing_method)
+      breakdown = plan_breakdown
+      @payment_method == "sinpe_crc" ? breakdown.fetch(:subtotal) : breakdown.fetch(:list_price)
     end
 
-    def plan_pricing_method
-      months = @tier_months == 1 ? "1_month" : "#{@tier_months}_months"
-      suffix = case @payment_method
-               when "sinpe_crc" then "sinpe_crc"
-               when "card_usd" then "card_usd"
-               else "official_crc"
-               end
-      "plan_#{months}_#{suffix}"
+    def plan_breakdown
+      CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context_for_snapshot)
+    end
+
+    def billing_context_for_snapshot
+      currency = @payment_method == "card_usd" ? :usd : :crc
+      payment_method = @payment_method.start_with?("sinpe") ? :sinpe : :card
+      {
+        currency: currency,
+        payment_method: payment_method,
+        iva_applicable: currency == :crc
+      }
     end
 
     def snapshot_fields
-      list_price = plan_amount.to_f
-      total_amount = list_price
+      breakdown = plan_breakdown
       {
         purchaser_name: @user.name.to_s,
         purchaser_email: @user.email.to_s,
         product_description: "plan_#{@tier_months}_months",
-        list_price: list_price,
-        discount_amount: 0,
-        subtotal: list_price,
-        tax_amount: 0,
-        total_amount: total_amount
+        list_price: breakdown.fetch(:list_price).to_f,
+        discount_amount: breakdown.fetch(:discount_amount).to_f,
+        subtotal: breakdown.fetch(:subtotal).to_f,
+        tax_amount: breakdown.fetch(:tax_amount).to_f,
+        total_amount: breakdown.fetch(:total_amount).to_f
       }
     end
   end

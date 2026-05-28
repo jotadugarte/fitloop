@@ -46,6 +46,8 @@ Rails.application.routes.draw do
 
   get "carrito", to: "cart#show", as: :cart
   post "carrito", to: "cart#create"
+  get "carrito/reemplazar", to: "cart#replace", as: :cart_replace
+  patch "carrito", to: "cart#update"
   delete "carrito", to: "cart#destroy"
 
   get "mis-pagos", to: "mis_pagos#show", as: :mis_pagos

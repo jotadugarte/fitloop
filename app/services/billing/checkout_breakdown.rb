@@ -50,24 +50,11 @@ module Billing
       private
 
       def plan_list_and_sinpe(currency:, tier_months:)
-        card_usd, official_crc, sinpe_crc = plan_price_triple(tier_months)
+        card_usd, official_crc, sinpe_crc = Pricing.plan_price_triple(tier_months)
         if currency == :usd
           [card_usd, card_usd]
         else
           [official_crc, sinpe_crc]
-        end
-      end
-
-      def plan_price_triple(tier_months)
-        case tier_months.to_i
-        when 1
-          [Pricing.plan_1_month_card_usd, Pricing.plan_1_month_official_crc, Pricing.plan_1_month_sinpe_crc]
-        when 2
-          [Pricing.plan_2_months_card_usd, Pricing.plan_2_months_official_crc, Pricing.plan_2_months_sinpe_crc]
-        when 4
-          [Pricing.plan_4_months_card_usd, Pricing.plan_4_months_official_crc, Pricing.plan_4_months_sinpe_crc]
-        else
-          raise ArgumentError, "unknown plan tier_months: #{tier_months}"
         end
       end
 

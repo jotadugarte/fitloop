@@ -54,8 +54,14 @@ module BillingHelper
   end
 
   def format_billing_crc(amount)
-    number_with_delimiter(format("%.2f", amount.to_f), delimiter: ",")
-      .then { |formatted| "₡#{formatted}" }
+    value = amount.to_f
+    formatted =
+      if (value % 1).zero?
+        number_with_delimiter(value.to_i.to_s, delimiter: ",")
+      else
+        number_with_delimiter(format("%.2f", value), delimiter: ",")
+      end
+    "₡#{formatted}"
   end
 
   def format_billing_amount(amount, currency)
@@ -96,7 +102,7 @@ module BillingHelper
   end
 
   def paywall_plan_price_display(tier_months:, currency:, show_sinpe:)
-    card_usd, official_crc, sinpe_crc = plan_price_triple(tier_months)
+    card_usd, official_crc, sinpe_crc = Billing::Pricing.plan_price_triple(tier_months)
 
     if currency == :usd
       return {
@@ -121,19 +127,6 @@ module BillingHelper
         reference_label: nil,
         reference_amount: nil
       }
-    end
-  end
-
-  def plan_price_triple(tier_months)
-    case tier_months.to_i
-    when 1
-      [Billing::Pricing.plan_1_month_card_usd, Billing::Pricing.plan_1_month_official_crc, Billing::Pricing.plan_1_month_sinpe_crc]
-    when 2
-      [Billing::Pricing.plan_2_months_card_usd, Billing::Pricing.plan_2_months_official_crc, Billing::Pricing.plan_2_months_sinpe_crc]
-    when 4
-      [Billing::Pricing.plan_4_months_card_usd, Billing::Pricing.plan_4_months_official_crc, Billing::Pricing.plan_4_months_sinpe_crc]
-    else
-      raise ArgumentError, "unknown plan tier_months: #{tier_months}"
     end
   end
 end

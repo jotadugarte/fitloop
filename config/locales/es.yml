@@ -242,6 +242,11 @@ es:
       add_to_cart: "Añadir al carrito"
       empty: "Tu carrito está vacío."
       checkout: "Ir al checkout"
+      replace:
+        title: "Reemplazar artículo del carrito"
+        intro: "Ya tienes un artículo en el carrito. ¿Deseas reemplazarlo por el nuevo?"
+        confirm: "Sí, reemplazar"
+        cancel: "No, volver al catálogo"
 
   home:
     index:

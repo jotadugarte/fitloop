@@ -59,7 +59,7 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect(cart.nesting_run_id).to eq(run.id)
     end
 
-    it "[REQ-FIT-BILL-001] replaces the existing single line (D6)" do
+    it "[REQ-FIT-BILL-001] prompts before replacing the existing single line (D6)" do
       user = create_billing_user!
       project = begin_workspace_session!
       run1 = project.nesting_runs.create!(status: "completed")
@@ -71,6 +71,27 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect(Cart.count).to eq(1)
 
       post "/carrito", params: { kind: "single_download", nesting_run_id: run2.id }, headers: { "CF-IPCountry" => "CR" }
+
+      expect(Cart.count).to eq(1)
+      expect(Cart.last.nesting_run_id).to eq(run1.id)
+      expect(response).to redirect_to("/carrito/reemplazar")
+    end
+
+    it "[REQ-FIT-BILL-001] replaces the line after confirmation (D6)" do
+      user = create_billing_user!
+      project = begin_workspace_session!
+      run1 = project.nesting_runs.create!(status: "completed")
+      run2 = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+      sign_in_user! user
+
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run1.id }, headers: { "CF-IPCountry" => "CR" }
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run2.id }, headers: { "CF-IPCountry" => "CR" }
+      follow_redirect!
+
+      expect(response.body).to include('data-testid="cart-replace-page"')
+
+      patch "/carrito"
 
       expect(Cart.count).to eq(1)
       expect(Cart.last.nesting_run_id).to eq(run2.id)

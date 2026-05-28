@@ -59,7 +59,7 @@ class PlanesController < ApplicationController
   end
 
   def redirect_to_cart_if_cart_item_present!
-    return unless Cart.exists?
+    return unless Cart.exists?(user_id: current_user.id)
 
     redirect_to checkout_path
   end

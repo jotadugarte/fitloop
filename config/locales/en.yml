@@ -227,6 +227,11 @@ en:
       add_to_cart: "Add to cart"
       empty: "Your cart is empty."
       checkout: "Go to checkout"
+      replace:
+        title: "Replace cart item"
+        intro: "You already have an item in your cart. Replace it with the new one?"
+        confirm: "Yes, replace"
+        cancel: "No, back to catalog"
 
   home:
     index:
