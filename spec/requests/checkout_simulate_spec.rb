@@ -25,7 +25,7 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       run = prepare_single_download![:run]
       sign_in_user! user
 
-      get checkout_path(nesting_run_id: run.id)
+      get checkout_path(nesting_run_id: run.id), headers: { "CF-IPCountry" => "CR" }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('class="paywall-layout checkout-page"')

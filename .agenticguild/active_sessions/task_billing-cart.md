@@ -194,7 +194,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   </meta>
 
   <phase id="P0" name="Baseline + discovery verification">
-    <step status="pending">Run existing Rails test suite for billing/auth to ensure green baseline.</step>
+    <step status="complete">Run existing Rails test suite for billing/auth to ensure green baseline.</step>
     <step status="pending">Confirm current `/taller/descarga-pago`, `/planes`, `/checkout` behavior manually.</step>
   </phase>
 
