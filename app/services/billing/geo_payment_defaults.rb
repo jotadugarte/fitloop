@@ -17,8 +17,20 @@ module Billing
         country_code = Billing::GeoLite2.country_code_for_ip(remote_ip)
       end
 
-      { country_code: country_code }
+      defaults = defaults_for_country(country_code)
+      {
+        country_code: country_code,
+        default_currency: defaults.fetch(:currency),
+        default_payment_method: defaults.fetch(:payment_method)
+      }
     end
+
+    def self.defaults_for_country(country_code)
+      return { currency: :crc, payment_method: :sinpe } if country_code == "CR"
+
+      { currency: :usd, payment_method: :card }
+    end
+    private_class_method :defaults_for_country
   end
 end
 
