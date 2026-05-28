@@ -64,7 +64,10 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response).to redirect_to("/checkout")
       follow_redirect! headers: { "CF-IPCountry" => "CR" }
       expect(response.body).to include('data-testid="checkout-page"')
-      expect(response.body).to include('data-testid="checkout-pay-sinpe-crc"')
+      expect(response.body).to include('data-testid="checkout-method-selector"')
+      expect(response.body).to include('value="sinpe_crc"')
+      expect(response.body).to include('value="card_crc"')
+      expect(response.body).to include('data-testid="checkout-process-payment"')
     end
 
     def sign_in_user_for_request!(user)
