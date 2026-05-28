@@ -33,9 +33,6 @@ single_download_overage_official_crc: 600
 single_download_overage_official_usd: 1.25
 single_download_overage_sinpe_usd: 1.00
 
-# Porcentaje del precio suelta cuando el cupo mensual del plan está agotado (D34: 50 → mitad)
-plan_quota_overage_percent: 50
-
 # --- Planes por duración (1, 2 y 4 meses; no existe tier de 3 meses) ---
 plan_1_month_card_usd: 6
 plan_1_month_sinpe_crc: 3000

@@ -9,7 +9,6 @@ module Billing
       single_download_overage_usd single_download_overage_sinpe_crc single_download_overage_official_crc
       single_download_official_usd single_download_sinpe_usd
       single_download_overage_official_usd single_download_overage_sinpe_usd
-      plan_quota_overage_percent
       plan_1_month_card_usd plan_1_month_sinpe_crc plan_2_months_card_usd plan_2_months_sinpe_crc
       plan_4_months_card_usd plan_4_months_sinpe_crc
     ].freeze
@@ -105,10 +104,6 @@ module Billing
         raise ArgumentError, "#{key} must be positive" unless value.to_f.positive?
 
         key.end_with?("_usd") ? value.to_f : value.to_i
-      end
-
-      def overage_amount(base)
-        (base * fetch("plan_quota_overage_percent") / 100.0).round(2)
       end
 
       def has_key?(key)
