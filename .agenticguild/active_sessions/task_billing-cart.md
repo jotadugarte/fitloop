@@ -215,7 +215,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
     <step status="complete">Write failing request/service specs for single-item cart invariants, including replace-confirm flow.</step>
     <step status="complete">Add `Cart` model & migration supporting guest + user carts (guest_token, user_id, kind, nesting_run_id/tier_months, snapshot prices in chosen currency, overage flag).</step>
     <step status="complete">Implement merge-on-login rule: user cart wins; guest cart discarded when both exist.</step>
-    <step status="pending">Add `Billing::CartTotals` and `Billing::PlanExpiryPreview` services (projected ends_at shown for plan cart line).</step>
+    <step status="complete">Add `Billing::CartTotals` and `Billing::PlanExpiryPreview` services (projected ends_at shown for plan cart line).</step>
   </phase>
 
   <phase id="P4" name="Routes + controllers + views">
