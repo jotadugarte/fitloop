@@ -15,4 +15,9 @@ class CartController < ApplicationController
 
     redirect_to cart_path, notice: "Added to cart #{cart.id}"
   end
+
+  def destroy
+    Cart.order(id: :desc).first&.destroy!
+    redirect_to cart_path, notice: "Cart cleared"
+  end
 end
