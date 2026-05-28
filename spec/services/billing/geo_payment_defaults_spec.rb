@@ -20,6 +20,18 @@ RSpec.describe Billing::GeoPaymentDefaults, "[REQ-FIT-BILL-001]" do
 
       expect(defaults.fetch(:country_code)).to eq("US")
     end
+
+    it "[REQ-FIT-BILL-001] defaults to CRC+SINPE for CR and USD+card outside CR (D3, D16)" do
+      request_cr = instance_double(ActionDispatch::Request, headers: { "CF-IPCountry" => "CR" })
+      defaults_cr = described_class.from_request(request_cr)
+      expect(defaults_cr.fetch(:default_currency)).to eq(:crc)
+      expect(defaults_cr.fetch(:default_payment_method)).to eq(:sinpe)
+
+      request_us = instance_double(ActionDispatch::Request, headers: { "CF-IPCountry" => "US" })
+      defaults_us = described_class.from_request(request_us)
+      expect(defaults_us.fetch(:default_currency)).to eq(:usd)
+      expect(defaults_us.fetch(:default_payment_method)).to eq(:card)
+    end
   end
 end
 
