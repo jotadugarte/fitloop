@@ -88,4 +88,16 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
 
     expect(response).to redirect_to(download_paywall_project_path(project))
   end
+
+  it "[REQ-FIT-BILL-001] hides single-download actions when no downloadable nesting run exists (D9)" do
+    project = begin_workspace_session!
+    project.update!(status: :completed)
+
+    get download_paywall_project_path(project)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('data-testid="paywall-checkout"')
+    expect(response.body).not_to include('data-testid="paywall-plan-download"')
+    expect(response.body).to include('data-testid="paywall-inline-plans"')
+  end
 end

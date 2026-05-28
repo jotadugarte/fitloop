@@ -233,7 +233,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   </phase>
 
   <phase id="P6" name="Edge cases + regression tests">
-    <step status="pending">Add request specs for: cupo plan download bypass; no nesting_run hides download option; overage pricing displayed; replace-confirm; redirect `/planes`; cart persistence across logout/login. (Progress: implemented `session[:cart_guest_token]` persistence + merge-on-login hook; `spec/requests/cart_persistence_login_spec.rb` now passing)</step>
+    <step status="pending">Add request specs for: cupo plan download bypass; no nesting_run hides download option; overage pricing displayed; replace-confirm; redirect `/planes`; cart persistence across logout/login. (Progress: implemented `session[:cart_guest_token]` persistence + merge-on-login hook; `spec/requests/cart_persistence_login_spec.rb` now passing; added paywall regression spec for no downloadable run hiding single-download CTAs)</step>
     <step status="pending">Ensure tests are tagged with appropriate `[REQ-FIT-BILL-*]` in root `RSpec.describe` where applicable.</step>
   </phase>
 
