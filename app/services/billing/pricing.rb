@@ -124,7 +124,42 @@ module Billing
         return @data if @mtime == mtime && @data
 
         @mtime = mtime
-        @data = YAML.load_file(CONFIG_PATH)
+        @data = normalize_data(YAML.load_file(CONFIG_PATH))
+      end
+
+      def normalize_data(raw)
+        raise ArgumentError, "billing.yml must be a Hash" unless raw.is_a?(Hash)
+        return raw unless raw.key?("products")
+
+        products = raw.fetch("products")
+        raise ArgumentError, "billing.yml products must be a Hash" unless products.is_a?(Hash)
+
+        normalized = raw.dup
+
+        single = products["single_download"]
+        if single
+          normalized.merge!(
+            "single_download_official_crc" => dig_required(single, %w[official crc]),
+            "single_download_official_usd" => dig_required(single, %w[official usd]),
+            "single_download_sinpe_crc" => dig_required(single, %w[sinpe crc]),
+            "single_download_sinpe_usd" => dig_required(single, %w[sinpe usd]),
+            "single_download_overage_official_crc" => dig_required(single, %w[overage official crc]),
+            "single_download_overage_official_usd" => dig_required(single, %w[overage official usd]),
+            "single_download_overage_sinpe_crc" => dig_required(single, %w[overage sinpe crc]),
+            "single_download_overage_sinpe_usd" => dig_required(single, %w[overage sinpe usd])
+          )
+        end
+
+        normalized
+      end
+
+      def dig_required(hash, path)
+        current = hash
+        path.each do |segment|
+          raise ArgumentError, "billing.yml missing #{path.join('.')}" unless current.is_a?(Hash) && current.key?(segment)
+          current = current.fetch(segment)
+        end
+        current
       end
     end
   end
