@@ -9,7 +9,7 @@ module Billing
     # Postconditions:
     # - returns :currency and :payment_method as Symbols
     def self.resolve(request:, session:)
-      raise ArgumentError, "session must be a Hash" unless session.is_a?(Hash)
+      raise ArgumentError, "session must support []" unless session.respond_to?(:[])
 
       currency = parse_currency(session[:billing_currency])
       payment_method = parse_payment_method(session[:billing_payment_method])

@@ -1,4 +1,7 @@
-<div class="paywall-layout" data-testid="download-paywall">
+<div class="paywall-layout"
+     data-testid="download-paywall"
+     data-billing-currency="<%= @billing_selection.fetch(:currency) %>"
+     data-billing-payment-method="<%= @billing_selection.fetch(:payment_method) %>">
   <article class="paywall-layout__main panel panel--chrome">
     <h1><%= t("billing.paywall.title") %></h1>
     <p><%= t("billing.paywall.intro") %></p>

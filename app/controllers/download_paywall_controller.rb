@@ -8,6 +8,7 @@ class DownloadPaywallController < ApplicationController
   before_action :store_guest_paywall_return_to!, only: :show
 
   def show
+    @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session)
     @nesting_run = @project.nesting_runs
                            .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
                            .order(id: :desc)
