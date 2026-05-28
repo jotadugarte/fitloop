@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Billing::CartMergeOnLogin, "[REQ-FIT-BILL-001]" do
+  include BillingModelHelpers
+
   describe ".call [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] keeps user cart and discards guest cart when both exist (D15)" do
       user = create_billing_user!
