@@ -28,13 +28,13 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
 
     before { sign_in_user! user }
 
-    it "[REQ-FIT-BILL-002] renders plans page without project (browse from Mis pagos)" do
+    it "[REQ-FIT-BILL-002] renders plans page without project with checkout actions (Mis pagos / browse)" do
       get planes_path
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="planes-checkout"')
       expect(response.body).to include('data-testid="planes-tier-1"')
-      expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
+      expect(response.body).to include('data-testid="checkout-pay-card-usd"')
       expect(response.body).not_to include(I18n.t("billing.paywall.aside.title"))
     end
 
@@ -101,7 +101,12 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
 
     it "[REQ-FIT-BILL-002] extends ends_at from current plan end when buying again (D28)" do
       existing_ends = Time.zone.parse("2026-06-20 23:59:59")
-      create_active_subscription!(user: user, tier_months: 1, ends_at: existing_ends)
+      create_active_subscription!(
+        user: user,
+        tier_months: 1,
+        starts_at: Time.zone.parse("2026-05-01 00:00:00"),
+        ends_at: existing_ends
+      )
       paid_at = Time.zone.parse("2026-05-18 12:00:00")
 
       travel_to(paid_at) do
@@ -130,6 +135,22 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
         expect(payment.currency).to eq("crc")
         expect(payment.amount).to eq(Billing::Pricing.plan_2_months_sinpe_crc)
       end
+    end
+
+    it "[REQ-FIT-BILL-002] creates subscription without project and redirects to Mis pagos (D43)" do
+      expect do
+        post planes_simulate_path,
+             params: {
+               tier_months: 1,
+               payment_method: "card_usd",
+               outcome: "success"
+             }
+      end.to change(Subscription, :count).by(1)
+        .and change(Payment, :count).by(1)
+
+      expect(response).to redirect_to(mis_pagos_path)
+      follow_redirect!
+      expect(response.body).to include(I18n.t("billing.planes.success"))
     end
 
     it "[REQ-FIT-BILL-002] blocks suspended users from plan purchase (D46)" do

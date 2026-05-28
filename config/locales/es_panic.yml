@@ -184,7 +184,7 @@ es_panic:
     planes:
       success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)
-      browse_intro: Mira precios. Para activar plan con taller abierto, vuelve al proyecto y «Ver planes» en descarga.
+      browse_intro: Elige plan y paga abajo (simulado). Con taller abierto, también desde descarga del proyecto.
       project_required: Abre un taller para activar plan desde aquí.
       tier_1: Plan 1 mes
       tier_2: Plan 2 meses

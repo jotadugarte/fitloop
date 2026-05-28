@@ -189,7 +189,7 @@ es:
     planes:
       title: "Planes"
       success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."
-      browse_intro: "Consulta precios y duración. Para activar un plan desde un proyecto en curso, vuelve al taller y elige «Ver planes» desde la pantalla de descarga."
+      browse_intro: "Elige un plan y completa el pago simulado abajo. Si tienes un taller abierto, también puedes activar un plan desde la pantalla de descarga del proyecto."
       project_required: "Abre un proyecto en el taller para activar un plan desde aquí."
       tier_1: "Plan 1 mes"
       tier_2: "Plan 2 meses"

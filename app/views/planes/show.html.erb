@@ -45,22 +45,20 @@
             </div>
           </dl>
 
-          <% if @project %>
-            <div class="planes-tier__payments">
-              <%= render "planes/plan_payment",
-                         testid: "checkout-pay-card-usd",
-                         title: t("billing.checkout.card_usd"),
-                         project_id: @project.id,
-                         tier_months: months,
-                         payment_method: "card_usd" %>
-              <%= render "planes/plan_payment",
-                         testid: "checkout-pay-sinpe-crc",
-                         title: t("billing.checkout.sinpe_crc"),
-                         project_id: @project.id,
-                         tier_months: months,
-                         payment_method: "sinpe_crc" %>
-            </div>
-          <% end %>
+          <div class="planes-tier__payments">
+            <%= render "planes/plan_payment",
+                       testid: "checkout-pay-card-usd",
+                       title: t("billing.checkout.card_usd"),
+                       project_id: @project&.id,
+                       tier_months: months,
+                       payment_method: "card_usd" %>
+            <%= render "planes/plan_payment",
+                       testid: "checkout-pay-sinpe-crc",
+                       title: t("billing.checkout.sinpe_crc"),
+                       project_id: @project&.id,
+                       tier_months: months,
+                       payment_method: "sinpe_crc" %>
+          </div>
         </section>
       <% end %>
     </div>

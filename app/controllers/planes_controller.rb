@@ -17,11 +17,6 @@ class PlanesController < ApplicationController
       return
     end
 
-    unless @project
-      redirect_to planes_path, alert: t("billing.planes.project_required")
-      return
-    end
-
     result = Billing::SimulatePlanPurchase.call(
       user: current_user,
       tier_months: params[:tier_months],
@@ -34,10 +29,19 @@ class PlanesController < ApplicationController
       return
     end
 
-    redirect_to workshop_path, notice: t("billing.planes.success")
+    redirect_after_plan_purchase!
   end
 
   private
+
+  def redirect_after_plan_purchase!
+    if @project && Workspace.bound_to_project?(session, @project)
+      redirect_to workshop_path, notice: t("billing.planes.success")
+      return
+    end
+
+    redirect_to mis_pagos_path, notice: t("billing.planes.success")
+  end
 
   def load_plan_project!
     return unless params[:project_id].present?
