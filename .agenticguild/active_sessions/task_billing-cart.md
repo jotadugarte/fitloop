@@ -177,6 +177,8 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   <meta>
     <task_slug>billing-cart</task_slug>
     <branch_name_suggestion>feat/billing-cart</branch_name_suggestion>
+    <roadmap_item>Billing cart UX (single-item) + MEIC pricing display</roadmap_item>
+    <classification>Feature</classification>
     <req_ids>
       <req>REQ-FIT-BILL-001</req>
       <req>REQ-FIT-BILL-002</req>
