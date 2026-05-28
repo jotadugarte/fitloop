@@ -103,4 +103,37 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       ).to eq(2.50)
     end
   end
+
+  describe "nested pricing config format [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] supports nested per-product pricing tables in billing.yml (D25)" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(<<~YAML)
+        products:
+          single_download:
+            official:
+              crc: 1200
+              usd: 2.50
+            sinpe:
+              crc: 1000
+              usd: 2.00
+            overage:
+              official:
+                crc: 600
+                usd: 1.25
+              sinpe:
+                crc: 500
+                usd: 1.00
+      YAML
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+
+      described_class.reset_cache!
+      expect(described_class.single_download_official_crc).to eq(1200)
+      expect(described_class.single_download_overage_official_usd).to eq(1.25)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+  end
 end
