@@ -33,7 +33,7 @@ module Billing
     end
 
     def record_failure!
-      Payment.create!(base_payment_attrs(status: "failed", paid_at: nil))
+      Payment.create!(base_payment_attrs(status: "failed", paid_at: nil).merge(snapshot_fields))
       :failed
     end
 
@@ -42,7 +42,9 @@ module Billing
       result = nil
       ActiveRecord::Base.transaction do
         subscription = upsert_subscription!(paid_at)
-        payment = Payment.create!(base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription))
+        payment = Payment.create!(
+          base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription).merge(snapshot_fields)
+        )
         result = { subscription: subscription, payment: payment, project: @project }
       end
       result
@@ -83,6 +85,21 @@ module Billing
       months = @tier_months == 1 ? "1_month" : "#{@tier_months}_months"
       suffix = @payment_method == "card_usd" ? "card_usd" : "sinpe_crc"
       "plan_#{months}_#{suffix}"
+    end
+
+    def snapshot_fields
+      list_price = plan_amount.to_f
+      total_amount = list_price
+      {
+        purchaser_name: @user.name.to_s,
+        purchaser_email: @user.email.to_s,
+        product_description: "plan_#{@tier_months}_months",
+        list_price: list_price,
+        discount_amount: 0,
+        subtotal: list_price,
+        tax_amount: 0,
+        total_amount: total_amount
+      }
     end
   end
 end
