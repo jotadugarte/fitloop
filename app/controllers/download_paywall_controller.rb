@@ -8,6 +8,8 @@ class DownloadPaywallController < ApplicationController
   before_action :store_guest_paywall_return_to!, only: :show
 
   def show
+    @billing_geo_defaults = Billing::GeoPaymentDefaults.from_request(request)
+    @available_payment_methods = @billing_geo_defaults.fetch(:available_payment_methods)
     @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session)
     @nesting_run = @project.nesting_runs
                            .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)

@@ -19,7 +19,9 @@
       <div class="field">
         <label for="billing_payment_method">Payment method</label>
         <select id="billing_payment_method" name="billing[payment_method]">
-          <option value="sinpe" <%= "selected" if @billing_selection.fetch(:payment_method) == :sinpe %>>SINPE</option>
+          <% if @available_payment_methods.include?(:sinpe) %>
+            <option value="sinpe" <%= "selected" if @billing_selection.fetch(:payment_method) == :sinpe %>>SINPE</option>
+          <% end %>
           <option value="card" <%= "selected" if @billing_selection.fetch(:payment_method) == :card %>>Card</option>
         </select>
       </div>
