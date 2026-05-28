@@ -22,6 +22,43 @@ module Billing
 
       KEYS.each { |key| define_method(key) { fetch(key) } }
 
+      # [REQ-FIT-BILL-001] Unified selector used by cart/checkout pricing.
+      #
+      # Preconditions:
+      # - product must be supported
+      # - currency and payment_method must be compatible
+      # Postcondition:
+      # - returns a positive numeric amount
+      def price(product:, currency:, payment_method:, overage:)
+        raise ArgumentError, "product must be a Symbol" unless product.is_a?(Symbol)
+        raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(currency)
+        raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(payment_method)
+        raise ArgumentError, "overage must be boolean" unless overage == true || overage == false
+
+        if currency == :crc && payment_method == :card
+          key = price_key_for_official_crc(product:, overage:)
+          amount = fetch(key)
+          raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
+          return amount
+        end
+
+        if currency == :crc && payment_method == :sinpe
+          key = price_key_for_sinpe_crc(product:, overage:)
+          amount = fetch(key)
+          raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
+          return amount
+        end
+
+        if currency == :usd && payment_method == :card
+          key = price_key_for_official_usd(product:, overage:)
+          amount = fetch(key)
+          raise ArgumentError, "amount must be positive" unless amount.to_f.positive?
+          return amount
+        end
+
+        raise ArgumentError, "unsupported currency/payment_method combination"
+      end
+
       def single_download_overage_usd
         return fetch("single_download_overage_usd") if has_key?("single_download_overage_usd")
 
@@ -39,6 +76,33 @@ module Billing
       end
 
       private
+
+      def price_key_for_official_crc(product:, overage:)
+        case product
+        when :single_download
+          overage ? "single_download_overage_official_crc" : "single_download_official_crc"
+        else
+          raise ArgumentError, "unsupported product"
+        end
+      end
+
+      def price_key_for_sinpe_crc(product:, overage:)
+        case product
+        when :single_download
+          overage ? "single_download_overage_sinpe_crc" : "single_download_sinpe_crc"
+        else
+          raise ArgumentError, "unsupported product"
+        end
+      end
+
+      def price_key_for_official_usd(product:, overage:)
+        case product
+        when :single_download
+          overage ? "single_download_overage_official_usd" : "single_download_official_usd"
+        else
+          raise ArgumentError, "unsupported product"
+        end
+      end
 
       def fetch(key)
         value = current_data.fetch(key)

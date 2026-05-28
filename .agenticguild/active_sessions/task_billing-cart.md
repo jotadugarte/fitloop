@@ -201,7 +201,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   <phase id="P1" name="Pricing config & APIs">
     <step status="complete">Write failing unit/spec tests for `Billing::Pricing` new keys: official+sinpe for CRC and USD, including explicit overage amounts (no percent).</step>
     <step>Update `config/billing.yml` structure to be easy to change: per-product official/sinpe in both currencies + explicit overage entries.</step>
-    <step>Update `Billing::Pricing` to expose a clean API (e.g. `price(product:, currency:, tier_months:, overage:, kind:)`) and to validate positivity.</step>
+    <step status="complete">Update `Billing::Pricing` to expose a clean API (e.g. `price(product:, currency:, tier_months:, overage:, kind:)`) and to validate positivity.</step>
     <step>Remove reliance on `plan_quota_overage_percent` for display + checkout math (keep key only if needed for backwards compat; otherwise deprecate).</step>
   </phase>
 
