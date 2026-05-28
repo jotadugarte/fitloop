@@ -44,5 +44,25 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       end.to change(Cart, :count).by(-1)
     end
   end
+
+  describe "POST /carrito replace-confirm [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] requires confirmation when replacing existing item (D6)" do
+      project = begin_workspace_session!
+      run1 = project.nesting_runs.create!(status: "completed")
+      run2 = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run1.id, currency_mode: "usd" }
+      expect(Cart.count).to eq(1)
+
+      expect do
+        post "/carrito",
+             params: { kind: "single_download", nesting_run_id: run2.id, currency_mode: "usd" }
+      end.not_to change(Cart, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("confirm")
+    end
+  end
 end
 

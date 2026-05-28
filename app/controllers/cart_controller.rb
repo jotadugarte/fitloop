@@ -3,12 +3,17 @@ class CartController < ApplicationController
   end
 
   def create
+    if Cart.exists?
+      render plain: "confirm replace", status: :unprocessable_content
+      return
+    end
+
     cart = Cart.create!(
       kind: params.fetch(:kind),
       nesting_run_id: params.fetch(:nesting_run_id),
       currency_mode: params.fetch(:currency_mode),
       overage: false,
-      guest_token: "guest-cart-placeholder",
+      guest_token: SecureRandom.uuid,
       list_price_cents: 250,
       sinpe_price_cents: 200
     )
