@@ -1,6 +1,8 @@
 <% currency = @billing_selection.fetch(:currency) %>
 <% plan_checkout = @checkout_kind == :plan %>
 <% show_overage_pricing = !plan_checkout && @plan_quota_exhausted %>
+<% selected_payment_method = @selected_payment_method %>
+<% selected_outcome = @simulate_outcome %>
 
 <div class="paywall-layout checkout-page" data-testid="checkout-page" data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
@@ -9,6 +11,53 @@
     </p>
 
     <h1 class="billing-page__title"><%= plan_checkout ? t("billing.checkout.title_plan") : t("billing.checkout.title") %></h1>
+
+    <h2 class="checkout-section-title checkout-section-title--method" data-testid="checkout-method-title">
+      <%= t("billing.checkout.choose_payment_method") %>
+    </h2>
+
+    <section class="checkout-method-selector panel panel--inset" data-testid="checkout-method-selector">
+      <%= form_with url: checkout_path,
+                    method: :get,
+                    data: { turbo: false },
+                    class: "checkout-method-selector__form" do %>
+        <%= hidden_field_tag :nesting_run_id, @nesting_run&.id if params[:nesting_run_id].present? %>
+        <%= hidden_field_tag :outcome, selected_outcome %>
+
+        <div class="checkout-method-selector__options">
+          <% if currency == :crc && @available_payment_methods.include?(:sinpe) %>
+            <label class="checkout-method-selector__option">
+              <input type="radio"
+                     name="payment_method"
+                     value="sinpe_crc"
+                     <%= "checked" if selected_payment_method == "sinpe_crc" %>
+                     data-action="change->this.form.requestSubmit">
+              <span class="checkout-method-selector__label"><%= t("billing.checkout.sinpe_crc") %></span>
+            </label>
+          <% end %>
+
+          <% if currency == :crc %>
+            <label class="checkout-method-selector__option">
+              <input type="radio"
+                     name="payment_method"
+                     value="card_crc"
+                     <%= "checked" if selected_payment_method == "card_crc" %>
+                     data-action="change->this.form.requestSubmit">
+              <span class="checkout-method-selector__label"><%= t("billing.paywall.card_crc") %></span>
+            </label>
+          <% else %>
+            <label class="checkout-method-selector__option">
+              <input type="radio"
+                     name="payment_method"
+                     value="card_usd"
+                     <%= "checked" if selected_payment_method == "card_usd" %>
+                     data-action="change->this.form.requestSubmit">
+              <span class="checkout-method-selector__label"><%= t("billing.checkout.card_usd") %></span>
+            </label>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
 
     <div class="checkout-pricing panel panel--inset" data-testid="checkout-pricing-block">
       <dl class="checkout-pricing__list">
@@ -55,6 +104,7 @@
       <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
     <% end %>
 
+    <%# Detail depends on chosen payment method (SINPE promo vs official card). %>
     <% if @checkout_breakdown %>
       <h2 class="checkout-section-title" data-testid="checkout-detail-title"><%= t("billing.checkout.detail_title") %></h2>
       <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
@@ -62,52 +112,36 @@
       </section>
     <% end %>
 
-    <h2 class="checkout-section-title checkout-section-title--method" data-testid="checkout-method-title">
-      <%= t("billing.checkout.choose_payment_method") %>
-    </h2>
+    <%= form_with url: checkout_simulate_path,
+                  method: :post,
+                  data: { turbo: false },
+                  class: "checkout-process-form" do %>
+      <%= hidden_field_tag :nesting_run_id, @nesting_run&.id if @nesting_run.present? %>
+      <%= hidden_field_tag :tier_months, @tier_months if plan_checkout %>
+      <%= hidden_field_tag :payment_method, selected_payment_method %>
+      <%= hidden_field_tag :outcome, selected_outcome %>
 
-    <div class="checkout-methods">
-      <% if currency == :crc %>
-        <% if @available_payment_methods.include?(:sinpe) %>
-          <%= render "checkout/payment_method",
-                     testid: "checkout-pay-sinpe-crc",
-                     title: t("billing.checkout.sinpe_crc"),
-                     nesting_run_id: plan_checkout ? nil : @nesting_run.id,
-                     tier_months: plan_checkout ? @tier_months : nil,
-                     payment_method: "sinpe_crc" %>
+      <footer class="checkout-footer paywall-actions">
+        <%= button_tag t("billing.checkout.process_payment", default: "Procesar pago"),
+                       type: "submit",
+                       class: "btn btn-primary",
+                       data: { testid: "checkout-process-payment" } %>
+        <% unless plan_checkout %>
+          <%= link_to t("billing.checkout.download_now"),
+                      nested_dxf_project_path(@project),
+                      class: "btn btn-secondary",
+                      data: { testid: "checkout-download-now", turbo: false } %>
         <% end %>
-        <%= render "checkout/payment_method",
-                   testid: "checkout-pay-card-crc",
-                   title: t("billing.paywall.card_crc"),
-                   nesting_run_id: plan_checkout ? nil : @nesting_run.id,
-                   tier_months: plan_checkout ? @tier_months : nil,
-                   payment_method: "card_crc" %>
-      <% else %>
-        <%= render "checkout/payment_method",
-                   testid: "checkout-pay-card-usd",
-                   title: t("billing.checkout.card_usd"),
-                   nesting_run_id: plan_checkout ? nil : @nesting_run.id,
-                   tier_months: plan_checkout ? @tier_months : nil,
-                   payment_method: "card_usd" %>
-      <% end %>
-    </div>
-
-    <footer class="checkout-footer paywall-actions">
-      <% unless plan_checkout %>
-        <%= link_to t("billing.checkout.download_now"),
-                    nested_dxf_project_path(@project),
+        <%= link_to t("billing.checkout.back_to_paywall"),
+                    download_paywall_workshop_path,
                     class: "btn btn-secondary",
-                    data: { testid: "checkout-download-now", turbo: false } %>
-      <% end %>
-      <%= link_to t("billing.checkout.back_to_paywall"),
-                  download_paywall_workshop_path,
-                  class: "btn btn-secondary",
-                  data: { testid: "checkout-back-to-paywall", turbo: false } %>
-      <%= link_to t("billing.paywall.back_to_project"),
-                  project_path(@project),
-                  class: "btn btn-secondary",
-                  data: { testid: "checkout-back-to-project", turbo: false } %>
-    </footer>
+                    data: { testid: "checkout-back-to-paywall", turbo: false } %>
+        <%= link_to t("billing.paywall.back_to_project"),
+                    project_path(@project),
+                    class: "btn btn-secondary",
+                    data: { testid: "checkout-back-to-project", turbo: false } %>
+      </footer>
+    <% end %>
   </article>
 
   <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="checkout-aside-title">

@@ -246,7 +246,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   <phase id="P8" name="Checkout flow refactor (method-first, dynamic receipt, single CTA)">
     <step id="P8.1" status="complete">Run targeted request specs for checkout/paywall/cart to confirm baseline stays green.</step>
     <step id="P8.2" status="complete">Write/adjust request specs asserting checkout vertical order and dynamics: method selection precedes breakdown; breakdown updates when method toggles; single “Procesar pago” CTA at bottom. Keep REQ tags under REQ-FIT-BILL-001/002.</step>
-    <step id="P8.3" status="pending">Refactor `CheckoutController` + `checkout/show.html.erb` to: render method selector first (as large selectable cards), update breakdown via Turbo Frame/Stream on selection, and move to a single submit action. Preserve existing pricing rules (SINPE promo vs card official; IVA only when applicable).</step>
+    <step id="P8.3" status="complete">Refactor `CheckoutController` + `checkout/show.html.erb` to: render method selector first (as large selectable cards), update breakdown via Turbo Frame/Stream on selection, and move to a single submit action. Preserve existing pricing rules (SINPE promo vs card official; IVA only when applicable).</step>
     <step id="P8.4" status="pending">Add i18n keys for new labels (“Ahorra ₡X”, “Procesar pago”, etc.) with `es_panic` parity; update CSS for the new card selector + receipt layout.</step>
     <step id="P8.5" status="pending">Run the focused spec set again and fix any regressions.</step>
   </phase>

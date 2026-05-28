@@ -13,6 +13,8 @@ class CheckoutController < ApplicationController
   def show
     @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
     @available_payment_methods = @billing_selection.fetch(:available_payment_methods)
+    @simulate_outcome = resolve_simulate_outcome
+    @selected_payment_method = resolve_selected_payment_method(selection: @billing_selection)
     @checkout_breakdown = checkout_breakdown_preview
     @plan_quota_exhausted =
       Billing::PlanDownloadAvailability.plan_quota_exhausted?(user: current_user)
@@ -116,11 +118,51 @@ class CheckoutController < ApplicationController
 
   def billing_context_for_checkout
     selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
+    payment_method = resolve_breakdown_payment_method(selection: selection)
     {
       currency: selection.fetch(:currency),
-      payment_method: selection.fetch(:payment_method),
+      payment_method: payment_method,
       iva_applicable: selection.fetch(:iva_applicable)
     }
+  end
+
+  def resolve_selected_payment_method(selection:)
+    requested = params[:payment_method].to_s.strip
+    return normalize_payment_method(selection: selection) if requested.empty?
+
+    if requested.start_with?("sinpe")
+      return normalize_payment_method(selection: selection) unless @available_payment_methods.include?(:sinpe)
+      return "sinpe_crc"
+    end
+
+    if requested.start_with?("card")
+      return normalize_payment_method(selection: selection) unless @available_payment_methods.include?(:card)
+      return selection.fetch(:currency) == :usd ? "card_usd" : "card_crc"
+    end
+
+    requested
+  end
+
+  def normalize_payment_method(selection:)
+    method = selection.fetch(:payment_method)
+    currency = selection.fetch(:currency)
+
+    return "sinpe_crc" if method == :sinpe
+    return "card_usd" if currency == :usd
+
+    "card_crc"
+  end
+
+  def resolve_breakdown_payment_method(selection:)
+    selected = resolve_selected_payment_method(selection: selection).to_s
+    selected.start_with?("sinpe") ? :sinpe : :card
+  end
+
+  def resolve_simulate_outcome
+    value = params[:outcome].to_s.strip
+    return "success" if value.empty?
+
+    %w[success failure].include?(value) ? value : "success"
   end
 
   def redirect_after_plan_purchase!(result)

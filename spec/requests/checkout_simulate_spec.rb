@@ -20,7 +20,7 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
   end
 
   describe "GET /checkout [REQ-FIT-BILL-001]" do
-    it "[REQ-FIT-BILL-001] shows demo badge and card/SINPE simulate actions (D37)" do
+    it "[REQ-FIT-BILL-001] shows demo badge, payment method selector, and a single process-payment CTA (D37)" do
       user = create_billing_user!
       run = prepare_single_download![:run]
       sign_in_user! user
@@ -30,11 +30,11 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('class="paywall-layout checkout-page"')
       expect(response.body).to include('data-testid="checkout-demo"')
-      expect(response.body).to include('data-testid="checkout-pay-card-crc"')
-      expect(response.body).to include('data-testid="checkout-pay-sinpe-crc"')
-      expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
-      expect(response.body).to include('data-testid="checkout-simulate-success"')
-      expect(response.body).to include('data-testid="checkout-simulate-failure"')
+      expect(response.body).to include('data-testid="checkout-method-selector"')
+      expect(response.body).to include('value="sinpe_crc"')
+      expect(response.body).to include('value="card_crc"')
+      expect(response.body).not_to include('value="card_usd"')
+      expect(response.body).to include('data-testid="checkout-process-payment"')
     end
   end
 
