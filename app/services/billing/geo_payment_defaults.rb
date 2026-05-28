@@ -21,14 +21,15 @@ module Billing
       {
         country_code: country_code,
         default_currency: defaults.fetch(:currency),
-        default_payment_method: defaults.fetch(:payment_method)
+        default_payment_method: defaults.fetch(:payment_method),
+        available_payment_methods: defaults.fetch(:available_payment_methods)
       }
     end
 
     def self.defaults_for_country(country_code)
-      return { currency: :crc, payment_method: :sinpe } if country_code == "CR"
+      return { currency: :crc, payment_method: :sinpe, available_payment_methods: [ :sinpe, :card ] } if country_code == "CR"
 
-      { currency: :usd, payment_method: :card }
+      { currency: :usd, payment_method: :card, available_payment_methods: [ :card ] }
     end
     private_class_method :defaults_for_country
   end
