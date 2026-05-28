@@ -9,9 +9,9 @@ module Billing
       single_download_overage_usd single_download_overage_sinpe_crc single_download_overage_official_crc
       single_download_official_usd single_download_sinpe_usd
       single_download_overage_official_usd single_download_overage_sinpe_usd
-      plan_1_month_card_usd plan_1_month_official_crc plan_1_month_sinpe_crc
-      plan_2_months_card_usd plan_2_months_official_crc plan_2_months_sinpe_crc
-      plan_4_months_card_usd plan_4_months_official_crc plan_4_months_sinpe_crc
+      plan_1_month_card_usd plan_1_month_official_crc plan_1_month_sinpe_crc plan_1_month_sinpe_usd
+      plan_2_months_card_usd plan_2_months_official_crc plan_2_months_sinpe_crc plan_2_months_sinpe_usd
+      plan_4_months_card_usd plan_4_months_official_crc plan_4_months_sinpe_crc plan_4_months_sinpe_usd
     ].freeze
 
     class << self
@@ -128,21 +128,29 @@ module Billing
 
         normalized = raw.dup
 
-        single = products["single_download"]
-        if single
-          normalized.merge!(
-            "single_download_official_crc" => dig_required(single, %w[official crc]),
-            "single_download_official_usd" => dig_required(single, %w[official usd]),
-            "single_download_sinpe_crc" => dig_required(single, %w[sinpe crc]),
-            "single_download_sinpe_usd" => dig_required(single, %w[sinpe usd]),
-            "single_download_overage_official_crc" => dig_required(single, %w[overage official crc]),
-            "single_download_overage_official_usd" => dig_required(single, %w[overage official usd]),
-            "single_download_overage_sinpe_crc" => dig_required(single, %w[overage sinpe crc]),
-            "single_download_overage_sinpe_usd" => dig_required(single, %w[overage sinpe usd])
-          )
-        end
+        merge_product_prices!(normalized, products["single_download"], prefix: "single_download")
+        merge_product_prices!(normalized, products["plan_1_month"], prefix: "plan_1_month", usd_card_key: "plan_1_month_card_usd")
+        merge_product_prices!(normalized, products["plan_2_months"], prefix: "plan_2_months", usd_card_key: "plan_2_months_card_usd")
+        merge_product_prices!(normalized, products["plan_4_months"], prefix: "plan_4_months", usd_card_key: "plan_4_months_card_usd")
 
         normalized
+      end
+
+      def merge_product_prices!(normalized, product, prefix:, usd_card_key: nil)
+        return unless product
+
+        normalized["#{prefix}_official_crc"] = dig_required(product, %w[official crc])
+        normalized["#{prefix}_sinpe_crc"] = dig_required(product, %w[sinpe crc])
+        normalized["#{prefix}_official_usd"] = dig_required(product, %w[official usd])
+        normalized["#{prefix}_sinpe_usd"] = dig_required(product, %w[sinpe usd])
+        normalized[usd_card_key || "#{prefix}_official_usd"] = dig_required(product, %w[official usd])
+
+        return unless product.key?("overage")
+
+        normalized["#{prefix}_overage_official_crc"] = dig_required(product, %w[overage official crc])
+        normalized["#{prefix}_overage_sinpe_crc"] = dig_required(product, %w[overage sinpe crc])
+        normalized["#{prefix}_overage_official_usd"] = dig_required(product, %w[overage official usd])
+        normalized["#{prefix}_overage_sinpe_usd"] = dig_required(product, %w[overage sinpe usd])
       end
 
       def dig_required(hash, path)
