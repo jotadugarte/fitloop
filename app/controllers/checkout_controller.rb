@@ -33,8 +33,14 @@ class CheckoutController < ApplicationController
   private
 
   def load_checkout_context
-    @nesting_run = NestingRun.find_by(id: params[:nesting_run_id])
-    return redirect_to(start_project_path, alert: t("workspace.expired")) unless @nesting_run
+    if params[:nesting_run_id].present?
+      @nesting_run = NestingRun.find_by(id: params[:nesting_run_id])
+      return redirect_to(start_project_path, alert: t("workspace.expired")) unless @nesting_run
+    else
+      cart = Cart.find_by(user_id: current_user.id)
+      @nesting_run = cart&.nesting_run
+      return redirect_to(cart_path) unless @nesting_run
+    end
 
     @project = @nesting_run.project
     return if Workspace.bound_to_project?(session, @project)
