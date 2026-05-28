@@ -2,6 +2,23 @@
 # Abra este archivo, edite los valores y guarde; la app recarga sola al cambiar el archivo (mtime).
 # Moneda: descarga suelta y planes en USD (tarjeta) o CRC (SINPE Móvil).
 
+# Canonical pricing tables (MEIC): nested per-product structure (D25).
+products:
+  single_download:
+    official:
+      crc: 1200
+      usd: 2.50
+    sinpe:
+      crc: 1000
+      usd: 2.00
+    overage:
+      official:
+        crc: 600
+        usd: 1.25
+      sinpe:
+        crc: 500
+        usd: 1.00
+
 # --- Descarga suelta (un nested DXF por pago exitoso) ---
 single_download_usd: 2.00
 single_download_sinpe_crc: 1000
