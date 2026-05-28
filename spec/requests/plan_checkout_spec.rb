@@ -169,5 +169,26 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
       expect(response).to redirect_to("/mi-cuenta")
       expect(flash[:alert]).to be_present
     end
+
+    it "[REQ-FIT-BILL-002] records snapshot fields on failed plan payments (D20, D24)" do
+      expect do
+        post planes_simulate_path,
+             params: {
+               tier_months: 1,
+               payment_method: "card_usd",
+               outcome: "failure",
+               project_id: project.id
+             }
+      end.to change(Payment, :count).by(1)
+        .and change(Subscription, :count).by(0)
+
+      payment = Payment.last
+      expect(payment).to be_failed
+      expect(payment.purchaser_name).to be_present
+      expect(payment.purchaser_email).to be_present
+      expect(payment.product_description).to be_present
+      expect(payment.list_price).to be > 0
+      expect(payment.total_amount).to be > 0
+    end
   end
 end
