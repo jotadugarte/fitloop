@@ -29,28 +29,32 @@ module Billing
       # - currency and payment_method must be compatible
       # Postcondition:
       # - returns a positive numeric amount
-      def price(product:, currency:, payment_method:, overage:)
+      def price(product:, currency:, payment_method:, overage:, tier_months: nil)
         raise ArgumentError, "product must be a Symbol" unless product.is_a?(Symbol)
         raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(currency)
         raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(payment_method)
         raise ArgumentError, "overage must be boolean" unless overage == true || overage == false
+        if product == :plan
+          raise ArgumentError, "tier_months required for product :plan" if tier_months.nil?
+          raise ArgumentError, "plan overage is not supported" if overage
+        end
 
         if currency == :crc && payment_method == :card
-          key = price_key_for_official_crc(product:, overage:)
+          key = price_key_for_official_crc(product:, overage:, tier_months: tier_months)
           amount = fetch(key)
           raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
           return amount
         end
 
         if currency == :crc && payment_method == :sinpe
-          key = price_key_for_sinpe_crc(product:, overage:)
+          key = price_key_for_sinpe_crc(product:, overage:, tier_months: tier_months)
           amount = fetch(key)
           raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
           return amount
         end
 
         if currency == :usd && payment_method == :card
-          key = price_key_for_official_usd(product:, overage:)
+          key = price_key_for_official_usd(product:, overage:, tier_months: tier_months)
           amount = fetch(key)
           raise ArgumentError, "amount must be positive" unless amount.to_f.positive?
           return amount
@@ -73,30 +77,46 @@ module Billing
 
       private
 
-      def price_key_for_official_crc(product:, overage:)
+      def price_key_for_official_crc(product:, overage:, tier_months:)
         case product
         when :single_download
           overage ? "single_download_overage_official_crc" : "single_download_official_crc"
+        when :plan
+          plan_key_prefix(tier_months) + "_official_crc"
         else
           raise ArgumentError, "unsupported product"
         end
       end
 
-      def price_key_for_sinpe_crc(product:, overage:)
+      def price_key_for_sinpe_crc(product:, overage:, tier_months:)
         case product
         when :single_download
           overage ? "single_download_overage_sinpe_crc" : "single_download_sinpe_crc"
+        when :plan
+          plan_key_prefix(tier_months) + "_sinpe_crc"
         else
           raise ArgumentError, "unsupported product"
         end
       end
 
-      def price_key_for_official_usd(product:, overage:)
+      def price_key_for_official_usd(product:, overage:, tier_months:)
         case product
         when :single_download
           overage ? "single_download_overage_official_usd" : "single_download_official_usd"
+        when :plan
+          plan_key_prefix(tier_months) + "_card_usd"
         else
           raise ArgumentError, "unsupported product"
+        end
+      end
+
+      def plan_key_prefix(tier_months)
+        case tier_months.to_i
+        when 1 then "plan_1_month"
+        when 2 then "plan_2_months"
+        when 4 then "plan_4_months"
+        else
+          raise ArgumentError, "unknown plan tier_months: #{tier_months}"
         end
       end
 
