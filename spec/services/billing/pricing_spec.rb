@@ -136,4 +136,12 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       described_class.reset_cache!
     end
   end
+
+  describe "config/billing.yml structure [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] uses nested per-product tables as the canonical format (D25)" do
+      data = YAML.load_file(billing_yml)
+      expect(data).to be_a(Hash)
+      expect(data).to have_key("products")
+    end
+  end
 end
