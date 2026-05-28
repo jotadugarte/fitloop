@@ -60,15 +60,11 @@ module Billing
       end
 
       def single_download_overage_usd
-        return fetch("single_download_overage_usd") if has_key?("single_download_overage_usd")
-
-        overage_amount(fetch("single_download_usd").to_f)
+        fetch("single_download_overage_usd")
       end
 
       def single_download_overage_sinpe_crc
-        return fetch("single_download_overage_sinpe_crc") if has_key?("single_download_overage_sinpe_crc")
-
-        overage_amount(fetch("single_download_sinpe_crc").to_i).to_i
+        fetch("single_download_overage_sinpe_crc")
       end
 
       def single_download_overage_official_crc
