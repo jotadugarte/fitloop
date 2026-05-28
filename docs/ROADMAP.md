@@ -139,7 +139,8 @@ _(no pending engine items)_
 ### Product & platform
 
 - [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Depends on: P6/P7 merged — Session: `task_user-analytics_2026-05-21.md` (discovery archived in `.agenticguild/completed_sessions/`)
-- [ ] **ONVO payments + MEIC pricing (CRC-primary)** — replace simulated checkout; ONVO SINPE + card SDK; list prices in CRC; card charged in USD at daily FX — Depends on: user analytics (or P7 stable on `main`); external: OT + ONVO sandbox — Session (local): `task_onvo-payments.md`
+- [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart** (columnas snapshot) — Session: `task_billing-cart.md`
+- [ ] **ONVO payments (live gateway)** — replace simulated checkout; ONVO SINPE + card SDK — Depends on: billing cart + MEIC UX on `main`; external: OT + ONVO sandbox — Re-explore after cart ships
 - [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: ONVO or P7 stable on `main` — Also noted in `.agenticguild/pending_refactors.md`
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
