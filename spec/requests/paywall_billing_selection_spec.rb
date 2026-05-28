@@ -6,6 +6,19 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
   include BillingHelper
 
   describe "GET /taller/descarga-pago [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] creates a workshop bind when visiting paywall without prior workspace (D3)" do
+      user = create_billing_user!
+      sign_in_user_for_request!(user)
+
+      expect(session[Workspace::SESSION_KEY]).to be_blank
+
+      get "/taller/descarga-pago", headers: { "CF-IPCountry" => "CR" }
+
+      expect(response).to have_http_status(:ok)
+      expect(session[Workspace::SESSION_KEY]).to be_present
+      expect(Project.ephemeral.find_by(id: session[Workspace::SESSION_KEY])).to be_present
+    end
+
     it "[REQ-FIT-BILL-001] exposes resolved billing currency in the HTML (D3, D16)" do
       begin_workspace_session!
 
