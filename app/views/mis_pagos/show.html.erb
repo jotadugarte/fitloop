@@ -83,7 +83,10 @@
       <li><%= t("billing.paywall.aside.benefit_plan") %></li>
     </ul>
     <p class="mis-pagos-aside__action">
-      <%= link_to t("billing.mis_pagos.aside.view_plans"), planes_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
+      <%= link_to t("billing.mis_pagos.aside.view_plans"),
+                  download_paywall_workshop_path,
+                  class: "btn btn-secondary",
+                  data: { turbo_frame: "_top" } %>
     </p>
   </aside>
 </div>

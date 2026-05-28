@@ -27,6 +27,8 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-002]", type: :request do
         get mis_pagos_path, params: { locale: "es" }
 
         expect(response).to have_http_status(:ok)
+        expect(response.body).to include(download_paywall_workshop_path)
+        expect(response.body).not_to include('href="/checkout"')
         expect(response.body).to include('data-testid="mis-pagos-plan-tier"')
         expect(response.body).to include(I18n.t("billing.planes.tier_2", locale: :es))
         expect(response.body).to include(I18n.t("billing.mis_pagos.period_started", locale: :es))
