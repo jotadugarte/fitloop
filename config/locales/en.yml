@@ -129,6 +129,10 @@ en:
       download_with_plan: "Download with your plan"
       view_plans: "View plans"
       back_to_project: "Back to project"
+      selector:
+        currency_label: "Currency"
+        payment_method_label: "Payment method"
+        apply: "Apply"
       aside:
         title: "Your nested DXF is ready"
         lead: "Nesting finished. Choose how to unlock the download:"
@@ -197,6 +201,15 @@ en:
       single_download: "Single download"
       overage_hint: "With plan quota exhausted (50%)"
       plan_quota_prioritized: "Your active plan still has monthly quota. Download from the project without paying for a single download."
+      breakdown:
+        title: "Breakdown"
+        subtotal: "Subtotal"
+        tax: "IVA"
+        sinpe_discount: "SINPE discount"
+        total: "Total"
+    cart:
+      title: "Cart"
+      add_to_cart: "Add to cart"
 
   home:
     index:

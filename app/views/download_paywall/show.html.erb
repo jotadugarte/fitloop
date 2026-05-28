@@ -10,14 +10,14 @@
     <%= form_with url: workspace_workshop_path, method: :patch, data: { turbo: false } do %>
       <%= hidden_field_tag :section, "billing" %>
       <div class="field">
-        <label for="billing_currency">Currency</label>
+        <label for="billing_currency"><%= t("billing.paywall.selector.currency_label") %></label>
         <select id="billing_currency" name="billing[currency]">
           <option value="crc" <%= "selected" if @billing_selection.fetch(:currency) == :crc %>>CRC</option>
           <option value="usd" <%= "selected" if @billing_selection.fetch(:currency) == :usd %>>USD</option>
         </select>
       </div>
       <div class="field">
-        <label for="billing_payment_method">Payment method</label>
+        <label for="billing_payment_method"><%= t("billing.paywall.selector.payment_method_label") %></label>
         <select id="billing_payment_method" name="billing[payment_method]">
           <% if @available_payment_methods.include?(:sinpe) %>
             <option value="sinpe" <%= "selected" if @billing_selection.fetch(:payment_method) == :sinpe %>>SINPE</option>
@@ -25,7 +25,7 @@
           <option value="card" <%= "selected" if @billing_selection.fetch(:payment_method) == :card %>>Card</option>
         </select>
       </div>
-      <%= button_tag "Apply", class: "btn btn-secondary" %>
+      <%= button_tag t("billing.paywall.selector.apply"), class: "btn btn-secondary" %>
     <% end %>
 
     <% if @plan_download_included %>
@@ -67,7 +67,7 @@
             <%= hidden_field_tag :kind, "plan" %>
             <%= hidden_field_tag :tier_months, months %>
             <%= hidden_field_tag :currency_mode, @billing_selection.fetch(:currency).to_s %>
-            <%= button_tag t("billing.cart.add_to_cart", default: "Añadir al carrito"),
+            <%= button_tag t("billing.cart.add_to_cart"),
                            class: "btn btn-primary",
                            data: { testid: "paywall-add-plan-#{months}" } %>
           <% end %>

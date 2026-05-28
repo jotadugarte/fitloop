@@ -77,7 +77,7 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="checkout-breakdown"')
-    expect(response.body).to include("Descuento SINPE")
+    expect(response.body).to include(I18n.t("billing.checkout.breakdown.sinpe_discount"))
   end
 
   it "[REQ-FIT-BILL-001] shows subtotal and total lines in checkout breakdown (D25)" do

@@ -139,6 +139,10 @@ es_panic:
       download_with_plan: Descargar con tu plan
       view_plans: Ver planes
       back_to_project: Volver al proyecto
+      selector:
+        currency_label: Moneda
+        payment_method_label: Método de pago
+        apply: Aplicar
       aside:
         title: El DXF anidado ya está (no lo toques sin pagar)
         lead: "El Tetris terminó. Desbloquea la bajada así:"
@@ -214,6 +218,7 @@ es_panic:
         sinpe_discount: Descuento SINPE
         total: Total
     cart:
+      title: Carrito
       add_to_cart: "Añadir al carrito"
   home:
     index:

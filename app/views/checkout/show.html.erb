@@ -22,13 +22,13 @@
     <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
 
     <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
-      <h2><%= t("billing.checkout.breakdown.title", default: "Desglose") %></h2>
-      <p><%= t("billing.checkout.breakdown.subtotal", default: "Subtotal") %></p>
-      <p><%= t("billing.checkout.breakdown.tax", default: "IVA") %></p>
+      <h2><%= t("billing.checkout.breakdown.title") %></h2>
+      <p><%= t("billing.checkout.breakdown.subtotal") %></p>
+      <p><%= t("billing.checkout.breakdown.tax") %></p>
       <% if @available_payment_methods.include?(:sinpe) %>
-        <p><%= t("billing.checkout.breakdown.sinpe_discount", default: "Descuento SINPE") %></p>
+        <p><%= t("billing.checkout.breakdown.sinpe_discount") %></p>
       <% end %>
-      <p><%= t("billing.checkout.breakdown.total", default: "Total") %></p>
+      <p><%= t("billing.checkout.breakdown.total") %></p>
     </section>
 
     <div class="checkout-methods">

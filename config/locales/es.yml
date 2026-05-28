@@ -144,6 +144,10 @@ es:
       download_with_plan: "Descargar con tu plan"
       view_plans: "Ver planes"
       back_to_project: "Volver al proyecto"
+      selector:
+        currency_label: "Moneda"
+        payment_method_label: "Método de pago"
+        apply: "Aplicar"
       aside:
         title: "Tu DXF anidado está listo"
         lead: "El anidado terminó. Elige cómo desbloquear la descarga:"
@@ -219,6 +223,7 @@ es:
         sinpe_discount: "Descuento SINPE"
         total: "Total"
     cart:
+      title: "Carrito"
       add_to_cart: "Añadir al carrito"
 
   home:
