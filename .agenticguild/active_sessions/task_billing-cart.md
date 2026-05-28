@@ -240,6 +240,6 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   <phase id="P7" name="Polish + docs">
     <step status="complete">Update relevant i18n keys (`billing.paywall.*`, new `billing.cart.*`, checkout MEIC promo copy) and ensure locale parity (`es_panic` mirror) if keys added. (Done: added `billing.cart.title`/`add_to_cart`, `billing.checkout.breakdown.*`, and `billing.paywall.selector.*` in `en.yml`/`es.yml` + mirrored selector/cart/breakdown keys to `es_panic.yml`; removed view defaults/hardcoded copy.)</step>
     <step status="complete">Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
-    <step status="pending">Confirm roadmap item added for Admin ventas UI (already appended).</step>
+    <step status="complete">Confirm roadmap item added for Admin ventas UI (already appended). (Done: `docs/ROADMAP.md` backlog item “Admin ventas / reporte de pagos” references payment snapshots + `task_billing-cart.md`.)</step>
   </phase>
 </implementation_plan>
