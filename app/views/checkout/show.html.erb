@@ -3,6 +3,7 @@
 <% show_overage_pricing = !plan_checkout && @plan_quota_exhausted %>
 <% selected_payment_method = @selected_payment_method %>
 <% selected_outcome = @simulate_outcome %>
+<% sinpe_savings = @sinpe_savings_amount %>
 
 <div class="paywall-layout checkout-page" data-testid="checkout-page" data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
@@ -32,7 +33,14 @@
                      value="sinpe_crc"
                      <%= "checked" if selected_payment_method == "sinpe_crc" %>
                      data-action="change->this.form.requestSubmit">
-              <span class="checkout-method-selector__label"><%= t("billing.checkout.sinpe_crc") %></span>
+              <span class="checkout-method-selector__label">
+                <span class="checkout-method-selector__name"><%= t("billing.checkout.sinpe_crc") %></span>
+                <% if sinpe_savings.present? %>
+                  <span class="checkout-method-selector__badge" data-testid="checkout-sinpe-savings">
+                    <%= t("billing.checkout.savings_badge", amount: format_billing_crc(sinpe_savings)) %>
+                  </span>
+                <% end %>
+              </span>
             </label>
           <% end %>
 
@@ -122,7 +130,7 @@
       <%= hidden_field_tag :outcome, selected_outcome %>
 
       <footer class="checkout-footer paywall-actions">
-        <%= button_tag t("billing.checkout.process_payment", default: "Procesar pago"),
+        <%= button_tag t("billing.checkout.process_payment"),
                        type: "submit",
                        class: "btn btn-primary",
                        data: { testid: "checkout-process-payment" } %>

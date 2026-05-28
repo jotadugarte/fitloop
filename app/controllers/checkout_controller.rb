@@ -15,6 +15,7 @@ class CheckoutController < ApplicationController
     @available_payment_methods = @billing_selection.fetch(:available_payment_methods)
     @simulate_outcome = resolve_simulate_outcome
     @selected_payment_method = resolve_selected_payment_method(selection: @billing_selection)
+    @sinpe_savings_amount = sinpe_savings_amount_preview
     @checkout_breakdown = checkout_breakdown_preview
     @plan_quota_exhausted =
       Billing::PlanDownloadAvailability.plan_quota_exhausted?(user: current_user)
@@ -163,6 +164,29 @@ class CheckoutController < ApplicationController
     return "success" if value.empty?
 
     %w[success failure].include?(value) ? value : "success"
+  end
+
+  def sinpe_savings_amount_preview
+    selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
+    return nil unless selection.fetch(:currency) == :crc
+    return nil unless @available_payment_methods.include?(:sinpe)
+
+    billing_context = {
+      currency: :crc,
+      payment_method: :sinpe,
+      iva_applicable: selection.fetch(:iva_applicable)
+    }
+
+    breakdown = if plan_checkout?
+                  Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
+                elsif @cart && params[:nesting_run_id].blank?
+                  Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
+                else
+                  Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
+                end
+
+    discount = breakdown.fetch(:discount_amount).to_f
+    discount.positive? ? discount : nil
   end
 
   def redirect_after_plan_purchase!(result)

@@ -212,6 +212,8 @@ es:
       title: "Pagar esta descarga"
       title_plan: "Pagar este plan"
       demo_badge: "Entorno de demostración — pagos simulados (QA)"
+      process_payment: "Procesar pago"
+      savings_badge: "Ahorra %{amount}"
       card_usd: "Tarjeta (USD)"
       sinpe_crc: "SINPE Móvil (CRC)"
       simulate_success: "Pago exitoso"

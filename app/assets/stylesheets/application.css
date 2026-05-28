@@ -1130,6 +1130,81 @@ h3.fit-section__legend {
   margin-top: 1rem;
 }
 
+.checkout-method-selector {
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.checkout-method-selector__form {
+  margin: 0;
+}
+
+.checkout-method-selector__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.checkout-method-selector__option {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 0.9rem;
+  margin: 0;
+  cursor: pointer;
+  background: var(--fit-surface);
+  border: 1px solid var(--fit-border);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.checkout-method-selector__option:focus-within {
+  border-color: var(--fit-navy-light);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fit-navy-light) 20%, transparent);
+}
+
+.checkout-method-selector__option input[type="radio"] {
+  margin-top: 0.1rem;
+  accent-color: var(--fit-navy);
+}
+
+.checkout-method-selector__label {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.checkout-method-selector__name {
+  font-size: 0.98rem;
+}
+
+.checkout-method-selector__badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--fit-success-border, #3d8b5c);
+  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 12%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-success-border, #3d8b5c) 30%, var(--fit-border));
+  border-radius: 999px;
+}
+
+.checkout-method-selector__option:has(input[type="radio"]:checked) {
+  border-color: var(--fit-navy);
+  background: color-mix(in srgb, var(--fit-navy) 4%, var(--fit-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fit-navy) 18%, transparent);
+}
+
 .checkout-pricing {
   margin: 0;
   padding: 0.85rem 1rem;

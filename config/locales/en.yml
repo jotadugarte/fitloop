@@ -197,6 +197,8 @@ en:
       title: "Pay for this download"
       title_plan: "Pay for this plan"
       demo_badge: "Demo environment — simulated payments (QA)"
+      process_payment: "Process payment"
+      savings_badge: "Save %{amount}"
       card_usd: "Card (USD)"
       sinpe_crc: "SINPE Mobile (CRC)"
       simulate_success: "Payment succeeded"
