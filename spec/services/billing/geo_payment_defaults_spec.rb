@@ -39,6 +39,18 @@ RSpec.describe Billing::GeoPaymentDefaults, "[REQ-FIT-BILL-001]" do
 
       expect(defaults_us.fetch(:available_payment_methods)).to eq([ :card ])
     end
+
+    it "[REQ-FIT-BILL-001] allows a development override for country code (D16)" do
+      stub_const("Rails", class_double(Rails, env: ActiveSupport::StringInquirer.new("development")))
+      allow(ENV).to receive(:[]).with("FITLOOP_BILLING_COUNTRY_OVERRIDE").and_return("CR")
+
+      request = instance_double(ActionDispatch::Request, headers: { "CF-IPCountry" => "US" })
+      defaults = described_class.from_request(request)
+
+      expect(defaults.fetch(:country_code)).to eq("CR")
+      expect(defaults.fetch(:default_currency)).to eq(:crc)
+      expect(defaults.fetch(:default_payment_method)).to eq(:sinpe)
+    end
   end
 end
 
