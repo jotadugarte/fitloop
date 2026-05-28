@@ -6,6 +6,7 @@ class PlanesController < ApplicationController
   include ResolvesWorkspaceTab
 
   before_action :load_plan_project!, only: %i[show simulate]
+  before_action :redirect_to_cart_if_cart_item_present!, only: :show
 
   def show
     @active_subscription = Subscription.active_at.find_by(user_id: current_user.id)
@@ -55,5 +56,11 @@ class PlanesController < ApplicationController
     return if Workspace.bound_to_project?(session, @project)
 
     redirect_to start_project_path, alert: t("workspace.expired")
+  end
+
+  def redirect_to_cart_if_cart_item_present!
+    return unless Cart.exists?
+
+    redirect_to cart_path
   end
 end
