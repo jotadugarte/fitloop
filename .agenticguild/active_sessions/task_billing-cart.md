@@ -239,7 +239,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
 
   <phase id="P7" name="Polish + docs">
     <step status="pending">Update relevant i18n keys (`billing.paywall.*`, new `billing.cart.*`, checkout MEIC promo copy) and ensure locale parity (`es_panic` mirror) if keys added. (Progress: added `billing.cart.add_to_cart` + `billing.checkout.breakdown.*` in `es.yml` and mirrored in `es_panic.yml`.)</step>
-    <step status="pending">Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
+    <step status="complete">Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
     <step status="pending">Confirm roadmap item added for Admin ventas UI (already appended).</step>
   </phase>
 </implementation_plan>
