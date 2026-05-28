@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Billing::CartTotals, "[REQ-FIT-BILL-001]" do
+  include BillingModelHelpers
+
   describe ".for_cart [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] returns list subtotal cents for cart review (D25)" do
       cart = Cart.create!(
