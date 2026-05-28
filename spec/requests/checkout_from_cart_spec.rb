@@ -53,7 +53,7 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="checkout-breakdown"')
-    expect(response.body).to include("IVA")
+    expect(response.body).to include('data-testid="checkout-iva"')
   end
 
   it "[REQ-FIT-BILL-001] shows SINPE discount line in breakdown when SINPE is available (D25)" do
@@ -102,6 +102,32 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("Subtotal")
     expect(response.body).to include("Total")
+    expect(response.body).to include('data-testid="checkout-back-to-paywall"')
+  end
+
+  it "[REQ-FIT-BILL-001] hides IVA line for international checkout (D2, D25)" do
+    user = create_billing_user!(email: "intl@example.com")
+    project = begin_workspace_session!
+    run = project.nesting_runs.create!(status: "completed")
+    project.update!(status: :completed)
+
+    Cart.create!(
+      kind: "single_download",
+      nesting_run: run,
+      currency_mode: "usd",
+      overage: false,
+      user: user,
+      list_price_cents: 250,
+      sinpe_price_cents: 200
+    )
+
+    sign_in_user! user
+    get "/checkout", headers: { "CF-IPCountry" => "US" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="checkout-breakdown"')
+    expect(response.body).not_to include('data-testid="checkout-iva"')
+    expect(response.body).to include('data-billing-currency="usd"')
   end
 end
 

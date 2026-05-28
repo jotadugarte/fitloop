@@ -4,7 +4,7 @@ module Billing
   # [REQ-FIT-BILL-002] Simulated plan subscription checkout (D28, D29, D37).
   class SimulatePlanPurchase
     ALLOWED_TIERS = Subscription::ALLOWED_TIER_MONTHS.freeze
-    ALLOWED_METHODS = %w[card_usd sinpe_crc].freeze
+    ALLOWED_METHODS = %w[card_usd card_crc sinpe_crc].freeze
 
     def self.call(user:, tier_months:, payment_method:, outcome:, project:)
       new(user: user, tier_months: tier_months, payment_method: payment_method, outcome: outcome, project: project).call
@@ -70,7 +70,7 @@ module Billing
         subscription: subscription,
         status: status,
         payment_method: @payment_method,
-        currency: @payment_method == "card_usd" ? "usd" : "crc",
+        currency: @payment_method == "card_usd" ? "usd" : "crc", # card_crc and sinpe_crc are CRC
         amount: plan_amount,
         purpose: "plan_subscription",
         paid_at: paid_at
@@ -83,7 +83,11 @@ module Billing
 
     def plan_pricing_method
       months = @tier_months == 1 ? "1_month" : "#{@tier_months}_months"
-      suffix = @payment_method == "card_usd" ? "card_usd" : "sinpe_crc"
+      suffix = case @payment_method
+               when "sinpe_crc" then "sinpe_crc"
+               when "card_usd" then "card_usd"
+               else "official_crc"
+               end
       "plan_#{months}_#{suffix}"
     end
 

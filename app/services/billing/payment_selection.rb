@@ -3,25 +3,22 @@
 module Billing
   class PaymentSelection
     # [REQ-FIT-BILL-001]
-    # Preconditions:
-    # - request responds to #headers
-    # - session is a Hash-like object
-    # Postconditions:
-    # - returns :currency and :payment_method as Symbols
-    def self.resolve(request:, session:)
+    # Currency is forced by country (CR → CRC, international → USD).
+    # Payment method may be chosen when available (SINPE only in CR).
+    def self.resolve(request:, session:, user: nil)
       raise ArgumentError, "session must support []" unless session.respond_to?(:[])
 
-      currency = parse_currency(session[:billing_currency])
+      policy = RegionalPolicy.from_request(request: request, session: session, user: user)
       payment_method = parse_payment_method(session[:billing_payment_method])
+      payment_method = policy.fetch(:default_payment_method) unless policy.fetch(:available_payment_methods).include?(payment_method)
 
-      if currency && payment_method
-        return { currency: currency, payment_method: payment_method }
-      end
-
-      defaults = Billing::GeoPaymentDefaults.from_request(request)
       {
-        currency: defaults.fetch(:default_currency),
-        payment_method: defaults.fetch(:default_payment_method)
+        country_code: policy.fetch(:country_code),
+        currency: policy.fetch(:currency),
+        payment_method: payment_method,
+        iva_applicable: policy.fetch(:iva_applicable),
+        iva_rate: policy.fetch(:iva_rate),
+        available_payment_methods: policy.fetch(:available_payment_methods)
       }
     end
 
@@ -32,7 +29,6 @@ module Billing
       else nil
       end
     end
-    private_class_method :parse_currency
 
     def self.parse_payment_method(value)
       case value
@@ -41,7 +37,5 @@ module Billing
       else nil
       end
     end
-    private_class_method :parse_payment_method
   end
 end
-

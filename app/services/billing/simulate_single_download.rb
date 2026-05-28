@@ -4,19 +4,27 @@ module Billing
   # [REQ-FIT-BILL-001] Simulated single-download checkout (D37).
   class SimulateSingleDownload
     METHODS = {
-      "card_usd" => { payment_method: "card_usd", currency: "usd", full: -> { Pricing.single_download_usd }, overage: -> { Pricing.single_download_overage_usd } },
-      "sinpe_crc" => { payment_method: "sinpe_crc", currency: "crc", full: -> { Pricing.single_download_sinpe_crc }, overage: -> { Pricing.single_download_overage_sinpe_crc } }
+      "card_usd" => { payment_method: "card_usd", currency: :usd, card: true },
+      "card_crc" => { payment_method: "card_crc", currency: :crc, card: true },
+      "sinpe_crc" => { payment_method: "sinpe_crc", currency: :crc, card: false }
     }.freeze
 
-    def self.call(user:, nesting_run:, payment_method:, outcome:)
-      new(user: user, nesting_run: nesting_run, payment_method: payment_method, outcome: outcome).call
+    def self.call(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
+      new(
+        user: user,
+        nesting_run: nesting_run,
+        payment_method: payment_method,
+        outcome: outcome,
+        iva_applicable: iva_applicable
+      ).call
     end
 
-    def initialize(user:, nesting_run:, payment_method:, outcome:)
+    def initialize(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
       @user = user
       @nesting_run = nesting_run
       @payment_method = payment_method
       @outcome = outcome
+      @iva_applicable = iva_applicable
     end
 
     def call
@@ -38,7 +46,13 @@ module Billing
     end
 
     def unit_amount
-      plan_quota_exhausted? ? config[:overage].call : config[:full].call
+      overage = plan_quota_exhausted?
+      Pricing.price(
+        product: :single_download,
+        currency: config.fetch(:currency),
+        payment_method: config.fetch(:card) ? :card : :sinpe,
+        overage: overage
+      )
     end
 
     def plan_quota_exhausted?
@@ -48,6 +62,14 @@ module Billing
       QuotaCounter.for(subscription).exhausted?
     end
 
+    def billing_context
+      {
+        currency: config.fetch(:currency),
+        payment_method: config.fetch(:card) ? :card : :sinpe,
+        iva_applicable: @iva_applicable
+      }
+    end
+
     def record_failure!
       snapshot = snapshot_fields
       Payment.create!(
@@ -55,7 +77,7 @@ module Billing
         nesting_run: @nesting_run,
         status: "failed",
         payment_method: config[:payment_method],
-        currency: config[:currency],
+        currency: config[:currency].to_s,
         amount: unit_amount,
         purpose: "single_download",
         **snapshot
@@ -80,7 +102,7 @@ module Billing
           nesting_run: @nesting_run,
           status: "succeeded",
           payment_method: config[:payment_method],
-          currency: config[:currency],
+          currency: config[:currency].to_s,
           amount: unit_amount,
           purpose: "single_download",
           paid_at: paid_at,
@@ -99,17 +121,19 @@ module Billing
     end
 
     def snapshot_fields
-      list_price = unit_amount.to_f
-      total_amount = list_price
+      breakdown = CheckoutBreakdown.for_single_download(
+        billing_context: billing_context,
+        overage: plan_quota_exhausted?
+      )
       {
         purchaser_name: @user.name.to_s,
         purchaser_email: @user.email.to_s,
         product_description: "single_download",
-        list_price: list_price,
-        discount_amount: 0,
-        subtotal: list_price,
-        tax_amount: 0,
-        total_amount: total_amount
+        list_price: breakdown.fetch(:list_price).to_f,
+        discount_amount: breakdown.fetch(:discount_amount).to_f,
+        subtotal: breakdown.fetch(:subtotal).to_f,
+        tax_amount: breakdown.fetch(:tax_amount).to_f,
+        total_amount: breakdown.fetch(:total_amount).to_f
       }
     end
   end

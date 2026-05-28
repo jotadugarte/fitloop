@@ -140,6 +140,7 @@ es:
       title: "Se requiere pago o plan"
       intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
       pay_this_download: "Pagar esta descarga"
+      continue_to_checkout: "Continuar al pago"
       plan_quota_available: "Tienes plan activo con cupo mensual disponible. Usa tu cupo del plan para esta descarga."
       download_with_plan: "Descargar con tu plan"
       view_plans: "Ver planes"
@@ -208,6 +209,7 @@ es:
         lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
     checkout:
       title: "Pagar esta descarga"
+      title_plan: "Pagar este plan"
       demo_badge: "Entorno de demostración — pagos simulados (QA)"
       card_usd: "Tarjeta (USD)"
       sinpe_crc: "SINPE Móvil (CRC)"
@@ -220,15 +222,23 @@ es:
       single_download: "Descarga suelta"
       overage_hint: "Con cupo de plan agotado (50%)"
       plan_quota_prioritized: "Tienes cupo mensual en tu plan activo. Descarga desde el proyecto sin pagar esta descarga suelta."
+      region_currency: "Precios en %{currency}"
+      detail_title: "Detalle"
       breakdown:
         title: "Desglose"
         subtotal: "Subtotal"
-        tax: "IVA"
+        net_subtotal: "Subtotal neto"
+        tax: "IVA (13%)"
         sinpe_discount: "Descuento SINPE"
         total: "Total"
+      back_to_cart: "Volver al carrito"
+      back_to_paywall: "Volver a opciones de pago"
+      choose_payment_method: "Elige cómo pagar:"
     cart:
       title: "Carrito"
       add_to_cart: "Añadir al carrito"
+      empty: "Tu carrito está vacío."
+      checkout: "Ir al checkout"
 
   home:
     index:

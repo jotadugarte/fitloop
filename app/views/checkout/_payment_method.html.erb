@@ -1,7 +1,9 @@
+<%# locals: (testid:, title:, payment_method:, nesting_run_id: nil, tier_months: nil) %>
 <section class="checkout-method panel panel--inset" data-testid="<%= testid %>">
   <h2 class="checkout-method__title"><%= title %></h2>
   <%= form_with url: checkout_simulate_path, method: :post, data: { turbo: false }, class: "checkout-method__form" do %>
-    <%= hidden_field_tag :nesting_run_id, nesting_run_id %>
+    <%= hidden_field_tag :nesting_run_id, nesting_run_id if nesting_run_id.present? %>
+    <%= hidden_field_tag :tier_months, tier_months if tier_months.present? %>
     <%= hidden_field_tag :payment_method, payment_method %>
     <div class="checkout-simulate-actions">
       <%= button_tag t("billing.checkout.simulate_success"),

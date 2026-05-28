@@ -141,7 +141,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 | **REQ-FIT-AUTH-002** | User accounts: Devise + OmniAuth, email verification, merge opt-in, account routes, delete account | P6 |
-| **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; simulated USD/CRC checkout | P7 |
+| **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); simulated checkout | P7 |
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 
@@ -203,9 +203,16 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Seed keys: `single_download_usd`, `single_download_sinpe_crc`, `plan_*` tiers 1/2/4 months.
 
+**Regional currency and tax (country resolution):**
+
+- Country from `CF-IPCountry` header, with GeoLite2 fallback and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (same stack as `Billing::GeoPaymentDefaults`).
+- **`country_code == 'CR'`:** Paywall, cart, and checkout show prices **only in CRC**. **IVA 13%** is calculated on the net subtotal (after SINPE discount when applicable), shown as an explicit line in cart/checkout breakdown, and persisted on `Payment` snapshot fields (`tax_amount`, `total_amount`) before gateway handoff.
+- **`country_code != 'CR'`:** UI shows prices **only in USD**. **No IVA** — do not calculate, charge, or render a tax line in cart/checkout.
+- Currency is **not user-selectable**; session may store **payment method** only when the region allows (SINPE + card in CR; card only internationally).
+
 **Checkout (simulated, D37):**
 
-- Methods: **Tarjeta (USD)** and **SINPE Móvil (CRC)**.
+- Methods: **Tarjeta (CRC or USD per region)** and **SINPE Móvil (CRC, CR only)**.
 - Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator.
 - Guest at paywall must **register/login** first (no guest checkout, D40).
 

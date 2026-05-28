@@ -1,56 +1,107 @@
-<div class="paywall-layout checkout-page" data-testid="checkout-page">
+<% currency = @billing_selection.fetch(:currency) %>
+<% plan_checkout = @checkout_kind == :plan %>
+
+<div class="paywall-layout checkout-page" data-testid="checkout-page" data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
     <p class="checkout-demo-badge" data-testid="checkout-demo" role="status">
       <%= t("billing.checkout.demo_badge") %>
     </p>
 
-    <h1 class="billing-page__title"><%= t("billing.checkout.title") %></h1>
+    <h1 class="billing-page__title"><%= plan_checkout ? t("billing.checkout.title_plan") : t("billing.checkout.title") %></h1>
 
     <div class="checkout-pricing panel panel--inset" data-testid="checkout-pricing-block">
       <dl class="checkout-pricing__list">
         <div class="checkout-pricing__row" data-testid="checkout-pricing">
-          <dt><%= t("billing.checkout.single_download") %></dt>
-          <dd>USD <%= Billing::Pricing.single_download_usd %> / CRC <%= Billing::Pricing.single_download_sinpe_crc %></dd>
+          <dt>
+            <% if plan_checkout %>
+              <%= plan_tier_label(@tier_months) %>
+            <% else %>
+              <%= t("billing.checkout.single_download") %>
+            <% end %>
+          </dt>
+          <dd>
+            <% if plan_checkout %>
+              <% if currency == :crc %>
+                <%= format_billing_crc(@checkout_breakdown.fetch(:list_price)) %>
+              <% else %>
+                <%= format_billing_usd(@checkout_breakdown.fetch(:list_price)) %>
+              <% end %>
+            <% elsif currency == :crc %>
+              <%= format_billing_crc(Billing::Pricing.single_download_sinpe_crc) %>
+              <span class="checkout-pricing__muted">/ <%= format_billing_crc(Billing::Pricing.single_download_official_crc) %></span>
+            <% else %>
+              <%= format_billing_usd(Billing::Pricing.single_download_official_usd) %>
+            <% end %>
+          </dd>
         </div>
-        <div class="checkout-pricing__row checkout-pricing__row--muted" data-testid="checkout-overage-pricing">
-          <dt><%= t("billing.checkout.overage_hint") %></dt>
-          <dd>USD <%= Billing::Pricing.single_download_overage_usd %> / CRC <%= Billing::Pricing.single_download_overage_sinpe_crc %></dd>
-        </div>
+        <% unless plan_checkout %>
+          <div class="checkout-pricing__row checkout-pricing__row--muted" data-testid="checkout-overage-pricing">
+            <dt><%= t("billing.checkout.overage_hint") %></dt>
+            <dd>
+              <% if currency == :crc %>
+                <%= format_billing_crc(Billing::Pricing.single_download_overage_sinpe_crc) %>
+                <span class="checkout-pricing__muted">/ <%= format_billing_crc(Billing::Pricing.single_download_overage_official_crc) %></span>
+              <% else %>
+                <%= format_billing_usd(Billing::Pricing.single_download_overage_usd) %>
+              <% end %>
+            </dd>
+          </div>
+        <% end %>
       </dl>
     </div>
 
-    <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
+    <% unless plan_checkout %>
+      <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
+    <% end %>
 
-    <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
-      <h2><%= t("billing.checkout.breakdown.title") %></h2>
-      <p><%= t("billing.checkout.breakdown.subtotal") %></p>
-      <p><%= t("billing.checkout.breakdown.tax") %></p>
-      <% if @available_payment_methods.include?(:sinpe) %>
-        <p><%= t("billing.checkout.breakdown.sinpe_discount") %></p>
-      <% end %>
-      <p><%= t("billing.checkout.breakdown.total") %></p>
-    </section>
+    <% if @checkout_breakdown %>
+      <h2 class="checkout-section-title" data-testid="checkout-detail-title"><%= t("billing.checkout.detail_title") %></h2>
+      <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
+        <%= render "shared/billing_breakdown", breakdown: @checkout_breakdown %>
+      </section>
+    <% end %>
+
+    <h2 class="checkout-section-title checkout-section-title--method" data-testid="checkout-method-title">
+      <%= t("billing.checkout.choose_payment_method") %>
+    </h2>
 
     <div class="checkout-methods">
-      <%= render "checkout/payment_method",
-                 testid: "checkout-pay-card-usd",
-                 title: t("billing.checkout.card_usd"),
-                 nesting_run_id: @nesting_run.id,
-                 payment_method: "card_usd" %>
-      <% if @available_payment_methods.include?(:sinpe) %>
+      <% if currency == :crc %>
+        <% if @available_payment_methods.include?(:sinpe) %>
+          <%= render "checkout/payment_method",
+                     testid: "checkout-pay-sinpe-crc",
+                     title: t("billing.checkout.sinpe_crc"),
+                     nesting_run_id: plan_checkout ? nil : @nesting_run.id,
+                     tier_months: plan_checkout ? @tier_months : nil,
+                     payment_method: "sinpe_crc" %>
+        <% end %>
         <%= render "checkout/payment_method",
-                   testid: "checkout-pay-sinpe-crc",
-                   title: t("billing.checkout.sinpe_crc"),
-                   nesting_run_id: @nesting_run.id,
-                   payment_method: "sinpe_crc" %>
+                   testid: "checkout-pay-card-crc",
+                   title: t("billing.paywall.card_crc"),
+                   nesting_run_id: plan_checkout ? nil : @nesting_run.id,
+                   tier_months: plan_checkout ? @tier_months : nil,
+                   payment_method: "card_crc" %>
+      <% else %>
+        <%= render "checkout/payment_method",
+                   testid: "checkout-pay-card-usd",
+                   title: t("billing.checkout.card_usd"),
+                   nesting_run_id: plan_checkout ? nil : @nesting_run.id,
+                   tier_months: plan_checkout ? @tier_months : nil,
+                   payment_method: "card_usd" %>
       <% end %>
     </div>
 
     <footer class="checkout-footer paywall-actions">
-      <%= link_to t("billing.checkout.download_now"),
-                  nested_dxf_project_path(@project),
+      <% unless plan_checkout %>
+        <%= link_to t("billing.checkout.download_now"),
+                    nested_dxf_project_path(@project),
+                    class: "btn btn-secondary",
+                    data: { testid: "checkout-download-now", turbo: false } %>
+      <% end %>
+      <%= link_to t("billing.checkout.back_to_paywall"),
+                  download_paywall_workshop_path,
                   class: "btn btn-secondary",
-                  data: { testid: "checkout-download-now", turbo: false } %>
+                  data: { testid: "checkout-back-to-paywall", turbo: false } %>
       <%= link_to t("billing.paywall.back_to_project"),
                   project_path(@project),
                   class: "btn btn-secondary",

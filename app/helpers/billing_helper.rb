@@ -54,8 +54,16 @@ module BillingHelper
   end
 
   def format_billing_crc(amount)
-    number_with_delimiter(amount.to_i, delimiter: ",")
+    number_with_delimiter(format("%.2f", amount.to_f), delimiter: ",")
       .then { |formatted| "₡#{formatted}" }
+  end
+
+  def format_billing_amount(amount, currency)
+    currency == :usd ? format_billing_usd(amount) : format_billing_crc(amount)
+  end
+
+  def billing_currency_label(currency)
+    currency == :usd ? "USD" : "CRC"
   end
 
   private

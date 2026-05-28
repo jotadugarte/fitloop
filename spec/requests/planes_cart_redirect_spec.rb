@@ -22,7 +22,7 @@ RSpec.describe "Planes redirect when cart has item", "[REQ-FIT-BILL-001]", type:
       sign_in_user! user
       get "/planes"
 
-      expect(response).to redirect_to("/carrito")
+      expect(response).to redirect_to("/checkout")
     end
   end
 end

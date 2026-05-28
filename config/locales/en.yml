@@ -125,6 +125,7 @@ en:
       title: "Payment or plan required"
       intro: "To download the nested DXF you need to pay for this download or have an active plan."
       pay_this_download: "Pay for this download"
+      continue_to_checkout: "Continue to payment"
       plan_quota_available: "You have an active plan with monthly quota remaining. Use your plan quota for this download."
       download_with_plan: "Download with your plan"
       view_plans: "View plans"
@@ -193,6 +194,7 @@ en:
         lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
       title: "Pay for this download"
+      title_plan: "Pay for this plan"
       demo_badge: "Demo environment — simulated payments (QA)"
       card_usd: "Card (USD)"
       sinpe_crc: "SINPE Mobile (CRC)"
@@ -205,15 +207,23 @@ en:
       single_download: "Single download"
       overage_hint: "With plan quota exhausted (50%)"
       plan_quota_prioritized: "Your active plan still has monthly quota. Download from the project without paying for a single download."
+      region_currency: "Prices in %{currency}"
+      detail_title: "Details"
       breakdown:
         title: "Breakdown"
         subtotal: "Subtotal"
-        tax: "IVA"
+        net_subtotal: "Net subtotal"
+        tax: "VAT (13%)"
         sinpe_discount: "SINPE discount"
         total: "Total"
+      back_to_cart: "Back to cart"
+      back_to_paywall: "Back to payment options"
+      choose_payment_method: "Choose how to pay:"
     cart:
       title: "Cart"
       add_to_cart: "Add to cart"
+      empty: "Your cart is empty."
+      checkout: "Go to checkout"
 
   home:
     index:

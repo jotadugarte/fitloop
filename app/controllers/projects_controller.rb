@@ -142,10 +142,14 @@ class ProjectsController < ApplicationController
   end
 
   def update_workspace_billing!
-    currency = params.require(:billing).permit(:currency, :payment_method).fetch(:currency)
-    payment_method = params.require(:billing).permit(:currency, :payment_method).fetch(:payment_method)
+    policy = Billing::RegionalPolicy.from_request(request: request, session: session, user: current_user)
+    billing = params.require(:billing).permit(:payment_method)
+    payment_method = billing[:payment_method].presence || policy.fetch(:default_payment_method).to_s
+    unless policy.fetch(:available_payment_methods).map(&:to_s).include?(payment_method)
+      payment_method = policy.fetch(:default_payment_method).to_s
+    end
 
-    session[:billing_currency] = currency
+    session[:billing_currency] = policy.fetch(:currency).to_s
     session[:billing_payment_method] = payment_method
 
     if params[:billing_return_to] == "paywall"

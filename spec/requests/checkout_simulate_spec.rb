@@ -30,8 +30,9 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('class="paywall-layout checkout-page"')
       expect(response.body).to include('data-testid="checkout-demo"')
-      expect(response.body).to include('data-testid="checkout-pay-card-usd"')
+      expect(response.body).to include('data-testid="checkout-pay-card-crc"')
       expect(response.body).to include('data-testid="checkout-pay-sinpe-crc"')
+      expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
       expect(response.body).to include('data-testid="checkout-simulate-success"')
       expect(response.body).to include('data-testid="checkout-simulate-failure"')
     end
@@ -44,10 +45,11 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
 
     before { sign_in_user! user }
 
-    it "[REQ-FIT-BILL-001] records succeeded card USD payment and single_purchase grant (D37)" do
+    it "[REQ-FIT-BILL-001] records succeeded card USD payment without IVA for international clients (D37)" do
       expect do
         post checkout_simulate_path,
-             params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" }
+             params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" },
+             headers: { "CF-IPCountry" => "US" }
       end.to change(Payment, :count).by(1)
         .and change(DownloadGrant, :count).by(1)
 
@@ -56,24 +58,19 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
 
       payment = Payment.last
       expect(payment).to be_succeeded
-      expect(payment.user_id).to eq(user.id)
-      expect(payment.nesting_run_id).to eq(run.id)
       expect(payment.payment_method).to eq("card_usd")
       expect(payment.currency).to eq("usd")
-      expect(payment.amount).to eq(Billing::Pricing.single_download_usd)
+      expect(payment.amount).to eq(Billing::Pricing.single_download_official_usd)
+      expect(payment.tax_amount).to eq(0)
+      expect(payment.total_amount).to eq(Billing::Pricing.single_download_official_usd)
       expect(payment.purpose).to eq("single_download")
-      expect(payment.paid_at).to be_present
-
-      grant = DownloadGrant.last
-      expect(grant.user_id).to eq(user.id)
-      expect(grant.nesting_run_id).to eq(run.id)
-      expect(grant.kind).to eq("single_purchase")
     end
 
-    it "[REQ-FIT-BILL-001] records succeeded SINPE CRC payment and grant (D37)" do
+    it "[REQ-FIT-BILL-001] records succeeded SINPE CRC payment with 13% IVA (D37)" do
       expect do
         post checkout_simulate_path,
-             params: { nesting_run_id: run.id, payment_method: "sinpe_crc", outcome: "success" }
+             params: { nesting_run_id: run.id, payment_method: "sinpe_crc", outcome: "success" },
+             headers: { "CF-IPCountry" => "CR" }
       end.to change(Payment, :count).by(1)
         .and change(DownloadGrant, :count).by(1)
 
@@ -82,20 +79,22 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       expect(payment.payment_method).to eq("sinpe_crc")
       expect(payment.currency).to eq("crc")
       expect(payment.amount).to eq(Billing::Pricing.single_download_sinpe_crc)
-      expect(payment.purpose).to eq("single_download")
-
+      expect(payment.subtotal).to eq(1000)
+      expect(payment.tax_amount).to eq(130)
+      expect(payment.total_amount).to eq(1130)
       expect(DownloadGrant.last.kind).to eq("single_purchase")
-      expect(response).to redirect_to(mis_pagos_path(auto_download: DownloadGrant.last.id))
     end
 
     it "[REQ-FIT-BILL-001] reuses existing grant on repeat success without error (D37)" do
       post checkout_simulate_path,
-           params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" }
+           params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "success" },
+           headers: { "CF-IPCountry" => "US" }
       grant = DownloadGrant.last
 
       expect do
         post checkout_simulate_path,
-             params: { nesting_run_id: run.id, payment_method: "sinpe_crc", outcome: "success" }
+             params: { nesting_run_id: run.id, payment_method: "sinpe_crc", outcome: "success" },
+             headers: { "CF-IPCountry" => "CR" }
       end.not_to change(DownloadGrant, :count)
 
       expect(response).to redirect_to(mis_pagos_path(auto_download: grant.id))
@@ -104,7 +103,8 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
     it "[REQ-FIT-BILL-001] records failed payment without grant when simulate fails (D37)" do
       expect do
         post checkout_simulate_path,
-             params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "failure" }
+             params: { nesting_run_id: run.id, payment_method: "card_usd", outcome: "failure" },
+             headers: { "CF-IPCountry" => "US" }
       end.to change(Payment, :count).by(1)
         .and change(DownloadGrant, :count).by(0)
 

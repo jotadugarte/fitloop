@@ -135,6 +135,7 @@ es_panic:
       title: Se requiere pago o plan (sin drama)
       intro: Para bajar el DXF anidado hay que pagar esta vuelta o tener plan activo.
       pay_this_download: Pagar esta descarga
+      continue_to_checkout: Continuar al pago
       plan_quota_available: Plan activo con cupo mensual. Gasta el cupo del plan, no pagues suelta.
       download_with_plan: Descargar con tu plan
       view_plans: Ver planes
@@ -212,18 +213,27 @@ es_panic:
       success_retention: Pago OK. Descarga en marcha; en Mis pagos 24 h aunque cierres el taller.
       download_now: Descargar ahora
       title: Pagar esta descarga
+      title_plan: Pagar este plan
       single_download: Descarga suelta
       overage_hint: Cupo del plan muerto (50%)
       plan_quota_prioritized: Cupo mensual del plan activo. Baja desde el proyecto, sin pago suelto.
+      region_currency: "Precios en %{currency}"
+      detail_title: Detalle
       breakdown:
         title: Desglose
         subtotal: Subtotal
-        tax: IVA
+        net_subtotal: Subtotal neto
+        tax: IVA (13%)
         sinpe_discount: Descuento SINPE
         total: Total
+      back_to_cart: Volver al carrito
+      back_to_paywall: Volver a opciones de pago
+      choose_payment_method: "Elige cómo pagar:"
     cart:
       title: Carrito
       add_to_cart: "Añadir al carrito"
+      empty: Tu carrito está vacío.
+      checkout: Ir al checkout
   home:
     index:
       tagline: Tetris de supervivencia DXF
