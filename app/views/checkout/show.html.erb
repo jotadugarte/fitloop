@@ -27,11 +27,13 @@
                  title: t("billing.checkout.card_usd"),
                  nesting_run_id: @nesting_run.id,
                  payment_method: "card_usd" %>
-      <%= render "checkout/payment_method",
-                 testid: "checkout-pay-sinpe-crc",
-                 title: t("billing.checkout.sinpe_crc"),
-                 nesting_run_id: @nesting_run.id,
-                 payment_method: "sinpe_crc" %>
+      <% if @available_payment_methods.include?(:sinpe) %>
+        <%= render "checkout/payment_method",
+                   testid: "checkout-pay-sinpe-crc",
+                   title: t("billing.checkout.sinpe_crc"),
+                   nesting_run_id: @nesting_run.id,
+                   payment_method: "sinpe_crc" %>
+      <% end %>
     </div>
 
     <footer class="checkout-footer paywall-actions">

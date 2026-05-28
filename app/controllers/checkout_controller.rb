@@ -9,6 +9,8 @@ class CheckoutController < ApplicationController
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate]
 
   def show
+    @billing_geo_defaults = Billing::GeoPaymentDefaults.from_request(request)
+    @available_payment_methods = @billing_geo_defaults.fetch(:available_payment_methods)
     render :show
   end
 
