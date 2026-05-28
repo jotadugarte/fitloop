@@ -6,6 +6,7 @@ class CheckoutController < ApplicationController
   include ResolvesWorkspaceTab
 
   before_action :load_checkout_context, only: %i[show simulate]
+  before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate]
 
   def show
     render :show
@@ -37,5 +38,11 @@ class CheckoutController < ApplicationController
     return if Workspace.bound_to_project?(session, @project)
 
     redirect_to start_project_path, alert: t("workspace.expired")
+  end
+
+  def reject_checkout_when_plan_quota_available!
+    return if Billing::PlanDownloadAvailability.single_download_checkout_allowed?(user: current_user)
+
+    redirect_to project_path(@project), notice: t("billing.checkout.plan_quota_prioritized")
   end
 end

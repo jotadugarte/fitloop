@@ -140,6 +140,8 @@ es:
       title: "Se requiere pago o plan"
       intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
       pay_this_download: "Pagar esta descarga"
+      plan_quota_available: "Tienes plan activo con cupo mensual disponible. Usa tu cupo del plan para esta descarga."
+      download_with_plan: "Descargar con tu plan"
       view_plans: "Ver planes"
       back_to_project: "Volver al proyecto"
       aside:
@@ -209,6 +211,7 @@ es:
       download_now: "Descargar ahora"
       single_download: "Descarga suelta"
       overage_hint: "Con cupo de plan agotado (50%)"
+      plan_quota_prioritized: "Tienes cupo mensual en tu plan activo. Descarga desde el proyecto sin pagar esta descarga suelta."
 
   home:
     index:
@@ -493,6 +496,7 @@ es:
       failure: "No se pudo iniciar sesión con ese proveedor."
     session:
       sign_in_title: "Iniciar sesión"
+      password: "Contraseña"
       submit: "Entrar"
     confirmation:
       pending_title: "Confirma tu correo"

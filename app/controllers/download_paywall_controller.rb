@@ -12,6 +12,9 @@ class DownloadPaywallController < ApplicationController
                            .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
                            .order(id: :desc)
                            .first
+    @plan_download_included = Billing::PlanDownloadAvailability.plan_included?(user: current_user)
+    @single_download_checkout_allowed =
+      Billing::PlanDownloadAvailability.single_download_checkout_allowed?(user: current_user)
   end
 
   private

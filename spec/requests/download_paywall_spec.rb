@@ -38,6 +38,22 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
     expect(response.body).to include('id="paywall-aside-title"')
   end
 
+  it "[REQ-FIT-BILL-002] shows plan download CTA instead of checkout when plan quota is available (D33)" do
+    user = create_billing_user!
+    create_active_subscription!(user: user)
+    tab_a = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    sign_in_user! user
+    project = start_workspace_for_tab!(tab_a)
+    attach_nested_output!(project)
+
+    get download_paywall_project_path(project), headers: { "X-Workspace-Tab-Id" => tab_a }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="paywall-plan-download"')
+    expect(response.body).to include('data-testid="paywall-plan-quota-hint"')
+    expect(response.body).not_to include('data-testid="paywall-checkout"')
+  end
+
   it "[REQ-FIT-BILL-001] paywall links reach checkout and planes without tab header (D42)" do
     user = create_billing_user!
     tab_a = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"

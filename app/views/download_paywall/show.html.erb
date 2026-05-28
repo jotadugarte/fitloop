@@ -4,13 +4,26 @@
     <p><%= t("billing.paywall.intro") %></p>
     <p><%= t("billing.single_download.retention_24h") %></p>
 
+    <% if @plan_download_included %>
+      <p class="paywall-plan-quota" data-testid="paywall-plan-quota-hint">
+        <%= t("billing.paywall.plan_quota_available") %>
+      </p>
+    <% end %>
+
     <ul class="paywall-options">
-      <% if @nesting_run %>
+      <% if @nesting_run && @single_download_checkout_allowed %>
         <li>
           <%= link_to t("billing.paywall.pay_this_download"),
                       checkout_path(nesting_run_id: @nesting_run.id),
                       class: "btn btn-primary",
                       data: { testid: "paywall-checkout", turbo: false } %>
+        </li>
+      <% elsif @nesting_run && @plan_download_included %>
+        <li>
+          <%= link_to t("billing.paywall.download_with_plan"),
+                      nested_dxf_project_path(@project),
+                      class: "btn btn-primary",
+                      data: { testid: "paywall-plan-download", turbo: false } %>
         </li>
       <% end %>
       <li>

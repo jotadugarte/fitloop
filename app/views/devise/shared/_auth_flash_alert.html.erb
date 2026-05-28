@@ -1,0 +1,8 @@
+<% message = flash[:alert].presence || flash.now[:alert].presence %>
+<% if message.present? %>
+  <div class="auth-page__errors panel panel--alert" id="error_explanation" role="alert" data-testid="auth-errors">
+    <ul class="auth-page__errors-list">
+      <li><%= message %></li>
+    </ul>
+  </div>
+<% end %>

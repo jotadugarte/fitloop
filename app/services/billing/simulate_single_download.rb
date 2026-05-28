@@ -21,6 +21,9 @@ module Billing
 
     def call
       raise ArgumentError, "user suspended" unless @user.operationally_active?
+      unless PlanDownloadAvailability.single_download_checkout_allowed?(user: @user)
+        raise ArgumentError, "active plan monthly quota must be used before single purchase"
+      end
       raise ArgumentError, "unknown payment_method" unless METHODS.key?(@payment_method)
       raise ArgumentError, "nested_dxf missing" unless @nesting_run.project.nested_dxf.attached?
       return record_failure! if @outcome == "failure"
