@@ -13,6 +13,8 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
 
     expect(body).to include('data-testid="show-sheet-inventory"')
     expect(body).to include('data-testid="source-dxf-detail"')
+    expect(body).to include('data-collapsible-key="workshop-sheet-inventory"')
+    expect(body).to include('data-collapsible-key="workshop-source-dxf-detail"')
 
     inventory_idx = body.index('data-testid="show-sheet-inventory"')
     dxf_idx = body.index('data-testid="source-dxf-detail"')

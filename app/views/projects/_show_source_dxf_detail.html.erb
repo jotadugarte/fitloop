@@ -5,6 +5,7 @@
   <% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
   <details class="collapsible-panel panel panel--chrome fit-section"
            data-testid="source-dxf-detail"
+           data-collapsible-key="workshop-source-dxf-detail"
            <%= "open" if expand_layers %>>
     <%= render "projects/fit_section_summary",
                title: t("projects.show.source_dxf_detail_summary"),

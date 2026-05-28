@@ -24,7 +24,7 @@
   <step id="1" status="complete">Write a failing request/system spec asserting both panels are rendered collapsed by default on `/taller`, independent of referrer (at least two entry routes).</step>
   <step id="2" status="complete">Identify the UI component(s) responsible for these panels (ERB partial + Stimulus controller). Determine current source of truth for open/closed state and why it sometimes defaults to open.</step>
   <step id="3" status="complete">Implement deterministic default-collapsed behavior on initial render (server-side markup) and on Turbo navigation (client-side), ensuring no route/referrer can flip the default to open.</step>
-  <step id="4" status="pending">Add a regression guard: ensure any persisted UI state does not re-open these panels on revisit (Turbo cache/back). Keep the exception behavior explicit (only open when user actively opens it on-page, not on load).</step>
-  <step id="5" status="pending">Run focused specs and confirm the new test passes; ensure no unrelated panel behaviors regress.</step>
+  <step id="4" status="complete">Add a regression guard: ensure any persisted UI state does not re-open these panels on revisit (Turbo cache/back). Keep the exception behavior explicit (only open when user actively opens it on-page, not on load).</step>
+  <step id="5" status="complete">Run focused specs and confirm the new test passes; ensure no unrelated panel behaviors regress.</step>
 </implementation_plan>
 
