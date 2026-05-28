@@ -10,7 +10,7 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       get "/carrito"
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("carrito")
+      expect(response.body).to include("Carrito")
     end
   end
 end
