@@ -80,7 +80,11 @@
           <dd>
             <% if plan_checkout %>
               <% if currency == :crc %>
-                <%= format_billing_crc(@checkout_breakdown.fetch(:list_price)) %>
+                <% if selected_payment_method == "sinpe_crc" %>
+                  <%= format_billing_crc(Billing::Pricing.price(product: :plan, currency: :crc, payment_method: :sinpe, tier_months: @tier_months, overage: false)) %>
+                <% else %>
+                  <%= format_billing_crc(Billing::Pricing.price(product: :plan, currency: :crc, payment_method: :card, tier_months: @tier_months, overage: false)) %>
+                <% end %>
               <% else %>
                 <%= format_billing_usd(@checkout_breakdown.fetch(:list_price)) %>
               <% end %>
@@ -140,12 +144,6 @@
                        type: "submit",
                        class: "btn btn-primary",
                        data: { testid: "checkout-process-payment" } %>
-        <% unless plan_checkout %>
-          <%= link_to t("billing.checkout.download_now"),
-                      nested_dxf_project_path(@project),
-                      class: "btn btn-secondary",
-                      data: { testid: "checkout-download-now", turbo: false } %>
-        <% end %>
         <%= link_to t("billing.checkout.back_to_paywall"),
                     download_paywall_workshop_path,
                     class: "btn btn-secondary",
