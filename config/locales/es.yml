@@ -141,6 +141,7 @@ es:
       intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
       pay_this_download: "Pagar esta descarga"
       continue_to_checkout: "Continuar al pago"
+      iva_checkout_note: "Estos precios no incluyen IVA. Para ver el total, continúa al checkout."
       plan_quota_available: "Tienes plan activo con cupo mensual disponible. Usa tu cupo del plan para esta descarga."
       download_with_plan: "Descargar con tu plan"
       view_plans: "Ver planes"

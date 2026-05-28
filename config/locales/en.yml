@@ -126,6 +126,7 @@ en:
       intro: "To download the nested DXF you need to pay for this download or have an active plan."
       pay_this_download: "Pay for this download"
       continue_to_checkout: "Continue to payment"
+      iva_checkout_note: "Prices shown do not include VAT. To see the total, continue to checkout."
       plan_quota_available: "You have an active plan with monthly quota remaining. Use your plan quota for this download."
       download_with_plan: "Download with your plan"
       view_plans: "View plans"

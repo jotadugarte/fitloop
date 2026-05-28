@@ -10,10 +10,6 @@
       <dd data-testid="breakdown-sinpe-discount">−<%= format_billing_amount(breakdown.fetch(:discount_amount), breakdown.fetch(:currency)) %></dd>
     </div>
   <% end %>
-  <div class="checkout-breakdown__row">
-    <dt><%= t("billing.checkout.breakdown.net_subtotal") %></dt>
-    <dd data-testid="breakdown-net-subtotal"><%= format_billing_amount(breakdown.fetch(:subtotal), breakdown.fetch(:currency)) %></dd>
-  </div>
   <% if breakdown.fetch(:iva_applicable) %>
     <div class="checkout-breakdown__row" data-testid="checkout-iva">
       <dt><%= t("billing.checkout.breakdown.tax") %></dt>

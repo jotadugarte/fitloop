@@ -7,6 +7,10 @@ module Billing
       new(user: user, at: at).plan_included?
     end
 
+    def self.plan_quota_exhausted?(user:, at: Time.current)
+      new(user: user, at: at).plan_quota_exhausted?
+    end
+
     def self.single_download_checkout_allowed?(user:, at: Time.current)
       new(user: user, at: at).single_download_checkout_allowed?
     end
@@ -23,6 +27,15 @@ module Billing
       return false unless subscription
 
       !QuotaCounter.for(subscription, at: @at).exhausted?
+    end
+
+    def plan_quota_exhausted?
+      return false unless @user&.operationally_active? && @user.billing_ready?
+
+      subscription = Subscription.active_at(@at).find_by(user_id: @user.id)
+      return false unless subscription
+
+      QuotaCounter.for(subscription, at: @at).exhausted?
     end
 
     def single_download_checkout_allowed?

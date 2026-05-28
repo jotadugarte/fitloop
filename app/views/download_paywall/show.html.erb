@@ -71,6 +71,12 @@
       <% end %>
     </div>
 
+    <% if @billing_selection.fetch(:iva_applicable) %>
+      <p class="paywall-iva-note" data-testid="paywall-iva-note">
+        <%= t("billing.paywall.iva_checkout_note") %>
+      </p>
+    <% end %>
+
     <footer class="paywall-actions checkout-footer">
       <%= link_to t("billing.paywall.back_to_project"),
                   project_path(@project),

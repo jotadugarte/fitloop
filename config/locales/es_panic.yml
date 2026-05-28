@@ -136,6 +136,7 @@ es_panic:
       intro: Para bajar el DXF anidado hay que pagar esta vuelta o tener plan activo.
       pay_this_download: Pagar esta descarga
       continue_to_checkout: Continuar al pago
+      iva_checkout_note: Estos precios no traen IVA. Para ver el total, sigue al checkout.
       plan_quota_available: Plan activo con cupo mensual. Gasta el cupo del plan, no pagues suelta.
       download_with_plan: Descargar con tu plan
       view_plans: Ver planes

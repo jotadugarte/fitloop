@@ -1,5 +1,6 @@
 <% currency = @billing_selection.fetch(:currency) %>
 <% plan_checkout = @checkout_kind == :plan %>
+<% show_overage_pricing = !plan_checkout && @plan_quota_exhausted %>
 
 <div class="paywall-layout checkout-page" data-testid="checkout-page" data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
@@ -34,7 +35,7 @@
             <% end %>
           </dd>
         </div>
-        <% unless plan_checkout %>
+        <% if show_overage_pricing %>
           <div class="checkout-pricing__row checkout-pricing__row--muted" data-testid="checkout-overage-pricing">
             <dt><%= t("billing.checkout.overage_hint") %></dt>
             <dd>

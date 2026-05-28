@@ -14,6 +14,8 @@ class CheckoutController < ApplicationController
     @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
     @available_payment_methods = @billing_selection.fetch(:available_payment_methods)
     @checkout_breakdown = checkout_breakdown_preview
+    @plan_quota_exhausted =
+      Billing::PlanDownloadAvailability.plan_quota_exhausted?(user: current_user)
     render :show
   end
 
