@@ -19,7 +19,6 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] exposes seed prices from billing.yml (D53)" do
       expect(described_class.single_download_usd).to eq(2.0)
       expect(described_class.single_download_sinpe_crc).to eq(1000)
-      expect(described_class.plan_quota_overage_percent).to eq(50)
       expect(described_class.plan_1_month_card_usd).to eq(6.0)
       expect(described_class.plan_1_month_sinpe_crc).to eq(3000)
       expect(described_class.plan_2_months_card_usd).to eq(10.0)
@@ -84,6 +83,12 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       temp&.close
       temp&.unlink
       described_class.reset_cache!
+    end
+  end
+
+  describe "overage percent deprecation [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] does not expose plan_quota_overage_percent as a public pricing API (D28)" do
+      expect(described_class).not_to respond_to(:plan_quota_overage_percent)
     end
   end
 
