@@ -112,6 +112,8 @@ class ProjectsController < ApplicationController
       update_workspace_sheets!
     when "layers"
       update_workspace_layers!
+    when "billing"
+      update_workspace_billing!
     else
       head :unprocessable_entity
     end
@@ -137,6 +139,18 @@ class ProjectsController < ApplicationController
   def update_workspace_layers!
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     render_workspace_turbo_stream(:layers)
+  end
+
+  def update_workspace_billing!
+    currency = params.require(:billing).permit(:currency, :payment_method).fetch(:currency)
+    payment_method = params.require(:billing).permit(:currency, :payment_method).fetch(:payment_method)
+
+    session[:billing_currency] = currency
+    session[:billing_payment_method] = payment_method
+
+    head :ok
+  rescue ActionController::ParameterMissing, KeyError
+    head :unprocessable_entity
   end
 
   def render_workspace_turbo_stream(section, status: :ok)

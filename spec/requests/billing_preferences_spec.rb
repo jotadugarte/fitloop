@@ -7,7 +7,7 @@ RSpec.describe "Billing preferences in workspace", "[REQ-FIT-BILL-001]", type: :
     it "[REQ-FIT-BILL-001] persists manual currency/method selection in session (D3)" do
       begin_workspace_session!
 
-      patch workshop_workspace_path,
+      patch workspace_workshop_path,
             params: { section: "billing", billing: { currency: "usd", payment_method: "card" } },
             headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
