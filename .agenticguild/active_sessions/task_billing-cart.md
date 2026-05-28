@@ -223,7 +223,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
     <step status="complete">Refactor `/taller/descarga-pago` view to show: download (if downloadable run) + 3 plans inline, each with “Añadir al carrito”. Remove “ver planes”.</step>
     <step status="complete">Redirect `/planes` permanently to `/carrito` when cart has an item; else to `/taller/descarga-pago`.</step>
     <step status="complete">Update `/checkout` to read from `current_cart` instead of query `nesting_run_id`. Enforce auth gate: guests must sign in/create account to proceed.</step>
-    <step status="pending">Implement dynamic checkout breakdown: list subtotal, SINPE discount line (only when SINPE), IVA line, total line; computed server-side with lightweight Stimulus update for method toggle.</step>
+    <step status="complete">Implement dynamic checkout breakdown: list subtotal, SINPE discount line (only when SINPE), IVA line, total line; computed server-side with lightweight Stimulus update for method toggle.</step>
   </phase>
 
   <phase id="P5" name="Payment recording snapshots (admin reporting-ready)">
