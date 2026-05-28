@@ -36,6 +36,20 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('option value="sinpe"')
     end
+
+    it "[REQ-FIT-BILL-001] shows plan tiers inline with add-to-cart CTAs (D25)" do
+      begin_workspace_session!
+
+      get "/taller/descarga-pago", headers: { "CF-IPCountry" => "CR" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="paywall-plan-tier-1"')
+      expect(response.body).to include('data-testid="paywall-plan-tier-2"')
+      expect(response.body).to include('data-testid="paywall-plan-tier-4"')
+      expect(response.body).to include('data-testid="paywall-add-plan-1"')
+      expect(response.body).to include('data-testid="paywall-add-plan-2"')
+      expect(response.body).to include('data-testid="paywall-add-plan-4"')
+    end
   end
 end
 
