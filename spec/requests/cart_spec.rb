@@ -29,5 +29,20 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect(cart.nesting_run_id).to eq(run.id)
     end
   end
+
+  describe "DELETE /carrito [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] clears the single-item cart (D6)" do
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run.id, currency_mode: "usd" }
+      expect(Cart.count).to eq(1)
+
+      expect do
+        delete "/carrito"
+      end.to change(Cart, :count).by(-1)
+    end
+  end
 end
 
