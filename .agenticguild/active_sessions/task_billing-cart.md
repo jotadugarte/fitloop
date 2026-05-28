@@ -227,8 +227,8 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
   </phase>
 
   <phase id="P5" name="Payment recording snapshots (admin reporting-ready)">
-    <step status="pending">Write failing model/service specs asserting snapshot fields persisted for both succeeded and failed payments (name/email/product/list/discount/subtotal/tax/total/currency/method).</step>
-    <step status="pending">Add migration to extend `payments` with immutable snapshot columns (do not rely on current user profile for reporting).</step>
+    <step status="complete">Write failing model/service specs asserting snapshot fields persisted for both succeeded and failed payments (name/email/product/list/discount/subtotal/tax/total/currency/method).</step>
+    <step status="complete">Add migration to extend `payments` with immutable snapshot columns (do not rely on current user profile for reporting).</step>
     <step status="pending">Update `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` (or their callers) to populate snapshot fields from the cart attempt and user at pay time.</step>
   </phase>
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_023257) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -113,12 +113,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_023257) do
     t.decimal "amount", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.string "currency", null: false
+    t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "list_price", precision: 12, scale: 2, default: "0.0", null: false
     t.bigint "nesting_run_id"
     t.datetime "paid_at"
     t.string "payment_method", null: false
+    t.string "product_description", default: "", null: false
+    t.string "purchaser_email", default: "", null: false
+    t.string "purchaser_name", default: "", null: false
     t.string "purpose", null: false
     t.string "status", default: "pending", null: false
     t.bigint "subscription_id"
+    t.decimal "subtotal", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "tax_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "total_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["nesting_run_id"], name: "index_payments_on_nesting_run_id"
