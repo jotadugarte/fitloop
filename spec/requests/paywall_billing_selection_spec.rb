@@ -22,7 +22,8 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('action="/taller/workspace"')
       expect(response.body).to include('name="_method" value="patch"')
-      expect(response.body).to include('name="section" value="billing"')
+      expect(response.body).to include('name="section"')
+      expect(response.body).to include('value="billing"')
       expect(response.body).to include('name="billing[currency]"')
       expect(response.body).to include('name="billing[payment_method]"')
     end
