@@ -21,6 +21,11 @@
 
     <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
 
+    <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
+      <h2>Desglose</h2>
+      <p>IVA</p>
+    </section>
+
     <div class="checkout-methods">
       <%= render "checkout/payment_method",
                  testid: "checkout-pay-card-usd",
