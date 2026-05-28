@@ -19,11 +19,14 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] exposes seed prices from billing.yml (D53)" do
       expect(described_class.single_download_usd).to eq(2.0)
       expect(described_class.single_download_sinpe_crc).to eq(1000)
-      expect(described_class.plan_1_month_card_usd).to eq(6.0)
+      expect(described_class.plan_1_month_card_usd).to eq(7.0)
+      expect(described_class.plan_1_month_official_crc).to eq(3250)
       expect(described_class.plan_1_month_sinpe_crc).to eq(3000)
-      expect(described_class.plan_2_months_card_usd).to eq(10.0)
+      expect(described_class.plan_2_months_card_usd).to eq(11.5)
+      expect(described_class.plan_2_months_official_crc).to eq(5300)
       expect(described_class.plan_2_months_sinpe_crc).to eq(5000)
-      expect(described_class.plan_4_months_card_usd).to eq(16.0)
+      expect(described_class.plan_4_months_card_usd).to eq(18.0)
+      expect(described_class.plan_4_months_official_crc).to eq(8400)
       expect(described_class.plan_4_months_sinpe_crc).to eq(8000)
     end
 

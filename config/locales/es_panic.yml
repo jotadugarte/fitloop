@@ -143,7 +143,10 @@ es_panic:
         currency_label: Moneda
         payment_method_label: Método de pago
         apply: Aplicar
-      meic_sinpe_hint: Precio especial con SINPE Móvil (CRC). La tarjeta va en USD de referencia.
+        card: Tarjeta
+      card_crc: Tarjeta (CRC)
+      card_crc_reference: Precio regular con tarjeta
+      meic_sinpe_hint: Precio especial con SINPE Móvil. La tarjeta queda como referencia.
       aside:
         title: El DXF anidado ya está (no lo toques sin pagar)
         lead: "El Tetris terminó. Desbloquea la bajada así:"

@@ -148,6 +148,11 @@ class ProjectsController < ApplicationController
     session[:billing_currency] = currency
     session[:billing_payment_method] = payment_method
 
+    if params[:billing_return_to] == "paywall"
+      redirect_to download_paywall_workshop_path
+      return
+    end
+
     head :ok
   rescue ActionController::ParameterMissing, KeyError
     head :unprocessable_entity

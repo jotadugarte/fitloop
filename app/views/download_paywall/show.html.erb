@@ -1,34 +1,62 @@
+<% currency = @billing_selection.fetch(:currency) %>
+<% show_sinpe = @available_payment_methods.include?(:sinpe) %>
+
 <div class="paywall-layout paywall-page"
      data-testid="download-paywall"
-     data-billing-currency="<%= @billing_selection.fetch(:currency) %>"
+     data-billing-currency="<%= currency %>"
      data-billing-payment-method="<%= @billing_selection.fetch(:payment_method) %>">
   <article class="paywall-layout__main panel panel--chrome">
     <h1 class="billing-page__title"><%= t("billing.paywall.title") %></h1>
     <p class="checkout-page__intro"><%= t("billing.paywall.intro") %></p>
     <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
 
-    <section class="panel panel--inset paywall-selector" data-testid="paywall-billing-selector">
-      <%= form_with url: workspace_workshop_path, method: :patch, data: { turbo: false }, class: "paywall-selector__form" do %>
+    <section class="panel panel--inset paywall-selector"
+             data-controller="paywall-billing-selector"
+             data-testid="paywall-billing-selector">
+      <%= form_with url: workspace_workshop_path,
+                    method: :patch,
+                    data: { turbo: false, paywall_billing_selector_target: "form" },
+                    class: "paywall-selector__form" do %>
         <%= hidden_field_tag :section, "billing" %>
-        <div class="paywall-selector__fields">
-          <div class="field">
-            <label for="billing_currency"><%= t("billing.paywall.selector.currency_label") %></label>
-            <select id="billing_currency" name="billing[currency]">
-              <option value="crc" <%= "selected" if @billing_selection.fetch(:currency) == :crc %>>CRC</option>
-              <option value="usd" <%= "selected" if @billing_selection.fetch(:currency) == :usd %>>USD</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="billing_payment_method"><%= t("billing.paywall.selector.payment_method_label") %></label>
-            <select id="billing_payment_method" name="billing[payment_method]">
-              <% if @available_payment_methods.include?(:sinpe) %>
-                <option value="sinpe" <%= "selected" if @billing_selection.fetch(:payment_method) == :sinpe %>>SINPE</option>
-              <% end %>
-              <option value="card" <%= "selected" if @billing_selection.fetch(:payment_method) == :card %>>Card</option>
-            </select>
+        <%= hidden_field_tag :billing_return_to, "paywall" %>
+
+        <div class="field paywall-selector__field">
+          <span class="field__label" id="paywall-currency-label"><%= t("billing.paywall.selector.currency_label") %></span>
+          <div class="paywall-segmented" role="group" aria-labelledby="paywall-currency-label">
+            <% { crc: "CRC", usd: "USD" }.each do |value, label| %>
+              <label class="paywall-segmented__option<%= " paywall-segmented__option--selected" if currency == value %>">
+                <input type="radio"
+                       name="billing[currency]"
+                       value="<%= value %>"
+                       class="paywall-segmented__input"
+                       <%= "checked" if currency == value %>
+                       data-action="change->paywall-billing-selector#submit">
+                <span class="paywall-segmented__label"><%= label %></span>
+              </label>
+            <% end %>
           </div>
         </div>
-        <%= button_tag t("billing.paywall.selector.apply"), class: "btn btn-secondary" %>
+
+        <% if show_sinpe %>
+          <div class="field paywall-selector__field">
+            <span class="field__label" id="paywall-method-label"><%= t("billing.paywall.selector.payment_method_label") %></span>
+            <div class="paywall-segmented" role="group" aria-labelledby="paywall-method-label">
+              <% [[:sinpe, "SINPE"], [:card, t("billing.paywall.selector.card")]].each do |value, label| %>
+                <label class="paywall-segmented__option<%= " paywall-segmented__option--selected" if @billing_selection.fetch(:payment_method) == value %>">
+                  <input type="radio"
+                         name="billing[payment_method]"
+                         value="<%= value %>"
+                         class="paywall-segmented__input"
+                         <%= "checked" if @billing_selection.fetch(:payment_method) == value %>
+                         data-action="change->paywall-billing-selector#submit">
+                  <span class="paywall-segmented__label"><%= label %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        <% else %>
+          <%= hidden_field_tag "billing[payment_method]", "card" %>
+        <% end %>
       <% end %>
     </section>
 
@@ -38,19 +66,19 @@
       </p>
     <% end %>
 
-    <div class="planes-tiers paywall-catalog" data-testid="paywall-inline-plans">
+    <% if show_sinpe && currency == :crc %>
+      <p class="paywall-meic-hint"><%= t("billing.paywall.meic_sinpe_hint") %></p>
+    <% end %>
+
+    <div class="paywall-catalog" data-testid="paywall-inline-plans">
       <% if @nesting_run && @single_download_checkout_allowed %>
-        <section class="planes-tier panel panel--inset" data-testid="paywall-single-download">
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-single-download">
           <h2 class="planes-tier__title"><%= t("billing.checkout.single_download") %></h2>
 
           <%= render "download_paywall/catalog_pricing",
-                     card_usd: Billing::Pricing.single_download_official_usd,
-                     sinpe_crc: Billing::Pricing.single_download_sinpe_crc,
-                     show_sinpe: @available_payment_methods.include?(:sinpe) %>
-
-          <% if @available_payment_methods.include?(:sinpe) %>
-            <p class="paywall-meic-hint"><%= t("billing.paywall.meic_sinpe_hint") %></p>
-          <% end %>
+                     product: :single_download,
+                     currency: currency,
+                     show_sinpe: show_sinpe %>
 
           <%= link_to t("billing.paywall.pay_this_download"),
                       checkout_path(nesting_run_id: @nesting_run.id),
@@ -58,13 +86,13 @@
                       data: { testid: "paywall-checkout", turbo: false } %>
         </section>
       <% elsif @nesting_run && @plan_download_included %>
-        <section class="planes-tier panel panel--inset" data-testid="paywall-plan-download-tier">
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-plan-download-tier">
           <h2 class="planes-tier__title"><%= t("billing.checkout.single_download") %></h2>
 
           <%= render "download_paywall/catalog_pricing",
-                     card_usd: Billing::Pricing.single_download_official_usd,
-                     sinpe_crc: Billing::Pricing.single_download_sinpe_crc,
-                     show_sinpe: @available_payment_methods.include?(:sinpe) %>
+                     product: :single_download,
+                     currency: currency,
+                     show_sinpe: show_sinpe %>
 
           <%= link_to t("billing.paywall.download_with_plan"),
                       nested_dxf_project_path(@project),
@@ -73,19 +101,20 @@
         </section>
       <% end %>
 
-      <% paywall_plan_tiers.each do |months, label_key, card_usd, sinpe_crc| %>
-        <section class="planes-tier panel panel--inset" data-testid="paywall-plan-tier-<%= months %>">
+      <% paywall_plan_tiers.each do |months, label_key| %>
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-plan-tier-<%= months %>">
           <h2 class="planes-tier__title"><%= t("billing.planes.#{label_key}") %></h2>
 
           <%= render "download_paywall/catalog_pricing",
-                     card_usd: card_usd,
-                     sinpe_crc: sinpe_crc,
-                     show_sinpe: @available_payment_methods.include?(:sinpe) %>
+                     product: :plan,
+                     tier_months: months,
+                     currency: currency,
+                     show_sinpe: show_sinpe %>
 
           <%= form_with url: carrito_path, method: :post, data: { turbo: false }, class: "paywall-tier__cart-form" do %>
             <%= hidden_field_tag :kind, "plan" %>
             <%= hidden_field_tag :tier_months, months %>
-            <%= hidden_field_tag :currency_mode, @billing_selection.fetch(:currency).to_s %>
+            <%= hidden_field_tag :currency_mode, currency.to_s %>
             <%= button_tag t("billing.cart.add_to_cart"),
                            class: "btn btn-primary paywall-tier__cta",
                            data: { testid: "paywall-add-plan-#{months}" } %>

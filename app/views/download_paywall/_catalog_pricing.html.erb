@@ -1,13 +1,17 @@
-<%# locals: (card_usd:, sinpe_crc:, show_sinpe:) %>
-<dl class="checkout-pricing__list planes-tier__pricing" data-testid="paywall-tier-pricing">
-  <div class="checkout-pricing__row">
-    <dt><%= t("billing.checkout.card_usd") %></dt>
-    <dd><%= format_billing_usd(card_usd) %></dd>
-  </div>
-  <% if show_sinpe %>
-    <div class="checkout-pricing__row checkout-pricing__row--muted">
-      <dt><%= t("billing.checkout.sinpe_crc") %></dt>
-      <dd><%= format_billing_crc(sinpe_crc) %></dd>
-    </div>
+<%# locals: (product:, currency:, show_sinpe:, tier_months: nil) %>
+<% prices = paywall_price_display(product: product, currency: currency, show_sinpe: show_sinpe, tier_months: tier_months) %>
+
+<div class="paywall-price-block" data-testid="paywall-tier-pricing">
+  <p class="paywall-price paywall-price--hero">
+    <span class="paywall-price__label"><%= prices.fetch(:primary_label) %></span>
+    <span class="paywall-price__amount" data-testid="paywall-price-primary"><%= prices.fetch(:primary_amount) %></span>
+  </p>
+  <% if prices.fetch(:reference_amount).present? %>
+    <p class="paywall-price paywall-price--reference">
+      <span class="paywall-price__label"><%= prices.fetch(:reference_label) %></span>
+      <span class="paywall-price__amount paywall-price__amount--struck" data-testid="paywall-price-reference">
+        <%= prices.fetch(:reference_amount) %>
+      </span>
+    </p>
   <% end %>
-</dl>
+</div>

@@ -27,6 +27,8 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response.body).to include('value="billing"')
       expect(response.body).to include('name="billing[currency]"')
       expect(response.body).to include('name="billing[payment_method]"')
+      expect(response.body).not_to include(">Aplicar<")
+      expect(response.body).not_to include('value="Apply"')
     end
 
     it "[REQ-FIT-BILL-001] does not offer SINPE in the selector when country != CR (D29)" do
@@ -61,10 +63,29 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="paywall-single-download"')
-      expect(response.body).to include(format_billing_usd(Billing::Pricing.single_download_official_usd))
       expect(response.body).to include(format_billing_crc(Billing::Pricing.single_download_sinpe_crc))
-      expect(response.body).to include(format_billing_usd(Billing::Pricing.plan_1_month_card_usd))
+      expect(response.body).to include(format_billing_crc(Billing::Pricing.single_download_official_crc))
       expect(response.body).to include(format_billing_crc(Billing::Pricing.plan_1_month_sinpe_crc))
+      expect(response.body).not_to include(format_billing_usd(Billing::Pricing.plan_1_month_card_usd))
+      expect(run.id).to be_present
+    end
+
+    it "[REQ-FIT-BILL-001] reloads paywall when billing prefs change (no Apply button)" do
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      patch workspace_workshop_path,
+            params: {
+              section: "billing",
+              billing_return_to: "paywall",
+              billing: { currency: "usd", payment_method: "card" }
+            }
+
+      expect(response).to redirect_to("/taller/descarga-pago")
+      follow_redirect!
+      expect(response.body).to include('data-billing-currency="usd"')
+      expect(response.body).to include(format_billing_usd(Billing::Pricing.single_download_official_usd))
       expect(run.id).to be_present
     end
   end
