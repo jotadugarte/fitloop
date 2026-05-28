@@ -13,6 +13,19 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response.body).to include('data-billing-currency="crc"')
       expect(response.body).to include('data-billing-payment-method="sinpe"')
     end
+
+    it "[REQ-FIT-BILL-001] renders a manual selector form that PATCHes workspace billing prefs (D3)" do
+      begin_workspace_session!
+
+      get "/taller/descarga-pago", headers: { "CF-IPCountry" => "CR" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('action="/taller/workspace"')
+      expect(response.body).to include('name="_method" value="patch"')
+      expect(response.body).to include('name="section" value="billing"')
+      expect(response.body).to include('name="billing[currency]"')
+      expect(response.body).to include('name="billing[payment_method]"')
+    end
   end
 end
 
