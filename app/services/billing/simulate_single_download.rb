@@ -49,6 +49,7 @@ module Billing
     end
 
     def record_failure!
+      snapshot = snapshot_fields
       Payment.create!(
         user: @user,
         nesting_run: @nesting_run,
@@ -56,7 +57,8 @@ module Billing
         payment_method: config[:payment_method],
         currency: config[:currency],
         amount: unit_amount,
-        purpose: "single_download"
+        purpose: "single_download",
+        **snapshot
       )
       :failed
     end
@@ -72,6 +74,7 @@ module Billing
       paid_at = Time.current
       result = nil
       ActiveRecord::Base.transaction do
+        snapshot = snapshot_fields
         payment = Payment.create!(
           user: @user,
           nesting_run: @nesting_run,
@@ -80,7 +83,8 @@ module Billing
           currency: config[:currency],
           amount: unit_amount,
           purpose: "single_download",
-          paid_at: paid_at
+          paid_at: paid_at,
+          **snapshot
         )
         grant = DownloadGrant.create!(
           user: @user,
@@ -92,6 +96,21 @@ module Billing
         result = { payment: payment, grant: grant, project: @nesting_run.project }
       end
       result
+    end
+
+    def snapshot_fields
+      list_price = unit_amount.to_f
+      total_amount = list_price
+      {
+        purchaser_name: @user.name.to_s,
+        purchaser_email: @user.email.to_s,
+        product_description: "single_download",
+        list_price: list_price,
+        discount_amount: 0,
+        subtotal: list_price,
+        tax_amount: 0,
+        total_amount: total_amount
+      }
     end
   end
 end
