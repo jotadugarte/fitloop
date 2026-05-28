@@ -24,6 +24,9 @@
     <section class="checkout-breakdown panel panel--inset" data-testid="checkout-breakdown">
       <h2>Desglose</h2>
       <p>IVA</p>
+      <% if @available_payment_methods.include?(:sinpe) %>
+        <p>Descuento SINPE</p>
+      <% end %>
     </section>
 
     <div class="checkout-methods">
