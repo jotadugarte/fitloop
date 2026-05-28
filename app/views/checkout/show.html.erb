@@ -32,7 +32,7 @@
                      name="payment_method"
                      value="sinpe_crc"
                      <%= "checked" if selected_payment_method == "sinpe_crc" %>
-                     data-action="change->this.form.requestSubmit">
+                     onchange="this.form.requestSubmit()">
               <span class="checkout-method-selector__label">
                 <span class="checkout-method-selector__name"><%= t("billing.checkout.sinpe_crc") %></span>
                 <% if sinpe_savings.present? %>
@@ -50,7 +50,7 @@
                      name="payment_method"
                      value="card_crc"
                      <%= "checked" if selected_payment_method == "card_crc" %>
-                     data-action="change->this.form.requestSubmit">
+                     onchange="this.form.requestSubmit()">
               <span class="checkout-method-selector__label"><%= t("billing.paywall.card_crc") %></span>
             </label>
           <% else %>
@@ -59,7 +59,7 @@
                      name="payment_method"
                      value="card_usd"
                      <%= "checked" if selected_payment_method == "card_usd" %>
-                     data-action="change->this.form.requestSubmit">
+                     onchange="this.form.requestSubmit()">
               <span class="checkout-method-selector__label"><%= t("billing.checkout.card_usd") %></span>
             </label>
           <% end %>
@@ -85,8 +85,11 @@
                 <%= format_billing_usd(@checkout_breakdown.fetch(:list_price)) %>
               <% end %>
             <% elsif currency == :crc %>
-              <%= format_billing_crc(Billing::Pricing.single_download_sinpe_crc) %>
-              <span class="checkout-pricing__muted">/ <%= format_billing_crc(Billing::Pricing.single_download_official_crc) %></span>
+              <% if selected_payment_method == "sinpe_crc" %>
+                <%= format_billing_crc(Billing::Pricing.single_download_sinpe_crc) %>
+              <% else %>
+                <%= format_billing_crc(Billing::Pricing.single_download_official_crc) %>
+              <% end %>
             <% else %>
               <%= format_billing_usd(Billing::Pricing.single_download_official_usd) %>
             <% end %>
@@ -97,8 +100,11 @@
             <dt><%= t("billing.checkout.overage_hint") %></dt>
             <dd>
               <% if currency == :crc %>
-                <%= format_billing_crc(Billing::Pricing.single_download_overage_sinpe_crc) %>
-                <span class="checkout-pricing__muted">/ <%= format_billing_crc(Billing::Pricing.single_download_overage_official_crc) %></span>
+                <% if selected_payment_method == "sinpe_crc" %>
+                  <%= format_billing_crc(Billing::Pricing.single_download_overage_sinpe_crc) %>
+                <% else %>
+                  <%= format_billing_crc(Billing::Pricing.single_download_overage_official_crc) %>
+                <% end %>
               <% else %>
                 <%= format_billing_usd(Billing::Pricing.single_download_overage_usd) %>
               <% end %>
