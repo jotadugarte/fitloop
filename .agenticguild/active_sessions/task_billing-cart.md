@@ -1,7 +1,7 @@
 # Task: Billing cart UX (single-item) + MEIC pricing display
 
 **Created:** 2026-05-27  
-**Status:** Discovery — Phase 1, step 1.2 (awaiting IVA clarifications → SPEC READY)  
+**Status:** Execution planning (refactor checkout flow ordering + Hotwire dynamics)
 **Related:** `REQ-FIT-BILL-001` / `REQ-FIT-BILL-002`. ONVO re-explore later (after cart).
 
 ---
@@ -178,7 +178,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
     <task_slug>billing-cart</task_slug>
     <branch_name_suggestion>feat/billing-cart</branch_name_suggestion>
     <roadmap_item>Billing cart UX (single-item) + MEIC pricing display</roadmap_item>
-    <classification>Feature</classification>
+    <classification>Refactor</classification>
     <req_ids>
       <req>REQ-FIT-BILL-001</req>
       <req>REQ-FIT-BILL-002</req>
@@ -241,5 +241,13 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
     <step status="complete">Update relevant i18n keys (`billing.paywall.*`, new `billing.cart.*`, checkout MEIC promo copy) and ensure locale parity (`es_panic` mirror) if keys added. (Done: added `billing.cart.title`/`add_to_cart`, `billing.checkout.breakdown.*`, and `billing.paywall.selector.*` in `en.yml`/`es.yml` + mirrored selector/cart/breakdown keys to `es_panic.yml`; removed view defaults/hardcoded copy.)</step>
     <step status="complete">Update `docs/QA_MANUAL_CHECKLIST.md` with cart flow checks.</step>
     <step status="complete">Confirm roadmap item added for Admin ventas UI (already appended). (Done: `docs/ROADMAP.md` backlog item “Admin ventas / reporte de pagos” references payment snapshots + `task_billing-cart.md`.)</step>
+  </phase>
+
+  <phase id="P8" name="Checkout flow refactor (method-first, dynamic receipt, single CTA)">
+    <step id="P8.1" status="complete">Run targeted request specs for checkout/paywall/cart to confirm baseline stays green.</step>
+    <step id="P8.2" status="pending">Write/adjust request specs asserting checkout vertical order and dynamics: method selection precedes breakdown; breakdown updates when method toggles; single “Procesar pago” CTA at bottom. Keep REQ tags under REQ-FIT-BILL-001/002.</step>
+    <step id="P8.3" status="pending">Refactor `CheckoutController` + `checkout/show.html.erb` to: render method selector first (as large selectable cards), update breakdown via Turbo Frame/Stream on selection, and move to a single submit action. Preserve existing pricing rules (SINPE promo vs card official; IVA only when applicable).</step>
+    <step id="P8.4" status="pending">Add i18n keys for new labels (“Ahorra ₡X”, “Procesar pago”, etc.) with `es_panic` parity; update CSS for the new card selector + receipt layout.</step>
+    <step id="P8.5" status="pending">Run the focused spec set again and fix any regressions.</step>
   </phase>
 </implementation_plan>
