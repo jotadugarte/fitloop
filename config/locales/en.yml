@@ -133,6 +133,7 @@ en:
         currency_label: "Currency"
         payment_method_label: "Payment method"
         apply: "Apply"
+      meic_sinpe_hint: "Special price with SINPE Mobile (CRC). Card price is shown in USD for reference."
       aside:
         title: "Your nested DXF is ready"
         lead: "Nesting finished. Choose how to unlock the download:"

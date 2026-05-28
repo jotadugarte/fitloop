@@ -148,6 +148,7 @@ es:
         currency_label: "Moneda"
         payment_method_label: "Método de pago"
         apply: "Aplicar"
+      meic_sinpe_hint: "Precio especial con SINPE Móvil (CRC). El precio con tarjeta es la referencia en USD."
       aside:
         title: "Tu DXF anidado está listo"
         lead: "El anidado terminó. Elige cómo desbloquear la descarga:"

@@ -1,0 +1,13 @@
+<%# locals: (card_usd:, sinpe_crc:, show_sinpe:) %>
+<dl class="checkout-pricing__list planes-tier__pricing" data-testid="paywall-tier-pricing">
+  <div class="checkout-pricing__row">
+    <dt><%= t("billing.checkout.card_usd") %></dt>
+    <dd><%= format_billing_usd(card_usd) %></dd>
+  </div>
+  <% if show_sinpe %>
+    <div class="checkout-pricing__row checkout-pricing__row--muted">
+      <dt><%= t("billing.checkout.sinpe_crc") %></dt>
+      <dd><%= format_billing_crc(sinpe_crc) %></dd>
+    </div>
+  <% end %>
+</dl>

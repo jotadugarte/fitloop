@@ -3,6 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type: :request do
+  include BillingHelper
   describe "GET /taller/descarga-pago [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] exposes resolved billing selection (currency/method) in the HTML (D3, D16)" do
       begin_workspace_session!
@@ -49,6 +50,22 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response.body).to include('data-testid="paywall-add-plan-1"')
       expect(response.body).to include('data-testid="paywall-add-plan-2"')
       expect(response.body).to include('data-testid="paywall-add-plan-4"')
+    end
+
+    it "[REQ-FIT-BILL-001] displays single-download and plan prices on the paywall (D25)" do
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      get "/taller/descarga-pago", headers: { "CF-IPCountry" => "CR" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="paywall-single-download"')
+      expect(response.body).to include(format_billing_usd(Billing::Pricing.single_download_official_usd))
+      expect(response.body).to include(format_billing_crc(Billing::Pricing.single_download_sinpe_crc))
+      expect(response.body).to include(format_billing_usd(Billing::Pricing.plan_1_month_card_usd))
+      expect(response.body).to include(format_billing_crc(Billing::Pricing.plan_1_month_sinpe_crc))
+      expect(run.id).to be_present
     end
   end
 end
