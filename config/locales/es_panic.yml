@@ -207,6 +207,14 @@ es_panic:
       single_download: Descarga suelta
       overage_hint: Cupo del plan muerto (50%)
       plan_quota_prioritized: Cupo mensual del plan activo. Baja desde el proyecto, sin pago suelto.
+      breakdown:
+        title: Desglose
+        subtotal: Subtotal
+        tax: IVA
+        sinpe_discount: Descuento SINPE
+        total: Total
+    cart:
+      add_to_cart: "Añadir al carrito"
   home:
     index:
       tagline: Tetris de supervivencia DXF

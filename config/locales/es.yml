@@ -212,6 +212,14 @@ es:
       single_download: "Descarga suelta"
       overage_hint: "Con cupo de plan agotado (50%)"
       plan_quota_prioritized: "Tienes cupo mensual en tu plan activo. Descarga desde el proyecto sin pagar esta descarga suelta."
+      breakdown:
+        title: "Desglose"
+        subtotal: "Subtotal"
+        tax: "IVA"
+        sinpe_discount: "Descuento SINPE"
+        total: "Total"
+    cart:
+      add_to_cart: "Añadir al carrito"
 
   home:
     index:
