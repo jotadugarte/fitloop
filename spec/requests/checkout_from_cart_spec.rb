@@ -79,5 +79,29 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
     expect(response.body).to include('data-testid="checkout-breakdown"')
     expect(response.body).to include("Descuento SINPE")
   end
+
+  it "[REQ-FIT-BILL-001] shows subtotal and total lines in checkout breakdown (D25)" do
+    user = create_billing_user!(email: "totals@example.com")
+    project = begin_workspace_session!
+    run = project.nesting_runs.create!(status: "completed")
+    project.update!(status: :completed)
+
+    Cart.create!(
+      kind: "single_download",
+      nesting_run: run,
+      currency_mode: "crc",
+      overage: false,
+      user: user,
+      list_price_cents: 1200,
+      sinpe_price_cents: 1000
+    )
+
+    sign_in_user! user
+    get "/checkout", headers: { "CF-IPCountry" => "CR" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Subtotal")
+    expect(response.body).to include("Total")
+  end
 end
 
