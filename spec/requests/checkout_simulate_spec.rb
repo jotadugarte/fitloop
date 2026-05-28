@@ -113,6 +113,12 @@ RSpec.describe "Simulated single-download checkout", "[REQ-FIT-BILL-001]", type:
       expect(payment.user_id).to eq(user.id)
       expect(payment.nesting_run_id).to eq(run.id)
       expect(payment.paid_at).to be_nil
+
+      expect(payment.purchaser_name).to be_present
+      expect(payment.purchaser_email).to be_present
+      expect(payment.product_description).to be_present
+      expect(payment.list_price).to be > 0
+      expect(payment.total_amount).to be > 0
     end
   end
 end
