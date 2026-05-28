@@ -27,6 +27,15 @@ RSpec.describe "Paywall billing selection defaults", "[REQ-FIT-BILL-001]", type:
       expect(response.body).to include('name="billing[currency]"')
       expect(response.body).to include('name="billing[payment_method]"')
     end
+
+    it "[REQ-FIT-BILL-001] does not offer SINPE in the selector when country != CR (D29)" do
+      begin_workspace_session!
+
+      get "/taller/descarga-pago", headers: { "CF-IPCountry" => "US" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('option value="sinpe"')
+    end
   end
 end
 
