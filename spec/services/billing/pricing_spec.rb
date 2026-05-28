@@ -66,6 +66,27 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "explicit overage amounts (no percent fallback) [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] requires explicit overage keys and does not derive from plan_quota_overage_percent (D28)" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(<<~YAML)
+        single_download_usd: 2.00
+        single_download_sinpe_crc: 1000
+        plan_quota_overage_percent: 50
+      YAML
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+
+      described_class.reset_cache!
+      expect { described_class.single_download_overage_usd }.to raise_error(KeyError)
+      expect { described_class.single_download_overage_sinpe_crc }.to raise_error(KeyError)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+  end
+
   describe "MEIC official vs SINPE pricing tables [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] exposes official (card) and SINPE prices for CRC, including explicit overage amounts (D26, D28)" do
       expect(described_class.single_download_official_crc).to eq(1200)
