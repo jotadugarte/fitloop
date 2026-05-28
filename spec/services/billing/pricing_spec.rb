@@ -83,4 +83,24 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       expect(described_class.single_download_overage_sinpe_usd).to eq(1.00)
     end
   end
+
+  describe ".price API [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] returns official and SINPE amounts per currency and overage flag (D25, D26, D27, D28)" do
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :card, overage: false)
+      ).to eq(1200)
+
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :sinpe, overage: false)
+      ).to eq(1000)
+
+      expect(
+        described_class.price(product: :single_download, currency: :usd, payment_method: :card, overage: true)
+      ).to eq(1.25)
+
+      expect(
+        described_class.price(product: :single_download, currency: :usd, payment_method: :card, overage: false)
+      ).to eq(2.50)
+    end
+  end
 end
