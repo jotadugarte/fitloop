@@ -6,11 +6,15 @@
 single_download_usd: 2.00
 single_download_sinpe_crc: 1000
 single_download_official_crc: 1200
+single_download_official_usd: 2.50
+single_download_sinpe_usd: 2.00
 
 # Overage explícito (no %): cuando el cupo mensual del plan está agotado (D28).
 single_download_overage_usd: 1.00
 single_download_overage_sinpe_crc: 500
 single_download_overage_official_crc: 600
+single_download_overage_official_usd: 1.25
+single_download_overage_sinpe_usd: 1.00
 
 # Porcentaje del precio suelta cuando el cupo mensual del plan está agotado (D34: 50 → mitad)
 plan_quota_overage_percent: 50

@@ -7,6 +7,8 @@ module Billing
     KEYS = %w[
       single_download_usd single_download_sinpe_crc single_download_official_crc
       single_download_overage_usd single_download_overage_sinpe_crc single_download_overage_official_crc
+      single_download_official_usd single_download_sinpe_usd
+      single_download_overage_official_usd single_download_overage_sinpe_usd
       plan_quota_overage_percent
       plan_1_month_card_usd plan_1_month_sinpe_crc plan_2_months_card_usd plan_2_months_sinpe_crc
       plan_4_months_card_usd plan_4_months_sinpe_crc
