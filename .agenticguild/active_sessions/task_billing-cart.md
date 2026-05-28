@@ -220,7 +220,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
 
   <phase id="P4" name="Routes + controllers + views">
     <step status="complete">Introduce `/carrito` (GET review; POST add; PATCH replace-confirm; DELETE clear). Add i18n copy for cart, replace confirmation, SINPE promo hints.</step>
-    <step status="pending">Refactor `/taller/descarga-pago` view to show: download (if downloadable run) + 3 plans inline, each with “Añadir al carrito”. Remove “ver planes”.</step>
+    <step status="complete">Refactor `/taller/descarga-pago` view to show: download (if downloadable run) + 3 plans inline, each with “Añadir al carrito”. Remove “ver planes”.</step>
     <step status="pending">Redirect `/planes` permanently to `/carrito` when cart has an item; else to `/taller/descarga-pago`.</step>
     <step status="pending">Update `/checkout` to read from `current_cart` instead of query `nesting_run_id`. Enforce auth gate: guests must sign in/create account to proceed.</step>
     <step status="pending">Implement dynamic checkout breakdown: list subtotal, SINPE discount line (only when SINPE), IVA line, total line; computed server-side with lightweight Stimulus update for method toggle.</step>
