@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_21_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_023257) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_130000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "carts", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency_mode", null: false
+    t.string "guest_token"
+    t.string "kind", null: false
+    t.integer "list_price_cents", null: false
+    t.bigint "nesting_run_id"
+    t.boolean "overage", default: false, null: false
+    t.integer "sinpe_price_cents", null: false
+    t.integer "tier_months"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["guest_token"], name: "index_carts_on_guest_token_unique", unique: true, where: "(guest_token IS NOT NULL)"
+    t.index ["nesting_run_id"], name: "index_carts_on_nesting_run_id_present", where: "(nesting_run_id IS NOT NULL)"
+    t.index ["user_id"], name: "index_carts_on_user_id_unique", unique: true, where: "(user_id IS NOT NULL)"
   end
 
   create_table "derived_pieces", force: :cascade do |t|
@@ -336,6 +353,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_130000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "carts", "nesting_runs"
+  add_foreign_key "carts", "users"
   add_foreign_key "derived_pieces", "projects"
   add_foreign_key "download_grants", "nesting_runs"
   add_foreign_key "download_grants", "users"
