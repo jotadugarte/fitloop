@@ -74,4 +74,13 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       expect(described_class.single_download_overage_sinpe_crc).to eq(500)
     end
   end
+
+  describe "MEIC official vs SINPE pricing tables (USD) [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] exposes official (card) and SINPE prices for USD, including explicit overage amounts (D27, D28)" do
+      expect(described_class.single_download_official_usd).to eq(2.50)
+      expect(described_class.single_download_sinpe_usd).to eq(2.00)
+      expect(described_class.single_download_overage_official_usd).to eq(1.25)
+      expect(described_class.single_download_overage_sinpe_usd).to eq(1.00)
+    end
+  end
 end
