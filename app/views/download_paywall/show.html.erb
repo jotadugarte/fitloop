@@ -58,6 +58,23 @@
       </li>
     </ul>
 
+    <div class="paywall-inline-plans" data-testid="paywall-inline-plans">
+      <% [[1, "tier_1"], [2, "tier_2"], [4, "tier_4"]].each do |months, label_key| %>
+        <section class="paywall-plan-tier panel panel--inset" data-testid="paywall-plan-tier-<%= months %>">
+          <h3 class="paywall-plan-tier__title"><%= t("billing.planes.#{label_key}") %></h3>
+
+          <%= form_with url: carrito_path, method: :post, data: { turbo: false } do %>
+            <%= hidden_field_tag :kind, "plan" %>
+            <%= hidden_field_tag :tier_months, months %>
+            <%= hidden_field_tag :currency_mode, @billing_selection.fetch(:currency).to_s %>
+            <%= button_tag t("billing.cart.add_to_cart", default: "Añadir al carrito"),
+                           class: "btn btn-primary",
+                           data: { testid: "paywall-add-plan-#{months}" } %>
+          <% end %>
+        </section>
+      <% end %>
+    </div>
+
     <div class="paywall-actions">
       <%= link_to t("billing.paywall.back_to_project"),
                   project_path(@project),
