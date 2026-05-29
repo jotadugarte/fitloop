@@ -100,6 +100,11 @@
       29. MEIC pricing: paywall shows SINPE hero + card reference in CR; SINPE discount line only at checkout (not at add-to-cart). IVA 13% calculated and shown at checkout for CR only.
       30. Billing payment methods: use `Billing::CheckoutPaymentMethod` (aligned with `Payment` enums); do not invent ad-hoc method strings in simulate services.
       31. Pending cart replace payload: validate via `Billing::PendingCart`; clear `session[:pending_cart]` on login, cancel, and successful replace.
+      32. Cart scope: lookups and redirects must use `current_user.id` or `session[:cart_guest_token]` — never global `Cart.exists?` or other unscoped cart queries.
+      33. Overage pricing: use explicit `*_overage_*` keys from `billing.yml` for display and checkout; do not derive overage amounts from `plan_quota_overage_percent` at runtime.
+      34. Checkout breakdown SSOT: display and `Payment` snapshot fields must come from `Billing::CheckoutBreakdown` (`for_cart`, `for_plan`, or `for_single_download`); no ad-hoc totals in controllers or simulate services.
+      35. Plan price triples: use `Billing::Pricing.plan_price_triple` for tier card-USD + official/SINPE CRC; do not duplicate tier case chains in helpers or services.
+      36. Workshop `/taller` panels: `workshop-sheet-inventory` and `workshop-source-dxf-detail` stay collapsed by default; `collapsible_persistence_controller` must not restore them open on that path (`REQ-FIT-UI-003`).
     </rules>
   </project_rules>
 </agentic_guild_os>
