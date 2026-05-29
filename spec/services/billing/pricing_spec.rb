@@ -19,12 +19,25 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] exposes seed prices from billing.yml (D53)" do
       expect(described_class.single_download_usd).to eq(2.0)
       expect(described_class.single_download_sinpe_crc).to eq(1000)
-      expect(described_class.plan_quota_overage_percent).to eq(50)
-      expect(described_class.plan_1_month_card_usd).to eq(6.0)
+      expect(described_class.single_download_official_crc).to eq(1200)
+      expect(described_class.single_download_sinpe_crc).to eq(1000)
+      expect(described_class.single_download_official_usd).to eq(2.5)
+      expect(described_class.single_download_sinpe_usd).to eq(2.0)
+      expect(described_class.single_download_overage_official_crc).to eq(600)
+      expect(described_class.single_download_overage_sinpe_crc).to eq(500)
+      expect(described_class.single_download_overage_official_usd).to eq(1.25)
+      expect(described_class.single_download_overage_sinpe_usd).to eq(1.0)
+      expect(described_class.plan_1_month_card_usd).to eq(7.0)
+      expect(described_class.plan_1_month_sinpe_usd).to eq(6.5)
+      expect(described_class.plan_1_month_official_crc).to eq(3250)
       expect(described_class.plan_1_month_sinpe_crc).to eq(3000)
-      expect(described_class.plan_2_months_card_usd).to eq(10.0)
+      expect(described_class.plan_2_months_card_usd).to eq(11.5)
+      expect(described_class.plan_2_months_sinpe_usd).to eq(10.75)
+      expect(described_class.plan_2_months_official_crc).to eq(5300)
       expect(described_class.plan_2_months_sinpe_crc).to eq(5000)
-      expect(described_class.plan_4_months_card_usd).to eq(16.0)
+      expect(described_class.plan_4_months_card_usd).to eq(18.0)
+      expect(described_class.plan_4_months_sinpe_usd).to eq(17.0)
+      expect(described_class.plan_4_months_official_crc).to eq(8400)
       expect(described_class.plan_4_months_sinpe_crc).to eq(8000)
     end
 
@@ -63,6 +76,112 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] charges 50% of single-download price when monthly quota is exhausted (D34)" do
       expect(described_class.single_download_overage_usd).to eq(1.0)
       expect(described_class.single_download_overage_sinpe_crc).to eq(500)
+    end
+  end
+
+  describe "explicit overage amounts (no percent fallback) [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] requires explicit overage keys and does not derive from plan_quota_overage_percent (D28)" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(<<~YAML)
+        single_download_usd: 2.00
+        single_download_sinpe_crc: 1000
+        plan_quota_overage_percent: 50
+      YAML
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+
+      described_class.reset_cache!
+      expect { described_class.single_download_overage_usd }.to raise_error(KeyError)
+      expect { described_class.single_download_overage_sinpe_crc }.to raise_error(KeyError)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+  end
+
+  describe "overage percent deprecation [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] does not expose plan_quota_overage_percent as a public pricing API (D28)" do
+      expect(described_class).not_to respond_to(:plan_quota_overage_percent)
+    end
+  end
+
+  describe "MEIC official vs SINPE pricing tables [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] exposes official (card) and SINPE prices for CRC, including explicit overage amounts (D26, D28)" do
+      expect(described_class.single_download_official_crc).to eq(1200)
+      expect(described_class.single_download_sinpe_crc).to eq(1000)
+      expect(described_class.single_download_overage_official_crc).to eq(600)
+      expect(described_class.single_download_overage_sinpe_crc).to eq(500)
+    end
+  end
+
+  describe "MEIC official vs SINPE pricing tables (USD) [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] exposes official (card) and SINPE prices for USD, including explicit overage amounts (D27, D28)" do
+      expect(described_class.single_download_official_usd).to eq(2.50)
+      expect(described_class.single_download_sinpe_usd).to eq(2.00)
+      expect(described_class.single_download_overage_official_usd).to eq(1.25)
+      expect(described_class.single_download_overage_sinpe_usd).to eq(1.00)
+    end
+  end
+
+  describe ".price API [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] returns official and SINPE amounts per currency and overage flag (D25, D26, D27, D28)" do
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :card, overage: false)
+      ).to eq(1200)
+
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :sinpe, overage: false)
+      ).to eq(1000)
+
+      expect(
+        described_class.price(product: :single_download, currency: :usd, payment_method: :card, overage: true)
+      ).to eq(1.25)
+
+      expect(
+        described_class.price(product: :single_download, currency: :usd, payment_method: :card, overage: false)
+      ).to eq(2.50)
+    end
+  end
+
+  describe "nested pricing config format [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] supports nested per-product pricing tables in billing.yml (D25)" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(<<~YAML)
+        products:
+          single_download:
+            official:
+              crc: 1200
+              usd: 2.50
+            sinpe:
+              crc: 1000
+              usd: 2.00
+            overage:
+              official:
+                crc: 600
+                usd: 1.25
+              sinpe:
+                crc: 500
+                usd: 1.00
+      YAML
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+
+      described_class.reset_cache!
+      expect(described_class.single_download_official_crc).to eq(1200)
+      expect(described_class.single_download_overage_official_usd).to eq(1.25)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+  end
+
+  describe "config/billing.yml structure [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] uses nested per-product tables as the canonical format (D25)" do
+      data = YAML.load_file(billing_yml)
+      expect(data).to be_a(Hash)
+      expect(data).to have_key("products")
     end
   end
 end

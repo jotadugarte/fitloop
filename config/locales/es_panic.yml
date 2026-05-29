@@ -135,8 +135,20 @@ es_panic:
       title: Se requiere pago o plan (sin drama)
       intro: Para bajar el DXF anidado hay que pagar esta vuelta o tener plan activo.
       pay_this_download: Pagar esta descarga
+      continue_to_checkout: Continuar al pago
+      iva_checkout_note: Estos precios no traen IVA. Para ver el total, sigue al checkout.
+      plan_quota_available: Plan activo con cupo mensual. Gasta el cupo del plan, no pagues suelta.
+      download_with_plan: Descargar con tu plan
       view_plans: Ver planes
       back_to_project: Volver al proyecto
+      selector:
+        currency_label: Moneda
+        payment_method_label: Método de pago
+        apply: Aplicar
+        card: Tarjeta
+      card_crc: Tarjeta (CRC)
+      card_crc_reference: Precio regular con tarjeta
+      meic_sinpe_hint: Precio especial con SINPE Móvil. La tarjeta queda como referencia.
       aside:
         title: El DXF anidado ya está (no lo toques sin pagar)
         lead: "El Tetris terminó. Desbloquea la bajada así:"
@@ -182,7 +194,7 @@ es_panic:
     planes:
       success: Plan activado. Baja el DXF anidado desde el proyecto.
       title: Planes (elige tu sufrimiento)
-      browse_intro: Mira precios. Para activar plan con taller abierto, vuelve al proyecto y «Ver planes» en descarga.
+      browse_intro: Elige plan y paga abajo (simulado). Con taller abierto, también desde descarga del proyecto.
       project_required: Abre un taller para activar plan desde aquí.
       tier_1: Plan 1 mes
       tier_2: Plan 2 meses
@@ -193,6 +205,8 @@ es_panic:
         lead: Planes con cupo mensual. Elige meses y simula pago USD o CRC.
     checkout:
       demo_badge: DEMO — pagos simulados (QA)
+      process_payment: Procesar pago
+      savings_badge: "Ahorra %{amount}"
       card_usd: Tarjeta (USD)
       sinpe_crc: SINPE Móvil (CRC)
       simulate_success: Pago exitoso
@@ -202,8 +216,38 @@ es_panic:
       success_retention: Pago OK. Descarga en marcha; en Mis pagos 24 h aunque cierres el taller.
       download_now: Descargar ahora
       title: Pagar esta descarga
+      title_plan: Pagar este plan
       single_download: Descarga suelta
       overage_hint: Cupo del plan muerto (50%)
+      plan_quota_prioritized: Cupo mensual del plan activo. Baja desde el proyecto, sin pago suelto.
+      region_currency: "Precios en %{currency}"
+      detail_title: Detalle
+      breakdown:
+        title: Desglose
+        subtotal: Subtotal
+        net_subtotal: Subtotal neto
+        tax: IVA (13%)
+        sinpe_discount: Descuento SINPE
+        total: Total
+      back_to_cart: Volver al carrito
+      back_to_paywall: Volver a opciones de pago
+      choose_payment_method: "Elige cómo pagar:"
+    cart:
+      title: Carrito
+      add_to_cart: "Añadir al carrito"
+      empty: Tu carrito está vacío.
+      checkout: Ir al checkout
+      replace:
+        title: Reemplazar artículo del carrito
+        intro: Ya tienes un artículo en el carrito. ¿Deseas reemplazarlo por el nuevo?
+        confirm: "Sí, reemplazar"
+        cancel: "No, volver al catálogo"
+        current_line: Artículo actual
+        pending_line: Nuevo artículo
+        line_download: Descarga única
+        line_plan: Plan %{months} meses
+        line_unknown: Artículo desconocido
+        invalid: No se pudo actualizar el carrito. Vuelve a intentarlo desde el catálogo.
   home:
     index:
       tagline: Tetris de supervivencia DXF
@@ -482,6 +526,7 @@ es_panic:
       failure: Ese proveedor nos dejó en visto. Intente otra vía.
     session:
       sign_in_title: Iniciar sesión
+      password: Contraseña
       submit: Entrar al taller
     confirmation:
       pending_title: Confirma el correo (sí, el buzón)

@@ -4,7 +4,9 @@
   <p class="auth-page__divider"><%= t("auth.shared.or_email") %></p>
 
   <section class="auth-page__email" data-testid="oauth-email">
-    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-page__form" }) do |f| %>
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name),
+          html: { class: "auth-page__form", data: { turbo: false } }) do |f| %>
+      <%= render "devise/shared/auth_flash_alert" %>
       <%= render "devise/shared/error_messages", resource: resource %>
 
       <div class="field">
@@ -13,7 +15,7 @@
       </div>
 
       <div class="field">
-        <%= f.label :password %>
+        <%= f.label :password, t("auth.session.password") %>
         <%= f.password_field :password, autocomplete: "current-password" %>
       </div>
 

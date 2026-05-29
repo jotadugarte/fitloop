@@ -140,8 +140,20 @@ es:
       title: "Se requiere pago o plan"
       intro: "Para descargar el DXF anidado necesitas pagar esta descarga o tener un plan activo."
       pay_this_download: "Pagar esta descarga"
+      continue_to_checkout: "Continuar al pago"
+      iva_checkout_note: "Estos precios no incluyen IVA. Para ver el total, continúa al checkout."
+      plan_quota_available: "Tienes plan activo con cupo mensual disponible. Usa tu cupo del plan para esta descarga."
+      download_with_plan: "Descargar con tu plan"
       view_plans: "Ver planes"
       back_to_project: "Volver al proyecto"
+      selector:
+        currency_label: "Moneda"
+        payment_method_label: "Método de pago"
+        apply: "Aplicar"
+        card: "Tarjeta"
+      card_crc: "Tarjeta (CRC)"
+      card_crc_reference: "Precio regular con tarjeta"
+      meic_sinpe_hint: "Precio especial con SINPE Móvil. El precio con tarjeta aparece como referencia."
       aside:
         title: "Tu DXF anidado está listo"
         lead: "El anidado terminó. Elige cómo desbloquear la descarga:"
@@ -187,7 +199,7 @@ es:
     planes:
       title: "Planes"
       success: "Plan activado. Ya puedes descargar el DXF anidado desde tu proyecto."
-      browse_intro: "Consulta precios y duración. Para activar un plan desde un proyecto en curso, vuelve al taller y elige «Ver planes» desde la pantalla de descarga."
+      browse_intro: "Elige un plan y completa el pago simulado abajo. Si tienes un taller abierto, también puedes activar un plan desde la pantalla de descarga del proyecto."
       project_required: "Abre un proyecto en el taller para activar un plan desde aquí."
       tier_1: "Plan 1 mes"
       tier_2: "Plan 2 meses"
@@ -198,7 +210,10 @@ es:
         lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
     checkout:
       title: "Pagar esta descarga"
+      title_plan: "Pagar este plan"
       demo_badge: "Entorno de demostración — pagos simulados (QA)"
+      process_payment: "Procesar pago"
+      savings_badge: "Ahorra %{amount}"
       card_usd: "Tarjeta (USD)"
       sinpe_crc: "SINPE Móvil (CRC)"
       simulate_success: "Pago exitoso"
@@ -209,6 +224,35 @@ es:
       download_now: "Descargar ahora"
       single_download: "Descarga suelta"
       overage_hint: "Con cupo de plan agotado (50%)"
+      plan_quota_prioritized: "Tienes cupo mensual en tu plan activo. Descarga desde el proyecto sin pagar esta descarga suelta."
+      region_currency: "Precios en %{currency}"
+      detail_title: "Detalle"
+      breakdown:
+        title: "Desglose"
+        subtotal: "Subtotal"
+        net_subtotal: "Subtotal neto"
+        tax: "IVA (13%)"
+        sinpe_discount: "Descuento SINPE"
+        total: "Total"
+      back_to_cart: "Volver al carrito"
+      back_to_paywall: "Volver a opciones de pago"
+      choose_payment_method: "Elige cómo pagar:"
+    cart:
+      title: "Carrito"
+      add_to_cart: "Añadir al carrito"
+      empty: "Tu carrito está vacío."
+      checkout: "Ir al checkout"
+      replace:
+        title: "Reemplazar artículo del carrito"
+        intro: "Ya tienes un artículo en el carrito. ¿Deseas reemplazarlo por el nuevo?"
+        confirm: "Sí, reemplazar"
+        cancel: "No, volver al catálogo"
+        current_line: "Artículo actual"
+        pending_line: "Nuevo artículo"
+        line_download: "Descarga única"
+        line_plan: "Plan %{months} meses"
+        line_unknown: "Artículo desconocido"
+        invalid: "No se pudo actualizar el carrito. Vuelve a intentarlo desde el catálogo."
 
   home:
     index:
@@ -493,6 +537,7 @@ es:
       failure: "No se pudo iniciar sesión con ese proveedor."
     session:
       sign_in_title: "Iniciar sesión"
+      password: "Contraseña"
       submit: "Entrar"
     confirmation:
       pending_title: "Confirma tu correo"

@@ -47,4 +47,30 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
       expect(payment).to be_valid
     end
   end
+
+  describe "payment snapshot fields [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] persists purchaser and amount breakdown for succeeded and failed payments (D20, D24)" do
+      payment = described_class.create!(
+        user: user,
+        status: "failed",
+        payment_method: "card_usd",
+        currency: "usd",
+        amount: 2.5,
+        purpose: "single_download",
+        purchaser_name: "Ada Lovelace",
+        purchaser_email: "ada@example.com",
+        product_description: "Descarga única",
+        list_price: 2.5,
+        discount_amount: 0.5,
+        subtotal: 2.5,
+        tax_amount: 0.0,
+        total_amount: 2.0
+      )
+
+      expect(payment.purchaser_name).to eq("Ada Lovelace")
+      expect(payment.purchaser_email).to eq("ada@example.com")
+      expect(payment.product_description).to eq("Descarga única")
+      expect(payment.total_amount).to eq(2.0)
+    end
+  end
 end

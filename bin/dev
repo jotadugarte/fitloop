@@ -13,7 +13,11 @@ fi
 
 export PORT
 
+# Local billing defaults to Costa Rica when IP/Cloudflare geo is unavailable (WSL/localhost).
+export FITLOOP_BILLING_COUNTRY_OVERRIDE="${FITLOOP_BILLING_COUNTRY_OVERRIDE:-CR}"
+
 echo "Fitloop development -> http://localhost:${PORT} (Active Job :async, in-process)"
+echo "Billing country override: ${FITLOOP_BILLING_COUNTRY_OVERRIDE} (set FITLOOP_BILLING_COUNTRY_OVERRIDE to change)"
 echo "Demo runs on port 3000: ../fitloop-demo/bin/demo"
 echo "WSL: keep this terminal open; use localhost in your Windows browser."
 exec bin/rails server -b 0.0.0.0 -p "${PORT}"

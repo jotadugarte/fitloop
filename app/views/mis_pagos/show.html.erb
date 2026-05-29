@@ -25,10 +25,10 @@
             <li class="mis-pagos-list__item" data-testid="mis-pagos-grant-row">
               <div class="mis-pagos-list__primary">
                 <time class="mis-pagos-list__date" datetime="<%= grant.created_at.iso8601 %>">
-                  <%= l(grant.created_at, format: :short) %>
+                  <%= l_in_user_zone(grant.created_at, format: :short, user: current_user) %>
                 </time>
                 <% if grant.retention_active? %>
-                  <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.retained_until", until: l(grant.retained_until, format: :short)) %></span>
+                  <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(grant.retained_until, format: :short, user: current_user)) %></span>
                 <% else %>
                   <span class="mis-pagos-list__meta mis-pagos-list__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
                 <% end %>
@@ -55,7 +55,7 @@
             <li class="mis-pagos-list__item mis-pagos-list__item--payment" data-testid="mis-pagos-payment-row">
               <div class="mis-pagos-list__primary">
                 <time class="mis-pagos-list__date" datetime="<%= payment.created_at.iso8601 %>">
-                  <%= l(payment.created_at, format: :short) %>
+                  <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>
                 </time>
                 <span class="mis-pagos-list__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
               </div>
@@ -83,7 +83,10 @@
       <li><%= t("billing.paywall.aside.benefit_plan") %></li>
     </ul>
     <p class="mis-pagos-aside__action">
-      <%= link_to t("billing.mis_pagos.aside.view_plans"), planes_path, class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
+      <%= link_to t("billing.mis_pagos.aside.view_plans"),
+                  download_paywall_workshop_path,
+                  class: "btn btn-secondary",
+                  data: { turbo_frame: "_top" } %>
     </p>
   </aside>
 </div>

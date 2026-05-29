@@ -1,32 +1,88 @@
-<div class="paywall-layout" data-testid="download-paywall">
+<% currency = @billing_selection.fetch(:currency) %>
+<% show_sinpe_reference = currency == :crc %>
+
+<div class="paywall-layout paywall-page"
+     data-testid="download-paywall"
+     data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
-    <h1><%= t("billing.paywall.title") %></h1>
-    <p><%= t("billing.paywall.intro") %></p>
-    <p><%= t("billing.single_download.retention_24h") %></p>
+    <h1 class="billing-page__title"><%= t("billing.paywall.title") %></h1>
+    <p class="checkout-page__intro"><%= t("billing.paywall.intro") %></p>
+    <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
 
-    <ul class="paywall-options">
-      <% if @nesting_run %>
-        <li>
-          <%= link_to t("billing.paywall.pay_this_download"),
+    <% if show_sinpe_reference %>
+      <p class="paywall-meic-hint"><%= t("billing.paywall.meic_sinpe_hint") %></p>
+    <% end %>
+
+    <% if @plan_download_included %>
+      <p class="paywall-plan-quota panel panel--inset" data-testid="paywall-plan-quota-hint">
+        <%= t("billing.paywall.plan_quota_available") %>
+      </p>
+    <% end %>
+
+    <div class="paywall-catalog" data-testid="paywall-inline-plans">
+      <% if @nesting_run && @single_download_checkout_allowed %>
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-single-download">
+          <h2 class="planes-tier__title"><%= t("billing.checkout.single_download") %></h2>
+
+          <%= render "download_paywall/catalog_pricing",
+                     product: :single_download,
+                     currency: currency,
+                     show_sinpe: show_sinpe_reference %>
+
+          <%= link_to t("billing.paywall.continue_to_checkout"),
                       checkout_path(nesting_run_id: @nesting_run.id),
-                      class: "btn btn-primary",
+                      class: "btn btn-primary paywall-tier__cta",
                       data: { testid: "paywall-checkout", turbo: false } %>
-        </li>
-      <% end %>
-      <li>
-        <%= link_to t("billing.paywall.view_plans"),
-                    planes_path(project_id: @project.id),
-                    class: "btn btn-secondary",
-                    data: { testid: "paywall-planes", turbo: false } %>
-      </li>
-    </ul>
+        </section>
+      <% elsif @nesting_run && @plan_download_included %>
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-plan-download-tier">
+          <h2 class="planes-tier__title"><%= t("billing.checkout.single_download") %></h2>
 
-    <div class="paywall-actions">
+          <%= render "download_paywall/catalog_pricing",
+                     product: :single_download,
+                     currency: currency,
+                     show_sinpe: show_sinpe_reference %>
+
+          <%= link_to t("billing.paywall.download_with_plan"),
+                      nested_dxf_project_path(@project),
+                      class: "btn btn-primary paywall-tier__cta",
+                      data: { testid: "paywall-plan-download", turbo: false } %>
+        </section>
+      <% end %>
+
+      <% paywall_plan_tiers.each do |months, label_key| %>
+        <section class="planes-tier panel panel--inset paywall-catalog__card" data-testid="paywall-plan-tier-<%= months %>">
+          <h2 class="planes-tier__title"><%= t("billing.planes.#{label_key}") %></h2>
+
+          <%= render "download_paywall/catalog_pricing",
+                     product: :plan,
+                     tier_months: months,
+                     currency: currency,
+                     show_sinpe: show_sinpe_reference %>
+
+          <%= form_with url: carrito_path, method: :post, data: { turbo: false }, class: "paywall-tier__cart-form" do %>
+            <%= hidden_field_tag :kind, "plan" %>
+            <%= hidden_field_tag :tier_months, months %>
+            <%= button_tag t("billing.paywall.continue_to_checkout"),
+                           class: "btn btn-primary paywall-tier__cta",
+                           data: { testid: "paywall-add-plan-#{months}" } %>
+          <% end %>
+        </section>
+      <% end %>
+    </div>
+
+    <% if @billing_selection.fetch(:iva_applicable) %>
+      <p class="paywall-iva-note" data-testid="paywall-iva-note">
+        <%= t("billing.paywall.iva_checkout_note") %>
+      </p>
+    <% end %>
+
+    <footer class="paywall-actions checkout-footer">
       <%= link_to t("billing.paywall.back_to_project"),
                   project_path(@project),
                   class: "btn btn-secondary",
                   data: { testid: "paywall-back-to-project", turbo: false } %>
-    </div>
+    </footer>
   </article>
 
   <aside class="paywall-layout__aside panel panel--inset" aria-labelledby="paywall-aside-title">

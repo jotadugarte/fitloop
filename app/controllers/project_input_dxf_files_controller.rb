@@ -64,8 +64,20 @@ class ProjectInputDxfFilesController < ApplicationController
   end
 
   def assign_layer_expand_state!(attachment_ids_before)
-    @expand_layers = true
-    @expanded_attachment_ids = @project.input_dxf_attachments.map(&:id) - attachment_ids_before
+    # Pre-condition: attachment list must exist to compute deltas.
+    raise "missing attachment_ids_before" if attachment_ids_before.nil?
+
+    # Only auto-expand layer details during initial setup.
+    # In the workshop ("Mi taller"), panels must remain collapsed by default.
+    @expand_layers = setup_context?
+    @expanded_attachment_ids = if @expand_layers == true
+      @project.input_dxf_attachments.map(&:id) - attachment_ids_before
+    else
+      []
+    end
+
+    # Post-condition: when not expanding, never leak expanded ids.
+    raise "expanded_attachment_ids must be empty when not expanding" if @expand_layers != true && @expanded_attachment_ids.any?
   end
 
   def layer_expand_locals

@@ -24,9 +24,8 @@ RSpec.describe "Auth billing 2:30 AM scenarios", "[REQ-FIT-BILL-001] [REQ-FIT-BI
       sign_in user
       visit checkout_path(nesting_run_id: run.id)
 
-      within('[data-testid="checkout-pay-card-usd"]') do
-        click_button I18n.t("billing.checkout.simulate_success")
-      end
+      expect(page).to have_css('[data-testid="checkout-process-payment"]')
+      click_button I18n.t("billing.checkout.process_payment")
 
       expect(page).to have_current_path(mis_pagos_path, ignore_query: true)
       expect(page).to have_css('[data-testid="mis-pagos-auto-download"]')

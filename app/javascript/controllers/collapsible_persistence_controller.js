@@ -31,6 +31,11 @@ function pagePath() {
   return window.location.pathname
 }
 
+function lockedClosedOnPath(path, key) {
+  if (path !== "/taller") return false
+  return key === "workshop-sheet-inventory" || key === "workshop-source-dxf-detail"
+}
+
 export default class extends Controller {
   connect() {
     this.boundOnToggle = this.onToggle.bind(this)
@@ -52,13 +57,18 @@ export default class extends Controller {
   restorePanels() {
     const path = pagePath()
     const pageState = readStore()[path]
-    if (!pageState) return
+    const state = pageState || {}
 
     document.querySelectorAll("details.collapsible-panel").forEach((details) => {
       const key = panelKey(details)
       if (!key) return
 
-      const saved = pageState[key]
+      if (lockedClosedOnPath(path, key)) {
+        details.open = false
+        return
+      }
+
+      const saved = state[key]
       if (saved === true) details.open = true
       if (saved === false) details.open = false
     })

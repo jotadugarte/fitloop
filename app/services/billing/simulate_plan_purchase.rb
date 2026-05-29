@@ -4,7 +4,7 @@ module Billing
   # [REQ-FIT-BILL-002] Simulated plan subscription checkout (D28, D29, D37).
   class SimulatePlanPurchase
     ALLOWED_TIERS = Subscription::ALLOWED_TIER_MONTHS.freeze
-    ALLOWED_METHODS = %w[card_usd sinpe_crc].freeze
+    ALLOWED_METHODS = CheckoutPaymentMethod::ALL.freeze
 
     def self.call(user:, tier_months:, payment_method:, outcome:, project:)
       new(user: user, tier_months: tier_months, payment_method: payment_method, outcome: outcome, project: project).call
@@ -33,7 +33,7 @@ module Billing
     end
 
     def record_failure!
-      Payment.create!(base_payment_attrs(status: "failed", paid_at: nil))
+      Payment.create!(base_payment_attrs(status: "failed", paid_at: nil).merge(snapshot_fields))
       :failed
     end
 
@@ -42,7 +42,9 @@ module Billing
       result = nil
       ActiveRecord::Base.transaction do
         subscription = upsert_subscription!(paid_at)
-        payment = Payment.create!(base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription))
+        payment = Payment.create!(
+          base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription).merge(snapshot_fields)
+        )
         result = { subscription: subscription, payment: payment, project: @project }
       end
       result
@@ -68,7 +70,7 @@ module Billing
         subscription: subscription,
         status: status,
         payment_method: @payment_method,
-        currency: @payment_method == "card_usd" ? "usd" : "crc",
+        currency: CheckoutPaymentMethod.currency_for(@payment_method).to_s,
         amount: plan_amount,
         purpose: "plan_subscription",
         paid_at: paid_at
@@ -76,13 +78,52 @@ module Billing
     end
 
     def plan_amount
-      Pricing.public_send(plan_pricing_method)
+      breakdown = plan_breakdown
+      CheckoutPaymentMethod.sinpe?(@payment_method) ? breakdown.fetch(:subtotal) : breakdown.fetch(:list_price)
     end
 
-    def plan_pricing_method
-      months = @tier_months == 1 ? "1_month" : "#{@tier_months}_months"
-      suffix = @payment_method == "card_usd" ? "card_usd" : "sinpe_crc"
-      "plan_#{months}_#{suffix}"
+    def plan_breakdown
+      if (cart = cart_for_plan)
+        CheckoutBreakdown.for_cart(cart: cart, billing_context: billing_context_for_snapshot)
+      else
+        CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context_for_snapshot)
+      end
+    end
+
+    def cart_for_plan
+      cart = Cart.find_by(user_id: @user.id)
+      return nil unless cart&.plan?
+      return nil unless cart.tier_months.to_i == @tier_months
+      return nil unless cart_currency_matches?(cart)
+
+      cart
+    end
+
+    def cart_currency_matches?(cart)
+      cart.currency_mode == CheckoutPaymentMethod.currency_for(@payment_method).to_s
+    end
+
+    def billing_context_for_snapshot
+      currency = CheckoutPaymentMethod.currency_for(@payment_method)
+      {
+        currency: currency,
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
+        iva_applicable: currency == :crc
+      }
+    end
+
+    def snapshot_fields
+      breakdown = plan_breakdown
+      {
+        purchaser_name: @user.name.to_s,
+        purchaser_email: @user.email.to_s,
+        product_description: "plan_#{@tier_months}_months",
+        list_price: breakdown.fetch(:list_price).to_f,
+        discount_amount: breakdown.fetch(:discount_amount).to_f,
+        subtotal: breakdown.fetch(:subtotal).to_f,
+        tax_amount: breakdown.fetch(:tax_amount).to_f,
+        total_amount: breakdown.fetch(:total_amount).to_f
+      }
     end
   end
 end

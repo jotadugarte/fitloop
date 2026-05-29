@@ -6,6 +6,11 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Added
 
+- **Billing cart (single-item):** add plans or single downloads from the paywall catalog (`POST /carrito`); replace existing line with confirmation; guest carts merge on login (user cart wins) (`REQ-FIT-BILL-001`).
+- **MEIC pricing UX:** paywall shows SINPE price prominently with card reference in Costa Rica; checkout breakdown shows list subtotal, optional SINPE discount, and IVA 13% (CR only) (`REQ-FIT-BILL-001`).
+- **Method-first checkout:** choose payment method first, then see a dynamic receipt and a single “Procesar pago” action (`REQ-FIT-BILL-001`).
+- **Geo-aware billing defaults:** country from `CF-IPCountry` / GeoLite2 with manual CRC/USD override on the paywall (`REQ-FIT-BILL-001`).
+- **Payment snapshots:** purchaser and financial breakdown persisted on `Payment` for both succeeded and failed simulated attempts (`REQ-FIT-BILL-001`).
 - User accounts: email/password sign-up and sign-in, email verification, OAuth (Google, Facebook, Apple when configured), account edit, password reset, and account deletion (`REQ-FIT-AUTH-002`).
 - Simulated billing: paywall on nested DXF download only; single-purchase checkout (USD card / CRC SINPE); subscription plans (1, 2, or 4 months) with monthly download quota; **Mis pagos** for plan status and retained downloads within 24h (`REQ-FIT-BILL-001`..`003`).
 - Workshop multi-tab support: independent ephemeral projects per browser tab with tab-close expiry rules (`REQ-FIT-AUTH-001`, ADR-0005).
@@ -16,6 +21,10 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Changed
 
+- Paywall catalog at `/taller/descarga-pago` with inline plans and “Añadir al carrito”; checkout reads from the signed-in user’s cart.
+- `/planes` redirects to checkout when the user already has a cart line.
+- Overage prices use explicit amounts from `config/billing.yml` (not runtime percentage).
+- Workshop **Mi taller** (`/taller`): sheet inventory and source DXF detail panels stay collapsed by default.
 - Nested DXF download requires sign-in, confirmed email, and payment or active plan (preview and nesting progress remain free).
 - Ephemeral workspace access without project PIN (ADR-0004).
 - Locale switcher uses translated `aria-label` for the EN/ES group in all locales.

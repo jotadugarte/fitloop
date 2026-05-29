@@ -6,6 +6,7 @@ class PlanesController < ApplicationController
   include ResolvesWorkspaceTab
 
   before_action :load_plan_project!, only: %i[show simulate]
+  before_action :redirect_to_cart_if_cart_item_present!, only: :show
 
   def show
     @active_subscription = Subscription.active_at.find_by(user_id: current_user.id)
@@ -14,11 +15,6 @@ class PlanesController < ApplicationController
   def simulate
     unless current_user.operationally_active?
       redirect_to edit_user_registration_path, alert: t("billing.suspended")
-      return
-    end
-
-    unless @project
-      redirect_to planes_path, alert: t("billing.planes.project_required")
       return
     end
 
@@ -34,10 +30,19 @@ class PlanesController < ApplicationController
       return
     end
 
-    redirect_to workshop_path, notice: t("billing.planes.success")
+    redirect_after_plan_purchase!
   end
 
   private
+
+  def redirect_after_plan_purchase!
+    if @project && Workspace.bound_to_project?(session, @project)
+      redirect_to workshop_path, notice: t("billing.planes.success")
+      return
+    end
+
+    redirect_to mis_pagos_path, notice: t("billing.planes.success")
+  end
 
   def load_plan_project!
     return unless params[:project_id].present?
@@ -51,5 +56,11 @@ class PlanesController < ApplicationController
     return if Workspace.bound_to_project?(session, @project)
 
     redirect_to start_project_path, alert: t("workspace.expired")
+  end
+
+  def redirect_to_cart_if_cart_item_present!
+    return unless Cart.exists?(user_id: current_user.id)
+
+    redirect_to checkout_path
   end
 end

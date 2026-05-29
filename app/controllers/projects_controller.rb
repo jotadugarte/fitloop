@@ -112,6 +112,8 @@ class ProjectsController < ApplicationController
       update_workspace_sheets!
     when "layers"
       update_workspace_layers!
+    when "billing"
+      update_workspace_billing!
     else
       head :unprocessable_entity
     end
@@ -137,6 +139,27 @@ class ProjectsController < ApplicationController
   def update_workspace_layers!
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     render_workspace_turbo_stream(:layers)
+  end
+
+  def update_workspace_billing!
+    policy = Billing::RegionalPolicy.from_request(request: request, session: session, user: current_user)
+    billing = params.require(:billing).permit(:payment_method)
+    payment_method = billing[:payment_method].presence || policy.fetch(:default_payment_method).to_s
+    unless policy.fetch(:available_payment_methods).map(&:to_s).include?(payment_method)
+      payment_method = policy.fetch(:default_payment_method).to_s
+    end
+
+    session[:billing_currency] = policy.fetch(:currency).to_s
+    session[:billing_payment_method] = payment_method
+
+    if params[:billing_return_to] == "paywall"
+      redirect_to download_paywall_workshop_path
+      return
+    end
+
+    head :ok
+  rescue ActionController::ParameterMissing, KeyError
+    head :unprocessable_entity
   end
 
   def render_workspace_turbo_stream(section, status: :ok)

@@ -3,25 +3,30 @@
 module Billing
   # [REQ-FIT-BILL-001] Simulated single-download checkout (D37).
   class SimulateSingleDownload
-    METHODS = {
-      "card_usd" => { payment_method: "card_usd", currency: "usd", full: -> { Pricing.single_download_usd }, overage: -> { Pricing.single_download_overage_usd } },
-      "sinpe_crc" => { payment_method: "sinpe_crc", currency: "crc", full: -> { Pricing.single_download_sinpe_crc }, overage: -> { Pricing.single_download_overage_sinpe_crc } }
-    }.freeze
-
-    def self.call(user:, nesting_run:, payment_method:, outcome:)
-      new(user: user, nesting_run: nesting_run, payment_method: payment_method, outcome: outcome).call
+    def self.call(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
+      new(
+        user: user,
+        nesting_run: nesting_run,
+        payment_method: payment_method,
+        outcome: outcome,
+        iva_applicable: iva_applicable
+      ).call
     end
 
-    def initialize(user:, nesting_run:, payment_method:, outcome:)
+    def initialize(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
       @user = user
       @nesting_run = nesting_run
       @payment_method = payment_method
       @outcome = outcome
+      @iva_applicable = iva_applicable
     end
 
     def call
       raise ArgumentError, "user suspended" unless @user.operationally_active?
-      raise ArgumentError, "unknown payment_method" unless METHODS.key?(@payment_method)
+      unless PlanDownloadAvailability.single_download_checkout_allowed?(user: @user)
+        raise ArgumentError, "active plan monthly quota must be used before single purchase"
+      end
+      raise ArgumentError, "unknown payment_method" unless CheckoutPaymentMethod::ALL.include?(@payment_method)
       raise ArgumentError, "nested_dxf missing" unless @nesting_run.project.nested_dxf.attached?
       return record_failure! if @outcome == "failure"
 
@@ -31,11 +36,23 @@ module Billing
     private
 
     def config
-      METHODS.fetch(@payment_method)
+      CheckoutPaymentMethod.config_for(@payment_method)
     end
 
     def unit_amount
-      plan_quota_exhausted? ? config[:overage].call : config[:full].call
+      if (cart = cart_for_run)
+        currency = config.fetch(:currency)
+        cents = config.fetch(:card) ? cart.list_price_cents : cart.sinpe_price_cents
+        return cents_to_amount(cents, currency)
+      end
+
+      overage = plan_quota_exhausted?
+      Pricing.price(
+        product: :single_download,
+        currency: config.fetch(:currency),
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
+        overage: overage
+      )
     end
 
     def plan_quota_exhausted?
@@ -45,15 +62,25 @@ module Billing
       QuotaCounter.for(subscription).exhausted?
     end
 
+    def billing_context
+      {
+        currency: config.fetch(:currency),
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
+        iva_applicable: @iva_applicable
+      }
+    end
+
     def record_failure!
+      snapshot = snapshot_fields
       Payment.create!(
         user: @user,
         nesting_run: @nesting_run,
         status: "failed",
         payment_method: config[:payment_method],
-        currency: config[:currency],
+        currency: config[:currency].to_s,
         amount: unit_amount,
-        purpose: "single_download"
+        purpose: "single_download",
+        **snapshot
       )
       :failed
     end
@@ -69,15 +96,17 @@ module Billing
       paid_at = Time.current
       result = nil
       ActiveRecord::Base.transaction do
+        snapshot = snapshot_fields
         payment = Payment.create!(
           user: @user,
           nesting_run: @nesting_run,
           status: "succeeded",
           payment_method: config[:payment_method],
-          currency: config[:currency],
+          currency: config[:currency].to_s,
           amount: unit_amount,
           purpose: "single_download",
-          paid_at: paid_at
+          paid_at: paid_at,
+          **snapshot
         )
         grant = DownloadGrant.create!(
           user: @user,
@@ -89,6 +118,44 @@ module Billing
         result = { payment: payment, grant: grant, project: @nesting_run.project }
       end
       result
+    end
+
+    def snapshot_fields
+      breakdown =
+        if (cart = cart_for_run)
+          CheckoutBreakdown.for_cart(cart: cart, billing_context: billing_context)
+        else
+          CheckoutBreakdown.for_single_download(
+            billing_context: billing_context,
+            overage: plan_quota_exhausted?
+          )
+        end
+      {
+        purchaser_name: @user.name.to_s,
+        purchaser_email: @user.email.to_s,
+        product_description: "single_download",
+        list_price: breakdown.fetch(:list_price).to_f,
+        discount_amount: breakdown.fetch(:discount_amount).to_f,
+        subtotal: breakdown.fetch(:subtotal).to_f,
+        tax_amount: breakdown.fetch(:tax_amount).to_f,
+        total_amount: breakdown.fetch(:total_amount).to_f
+      }
+    end
+
+    def cart_for_run
+      cart = Cart.find_by(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      return nil unless cart
+      return nil unless cart_currency_matches?(cart)
+
+      cart
+    end
+
+    def cart_currency_matches?(cart)
+      cart.currency_mode == config.fetch(:currency).to_s
+    end
+
+    def cents_to_amount(cents, currency)
+      currency == :crc ? cents.to_i : (cents / 100.0)
     end
   end
 end

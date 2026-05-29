@@ -44,6 +44,13 @@ Rails.application.routes.draw do
   get "checkout", to: "checkout#show"
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
 
+  get "carrito", to: "cart#show", as: :cart
+  post "carrito", to: "cart#create"
+  get "carrito/reemplazar", to: "cart#replace", as: :cart_replace
+  delete "carrito/reemplazar", to: "cart#cancel_replace", as: :cart_replace_cancel
+  patch "carrito", to: "cart#update"
+  delete "carrito", to: "cart#destroy"
+
   get "mis-pagos", to: "mis_pagos#show", as: :mis_pagos
   get "mis-pagos/descargas/:id", to: "mis_pagos/downloads#show", as: :mis_pagos_download
 

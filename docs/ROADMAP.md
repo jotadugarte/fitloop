@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-21 — P6 auth + P7 simulated billing shipped on branch `auth-billing` (ADR-0005, REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003).
+**Last audit:** 2026-05-28 — **Billing cart + MEIC UX** ready on branch `add-cart` (116 commits). P6/P7 merged on `main` (PR #11).
 
-**Next action:** User analytics / admin bitácora (post-merge); then ONVO payments when external gates are met.
+**Next action:** Merge `add-cart`; then **Admin ventas** (snapshots ready); **user analytics & admin bitácora**; **ONVO payments** when external gates are met.
 
 ---
 
@@ -21,12 +21,18 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | P4 | UX completion & ship | **Complete** |
 | Docs | Core reference docs | **Complete** |
 | P5 / Backlog | v1.1+ | **Complete** (auto-split + composite v1.2 shipped) |
+| P6 | User accounts (auth) | **Complete** (PR #11) |
+| P7 | Simulated billing | **Complete** (PR #11) |
+| Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
+| Post-P7b | Billing cart + MEIC UX | **Complete** on branch `add-cart` (pending merge) |
 
-**MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16). Branch `finish` tracks post-merge cleanup.
+**MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
-**Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites.
+**Auth + billing (REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003):** merged to `main` via PR #11 (`auth-billing`, 2026-05-21).
 
-**Not implemented:** optional FastAPI wrapper; hard file/piece caps.
+**Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + simulated billing; workshop at `/taller`; paywall + plans + Mis pagos.
+
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps; live payment gateway (ONVO backlog).
 
 ---
 
@@ -89,6 +95,26 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 - [x] **P6 — User accounts (auth)** — Devise + OmniAuth; email verification; merge opt-in; Spanish routes; workspace re-bind on login (REQ-FIT-AUTH-002, ADR-0005) — 2026-05-21 — Session: `task_auth-billing_2026-05-21.md`
 - [x] **P7 — Simulated billing** — paywall nested DXF; `config/billing.yml`; plans 1/2/4m; grants + 24h retention; `/mis-pagos` (REQ-FIT-BILL-001..003, ADR-0005) — 2026-05-21 — Session: `task_auth-billing_2026-05-21.md`
 
+### Post-P7 polish (merged `main`, after PR #11)
+
+- [x] **Workshop URL `/taller`** — session/tab-bound workshop; legacy `/projects/:id` redirects; Mi taller helpers (REQ-FIT-UI-003) — 2026-05-21
+- [x] **Toolbar + Mi taller** — locale switcher left, account actions right, tab-bound workshop shortcut (REQ-FIT-UI-003) — 2026-05-21
+- [x] **Workspace stale binds + resume** — discard orphaned session binds; return to workshop after profile edit; smart Mi taller across tabs (REQ-FIT-AUTH-001) — 2026-05-21
+- [x] **Workspace tab TTL** — tab-closure cookie only after real browser close (>120 s); in-app navigation no longer expires workshop (REQ-FIT-AUTH-001) — 2026-05-21
+- [x] **Locale switcher: preserve setup drafts** — `PersistWorkspaceSheetInventoryDraft` + `PersistWorkspaceLayerSelectionDraft` on locale PATCH; Turbo off on switcher (REQ-FIT-UI-005, REQ-FIT-UI-001) — 2026-05-21
+- [x] **Nesting progress i18n on locale change** — resolve terminal progress copy in active locale, not stored translated string (REQ-FIT-JOB-001, REQ-FIT-UI-005) — 2026-05-21
+- [x] **Billing: plan dates in user time zone** — `PlanPeriod` end-of-day in `users.time_zone`; `l_in_user_zone` on Mis pagos / Planes (REQ-FIT-BILL-002, D29) — 2026-05-21
+- [x] **Billing: Mis pagos active plan detail** — tier duration (1/2/4 months), period bounds, monthly vs contract quota copy (REQ-FIT-BILL-002, D38) — 2026-05-21
+- [x] **Auth: resend confirmation email prefill** — signed-in user email on `/confirmacion` (REQ-FIT-AUTH-002) — 2026-05-21
+- [x] **i18n: long date/time for plan expiry** — `es.time.formats.long` for Mis pagos (REQ-FIT-UI-005) — 2026-05-21
+
+### Post-P7 polish (local on `main`, uncommitted)
+
+- [x] **Billing: plan quota before single-download checkout** — block paywall/checkout when monthly plan quota available; overage at 50% when exhausted; `PlanDownloadAvailability.single_download_checkout_allowed?` (REQ-FIT-BILL-002, D33/D34) — 2026-05-27
+- [x] **Billing cart UX (single-item) + MEIC pricing display** — DB cart (guest/user), paywall catalog, method-first checkout, MEIC list/SINPE UX, geo defaults, payment snapshots, replace-confirm (REQ-FIT-BILL-001..002) — 2026-05-28 — Branch: `add-cart` — Session: `task_billing-cart.md`
+- [x] **Workshop: Mi taller panels collapsed by default** — sheet inventory + source DXF detail stay closed on `/taller` (REQ-FIT-UI-003) — 2026-05-28 — Branch: `add-cart` (mixed scope, D30)
+- [x] **Auth: sign-in failure UX** — inline alert in form (`auth_flash_alert`), `turbo: false`, password label `auth.session.password` (REQ-FIT-AUTH-002) — 2026-05-27
+
 ---
 
 ## In Progress
@@ -113,11 +139,11 @@ _(no pending engine items)_
 
 ### Nesting engine (v1.1+)
 
-
 ### Product & platform
 
 - [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Depends on: P6/P7 merged — Session: `task_user-analytics_2026-05-21.md` (discovery archived in `.agenticguild/completed_sessions/`)
-- [ ] **ONVO payments + MEIC pricing (CRC-primary)** — replace simulated checkout; ONVO SINPE + card SDK; list prices in CRC; card charged in USD at daily FX — Depends on: user analytics (or P7 stable on `main`); external: OT + ONVO sandbox — Session (local): `task_onvo-payments.md`
+- [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart merged** (snapshot columns shipped on `add-cart`) — Session: `task_billing-cart.md`
+- [ ] **ONVO payments (live gateway)** — replace simulated checkout; ONVO SINPE + card SDK — Depends on: **Billing cart + MEIC UX merged to `main`**; external: OT + ONVO sandbox
 - [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: ONVO or P7 stable on `main` — Also noted in `.agenticguild/pending_refactors.md`
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)

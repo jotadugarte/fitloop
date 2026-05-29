@@ -52,6 +52,13 @@ Use after automated specs are green. Record date, tester, and environment.
 - [ ] Nested DXF download without grant/plan → paywall `/projects/:id/descarga-pago` with links to checkout, planes, login
 - [ ] Preview (`placements.json`, SVG) remains free without payment
 - [ ] `GET /checkout?nesting_run_id=…` shows demo badge and **Pago exitoso** / **Pago fallido** for Tarjeta (USD) and SINPE (CRC)
+- [ ] Paywall hides SINPE option when `CF-IPCountry != CR` (only Card is offered)
+- [ ] Paywall with **no downloadable run** shows plans inline and does not show single-download CTAs
+- [ ] Paywall with **plan quota** shows “Descargar con tu plan” CTA and hides pay-this-download CTA
+- [ ] Checkout hides SINPE when `CF-IPCountry != CR`
+- [ ] Checkout breakdown shows Subtotal, IVA, Total; SINPE shows “Descuento SINPE”
+- [ ] Checkout renders explicit overage prices hint (“Con cupo de plan agotado (50%)”)
+- [ ] Guest adds to cart, then signs in: cart persists and merges to the user (guest cart removed)
 - [ ] Successful single purchase auto-downloads nested DXF; flash mentions 24 h in Mis pagos
 - [ ] After closing workshop (>2 min idle or logout discard), `GET /mis-pagos` lists the purchase with **Descargar** while within 24 h
 - [ ] `GET /mis-pagos/descargas/:id` downloads retained DXF without workshop session bind

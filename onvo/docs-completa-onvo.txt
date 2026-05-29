@@ -1,0 +1,3385 @@
+# ONVO Docs (Español)
+
+> Documentación oficial para integrar ONVO: pagos, checkout, webhooks, autenticación, pruebas y referencia de API.
+
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+# Autenticación
+
+URL: https://docs.onvopay.com/authentication
+Markdown: https://docs.onvopay.com/authentication.md
+
+# Autenticación
+
+ONVO autentica las solicitudes con API keys enviadas como Bearer token.
+
+```http
+Authorization: Bearer onvo_test_secret_key_...
+```
+
+## Dónde obtener tus API keys
+
+Las API keys se obtienen desde el Dashboard de ONVO en [onvopay.com](https://onvopay.com/) después de registrar una cuenta. Al crear la cuenta, ONVO genera automáticamente API keys de prueba para que podás integrar y validar tu flujo en modo de prueba.
+
+Cuando completás el onboarding, tu cuenta queda habilitada para cambiar a modo en vivo desde el Dashboard y obtener las API keys en vivo.
+
+## Referencia API relacionada
+
+- [Introducción de la API](/api)
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+
+## Tipos de llave
+
+| Llave | Uso |
+| --- | --- |
+| `onvo_test_secret_key_...` | Código servidor en modo de prueba. |
+| `onvo_live_secret_key_...` | Código servidor en modo en vivo. |
+| `onvo_test_publishable_key_...` | Código cliente en modo de prueba. |
+| `onvo_live_publishable_key_...` | Código cliente en modo en vivo. |
+
+:::warning
+Nunca expongás llaves secretas en el navegador, apps móviles públicas o repositorios.
+:::
+
+## HTTPS
+
+Todas las solicitudes deben hacerse por HTTPS. Las solicitudes sin autenticación o por HTTP fallan.
+
+---
+
+# Enlaces de un solo uso
+
+URL: https://docs.onvopay.com/checkout/one-time-links
+Markdown: https://docs.onvopay.com/checkout/one-time-links.md
+
+# Enlaces de un solo uso
+
+Los enlaces de un solo uso crean una sesión de Checkout directa para un cobro fijo. Usalos cuando ya conocés el monto final y querés enviar una URL de pago al comprador.
+
+Para donaciones, propinas o cobros donde el comprador escoge el monto, usá [El cliente elige qué pagar](/checkout/open-amount).
+
+## Referencia API relacionada
+
+- [Crear una sesión de Checkout](/api/crear-una-sesion-de-checkout)
+- [Listar sesiones de Checkout](/api/listar-sesiones-de-checkout)
+- [Expirar una sesión de Checkout](/api/expirar-una-sesion-de-checkout)
+- [Crear un cupón](/api/crear-un-cupon)
+- [Listar cupones](/api/listar-cupones)
+
+## Crear una sesión con monto fijo
+
+El endpoint recibe `lineItems`. Cada item puede usar un `priceId` existente o crear un producto inline con `unitAmount`, `currency` y `description`. Los montos se envían en la unidad menor de la moneda.
+
+```bash
+curl https://api.onvopay.com/v1/checkout/sessions/one-time-link \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lineItems": [
+      {
+        "quantity": 1,
+        "unitAmount": 250000,
+        "currency": "CRC",
+        "description": "Orden #1001"
+      }
+    ],
+    "customerEmail": "comprador@example.com",
+    "redirectUrl": "https://example.com/success",
+    "cancelUrl": "https://example.com/cancel",
+    "discounts": [
+      {
+        "coupon": "cpn_abc123"
+      }
+    ],
+    "metadata": {
+      "orderId": "1001"
+    }
+  }'
+```
+
+La respuesta incluye `url`. Redirigí al comprador a esa URL o enviala por el canal que use tu flujo de venta.
+
+## Cupones para enlaces de un solo uso
+
+Podés crear cupones desde el dashboard o desde la API:
+
+- En el dashboard, entrá a **Descuentos** y creá el cupón con el formulario visual. Es útil para campañas operadas por equipos comerciales o de soporte.
+- En la API, creá el cupón con `POST /v1/coupons`. Es útil para campañas generadas desde tu backend, integraciones internas o cargas masivas.
+
+Ambos caminos crean el mismo objeto `Coupon`. Para usarlo en un enlace de un solo uso, guardá el `id` del cupón y envialo en `discounts` cuando creás la sesión de Checkout.
+
+### Flujo recomendado
+
+1. Creá el cupón en el dashboard o con la API.
+2. Configurá sus reglas: tipo de descuento, límite de usos, fecha de vencimiento y BINs elegibles.
+3. Creá el enlace de un solo uso con `discounts: [{ "coupon": "cpn_..." }]`.
+4. Checkout aplica el descuento durante el pago cuando la tarjeta del comprador coincide con una regla de BIN activa.
+
+### Crear un cupón con la API
+
+Este ejemplo crea un cupón de 10% para tarjetas cuyo BIN empieza con `411111`.
+
+```bash
+curl https://api.onvopay.com/v1/coupons \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Banco Sponsor 10%",
+    "type": "percentage",
+    "percentOff": 10,
+    "scope": "checkout_session",
+    "appliesTo": ["one_time_links"],
+    "maxRedemptions": 100,
+    "redeemBy": "2026-06-30",
+    "binRules": [
+      {
+        "bin": "411111"
+      }
+    ]
+  }'
+```
+
+La respuesta incluye el `id` del cupón. Usá ese valor en el payload del enlace:
+
+```json
+{
+  "discounts": [
+    {
+      "coupon": "cpn_abc123"
+    }
+  ]
+}
+```
+
+### Atributos principales
+
+| Atributo | Para qué sirve |
+| --- | --- |
+| `name` | Nombre interno para identificar el cupón en el dashboard, reportes y respuestas de Checkout. |
+| `type` | Define si el descuento es `percentage` o `fixed_amount`. |
+| `percentOff` | Porcentaje a descontar cuando `type` es `percentage`. Debe ser mayor que `0` y como máximo `100`. |
+| `amountOff` | Monto fijo a descontar cuando `type` es `fixed_amount`. Se envía en la unidad menor de la moneda. |
+| `currency` | Moneda requerida para cupones `fixed_amount`. Debe coincidir con la moneda del enlace. |
+| `scope` | Alcance del cupón. Para enlaces de un solo uso usá `checkout_session`. Si lo omitís, ONVO usa ese valor por defecto. |
+| `appliesTo` | Lista de superficies donde aplica. Para estos enlaces incluí `one_time_links`. Si lo omitís, ONVO usa ese valor por defecto. |
+| `binRules` | Lista de BINs de tarjeta que hacen elegible el descuento. |
+| `maxRedemptions` | Límite total de pagos exitosos que pueden consumir el cupón. Omitilo si no querés límite. |
+| `redeemBy` | Fecha límite de uso. Podés enviar una fecha ISO completa o `YYYY-MM-DD`; las fechas sin hora se normalizan a medianoche de Costa Rica. |
+| `isActive` | Activa o desactiva el cupón sin borrarlo. Por defecto es `true`. |
+| `promotionCodes` | Códigos promocionales asociados al cupón. En one-time links se usan desde el backend, no como un campo visible para que el comprador escriba un código. |
+
+### Tipos de descuento
+
+Usá `percentage` cuando querés descontar un porcentaje del monto final:
+
+```json
+{
+  "type": "percentage",
+  "percentOff": 15
+}
+```
+
+Usá `fixed_amount` cuando querés descontar un monto específico:
+
+```json
+{
+  "type": "fixed_amount",
+  "amountOff": 250000,
+  "currency": "CRC"
+}
+```
+
+Los montos se envían en la unidad menor de la moneda. Por ejemplo, `250000` en `CRC` representa `CRC 2,500.00`.
+
+### Reglas de BIN
+
+Los descuentos de one-time links se aplican por BIN. Un BIN son los primeros dígitos de una tarjeta; ONVO acepta reglas de `6` a `8` dígitos. En el dashboard, el campo de BINs es una lista simple: pegás o escribís los BINs elegibles y ONVO los guarda como reglas. En la API, esa misma lista se envía como `binRules`, donde cada item tiene al menos `bin`.
+
+Enviá solo números, sin espacios ni guiones. Cuando el comprador ingresa o selecciona una tarjeta, Checkout revisa si el BIN coincide con alguna regla activa del cupón.
+
+```json
+{
+  "binRules": [
+    {
+      "bin": "411111"
+    },
+    {
+      "bin": "41111112"
+    }
+  ]
+}
+```
+
+Si varios cupones elegibles coinciden con el BIN, ONVO aplica el descuento más alto. Si el monto descontado empata, usa la regla de BIN más específica, es decir, la que tiene más dígitos.
+
+La elegibilidad real depende de `bin` y de que la regla esté activa.
+
+Cada regla puede incluir `isActive`. Esto permite pausar un BIN específico sin apagar todo el cupón. Si actualizás un cupón por API y enviás `binRules`, ONVO reemplaza la lista anterior por la lista enviada, así que incluí todas las reglas que querés conservar.
+
+### Códigos promocionales
+
+Un cupón puede tener códigos promocionales asociados:
+
+```json
+{
+  "promotionCodes": [
+    {
+      "code": "SUMMER25"
+    }
+  ]
+}
+```
+
+ONVO guarda el código en mayúsculas. En el payload de creación del one-time link, `promotionCode` espera el `id` del objeto de código promocional, no el texto del código:
+
+```json
+{
+  "discounts": [
+    {
+      "promotionCode": "promo_abc123"
+    }
+  ]
+}
+```
+
+Para integraciones nuevas, lo más simple es enviar el `coupon` directamente. Usá `promotionCode` cuando ya gestionás códigos promocionales como objetos separados en tu sistema.
+
+Si actualizás un cupón por API y enviás `promotionCodes`, ONVO también reemplaza la lista anterior por la lista enviada.
+
+### Aplicar el cupón al enlace
+
+Para crear un enlace con descuento, agregá `discounts` al payload de la sesión. ONVO acepta un solo descuento por sesión. Ese descuento puede apuntar a un cupón directo o a un código promocional:
+
+```json
+{
+  "discounts": [
+    {
+      "coupon": "cpn_abc123"
+    }
+  ]
+}
+```
+
+Enviá `coupon` o `promotionCode`, pero no ambos en el mismo objeto. El valor debe ser el `id` del cupón o del código promocional.
+
+El cupón debe estar activo, pertenecer al mismo modo de la sesión (`test` o `live`), tener alcance `checkout_session` y aplicar a `one_time_links`. Si usás un cupón de monto fijo, la moneda del cupón debe coincidir con la moneda del enlace.
+
+Para enlaces de un solo uso, no usés `allowPromotionCodes`: Checkout recibe el descuento específico desde `discounts` y lo aplica durante el pago.
+
+### Checklist
+
+- El cupón y la sesión deben estar en el mismo modo: `test` o `live`.
+- El cupón debe estar activo.
+- Para one-time links, usá `scope: "checkout_session"` y `appliesTo: ["one_time_links"]`.
+- Para descuentos de monto fijo, `currency` debe coincidir con la moneda del enlace.
+- Agregá al menos una regla de BIN activa para que Checkout pueda aplicar el descuento con tarjetas elegibles.
+- Copiá el `id` del cupón desde el dashboard o desde la respuesta de `POST /v1/coupons`.
+
+---
+
+# El cliente elige qué pagar
+
+URL: https://docs.onvopay.com/checkout/open-amount
+Markdown: https://docs.onvopay.com/checkout/open-amount.md
+
+# El cliente elige qué pagar
+
+Permitir que el cliente elija qué pagar no requiere un tercer tipo de precio. En ONVO, el precio sigue usando `type: "one_time"` o `type: "recurring"`; esta experiencia se activa con `customUnitAmount` en el precio. Para Checkout, usá `type: "one_time"` cuando querés que el comprador elija un monto para un pago único.
+
+Este flujo usa el mismo modelo de catálogo que un cobro normal: creás un producto, creás un precio con `customUnitAmount` para ese producto y creás una sesión de Checkout que referencia ese precio.
+
+## Cuándo usarlo
+
+- Donaciones o aportes voluntarios.
+- Propinas.
+- Reservas o pagos donde el comprador define el monto dentro de un rango.
+- Formularios donde querés sugerir un monto inicial, pero permitir cambiarlo.
+
+## 1. Crear el producto
+
+Creá el producto que se va a mostrar en Checkout. La descripción y las imágenes ayudan a que el comprador entienda qué está pagando.
+
+```bash
+curl https://api.onvopay.com/v1/products \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Donación Fundación Azul",
+    "description": "Aporte voluntario para campaña anual",
+    "images": [
+      "https://example.com/donacion.png"
+    ]
+  }'
+```
+
+Guardá el `id` del producto para crear el precio.
+
+## 2. Crear el precio
+
+Creá un precio `one_time` con `customUnitAmount`. Los valores se envían en la unidad menor de la moneda: centavos para `USD` y céntimos para `CRC`.
+
+```bash
+curl https://api.onvopay.com/v1/prices \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currency": "CRC",
+    "type": "one_time",
+    "productId": "prod_abc123",
+    "customUnitAmount": {
+      "preset": 1000000,
+      "minimum": 500000,
+      "maximum": 5000000
+    }
+  }'
+```
+
+En este ejemplo, Checkout sugiere `CRC 10,000.00`, permite bajar hasta `CRC 5,000.00` y permite subir hasta `CRC 50,000.00`.
+
+No enviés `unitAmount` en este precio. Cuando un precio usa `customUnitAmount`, ONVO guarda el monto fijo como `0` y usa `preset`, `minimum` y `maximum` para la experiencia de Checkout.
+
+## 3. Crear la sesión de Checkout
+
+Creá la sesión con el `priceId` del precio que acabás de crear. Usá un solo line item con `quantity: 1`.
+
+```bash
+curl https://api.onvopay.com/v1/checkout/sessions/one-time-link \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lineItems": [
+      {
+        "priceId": "price_abc123",
+        "quantity": 1
+      }
+    ],
+    "redirectUrl": "https://example.com/gracias",
+    "cancelUrl": "https://example.com/cancelado",
+    "metadata": {
+      "campaignId": "donaciones-2026"
+    }
+  }'
+```
+
+La sesión no recibe `customUnitAmount` directamente. Checkout lee esa configuración desde el precio asociado y muestra el monto sugerido, el mínimo y el máximo al comprador.
+
+ONVO Checkout se encarga de guardar el monto que el comprador elige antes de confirmar el pago. El comercio no tiene que llamar un endpoint adicional para aplicar ese monto en la sesión.
+
+## Reglas importantes
+
+- No enviés `unitAmount` y `customUnitAmount` en el mismo precio.
+- Enviá `productId` o `productData` al crear el precio, pero no ambos.
+- `preset` es requerido y debe estar dentro de `minimum` y `maximum` cuando enviás esos límites.
+- En esta experiencia, usá un solo line item con `quantity: 1`.
+- Usá `type: "one_time"` cuando el cliente elige qué pagar en Checkout. `recurring` sigue siendo para cargos recurrentes.
+
+---
+
+# Checkout
+
+URL: https://docs.onvopay.com/checkout/overview
+Markdown: https://docs.onvopay.com/checkout/overview.md
+
+# Checkout
+
+Checkout permite crear una experiencia de pago hospedada por ONVO para que no tengás que construir todo el formulario de cobro.
+
+## Referencia API relacionada
+
+- [Crear una sesión de Checkout](/api/crear-una-sesion-de-checkout)
+- [Listar sesiones de Checkout](/api/listar-sesiones-de-checkout)
+- [Expirar una sesión de Checkout](/api/expirar-una-sesion-de-checkout)
+- [Sesiones de Checkout](/api/sesiones-de-checkout)
+
+## Cuándo usar Checkout
+
+- Querés salir rápido a producción.
+- Preferís delegar UI de pago y validaciones.
+- Necesitás una URL de pago para enviar al comprador.
+- Querés permitir que [el cliente elija qué pagar](/checkout/open-amount) para donaciones, propinas o cobros variables.
+
+## Flujo base
+
+1. Creá una sesión o enlace de pago.
+2. Redirigí al comprador a la URL de Checkout.
+3. Recibí el resultado por webhook.
+4. Actualizá tu orden internamente.
+
+---
+
+# Markdown para IA
+
+URL: https://docs.onvopay.com/developer-tools/ai-markdown
+Markdown: https://docs.onvopay.com/developer-tools/ai-markdown.md
+
+# Markdown para IA
+
+ONVO publica versiones Markdown para que agentes, editores y asistentes puedan leer la documentación sin procesar HTML.
+
+## Archivos disponibles
+
+| Archivo | Uso |
+| --- | --- |
+| [`/llms.txt`](https://docs.onvopay.com/llms.txt) | Índice corto con las páginas principales. |
+| [`/llms-full.txt`](https://docs.onvopay.com/llms-full.txt) | Contexto completo de la documentación. |
+| [`/openapi.yaml`](https://docs.onvopay.com/openapi.yaml) | Esquema OpenAPI fuente. |
+| `/*.md` | Versión Markdown de cada página. |
+
+## Ejemplo
+
+```bash
+curl https://docs.onvopay.com/llms.txt
+curl https://docs.onvopay.com/llms-full.txt
+curl https://docs.onvopay.com/openapi.yaml
+```
+
+Cada página del sitio incluye una acción para copiar el Markdown de esa página.
+
+---
+
+# Primeros pasos
+
+URL: https://docs.onvopay.com/getting-started
+Markdown: https://docs.onvopay.com/getting-started.md
+
+# Primeros pasos
+
+Esta guía resume el flujo base para integrar ONVO.
+
+## Referencia API relacionada
+
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Crear una sesión de Checkout](/api/crear-una-sesion-de-checkout)
+
+## 1. Obtené tus llaves
+
+Entrá al Dashboard de ONVO y copiá una llave secreta de prueba. Las llaves de prueba no interactúan con redes bancarias reales.
+
+```bash
+export ONVO_SECRET_KEY="onvo_test_secret_key_..."
+```
+
+## 2. Creá una intención de pago
+
+Una intención de pago representa el ciclo de cobro de una orden.
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 250000,
+    "currency": "CRC",
+    "description": "Orden #1001"
+  }'
+```
+
+## 3. Confirmá el pago
+
+Confirmá la intención con el método de pago del comprador o usá Checkout si querés delegar la experiencia de cobro.
+
+## 4. Escuchá webhooks
+
+Registrá un endpoint para recibir eventos como `payment-intent.succeeded` y reconciliar tu orden internamente.
+
+## 5. Pasá a modo en vivo
+
+Cuando la cuenta esté activada, cambiá a una llave `onvo_live_` y repetí las pruebas de extremo a extremo antes de abrir el flujo a compradores.
+
+---
+
+# Extensión para Magento
+
+URL: https://docs.onvopay.com/integrations/magento
+Markdown: https://docs.onvopay.com/integrations/magento.md
+
+# Extensión para Magento
+
+ONVO cuenta con una extensión para sitios que usan Magento. Usala para habilitar pagos con ONVO Pay en tu e-commerce.
+
+## Referencia API relacionada
+
+- [Crear una sesión de Checkout](/api/crear-una-sesion-de-checkout)
+- [Intenciones de pago](/api/intenciones-de-pago)
+- [Reembolsos](/api/reembolsos)
+
+## Prerrequisitos
+
+- Magento `2.4.3` o mayor.
+- PHP `7.1` o mayor.
+- Llave secreta y llave pública desde el Dashboard de ONVO.
+
+## Instalación con Composer
+
+Desde la consola, ubicáte en el root del proyecto Magento y ejecutá:
+
+```bash
+composer require logeek-io/onvo-magento
+```
+
+## Instalación por directorio
+
+Descargá el plugin y subilo al directorio:
+
+```text
+/app/code/ONVO/
+```
+
+## Activación
+
+Ejecutá los comandos de Magento:
+
+```bash
+bin/magento setup:upgrade
+bin/magento setup:di:compile
+```
+
+Luego abrí `Stores -> Configuration -> Sales -> Payment Methods -> ONVO Pay` y configurá:
+
+- Llave secreta.
+- Llave pública.
+
+Usá llaves de prueba o producción según el modo que querás operar.
+
+---
+
+# SDK web
+
+URL: https://docs.onvopay.com/integrations/sdk
+Markdown: https://docs.onvopay.com/integrations/sdk.md
+
+# SDK web
+
+El SDK web de ONVO permite renderizar un componente de pago en tu sitio usando una llave pública y un recurso creado desde tu servidor.
+
+## Referencia API relacionada
+
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Crear un cargo recurrente](/api/crear-un-cargo-recurrente)
+- [Crear un cliente](/api/crear-un-cliente)
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+
+## Instalación
+
+Incluí el script del SDK.
+
+```html
+<script src="https://sdk.onvopay.com/sdk.js"></script>
+```
+
+## Prerrequisitos
+
+- Obtené tu llave secreta y llave pública desde el Dashboard de ONVO.
+- Creá una intención de pago o cargo recurrente desde tu servidor usando la llave secreta.
+- Pasá el identificador al frontend para renderizar el SDK.
+
+## Pago único
+
+Creá la intención de pago del lado del servidor.
+
+```js
+const { data, status } = await axios.post(
+  "https://api.onvopay.com/v1/payment-intents",
+  {
+    currency: "USD",
+    amount: 1000,
+    description: "my first payment intent",
+  },
+  {
+    headers: {
+      Authorization: "Bearer your_secret_key",
+    },
+  },
+);
+
+if (status === 201) {
+  console.log(data.id);
+}
+```
+
+Renderizá el componente en el frontend.
+
+```html
+<div id="container"></div>
+
+<script>
+  onvo.pay({
+    onError: (data) => {
+      console.log("error", data);
+    },
+    onSuccess: (data) => {
+      console.log("success", data);
+    },
+    publicKey: "public-key",
+    paymentIntentId: "cl4de13uc457301lor2o0q9w1",
+    paymentType: "one_time",
+    customerId: "cl40wvnby1653akslv93ktgdk",
+  }).render("#container");
+</script>
+```
+
+## Cargo recurrente
+
+Creá el cargo recurrente del lado del servidor.
+
+```js
+const { data, status } = await axios.post(
+  "https://api.onvopay.com/v1/subscriptions",
+  {
+    customerId: "cl40wvnby1653akslv93ktgdk",
+    paymentBehavior: "allow_incomplete",
+    items: [
+      {
+        priceId: "cl4ojmusz299201ldilvdfs8y",
+        quantity: 1,
+      },
+    ],
+  },
+  {
+    headers: {
+      Authorization: "Bearer your_secret_key",
+    },
+  },
+);
+
+if (status === 201) {
+  console.log(data.id);
+}
+```
+
+Renderizá el SDK con `paymentType: "subscription"`.
+
+```html
+<div id="container"></div>
+
+<script>
+  onvo.pay({
+    onError: (data) => {
+      console.log("error", data);
+    },
+    onSuccess: (data) => {
+      console.log("success", data);
+    },
+    publicKey: "public-key",
+    subscriptionId: "cl4de13uc457301lor2o0q9w1",
+    paymentType: "subscription",
+    customerId: "cl40wvnby1653akslv93ktgdk",
+  }).render("#container");
+</script>
+```
+
+## Enviar desde un botón externo
+
+Usá `manualSubmit: true` para ocultar el botón interno del formulario y llamar `submitPayment` desde tu propio control.
+
+```html
+<div id="container"></div>
+<button id="outside">Submit Payment</button>
+
+<script>
+  const onvoInstance = onvo.pay({
+    onError: (data) => console.log("error", data),
+    onSuccess: (data) => console.log("success", data),
+    publicKey: "public-key",
+    paymentIntentId: "cl4de13uc457301lor2o0q9w1",
+    paymentType: "one_time",
+    manualSubmit: true,
+  });
+
+  onvoInstance.render("#container");
+
+  document.getElementById("outside").addEventListener("click", () => {
+    onvoInstance.submitPayment();
+  });
+</script>
+```
+
+## Idioma
+
+Podés enviar `locale: "es"` o `locale: "en"`. Si no lo enviás, el idioma por defecto es español.
+
+---
+
+# Plugin de WordPress
+
+URL: https://docs.onvopay.com/integrations/wordpress
+Markdown: https://docs.onvopay.com/integrations/wordpress.md
+
+# Plugin de WordPress
+
+ONVO cuenta con un plugin para sitios WordPress que usan WooCommerce. Usalo para habilitar pagos con ONVO Pay en tu e-commerce sin construir una integración API desde cero.
+
+[Ver plugin en WordPress](https://wordpress.org/plugins/onvo-pay/)
+
+## Referencia API relacionada
+
+- [Crear una sesión de Checkout](/api/crear-una-sesion-de-checkout)
+- [Intenciones de pago](/api/intenciones-de-pago)
+- [Reembolsos](/api/reembolsos)
+
+## Prerrequisitos
+
+- WordPress `4.0` o mayor.
+- PHP `7.1` o mayor.
+- WooCommerce instalado.
+- Llave secreta y llave pública desde el Dashboard de ONVO.
+
+## Instalación desde el dashboard
+
+1. Entrá a `Plugins` y seleccioná `Add New Plugin`.
+2. Buscá `ONVO Pay`.
+3. Instalá y activá el plugin.
+4. En el Dashboard de ONVO, copiá tu llave secreta y llave pública.
+5. En WooCommerce, abrí `Payments` y seleccioná `ONVO Pay`.
+6. Pegá ambas llaves en sus campos correspondientes.
+7. Guardá los cambios y empezá a recibir pagos.
+
+## Instalación directa en servidor
+
+1. Descargá el plugin de WordPress.
+2. Subilo al directorio `/wp-content/plugins/`.
+3. Activá el plugin desde `Plugins`.
+4. Configurá las llaves en WooCommerce, bajo `Payments` y `ONVO Pay`.
+5. Guardá los cambios.
+
+---
+
+# Inicio
+
+URL: https://docs.onvopay.com/
+Markdown: https://docs.onvopay.com/index.md
+
+# Documentación de ONVO
+
+Integrá pagos con ONVO usando guías claras, ejemplos de API y archivos listos para herramientas de IA.
+
+ONVO expone una API REST con respuestas JSON, llaves de prueba y modo en vivo. Esta documentación está organizada para que puedas pasar de una integración local a producción con menos fricción.
+
+## Caminos rápidos
+
+| Necesito | Empezar aquí |
+| --- | --- |
+| Crear mi primera integración | [Primeros pasos](/getting-started) |
+| Autenticar solicitudes | [Autenticación](/authentication) |
+| Cobrar un pago | [Intenciones de pago](/payments/payment-intents) |
+| Usar Checkout hospedado | [Checkout](/checkout/overview) |
+| Recibir eventos asincrónicos | [Webhooks](/webhooks) |
+| Consultar endpoints y esquemas | [Referencia API](/api) |
+
+## Para desarrolladores y agentes
+
+Cada página incluye una acción para copiar su contenido como Markdown. También publicamos:
+
+- [`/llms.txt`](https://docs.onvopay.com/llms.txt): índice corto para herramientas de IA.
+- [`/llms-full.txt`](https://docs.onvopay.com/llms-full.txt): contexto completo en Markdown.
+
+## Ambientes
+
+Usá llaves con prefijo `onvo_test_` para pruebas y `onvo_live_` para transacciones reales. El modo queda determinado por la llave enviada en el encabezado `Authorization`.
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents \
+  -H "Authorization: Bearer onvo_test_secret_key_..." \
+  -H "Content-Type: application/json"
+```
+
+---
+
+# Monitoreo de fraude
+
+URL: https://docs.onvopay.com/payments/fraud-monitoring
+Markdown: https://docs.onvopay.com/payments/fraud-monitoring.md
+
+# Monitoreo de fraude
+
+Para integraciones 100% vía API, recomendamos agregar la librería web de ONVO para recolectar señales del navegador del comprador. Estas señales ayudan a mejorar la precisión de las herramientas de prevención de fraude.
+
+Esta implementación es opcional, pero altamente recomendada. No es necesaria para integraciones que usan plugins, links de pago o el SDK embebido, porque esos flujos ya incluyen la recolección necesaria.
+
+## Instalar la librería
+
+Incluí el script en el `head` de la página, preferiblemente antes de otros scripts.
+
+```html
+<script src="https://js.onvopay.com/v1/"></script>
+```
+
+## Iniciar la sesión de señales
+
+Inicializá la librería con tu llave pública. Cuando tengas el `paymentIntentId`, y antes de confirmar el pago, llamá `startSignalSession`.
+
+```html
+<script>
+  const onvo = ONVO("onvo_live_publishable_key_H4PG...");
+
+  onvo.startSignalSession({
+    paymentIntentId: "clrr934wl001mdpkhw2g82rlt",
+  });
+</script>
+```
+
+ONVO toma estas señales en cuenta durante la confirmación de la intención de pago.
+
+---
+
+# Autorización y captura separadas
+
+URL: https://docs.onvopay.com/payments/manual-capture
+Markdown: https://docs.onvopay.com/payments/manual-capture.md
+
+# Autorización y captura separadas
+
+Cuando creás un pago, podés autorizar un monto y capturarlo después. Este flujo es útil cuando necesitás reservar fondos antes de completar el cobro, por ejemplo en hoteles, alquileres o pedidos que requieren confirmación final.
+
+:::info
+La captura manual solo está disponible para pagos con tarjeta en integraciones 100% vía API. No está disponible para Checkout ni para el SDK de pago embebido.
+:::
+
+## Referencia API relacionada
+
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Capturar una intención de pago](/api/capturar-una-intencion-de-pago)
+- [Cancelar una intención de pago](/api/cancelar-una-intencion-de-pago)
+
+## Crear la intención
+
+Indicá `captureMethod: "manual"` al crear la intención de pago.
+
+```json
+{
+  "amount": 1000,
+  "currency": "USD",
+  "captureMethod": "manual"
+}
+```
+
+Luego confirmá la intención con un método de pago de tipo tarjeta.
+
+Si la autorización se aprueba, la intención queda en estado `requires_capture`. Si se declina, vuelve a `requires_payment_method` y podés intentar con otro método de pago.
+
+## Capturar fondos
+
+Para capturar el monto autorizado, llamá al endpoint de captura de intención de pago. Por defecto, ONVO captura el monto total autorizado.
+
+Para capturar menos que el monto original, enviá `amountToCapture`. Una captura parcial libera automáticamente el monto restante.
+
+```json
+{
+  "amountToCapture": 750
+}
+```
+
+Si la captura es exitosa, la intención cambia a `succeeded`. Si la captura falla, la intención cambia a `requires_payment_method` y necesitás iniciar una nueva autorización.
+
+## Cancelar una autorización
+
+Si necesitás liberar los fondos antes de capturarlos, cancelá la intención de pago. Si la autorización expira antes de capturarla, ONVO libera los fondos y la intención cambia a `canceled`.
+
+---
+
+# Marketplaces
+
+URL: https://docs.onvopay.com/payments/marketplaces
+Markdown: https://docs.onvopay.com/payments/marketplaces.md
+
+# Marketplaces
+
+Marketplaces permite a comercios que operan como intermediarios entre compradores y vendedores procesar pagos y liquidar fondos a los vendedores de forma automática y segura.
+
+## Referencia API relacionada
+
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Obtener una intención de pago](/api/obtener-una-intencion-de-pago)
+- [Listar todas las intenciones de pago](/api/listar-todas-las-intenciones-de-pago)
+
+## Crear una cuenta marketplace
+
+Creá la cuenta desde la sección Marketplace del Dashboard de ONVO. Ahí indicás el nombre del comercio vendedor y el porcentaje de comisión de marketplace, adicional a las comisiones transaccionales de ONVO y retenciones cuando apliquen.
+
+Al crear la cuenta, ONVO genera:
+
+- Un `Account ID` para identificar al vendedor en transacciones.
+- Un enlace de onboarding para que el vendedor complete su registro.
+
+## Onboarding de vendedores
+
+El enlace de onboarding es único por cuenta marketplace. El vendedor debe completarlo para poder recibir pagos. Durante este proceso, indica las cuentas IBAN donde recibirá liquidaciones.
+
+El enlace expira después de 7 días. Podés regenerarlo desde el detalle de la cuenta marketplace; al hacerlo, el enlace anterior queda expirado.
+
+Cuando el onboarding se completa, la cuenta marketplace queda habilitada para aceptar pagos en su nombre.
+
+## Flujo de pago
+
+Usá siempre las API keys de la cuenta primaria, es decir, la cuenta que creó el marketplace. Las cuentas marketplace no tienen API keys propias.
+
+Los métodos de pago también deben crearse en la cuenta primaria.
+
+1. Creá una intención de pago con el atributo `onBehalfOf`, usando el `Account ID` del vendedor.
+
+```json
+{
+  "amount": 10000,
+  "currency": "USD",
+  "onBehalfOf": "ma502zv0d0127ebdp3zt27651"
+}
+```
+
+2. Confirmá la intención de pago con el `paymentMethodId`.
+
+```json
+{
+  "paymentMethodId": "cl502zv0d0127ebdp3zt27651"
+}
+```
+
+3. Si el cobro es exitoso, ONVO calcula comisiones, retenciones y comisión marketplace sobre el monto bruto.
+
+Ejemplo para una transacción de `100.00 USD`:
+
+| Concepto | Monto |
+| --- | --- |
+| Monto bruto | `100.00 USD` |
+| Comisión ONVO 3.5% | `3.50 USD` |
+| Retención 2% | `2.00 USD` |
+| Monto neto | `94.50 USD` |
+| Comisión marketplace 5% | `5.00 USD` |
+| Monto a liquidar al vendedor | `89.50 USD` |
+
+La comisión marketplace se deposita en la cuenta primaria y el monto neto se deposita al vendedor.
+
+## Modo de prueba y producción
+
+Podés crear cuentas marketplace en modo de prueba o producción según el modo activo del Dashboard.
+
+Las cuentas creadas en modo de prueba solo funcionan con llaves de prueba. Las cuentas creadas en modo producción solo funcionan con llaves live. No se puede cambiar el modo de una cuenta una vez creada.
+
+---
+
+# Pagos
+
+URL: https://docs.onvopay.com/payments/overview
+Markdown: https://docs.onvopay.com/payments/overview.md
+
+# Pagos
+
+El flujo de pagos de ONVO se apoya en intenciones de pago, métodos de pago, reembolsos y eventos asincrónicos.
+
+## Referencia API relacionada
+
+- [Intenciones de pago](/api/intenciones-de-pago)
+- [Métodos de pago](/api/metodos-de-pago)
+- [Cargos recurrentes](/api/cargos-recurrentes)
+- [Reembolsos](/api/reembolsos)
+- [Sesiones de Checkout](/api/sesiones-de-checkout)
+
+## Recursos principales
+
+| Recurso | Descripción |
+| --- | --- |
+| Intención de pago | Representa el intento de cobrar una orden. |
+| Método de pago | Instrumento utilizado por el comprador. |
+| Cargo recurrente | Cobra periódicamente a un cliente usando un precio recurrente. |
+| Reembolso | Devolución total o parcial de un pago. |
+| Webhook | Evento enviado por ONVO cuando el estado cambia. |
+
+Para la mayoría de integraciones, creá una intención por orden y escuchá webhooks para confirmar el resultado final.
+
+---
+
+# Intenciones de pago
+
+URL: https://docs.onvopay.com/payments/payment-intents
+Markdown: https://docs.onvopay.com/payments/payment-intents.md
+
+# Intenciones de pago
+
+Una intención de pago guía el ciclo de cobro de un pago. Usá exactamente una intención por pago para mantener trazabilidad clara.
+
+## Referencia API relacionada
+
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Obtener una intención de pago](/api/obtener-una-intencion-de-pago)
+- [Capturar una intención de pago](/api/capturar-una-intencion-de-pago)
+- [Cancelar una intención de pago](/api/cancelar-una-intencion-de-pago)
+- [Listar todas las intenciones de pago](/api/listar-todas-las-intenciones-de-pago)
+
+## Flujo básico
+
+1. Creá o recolectá un método de pago para el comprador.
+2. Creá una intención de pago con el monto y la moneda.
+3. Confirmá la intención usando el `paymentMethodId`.
+4. Escuchá los webhooks antes de marcar el pago como completado en tu sistema.
+
+## Crear un método de pago
+
+Creá el método de pago desde el cliente con una publishable key o desde tu servidor con una secret key, según el tipo de integración que estés construyendo. Para tarjetas, el resultado devuelve un `id` que después enviás como `paymentMethodId` al confirmar la intención.
+
+```bash
+curl https://api.onvopay.com/v1/payment-methods \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_PUBLISHABLE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "card",
+    "card": {
+      "number": "4242424242424242",
+      "expMonth": 12,
+      "expYear": 2028,
+      "cvv": "123",
+      "holderName": "María Rodríguez"
+    },
+    "billing": {
+      "name": "María Rodríguez",
+      "email": "maria@example.com",
+      "address": {
+        "country": "CR"
+      }
+    }
+  }'
+```
+
+Para evitar errores `400` de validación antes de tokenizar la tarjeta, validá estos campos en tu formulario:
+
+- `card.holderName`: texto no vacío.
+- `card.number`: string con solo dígitos, sin espacios ni separadores, y con un número que pase validación Luhn.
+- `card.expMonth`: entero entre `1` y `12`.
+- `card.expYear`: entero entre `2023` y `2100`. También validá que la tarjeta no esté vencida antes de enviarla.
+- `card.cvv`: string de `3` o `4` dígitos cuando lo enviés.
+
+Si el payload no cumple estas reglas, ONVO responde `400` con un error de validación. Por ejemplo, un número de tarjeta inválido puede devolver:
+
+```json
+{
+  "statusCode": 400,
+  "message": ["card.number Card number is invalid"],
+  "error": "Bad Request"
+}
+```
+
+Cuando creás un método de pago de tipo `card`, ONVO tokeniza y verifica la tarjeta antes de crear el objeto. Si la tokenización falla por datos inválidos, el endpoint responde `400` y no se crea ningún método de pago.
+
+```json
+{
+  "code": "cards.invalid_card_info",
+  "path": "/v1/payment-methods",
+  "type": "OnvoAPIError",
+  "message": "There was an error with the card information provided. Please review card number, expiration date and cvv",
+  "timestamp": "2026-04-29T17:36:28.477Z",
+  "statusCode": 400
+}
+```
+
+Mostrá el mensaje al comprador y pedile revisar el número de tarjeta, fecha de expiración y CVV antes de intentar crear el método de pago nuevamente.
+
+## Crear una intención
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500000,
+    "currency": "CRC",
+    "description": "Orden #1001"
+  }'
+```
+
+## Confirmar la intención
+
+Usá el `id` de la intención y el `id` del método de pago creado previamente.
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents/$PAYMENT_INTENT_ID/confirm \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentMethodId": "cl502zv0d0127ebdp3zt27651"
+  }'
+```
+
+## Estados comunes
+
+| Estado | Significado |
+| --- | --- |
+| `requires_payment_method` | Estado inicial. También se mantiene en este estado si una confirmación falla, por ejemplo por una tarjeta declinada. |
+| `requires_action` | El método de pago necesita una acción adicional del comprador, como autenticación 3DS. |
+| `processing` | ONVO está procesando el pago. |
+| `succeeded` | El pago fue exitoso. |
+| `canceled` | La intención fue cancelada. |
+
+## Buenas prácticas
+
+- Guardá el `id` de la intención junto a tu pago.
+- Usá `metadata` para IDs internos de carrito, pago o cliente.
+- Confirmá el estado final por webhook antes de entregar bienes digitales o marcar el pago como completado.
+
+---
+
+# Reembolsos
+
+URL: https://docs.onvopay.com/payments/refunds
+Markdown: https://docs.onvopay.com/payments/refunds.md
+
+# Reembolsos
+
+Un reembolso devuelve total o parcialmente el monto de una intención de pago exitosa.
+
+## Referencia API relacionada
+
+- [Crear un reembolso](/api/crear-un-reembolso)
+- [Obtener un reembolso](/api/obtener-un-reembolso)
+- [Reembolsos](/api/reembolsos)
+
+```bash
+curl https://api.onvopay.com/v1/refunds \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentIntentId": "pi_...",
+    "amount": 100000
+  }'
+```
+
+## Recomendaciones
+
+- Validá que la orden pueda reembolsarse en tu sistema antes de llamar a ONVO.
+- Guardá el ID del reembolso para conciliación.
+- Escuchá eventos de webhook para conocer el resultado final.
+
+---
+
+# SINPE Móvil
+
+URL: https://docs.onvopay.com/payments/sinpe-mobile
+Markdown: https://docs.onvopay.com/payments/sinpe-mobile.md
+
+# SINPE Móvil
+
+SINPE Móvil permite cobrar un pago cuando el comprador realiza una transferencia al número móvil de ONVO y ONVO la asocia automáticamente con una intención de pago.
+
+Actualmente este flujo solo soporta pagos en `CRC`.
+
+## Referencia API relacionada
+
+| Paso | Referencia | Payloads |
+| --- | --- | --- |
+| Crear la intención | [POST /v1/payment-intents](/api/crear-una-intencion-de-pago) | [Solicitud](/api/crear-una-intencion-de-pago#request) · [Respuesta](/api/crear-una-intencion-de-pago#responses) |
+| Crear el método de pago | [POST /v1/payment-methods](/api/crear-un-metodo-de-pago) | [Solicitud](/api/crear-un-metodo-de-pago#request) · [Respuesta](/api/crear-un-metodo-de-pago#responses) |
+| Confirmar la intención | [POST /v1/payment-intents/\{id\}/confirm](/api/confirmar-una-intencion-de-pago) | [Solicitud](/api/confirmar-una-intencion-de-pago#request) · [Respuesta](/api/confirmar-una-intencion-de-pago#responses) |
+| Conciliar transferencias | [GET /v1/mobile-transfers/list](/api/listar-pagos-por-sinpe-movil) | [Parámetros](/api/listar-pagos-por-sinpe-movil#request) · [Respuesta](/api/listar-pagos-por-sinpe-movil#responses) |
+| Recibir confirmación | [Webhooks](/webhooks) | [Payloads por evento](/webhooks#payloads-por-evento) |
+
+## Antes de empezar
+
+- Configurá webhooks y escuchá `payment-intent.succeeded`.
+- Usá `CRC` como moneda de la intención de pago.
+- Indicá en el método de pago la identificación real de la persona o entidad que hará la transferencia.
+- Pedile al comprador transferir desde una cuenta cuya identificación coincida con la enviada en `mobileNumber.identification`.
+
+ONVO intenta asociar la transferencia entrante primero por número de identificación. Si el banco reporta una identificación distinta a la esperada, la asociación automática puede fallar.
+
+El número destino por defecto para recibir transferencias SINPE Móvil es `+506 70196686`. Si tu comercio solicitó un número personalizado, usá el número provisto por el equipo de soporte de ONVO.
+
+## Flujo
+
+1. Creá una intención de pago por el monto exacto a cobrar.
+2. Creá un método de pago con `type: "mobile_number"`.
+3. Confirmá la intención con el `paymentMethodId`.
+4. Mostrá al comprador el número SINPE Móvil destino y el monto exacto.
+5. Esperá el webhook `payment-intent.succeeded` antes de marcar el pago como completado.
+
+Cuando confirmás la intención con este método de pago, la intención pasa a `processing`. Ese estado significa que ONVO está esperando recibir y asociar la transferencia.
+
+## Crear la intención de pago
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500000,
+    "currency": "CRC",
+    "description": "Pago SINPE Móvil #1001"
+  }'
+```
+
+## Crear el método de pago
+
+`mobileNumber.number` es el número SINPE Móvil del comprador. El número destino al que el comprador debe transferir es el número de ONVO indicado en las instrucciones de pago.
+
+```bash
+curl https://api.onvopay.com/v1/payment-methods \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "mobile_number",
+    "mobileNumber": {
+      "identification": "01-1393-1919",
+      "identificationType": 0,
+      "number": "+50688888888"
+    },
+    "billing": {
+      "name": "María Rodríguez",
+      "email": "maria@example.com"
+    }
+  }'
+```
+
+## Confirmar la intención
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents/$PAYMENT_INTENT_ID/confirm \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentMethodId": "cl502zv0d0127ebdp3zt27651"
+  }'
+```
+
+Después de confirmar, indicá al comprador que transfiera el monto exacto al número SINPE Móvil de ONVO. No marques el pago como exitoso en tu sistema hasta recibir `payment-intent.succeeded`.
+
+## Conciliación
+
+La lista de pagos por SINPE Móvil refleja transferencias entrantes recibidas en un número SINPE Móvil. Es útil para revisar transferencias que no pudieron asociarse automáticamente.
+
+Si `paymentIntentId` es `null`, la transferencia todavía no está vinculada a una intención de pago.
+
+## Pruebas
+
+En modo de prueba, usando llaves `onvo_test_`, los números definidos en [métodos de pago de prueba para SINPE Móvil](/payments/testing#sinpe-móvil) simulan distintos escenarios de transferencia. No necesitás hacer una transferencia real ni enviar fondos al número SINPE Móvil de ONVO.
+
+Usá esos números para simular transferencias exitosas, retrasadas, fallidas y parciales.
+
+---
+
+# SINPE PIN
+
+URL: https://docs.onvopay.com/payments/sinpe-pin
+Markdown: https://docs.onvopay.com/payments/sinpe-pin.md
+
+# SINPE PIN
+
+SINPE PIN permite cobrar un pago cuando el comprador realiza una transferencia bancaria a un IBAN provisto por ONVO y ONVO la asocia automáticamente con una intención de pago.
+
+Este método de pago está disponible solo bajo solicitud y actualmente solo soporta pagos en `CRC`.
+
+:::warning Transferencias en tiempo real
+SINPE PIN solo funciona si el comprador envía la transferencia en tiempo real. Si usa una transferencia programada, diferida o no inmediata, ONVO no podrá asociarla automáticamente y el pago no se completará con este flujo.
+:::
+
+## Referencia API relacionada
+
+| Paso | Referencia | Payloads |
+| --- | --- | --- |
+| Crear la intención | [POST /v1/payment-intents](/api/crear-una-intencion-de-pago) | [Solicitud](/api/crear-una-intencion-de-pago#request) · [Respuesta](/api/crear-una-intencion-de-pago#responses) |
+| Crear el método de pago | [POST /v1/payment-methods](/api/crear-un-metodo-de-pago) | [Solicitud](/api/crear-un-metodo-de-pago#request) · [Respuesta](/api/crear-un-metodo-de-pago#responses) |
+| Confirmar la intención | [POST /v1/payment-intents/\{id\}/confirm](/api/confirmar-una-intencion-de-pago) | [Solicitud](/api/confirmar-una-intencion-de-pago#request) · [Respuesta](/api/confirmar-una-intencion-de-pago#responses) |
+| Recibir confirmación | [Webhooks](/webhooks) | [Payloads por evento](/webhooks#payloads-por-evento) |
+
+## Antes de empezar
+
+- Solicitá la habilitación de SINPE PIN al equipo de soporte de ONVO.
+- Usá el IBAN destino provisto por ONVO para que el comprador realice la transferencia.
+- Configurá webhooks y escuchá `payment-intent.succeeded`.
+- Usá `CRC` como moneda de la intención de pago.
+- Indicá en el método de pago la identificación real de la persona o entidad que hará la transferencia.
+
+ONVO intenta asociar la transferencia entrante primero por número de identificación. La identificación enviada en `bankDeposit.identification` debe coincidir con la identificación reportada por el banco en la transferencia entrante.
+
+## Flujo
+
+1. Creá una intención de pago por el monto exacto a cobrar.
+2. Creá un método de pago con `type: "bank_deposit"`.
+3. Confirmá la intención con el `paymentMethodId`.
+4. Mostrá al comprador el IBAN destino provisto por ONVO, el monto exacto y la indicación de enviar la transferencia en tiempo real.
+5. Esperá el webhook `payment-intent.succeeded` antes de marcar el pago como completado.
+
+Cuando confirmás la intención con este método de pago, la intención pasa a `processing`. Ese estado significa que ONVO está esperando recibir y asociar la transferencia.
+
+## Crear la intención de pago
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500000,
+    "currency": "CRC",
+    "description": "Pago SINPE PIN #1001"
+  }'
+```
+
+## Crear el método de pago
+
+`bankDeposit.identification` debe representar a la persona o entidad que hará la transferencia bancaria.
+
+```bash
+curl https://api.onvopay.com/v1/payment-methods \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "bank_deposit",
+    "bankDeposit": {
+      "identification": "01-1393-1919",
+      "identificationType": 1
+    },
+    "billing": {
+      "name": "María Rodríguez",
+      "email": "maria@example.com"
+    }
+  }'
+```
+
+## Confirmar la intención
+
+```bash
+curl https://api.onvopay.com/v1/payment-intents/$PAYMENT_INTENT_ID/confirm \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentMethodId": "cl502zv0d0127ebdp3zt27651"
+  }'
+```
+
+Después de confirmar, indicá al comprador que transfiera el monto exacto al IBAN provisto por ONVO usando una transferencia en tiempo real. No marques el pago como exitoso en tu sistema hasta recibir `payment-intent.succeeded`.
+
+## Pruebas
+
+En modo de prueba, usando llaves `onvo_test_`, las identificaciones definidas en [métodos de pago de prueba para SINPE PIN](/payments/testing#depósito-bancario-sinpe-pin) simulan distintos escenarios de depósito. No necesitás hacer una transferencia real ni enviar fondos al IBAN de ONVO.
+
+Usá esas identificaciones para simular depósitos exitosos, retrasados, fallidos y parciales.
+
+---
+
+# Cargos recurrentes
+
+URL: https://docs.onvopay.com/payments/subscriptions
+Markdown: https://docs.onvopay.com/payments/subscriptions.md
+
+# Cargos recurrentes
+
+Un cargo recurrente cobra a un cliente de forma periódica. El flujo empieza creando un producto y un precio recurrente; después asociás un método de pago al cliente y creás el cargo recurrente con ese precio.
+
+Podés cobrar el primer período de inmediato o crear el cargo recurrente primero y confirmarlo en una solicitud adicional.
+
+## Referencia API relacionada
+
+- [Crear un producto](/api/crear-un-producto)
+- [Crear un precio](/api/crear-un-precio)
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+- [Crear un cargo recurrente](/api/crear-un-cargo-recurrente)
+- [Confirmar un cargo recurrente](/api/confirmar-un-cargo-recurrente)
+- [Obtener un cargo recurrente](/api/obtener-un-cargo-recurrente)
+- [Listar renovaciones](/api/listar-renovaciones)
+
+## Flujo base
+
+1. Creá un producto para representar lo que se vende.
+2. Creá un precio con `type: "recurring"` y definí el intervalo de cobro.
+3. Creá o recolectá un método de pago para el cliente.
+4. Creá el cargo recurrente con el `customerId`, el `paymentMethodId` y el `priceId`.
+5. Escuchá webhooks para confirmar el resultado del primer cobro y de cada renovación.
+
+## Crear un producto
+
+```bash
+curl https://api.onvopay.com/v1/products \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Plan Pro",
+    "description": "Acceso mensual al Plan Pro",
+    "isActive": true
+  }'
+```
+
+Guardá el `id` del producto para crear el precio recurrente.
+
+## Crear un precio recurrente
+
+El monto se envía en la denominación menor de la moneda. Por ejemplo, `250000` representa CRC 2,500.00.
+
+```bash
+curl https://api.onvopay.com/v1/prices \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "productId": "$PRODUCT_ID",
+    "unitAmount": 250000,
+    "currency": "CRC",
+    "type": "recurring",
+    "nickname": "Plan Pro mensual",
+    "recurring": {
+      "interval": "month",
+      "intervalCount": 1
+    }
+  }'
+```
+
+Guardá el `id` del precio. Ese valor se envía como `priceId` dentro de `items`.
+
+## Crear un método de pago
+
+El método de pago debe pertenecer al mismo cliente que se usará en el cargo recurrente. Podés enviar un `customerId` existente o enviar `customer` para crear y asociar el cliente en la misma solicitud.
+
+```bash
+curl https://api.onvopay.com/v1/payment-methods \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_PUBLISHABLE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "card",
+    "card": {
+      "number": "4242424242424242",
+      "expMonth": 12,
+      "expYear": 2028,
+      "cvv": "123",
+      "holderName": "María Rodríguez"
+    },
+    "billing": {
+      "name": "María Rodríguez",
+      "email": "maria@example.com",
+      "address": {
+        "country": "CR"
+      }
+    },
+    "customer": {
+      "name": "María Rodríguez",
+      "email": "maria@example.com",
+      "phone": "+50688880000"
+    }
+  }'
+```
+
+Guardá el `id` del método de pago y el `customerId` asociado.
+
+## Cobrar de inmediato
+
+Para cobrar el primer período al crear el cargo recurrente, enviá `paymentMethodId`. Si omitís `paymentBehavior`, ONVO usa el comportamiento por defecto y confirma el primer cobro inmediatamente.
+
+```bash
+curl https://api.onvopay.com/v1/subscriptions \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": "$CUSTOMER_ID",
+    "paymentMethodId": "$PAYMENT_METHOD_ID",
+    "description": "Plan Pro mensual",
+    "items": [
+      {
+        "priceId": "$PRICE_ID",
+        "quantity": 1
+      }
+    ],
+    "metadata": {
+      "accountPlan": "pro",
+      "internalSubscriptionId": "sub_123"
+    }
+  }'
+```
+
+ONVO crea la renovación inicial, genera una intención de pago para ese período y la confirma con el método de pago indicado. Revisá el estado del cargo recurrente, de la renovación y de la intención de pago antes de activar el servicio en tu sistema.
+
+## Diferir la confirmación
+
+Usá `paymentBehavior: "allow_incomplete"` cuando querés crear el cargo recurrente primero y confirmar el cobro en una solicitud posterior. En este modo podés omitir `paymentMethodId` al crear el cargo recurrente.
+
+```bash
+curl https://api.onvopay.com/v1/subscriptions \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": "$CUSTOMER_ID",
+    "paymentBehavior": "allow_incomplete",
+    "description": "Plan Pro mensual",
+    "items": [
+      {
+        "priceId": "$PRICE_ID",
+        "quantity": 1
+      }
+    ],
+    "metadata": {
+      "accountPlan": "pro",
+      "internalSubscriptionId": "sub_123"
+    }
+  }'
+```
+
+Cuando tengás el método de pago listo, confirmá el cargo recurrente:
+
+```bash
+curl https://api.onvopay.com/v1/subscriptions/$SUBSCRIPTION_ID/confirm \
+  -X POST \
+  -H "Authorization: Bearer $ONVO_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentMethodId": "$PAYMENT_METHOD_ID"
+  }'
+```
+
+## Renovaciones
+
+Cada cargo recurrente genera renovaciones. La primera renovación se crea al inicio de la suscripción y las siguientes se crean con cada período exitoso. Cada renovación está asociada a una intención de pago, por lo que podés usarla para conciliar el período cobrado.
+
+## Buenas prácticas
+
+- Guardá los IDs de producto, precio, cliente, método de pago y cargo recurrente en tu sistema.
+- Usá `metadata` para asociar IDs internos, como el plan o la suscripción de tu plataforma.
+- Escuchá `subscription.renewal.succeeded` y `subscription.renewal.failed` para sincronizar el estado local.
+- Consultá las renovaciones para auditar cada período y su intención de pago asociada.
+
+---
+
+# Pruebas
+
+URL: https://docs.onvopay.com/payments/testing
+Markdown: https://docs.onvopay.com/payments/testing.md
+
+# Pruebas
+
+Las llaves `onvo_test_` operan en modo de prueba. Usalas para validar flujos, estados, webhooks y manejo de errores.
+
+Los métodos de pago de esta página solo funcionan en modo de prueba. Si intentás usarlos con llaves `onvo_live_`, ONVO rechazará la creación del método de pago.
+
+## Referencia API relacionada
+
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+- [Crear una intención de pago](/api/crear-una-intencion-de-pago)
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Crear un reembolso](/api/crear-un-reembolso)
+
+## Checklist antes de producción
+
+- Crear intención de pago.
+- Confirmar pago exitoso.
+- Probar error de método de pago.
+- Probar reembolso.
+- Validar recepción y firma de webhooks.
+- Confirmar que tu sistema maneja reintentos idempotentes.
+
+## Tarjetas
+
+Para crear una tarjeta de prueba, usá `card` en el atributo `type` al crear un método de pago e incluí el número en `card.number`.
+
+Usá cualquier fecha de expiración futura, cualquier CVV válido para la marca y cualquier nombre de titular.
+
+| Escenario | Marca | Número |
+| --- | --- | --- |
+| Aprobada | Visa | `4242424242424242` |
+| Challenge 3DS | Visa | `4000000000003220` |
+| Aprobada | Mastercard | `5555555555554444` |
+| Aprobada | American Express | `378282246310005` |
+| Pago declinado | Visa | `4000000000000002` |
+| Creación fallida por verificación inválida | Visa | `4000000000000127` |
+| Error en procesador externo | Visa | `4000000000000119` |
+
+## Credix
+
+Para crear una tarjeta Credix de prueba, usá `credix` en el atributo `type` e incluí el número en `credix.number`.
+
+| Escenario | Marca | Número |
+| --- | --- | --- |
+| Aprobada | Visa | `4111111111111111` |
+| Declinada | Visa | `4000000000000002` |
+
+## Depósito Bancario (SINPE PIN)
+
+Para crear un método de prueba de depósito bancario, usá `bank_deposit` en `type` e incluí `identification` e `identificationType` en `bankDeposit`.
+
+| Escenario | Identificación | Comportamiento |
+| --- | --- | --- |
+| Exitoso | `00-0000-8888` | Simula un depósito correcto 15 segundos después de confirmar la intención de pago. |
+| Fallido | `00-0000-9521` | Marca el cargo como fallido y la intención vuelve a `requires_payment_method`. |
+| Exitoso con retraso | `00-0000-4444` | Simula un depósito correcto 30 segundos después. |
+| Parcial | `00-0000-3333` | Simula un depósito del 50% y luego otro del 50% restante. |
+
+## SINPE Móvil
+
+Para crear un método de prueba de SINPE Móvil, usá `mobile_number` en `type` e incluí el número en `mobileNumber.number`.
+
+| Escenario | Número | Comportamiento |
+| --- | --- | --- |
+| Exitoso | `+50688888888` | Simula una transferencia correcta 15 segundos después. |
+| Exitoso con retraso | `+50688884444` | Simula una transferencia correcta 6 minutos después. |
+| Fallido | `+50688889521` | No simula transferencia y la intención no cambia de estado. |
+| Parcial | `+50688883333` | Simula una transferencia del 50% y luego otra del 50% restante. |
+
+## Zunify
+
+Para crear un método de prueba Zunify, usá `zunify` en `type` e incluí `phoneNumber` y `pin` en el objeto `zunify`.
+
+| Escenario | Número | PIN | Comportamiento |
+| --- | --- | --- | --- |
+| Exitoso | `11223344` | `1234` | Simula un cargo Zunify y marca la intención como exitosa aproximadamente 10 segundos después. |
+
+---
+
+# Autenticación 3DS
+
+URL: https://docs.onvopay.com/payments/three-ds
+Markdown: https://docs.onvopay.com/payments/three-ds.md
+
+# Autenticación 3DS
+
+3D Secure agrega una capa de autenticación para pagos con tarjeta. Cuando el emisor lo requiere, el cliente debe completar una verificación, normalmente en una página del banco o en un modal dentro de tu sitio.
+
+En integraciones 100% vía API, identificás este caso cuando la confirmación de la intención de pago retorna estado `requires_action` y un objeto `nextAction`.
+
+## Referencia API relacionada
+
+- [Confirmar una intención de pago](/api/confirmar-una-intencion-de-pago)
+- [Obtener una intención de pago](/api/obtener-una-intencion-de-pago)
+- [Crear un método de pago](/api/crear-un-metodo-de-pago)
+
+## Redirect
+
+Enviá `returnUrl` al confirmar la intención de pago.
+
+```json
+{
+  "paymentMethodId": "cl502zv0d0127ebdp3zt27651",
+  "returnUrl": "https://www.example.com/return"
+}
+```
+
+Si se requiere 3DS, la respuesta incluye la URL a la que debés redirigir al cliente.
+
+```json
+{
+  "status": "requires_action",
+  "nextAction": {
+    "type": "redirect_to_url",
+    "redirectToUrl": {
+      "url": "https://checkout.onvopay.com/authorize/test_clv...",
+      "returnUrl": "https://www.example.com/return"
+    }
+  }
+}
+```
+
+Después de completar la autenticación, ONVO redirige al cliente a tu `returnUrl` con el parámetro `payment_intent_id`.
+
+```text
+https://www.example.com/return?payment_intent_id=cl502zv0d0127ebdp3zt27651
+```
+
+Consultá la intención de pago para confirmar el estado final antes de marcar la orden como pagada.
+
+## Modal
+
+También podés manejar 3DS con la librería web de ONVO.
+
+```html
+<script src="https://js.onvopay.com/v1/"></script>
+```
+
+Inicializá la librería con tu llave pública y llamá `handleNextAction` cuando la intención requiera acción.
+
+```html
+<script>
+  const onvo = ONVO("onvo_live_publishable_key_H4PG...");
+
+  onvo.handleNextAction({
+    paymentIntentId: "clrr934wl001mdpkhw2g82rlt",
+  }).then(function (result) {
+    if (result.error) {
+      console.error(result.error);
+    } else {
+      console.log(result.paymentIntent);
+    }
+  });
+</script>
+```
+
+Aunque la autenticación 3DS sea exitosa, validá el estado final de la intención de pago. La transacción todavía puede ser declinada por otros motivos.
+
+Podés probar este flujo con la tarjeta `4000000000003220` en modo de prueba.
+
+---
+
+# Errores
+
+URL: https://docs.onvopay.com/reference/errors
+Markdown: https://docs.onvopay.com/reference/errors.md
+
+# Errores
+
+La API de ONVO usa códigos HTTP estándar y respuestas JSON para describir errores.
+
+| Código | Significado |
+| --- | --- |
+| `400` | Solicitud inválida. |
+| `401` | Falta autenticación o la llave no es válida. |
+| `403` | La llave no tiene permisos para la acción. |
+| `404` | El recurso no existe. |
+| `409` | Conflicto de estado. |
+| `422` | La solicitud no pudo procesarse con los datos enviados. |
+| `500` | Error interno. |
+
+Guardá el identificador de la solicitud cuando contactés soporte.
+
+---
+
+# Paginación
+
+URL: https://docs.onvopay.com/reference/pagination
+Markdown: https://docs.onvopay.com/reference/pagination.md
+
+# Paginación
+
+Los endpoints de listado usan paginación por cursor. En la referencia de API, estos campos aparecen como parámetros opcionales de query en los endpoints de listado, por ejemplo `GET /v1/customers`, `GET /v1/payment-intents/account`, `GET /v1/products` y otros endpoints que devuelven colecciones.
+
+En el explorador interactivo de la referencia API, los parámetros opcionales se muestran dentro de la sección **Solicitud > Parámetros**.
+
+## Parámetros
+
+| Parámetro | Tipo | Descripción |
+| --- | --- | --- |
+| `limit` | number | Cantidad de objetos a retornar. Acepta valores entre `1` y `100`. Si no se envía, la API usa `10`. |
+| `startingAfter` | string | Cursor para pedir la página siguiente. Usá el `id` del último objeto recibido en la página actual. |
+| `endingBefore` | string | Cursor para pedir la página anterior. Usá el `id` del primer objeto recibido en la página actual. |
+
+Enviá solo un cursor por solicitud. Si enviás `startingAfter` y `endingBefore` al mismo tiempo, la API responde con un error porque el backend solo puede navegar en una dirección por request.
+
+Los nombres de los parámetros de entrada son `startingAfter` y `endingBefore`. En las respuestas de listado, la API devuelve esos cursores dentro de `meta.cursorNext` y `meta.cursorBefore`; usá `meta.cursorNext` como `startingAfter` para avanzar y `meta.cursorBefore` como `endingBefore` para volver.
+
+## Ejemplos
+
+Primera página:
+
+```bash
+curl "https://api.onvopay.com/v1/customers?limit=10" \
+  -H "Authorization: Bearer onvo_test_secret_key_..."
+```
+
+Siguiente página:
+
+```bash
+curl "https://api.onvopay.com/v1/customers?limit=10&startingAfter=cl40muorw00493ndp0okzk2g3" \
+  -H "Authorization: Bearer onvo_test_secret_key_..."
+```
+
+Página anterior:
+
+```bash
+curl "https://api.onvopay.com/v1/customers?limit=10&endingBefore=cl40muorw00493ndp0okzk2g3" \
+  -H "Authorization: Bearer onvo_test_secret_key_..."
+```
+
+Cuando la respuesta incluye `meta`, podés usar los cursores de respuesta para construir la siguiente solicitud.
+
+## Recomendaciones
+
+- Usá filtros para limitar el volumen de datos.
+- Procesá páginas de forma incremental.
+- No asumás que dos páginas consecutivas son inmutables si los datos cambian mientras recorrés la lista.
+
+---
+
+# Webhooks
+
+URL: https://docs.onvopay.com/webhooks
+Markdown: https://docs.onvopay.com/webhooks.md
+
+# Webhooks
+
+ONVO usa webhooks para notificar a tu aplicación cuando se produce un resultado procesando una intención de pago, un cargo recurrente, una sesión de checkout o una transferencia entrante.
+
+Para recibirlos, configurá una URL de callback en tu cuenta de ONVO. Enviaremos una petición `POST` a esa URL cada vez que se procese un evento soportado. El payload incluye un atributo `type`, que identifica el evento, y un objeto `data` con la información relacionada.
+
+## Referencia API relacionada
+
+- [Intenciones de pago](/api/intenciones-de-pago)
+- [Cargos recurrentes](/api/cargos-recurrentes)
+- [Sesiones de Checkout](/api/sesiones-de-checkout)
+- [SINPE Móvil](/api/sinpe-movil)
+
+## Flujo recomendado
+
+1. Exponé un endpoint HTTPS.
+2. Registrá el endpoint en el Dashboard de ONVO, en la sección de desarrolladores.
+3. Verificá el origen del evento con el secret del webhook.
+4. Procesá el evento de forma idempotente.
+5. Respondé con estado `2xx` cuando el procesamiento sea correcto.
+
+## Eventos soportados
+
+| Evento | Cuándo ocurre |
+| --- | --- |
+| `payment-intent.succeeded` | Una intención de pago se procesa con éxito. |
+| `payment-intent.failed` | Una intención de pago falla. |
+| `payment-intent.deferred` | Una intención de pago queda a la espera de aprobación, por ejemplo en un flujo SINPE. |
+| `subscription.renewal.succeeded` | Un cargo recurrente se renueva con éxito. |
+| `subscription.renewal.failed` | La renovación de un cargo recurrente falla. |
+| `checkout-session.succeeded` | Una sesión de checkout se procesa con éxito. |
+| `mobile-transfer.received` | Se recibe una transferencia entrante en un número SINPE Móvil personalizado. |
+
+`mobile-transfer.received` es una notificación adicional para comercios con esta funcionalidad activa. No representa por sí sola un pago satisfactorio y no se envía por defecto. Para habilitarla, contactá a soporte.
+
+## Formato del payload
+
+ONVO envía todos los webhooks como `POST` con `Content-Type: application/json`. El cuerpo siempre tiene esta estructura:
+
+```json
+{
+  "type": "payment-intent.succeeded",
+  "data": {
+    "id": "clpiment0001"
+  }
+}
+```
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `type` | `string` | Nombre del evento recibido. Usalo para decidir qué lógica ejecutar. |
+| `data` | `object` | Snapshot del objeto relacionado con el evento. Su forma depende del valor de `type`. |
+
+Los montos se envían como enteros en la unidad mínima de la moneda. Por ejemplo, `500000` representa ₡5,000.00 en `CRC` y `5000` representa $50.00 en `USD`. Las fechas se envían en formato ISO 8601 en UTC. Los ejemplos muestran los campos más importantes para integrar; según el método de pago o el flujo, `data` puede incluir campos adicionales o valores `null`.
+
+## Payloads por evento
+
+### `payment-intent.succeeded`
+
+`data` contiene la intención de pago actualizada. Cuando aplica, incluye el cliente y la lista de cargos generados para esa intención.
+
+```json
+{
+  "type": "payment-intent.succeeded",
+  "data": {
+    "id": "clpiment0001",
+    "accountId": "clacct0001",
+    "mode": "test",
+    "amount": 500000,
+    "baseAmount": 500000,
+    "baseExchangeRate": 1,
+    "capturableAmount": 0,
+    "receivedAmount": 500000,
+    "currency": "CRC",
+    "status": "succeeded",
+    "confirmationAttempts": 1,
+    "description": "Orden #1001",
+    "paymentMethodId": "clpm0001",
+    "customerId": "clcus0001",
+    "metadata": {
+      "orderId": "order_1001"
+    },
+    "customer": {
+      "id": "clcus0001",
+      "name": "Ana Mora",
+      "email": "ana@example.com",
+      "phone": "+50688888888"
+    },
+    "charges": [
+      {
+        "id": "clch0001",
+        "amount": 500000,
+        "baseAmount": 500000,
+        "baseExchangeRate": 1,
+        "refNumber": "123456",
+        "mode": "test",
+        "currency": "CRC",
+        "status": "succeeded",
+        "failureCode": null,
+        "failureMessage": null,
+        "isApproved": true,
+        "isCaptured": true,
+        "createdAt": "2026-04-29T16:10:00.000Z",
+        "updatedAt": "2026-04-29T16:10:01.000Z"
+      }
+    ],
+    "lastPaymentError": null,
+    "createdAt": "2026-04-29T16:09:50.000Z",
+    "updatedAt": "2026-04-29T16:10:01.000Z"
+  }
+}
+```
+
+### `payment-intent.failed`
+
+`data` contiene la intención de pago y un objeto `error` con el motivo del fallo.
+
+```json
+{
+  "type": "payment-intent.failed",
+  "data": {
+    "id": "clpiment0002",
+    "accountId": "clacct0001",
+    "currency": "CRC",
+    "capturableAmount": 0,
+    "status": "requires_payment_method",
+    "metadata": {
+      "orderId": "order_1002"
+    },
+    "customer": {
+      "id": "clcus0002",
+      "name": "Luis Vega",
+      "email": "luis@example.com",
+      "phone": "+50688887777"
+    },
+    "error": {
+      "id": "clerr0001",
+      "mode": "test",
+      "paymentMethodType": "card",
+      "type": "processing_error",
+      "code": "declined",
+      "message": "Transaction declined due to test payment method used",
+      "createdAt": "2026-04-29T16:12:00.000Z",
+      "updatedAt": "2026-04-29T16:12:00.000Z"
+    }
+  }
+}
+```
+
+### `payment-intent.deferred`
+
+`data` contiene la intención de pago en estado pendiente de confirmación externa, por ejemplo cuando ONVO espera confirmación de una transferencia.
+
+```json
+{
+  "type": "payment-intent.deferred",
+  "data": {
+    "id": "clpiment0003",
+    "accountId": "clacct0001",
+    "mode": "test",
+    "amount": 250000,
+    "currency": "CRC",
+    "status": "processing",
+    "paymentMethodId": "clpm0003",
+    "customerId": "clcus0003",
+    "metadata": {
+      "orderId": "order_1003"
+    },
+    "createdAt": "2026-04-29T16:13:00.000Z",
+    "updatedAt": "2026-04-29T16:13:02.000Z"
+  }
+}
+```
+
+### `subscription.renewal.succeeded`
+
+`data` contiene la renovación asociada al período cobrado. Cada renovación está ligada a un cargo recurrente y a la intención de pago creada para ese período.
+
+```json
+{
+  "type": "subscription.renewal.succeeded",
+  "data": {
+    "id": "clinv0001",
+    "accountId": "clacct0001",
+    "mode": "test",
+    "status": "paid",
+    "currency": "CRC",
+    "attemptCount": 1,
+    "attempted": true,
+    "description": "Plan mensual",
+    "total": 1200000,
+    "subTotal": 1200000,
+    "originalTotal": null,
+    "periodStart": "2026-04-01T00:00:00.000Z",
+    "periodEnd": "2026-05-01T00:00:00.000Z",
+    "paymentIntentId": "clpiment0004",
+    "subscriptionId": "clsub0001",
+    "customerId": "clcus0004",
+    "metadata": {
+      "plan": "pro"
+    },
+    "createdAt": "2026-04-01T00:00:00.000Z",
+    "updatedAt": "2026-04-01T00:00:05.000Z"
+  }
+}
+```
+
+### `subscription.renewal.failed`
+
+`data` contiene el estado de la renovación, el estado del cargo recurrente, la próxima fecha de intento y el error recibido al procesar la intención de pago.
+
+```json
+{
+  "type": "subscription.renewal.failed",
+  "data": {
+    "subscriptionId": "clsub0002",
+    "paymentIntentId": "clpiment0005",
+    "currency": "CRC",
+    "lastPaymentAttempt": "2026-04-29T16:20:00.000Z",
+    "attemptCount": 2,
+    "invoiceStatus": "open",
+    "subscriptionStatus": "past_due",
+    "metadata": {
+      "accountTier": "pro"
+    },
+    "invoiceMetadata": {
+      "period": "2026-04"
+    },
+    "invoicePeriodStart": "2026-04-01T00:00:00.000Z",
+    "invoicePeriodEnd": "2026-05-01T00:00:00.000Z",
+    "currentPeriodStart": "2026-04-01T00:00:00.000Z",
+    "currentPeriodEnd": "2026-05-01T00:00:00.000Z",
+    "nextPaymentAttempt": "2026-04-30T16:20:00.000Z",
+    "customer": {
+      "id": "clcus0005",
+      "name": "María Solís",
+      "email": "maria@example.com",
+      "phone": "+50688886666"
+    },
+    "error": {
+      "id": "clerr0002",
+      "mode": "test",
+      "paymentMethodType": "card",
+      "type": "processing_error",
+      "code": "declined",
+      "message": "Transaction declined due to test payment method used",
+      "createdAt": "2026-04-29T16:20:00.000Z",
+      "updatedAt": "2026-04-29T16:20:00.000Z"
+    }
+  }
+}
+```
+
+### `checkout-session.succeeded`
+
+`data` contiene la sesión de Checkout completada, sus ítems y el cliente tomado de la intención de pago asociada.
+
+```json
+{
+  "type": "checkout-session.succeeded",
+  "data": {
+    "id": "clcs0001",
+    "url": "https://checkout.onvopay.com/pay/clcs0001",
+    "mode": "test",
+    "status": "complete",
+    "paymentStatus": "paid",
+    "paymentMode": "payment",
+    "amountSubTotal": 350000,
+    "amountTotal": 350000,
+    "currency": "CRC",
+    "successUrl": "https://example.com/success",
+    "cancelUrl": "https://example.com/cancel",
+    "paymentIntentId": "clpiment0006",
+    "customerId": "clcus0006",
+    "metadata": {
+      "cartId": "cart_123"
+    },
+    "customer": {
+      "id": "clcus0006",
+      "name": "Sofía Rojas",
+      "email": "sofia@example.com",
+      "phone": "+50688885555"
+    },
+    "lineItems": [
+      {
+        "name": "Producto de prueba",
+        "description": "Descripción del producto",
+        "currency": "CRC",
+        "amount": 350000,
+        "priceId": "clprice0001"
+      }
+    ],
+    "createdAt": "2026-04-29T16:25:00.000Z",
+    "updatedAt": "2026-04-29T16:25:10.000Z"
+  }
+}
+```
+
+### `mobile-transfer.received`
+
+`data` contiene la información de la transferencia entrante. Este evento no confirma una intención de pago por sí solo.
+
+```json
+{
+  "type": "mobile-transfer.received",
+  "data": {
+    "amount": 1450000,
+    "currency": "CRC",
+    "description": "PAGO DE SERVICIOS",
+    "SINPERefNumber": "2025110312774577852010",
+    "authorizationDate": "2026-04-29T16:30:00.000Z",
+    "originId": "01-1393-1919",
+    "originName": "JUAN PEREZ CASTRO",
+    "originPhone": "72940567"
+  }
+}
+```
+
+## Seguridad
+
+Cada webhook tiene un secret asignado. Podés verlo en el Dashboard de ONVO junto a la configuración del webhook.
+
+ONVO incluye ese valor en el header `X-Webhook-Secret`. El backend genera secrets con el prefijo `webhook_secret_`. Usalo para verificar que la solicitud viene de ONVO antes de procesar el evento.
+
+```http
+X-Webhook-Secret: webhook_secret_...
+```
+
+## Respuestas y errores
+
+Cuando un evento representa un error, el objeto del payload puede incluir un atributo `error`. Ese objeto puede contener:
+
+| Campo | Descripción |
+| --- | --- |
+| `message` | Descripción legible del error. |
+| `code` | Código del error, cuando aplica. |
+| `type` | Tipo de error, cuando aplica. |
+
+Tu endpoint debe responder con un código `2xx` solamente cuando el evento fue recibido y procesado correctamente. Si respondés con otro estado, ONVO registra la entrega como fallida.
+
+Tu sistema debe tolerar eventos recibidos fuera de orden.
+
+---
+
+# Actualizar cliente de una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/actualizar-cliente-de-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/actualizar-cliente-de-una-sesion-de-checkout.md
+
+# Actualizar cliente de una Sesión de Checkout
+
+Actualiza los datos de contacto del cliente en una sesión de Checkout.
+
+Endpoint: `PATCH /v1/checkout/sessions/{id}/customer`
+
+Human page: https://docs.onvopay.com/api/actualizar-cliente-de-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar item de un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/actualizar-item-de-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/actualizar-item-de-un-cargo-recurrente.md
+
+# Actualizar item de un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `PATCH /v1/subscriptions/{id}/items/{item}`
+
+Human page: https://docs.onvopay.com/api/actualizar-item-de-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar item de una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/actualizar-item-de-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/actualizar-item-de-una-sesion-de-checkout.md
+
+# Actualizar item de una Sesión de Checkout
+
+Actualiza el item seleccionado de una sesión de Checkout abierta.
+
+Endpoint: `POST /v1/checkout/sessions/{id}/line-item`
+
+Human page: https://docs.onvopay.com/api/actualizar-item-de-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/actualizar-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/actualizar-un-cargo-recurrente.md
+
+# Actualizar un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/subscriptions/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Cliente
+
+URL: https://docs.onvopay.com/api/actualizar-un-cliente
+Markdown: https://docs.onvopay.com/api/actualizar-un-cliente.md
+
+# Actualizar un Cliente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/customers/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Cupón
+
+URL: https://docs.onvopay.com/api/actualizar-un-cupon
+Markdown: https://docs.onvopay.com/api/actualizar-un-cupon.md
+
+# Actualizar un Cupón
+
+Actualiza un cupón. Cuando enviás `binRules` o `promotionCodes`, ONVO reemplaza la lista anterior por la lista enviada.
+
+Endpoint: `POST /v1/coupons/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-cupon
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Método de pago
+
+URL: https://docs.onvopay.com/api/actualizar-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/actualizar-un-metodo-de-pago.md
+
+# Actualizar un Método de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-methods/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Precio
+
+URL: https://docs.onvopay.com/api/actualizar-un-precio
+Markdown: https://docs.onvopay.com/api/actualizar-un-precio.md
+
+# Actualizar un Precio
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/prices/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-precio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar un Producto
+
+URL: https://docs.onvopay.com/api/actualizar-un-producto
+Markdown: https://docs.onvopay.com/api/actualizar-un-producto.md
+
+# Actualizar un Producto
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/products/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-un-producto
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar una Intención de pago
+
+URL: https://docs.onvopay.com/api/actualizar-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/actualizar-una-intencion-de-pago.md
+
+# Actualizar una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-intents/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Actualizar una tarifa de envío
+
+URL: https://docs.onvopay.com/api/actualizar-una-tarifa-de-envio
+Markdown: https://docs.onvopay.com/api/actualizar-una-tarifa-de-envio.md
+
+# Actualizar una tarifa de envío
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/shipping-rates/{id}`
+
+Human page: https://docs.onvopay.com/api/actualizar-una-tarifa-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Agregar item a un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/agregar-item-a-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/agregar-item-a-un-cargo-recurrente.md
+
+# Agregar item a un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/subscriptions/{id}/items`
+
+Human page: https://docs.onvopay.com/api/agregar-item-a-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar item de un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/borrar-item-de-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/borrar-item-de-un-cargo-recurrente.md
+
+# Borrar item de un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/subscriptions/{id}/items/{itemId}`
+
+Human page: https://docs.onvopay.com/api/borrar-item-de-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar un Cliente
+
+URL: https://docs.onvopay.com/api/borrar-un-cliente
+Markdown: https://docs.onvopay.com/api/borrar-un-cliente.md
+
+# Borrar un Cliente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/customers/{id}`
+
+Human page: https://docs.onvopay.com/api/borrar-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar un Cupón
+
+URL: https://docs.onvopay.com/api/borrar-un-cupon
+Markdown: https://docs.onvopay.com/api/borrar-un-cupon.md
+
+# Borrar un Cupón
+
+Borra un cupón por su identificador.
+
+Endpoint: `DELETE /v1/coupons/{id}`
+
+Human page: https://docs.onvopay.com/api/borrar-un-cupon
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar un Precio
+
+URL: https://docs.onvopay.com/api/borrar-un-precio
+Markdown: https://docs.onvopay.com/api/borrar-un-precio.md
+
+# Borrar un Precio
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/prices/{id}`
+
+Human page: https://docs.onvopay.com/api/borrar-un-precio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar un Producto
+
+URL: https://docs.onvopay.com/api/borrar-un-producto
+Markdown: https://docs.onvopay.com/api/borrar-un-producto.md
+
+# Borrar un Producto
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/products/{id}`
+
+Human page: https://docs.onvopay.com/api/borrar-un-producto
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Borrar una tarifa de envío
+
+URL: https://docs.onvopay.com/api/borrar-una-tarifa-de-envio
+Markdown: https://docs.onvopay.com/api/borrar-una-tarifa-de-envio.md
+
+# Borrar una tarifa de envío
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/shipping-rates/{id}`
+
+Human page: https://docs.onvopay.com/api/borrar-una-tarifa-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Cancelar un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/cancelar-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/cancelar-un-cargo-recurrente.md
+
+# Cancelar un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `DELETE /v1/subscriptions/{id}`
+
+Human page: https://docs.onvopay.com/api/cancelar-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Cancelar una Intención de pago
+
+URL: https://docs.onvopay.com/api/cancelar-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/cancelar-una-intencion-de-pago.md
+
+# Cancelar una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-intents/{id}/cancel`
+
+Human page: https://docs.onvopay.com/api/cancelar-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Capturar una Intención de pago
+
+URL: https://docs.onvopay.com/api/capturar-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/capturar-una-intencion-de-pago.md
+
+# Capturar una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-intents/{id}/capture`
+
+Human page: https://docs.onvopay.com/api/capturar-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Cargos recurrentes
+
+URL: https://docs.onvopay.com/api/cargos-recurrentes
+Markdown: https://docs.onvopay.com/api/cargos-recurrentes.md
+
+# Cargos recurrentes
+
+Cargos recurrentes
+
+Human page: https://docs.onvopay.com/api/cargos-recurrentes
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Clientes
+
+URL: https://docs.onvopay.com/api/clientes
+Markdown: https://docs.onvopay.com/api/clientes.md
+
+# Clientes
+
+Clientes
+
+Human page: https://docs.onvopay.com/api/clientes
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Confirmar un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/confirmar-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/confirmar-un-cargo-recurrente.md
+
+# Confirmar un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/subscriptions/{id}/confirm`
+
+Human page: https://docs.onvopay.com/api/confirmar-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Confirmar una Intención de pago
+
+URL: https://docs.onvopay.com/api/confirmar-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/confirmar-una-intencion-de-pago.md
+
+# Confirmar una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-intents/{id}/confirm`
+
+Human page: https://docs.onvopay.com/api/confirmar-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Confirmar una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/confirmar-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/confirmar-una-sesion-de-checkout.md
+
+# Confirmar una Sesión de Checkout
+
+Confirma una sesión de Checkout con el método de pago seleccionado.
+
+Endpoint: `POST /v1/checkout/sessions/{id}/confirm`
+
+Human page: https://docs.onvopay.com/api/confirmar-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Cargo recurrente
+
+URL: https://docs.onvopay.com/api/crear-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/crear-un-cargo-recurrente.md
+
+# Crear un Cargo recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/subscriptions`
+
+Human page: https://docs.onvopay.com/api/crear-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Cliente
+
+URL: https://docs.onvopay.com/api/crear-un-cliente
+Markdown: https://docs.onvopay.com/api/crear-un-cliente.md
+
+# Crear un Cliente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/customers`
+
+Human page: https://docs.onvopay.com/api/crear-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Cupón
+
+URL: https://docs.onvopay.com/api/crear-un-cupon
+Markdown: https://docs.onvopay.com/api/crear-un-cupon.md
+
+# Crear un Cupón
+
+Crea un cupón que después podés asociar a una sesión de Checkout de un solo uso.
+
+Endpoint: `POST /v1/coupons`
+
+Human page: https://docs.onvopay.com/api/crear-un-cupon
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Método de pago
+
+URL: https://docs.onvopay.com/api/crear-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/crear-un-metodo-de-pago.md
+
+# Crear un Método de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-methods`
+
+Human page: https://docs.onvopay.com/api/crear-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Precio
+
+URL: https://docs.onvopay.com/api/crear-un-precio
+Markdown: https://docs.onvopay.com/api/crear-un-precio.md
+
+# Crear un Precio
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/prices`
+
+Human page: https://docs.onvopay.com/api/crear-un-precio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Producto
+
+URL: https://docs.onvopay.com/api/crear-un-producto
+Markdown: https://docs.onvopay.com/api/crear-un-producto.md
+
+# Crear un Producto
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/products`
+
+Human page: https://docs.onvopay.com/api/crear-un-producto
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear un Reembolso
+
+URL: https://docs.onvopay.com/api/crear-un-reembolso
+Markdown: https://docs.onvopay.com/api/crear-un-reembolso.md
+
+# Crear un Reembolso
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/refunds`
+
+Human page: https://docs.onvopay.com/api/crear-un-reembolso
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear una Intención de pago
+
+URL: https://docs.onvopay.com/api/crear-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/crear-una-intencion-de-pago.md
+
+# Crear una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-intents`
+
+Human page: https://docs.onvopay.com/api/crear-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/crear-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/crear-una-sesion-de-checkout.md
+
+# Crear una Sesión de Checkout
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/checkout/sessions/one-time-link`
+
+Human page: https://docs.onvopay.com/api/crear-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear una sesión desde un link de pago
+
+URL: https://docs.onvopay.com/api/crear-una-sesion-desde-un-link-de-pago
+Markdown: https://docs.onvopay.com/api/crear-una-sesion-desde-un-link-de-pago.md
+
+# Crear una sesión desde un link de pago
+
+Crea una sesión de Checkout a partir de un link de pago existente.
+
+Endpoint: `GET /v1/checkout/sessions/link/{paymentLinkId}`
+
+Human page: https://docs.onvopay.com/api/crear-una-sesion-desde-un-link-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Crear una tarifa de envío
+
+URL: https://docs.onvopay.com/api/crear-una-tarifa-de-envio
+Markdown: https://docs.onvopay.com/api/crear-una-tarifa-de-envio.md
+
+# Crear una tarifa de envío
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/shipping-rates`
+
+Human page: https://docs.onvopay.com/api/crear-una-tarifa-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Cupones
+
+URL: https://docs.onvopay.com/api/cupones
+Markdown: https://docs.onvopay.com/api/cupones.md
+
+# Cupones
+
+Cupones
+
+Human page: https://docs.onvopay.com/api/cupones
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Desconectar un Método de pago
+
+URL: https://docs.onvopay.com/api/desconectar-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/desconectar-un-metodo-de-pago.md
+
+# Desconectar un Método de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/payment-methods/{id}/detach`
+
+Human page: https://docs.onvopay.com/api/desconectar-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Expirar una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/expirar-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/expirar-una-sesion-de-checkout.md
+
+# Expirar una Sesión de Checkout
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `POST /v1/checkout/sessions/{id}/expire`
+
+Human page: https://docs.onvopay.com/api/expirar-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Intenciones de pago
+
+URL: https://docs.onvopay.com/api/intenciones-de-pago
+Markdown: https://docs.onvopay.com/api/intenciones-de-pago.md
+
+# Intenciones de pago
+
+Intenciones de pago
+
+Human page: https://docs.onvopay.com/api/intenciones-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar Cupones
+
+URL: https://docs.onvopay.com/api/listar-cupones
+Markdown: https://docs.onvopay.com/api/listar-cupones.md
+
+# Listar Cupones
+
+Lista los cupones creados en el modo de la API key.
+
+Endpoint: `GET /v1/coupons`
+
+Human page: https://docs.onvopay.com/api/listar-cupones
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar pagos por SINPE Móvil
+
+URL: https://docs.onvopay.com/api/listar-pagos-por-sinpe-movil
+Markdown: https://docs.onvopay.com/api/listar-pagos-por-sinpe-movil.md
+
+# Listar pagos por SINPE Móvil
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/mobile-transfers/list`
+
+Human page: https://docs.onvopay.com/api/listar-pagos-por-sinpe-movil
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar renovaciones
+
+URL: https://docs.onvopay.com/api/listar-renovaciones
+Markdown: https://docs.onvopay.com/api/listar-renovaciones.md
+
+# Listar renovaciones
+
+Lista las renovaciones de la cuenta. Las renovaciones representan cada período de cobro de un cargo recurrente. ONVO crea una renovación al inicio de la suscripción y en cada renovación exitosa. Cada renovación está asociada a una intención de pago y permite consultar el cobro que corresponde a ese período.
+
+Endpoint: `GET /v1/invoices`
+
+Human page: https://docs.onvopay.com/api/listar-renovaciones
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar Sesiones de Checkout
+
+URL: https://docs.onvopay.com/api/listar-sesiones-de-checkout
+Markdown: https://docs.onvopay.com/api/listar-sesiones-de-checkout.md
+
+# Listar Sesiones de Checkout
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/checkout/sessions/one-time-link/account`
+
+Human page: https://docs.onvopay.com/api/listar-sesiones-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todas las Intenciones de pago
+
+URL: https://docs.onvopay.com/api/listar-todas-las-intenciones-de-pago
+Markdown: https://docs.onvopay.com/api/listar-todas-las-intenciones-de-pago.md
+
+# Listar todas las Intenciones de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/payment-intents/account`
+
+Human page: https://docs.onvopay.com/api/listar-todas-las-intenciones-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todas las tarifas de envío
+
+URL: https://docs.onvopay.com/api/listar-todas-las-tarifas-de-envio
+Markdown: https://docs.onvopay.com/api/listar-todas-las-tarifas-de-envio.md
+
+# Listar todas las tarifas de envío
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/shipping-rates`
+
+Human page: https://docs.onvopay.com/api/listar-todas-las-tarifas-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todos los Cargos recurrentes
+
+URL: https://docs.onvopay.com/api/listar-todos-los-cargos-recurrentes
+Markdown: https://docs.onvopay.com/api/listar-todos-los-cargos-recurrentes.md
+
+# Listar todos los Cargos recurrentes
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/subscriptions`
+
+Human page: https://docs.onvopay.com/api/listar-todos-los-cargos-recurrentes
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todos los Clientes
+
+URL: https://docs.onvopay.com/api/listar-todos-los-clientes
+Markdown: https://docs.onvopay.com/api/listar-todos-los-clientes.md
+
+# Listar todos los Clientes
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/customers`
+
+Human page: https://docs.onvopay.com/api/listar-todos-los-clientes
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todos los Métodos de pago
+
+URL: https://docs.onvopay.com/api/listar-todos-los-metodos-de-pago
+Markdown: https://docs.onvopay.com/api/listar-todos-los-metodos-de-pago.md
+
+# Listar todos los Métodos de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/payment-methods`
+
+Human page: https://docs.onvopay.com/api/listar-todos-los-metodos-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todos los Precios
+
+URL: https://docs.onvopay.com/api/listar-todos-los-precios
+Markdown: https://docs.onvopay.com/api/listar-todos-los-precios.md
+
+# Listar todos los Precios
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/prices`
+
+Human page: https://docs.onvopay.com/api/listar-todos-los-precios
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Listar todos los Productos
+
+URL: https://docs.onvopay.com/api/listar-todos-los-productos
+Markdown: https://docs.onvopay.com/api/listar-todos-los-productos.md
+
+# Listar todos los Productos
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/products`
+
+Human page: https://docs.onvopay.com/api/listar-todos-los-productos
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Métodos de pago
+
+URL: https://docs.onvopay.com/api/metodos-de-pago
+Markdown: https://docs.onvopay.com/api/metodos-de-pago.md
+
+# Métodos de pago
+
+Métodos de pago
+
+Human page: https://docs.onvopay.com/api/metodos-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener las intenciones de pago de un Cliente
+
+URL: https://docs.onvopay.com/api/obtener-las-intenciones-de-pago-de-un-cliente
+Markdown: https://docs.onvopay.com/api/obtener-las-intenciones-de-pago-de-un-cliente.md
+
+# Obtener las intenciones de pago de un Cliente
+
+Lista las intenciones de pago asociadas a un cliente.
+
+Endpoint: `GET /v1/customers/{id}/payment-intents`
+
+Human page: https://docs.onvopay.com/api/obtener-las-intenciones-de-pago-de-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener los cargos recurrentes de un Cliente
+
+URL: https://docs.onvopay.com/api/obtener-los-cargos-recurrentes-de-un-cliente
+Markdown: https://docs.onvopay.com/api/obtener-los-cargos-recurrentes-de-un-cliente.md
+
+# Obtener los cargos recurrentes de un Cliente
+
+Lista los cargos recurrentes asociados a un cliente.
+
+Endpoint: `GET /v1/customers/{id}/subscriptions`
+
+Human page: https://docs.onvopay.com/api/obtener-los-cargos-recurrentes-de-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener los métodos de pago de un Cliente
+
+URL: https://docs.onvopay.com/api/obtener-los-metodos-de-pago-de-un-cliente
+Markdown: https://docs.onvopay.com/api/obtener-los-metodos-de-pago-de-un-cliente.md
+
+# Obtener los métodos de pago de un Cliente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/customers/{id}/payment-methods`
+
+Human page: https://docs.onvopay.com/api/obtener-los-metodos-de-pago-de-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Cargo Recurrente
+
+URL: https://docs.onvopay.com/api/obtener-un-cargo-recurrente
+Markdown: https://docs.onvopay.com/api/obtener-un-cargo-recurrente.md
+
+# Obtener un Cargo Recurrente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/subscriptions/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-cargo-recurrente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Cliente
+
+URL: https://docs.onvopay.com/api/obtener-un-cliente
+Markdown: https://docs.onvopay.com/api/obtener-un-cliente.md
+
+# Obtener un Cliente
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/customers/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-cliente
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Cupón
+
+URL: https://docs.onvopay.com/api/obtener-un-cupon
+Markdown: https://docs.onvopay.com/api/obtener-un-cupon.md
+
+# Obtener un Cupón
+
+Retorna un cupón por su identificador.
+
+Endpoint: `GET /v1/coupons/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-cupon
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un link de pago
+
+URL: https://docs.onvopay.com/api/obtener-un-link-de-pago
+Markdown: https://docs.onvopay.com/api/obtener-un-link-de-pago.md
+
+# Obtener un link de pago
+
+Retorna un link de pago creado desde Checkout.
+
+Endpoint: `GET /v1/checkout/sessions/one-time-link/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-link-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Método de pago
+
+URL: https://docs.onvopay.com/api/obtener-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/obtener-un-metodo-de-pago.md
+
+# Obtener un Método de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/payment-methods/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Precio
+
+URL: https://docs.onvopay.com/api/obtener-un-precio
+Markdown: https://docs.onvopay.com/api/obtener-un-precio.md
+
+# Obtener un Precio
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/prices/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-precio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Producto
+
+URL: https://docs.onvopay.com/api/obtener-un-producto
+Markdown: https://docs.onvopay.com/api/obtener-un-producto.md
+
+# Obtener un Producto
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/products/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-producto
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener un Reembolso
+
+URL: https://docs.onvopay.com/api/obtener-un-reembolso
+Markdown: https://docs.onvopay.com/api/obtener-un-reembolso.md
+
+# Obtener un Reembolso
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/refunds/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-un-reembolso
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener una Intención de pago
+
+URL: https://docs.onvopay.com/api/obtener-una-intencion-de-pago
+Markdown: https://docs.onvopay.com/api/obtener-una-intencion-de-pago.md
+
+# Obtener una Intención de pago
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/payment-intents/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-una-intencion-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener una renovación
+
+URL: https://docs.onvopay.com/api/obtener-una-renovacion
+Markdown: https://docs.onvopay.com/api/obtener-una-renovacion.md
+
+# Obtener una renovación
+
+Devuelve una renovación específica. Las renovaciones representan cada período de cobro de un cargo recurrente. ONVO crea una renovación al inicio de la suscripción y en cada renovación exitosa. Cada renovación está asociada a una intención de pago y permite consultar el cobro que corresponde a ese período.
+
+Endpoint: `GET /v1/invoices/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-una-renovacion
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener una Sesión de Checkout
+
+URL: https://docs.onvopay.com/api/obtener-una-sesion-de-checkout
+Markdown: https://docs.onvopay.com/api/obtener-una-sesion-de-checkout.md
+
+# Obtener una Sesión de Checkout
+
+Retorna una sesión de Checkout por su identificador.
+
+Endpoint: `GET /v1/checkout/sessions/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-una-sesion-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener una tarifa de envío
+
+URL: https://docs.onvopay.com/api/obtener-una-tarifa-de-envio
+Markdown: https://docs.onvopay.com/api/obtener-una-tarifa-de-envio.md
+
+# Obtener una tarifa de envío
+
+Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+
+Endpoint: `GET /v1/shipping-rates/{id}`
+
+Human page: https://docs.onvopay.com/api/obtener-una-tarifa-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Obtener verificación de un Método de pago
+
+URL: https://docs.onvopay.com/api/obtener-verificacion-de-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/obtener-verificacion-de-un-metodo-de-pago.md
+
+# Obtener verificación de un Método de pago
+
+Retorna el estado de verificación asociado a un método de pago.
+
+Endpoint: `GET /v1/payment-methods/{id}/verification`
+
+Human page: https://docs.onvopay.com/api/obtener-verificacion-de-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Precios
+
+URL: https://docs.onvopay.com/api/precios
+Markdown: https://docs.onvopay.com/api/precios.md
+
+# Precios
+
+Precios
+
+Human page: https://docs.onvopay.com/api/precios
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Productos
+
+URL: https://docs.onvopay.com/api/productos
+Markdown: https://docs.onvopay.com/api/productos.md
+
+# Productos
+
+Productos
+
+Human page: https://docs.onvopay.com/api/productos
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Reembolsos
+
+URL: https://docs.onvopay.com/api/reembolsos
+Markdown: https://docs.onvopay.com/api/reembolsos.md
+
+# Reembolsos
+
+Reembolsos
+
+Human page: https://docs.onvopay.com/api/reembolsos
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Renovaciones
+
+URL: https://docs.onvopay.com/api/renovaciones
+Markdown: https://docs.onvopay.com/api/renovaciones.md
+
+# Renovaciones
+
+Renovaciones
+
+Human page: https://docs.onvopay.com/api/renovaciones
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Sesiones de Checkout
+
+URL: https://docs.onvopay.com/api/sesiones-de-checkout
+Markdown: https://docs.onvopay.com/api/sesiones-de-checkout.md
+
+# Sesiones de Checkout
+
+Sesiones de Checkout
+
+Human page: https://docs.onvopay.com/api/sesiones-de-checkout
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# SINPE Móvil
+
+URL: https://docs.onvopay.com/api/sinpe-movil
+Markdown: https://docs.onvopay.com/api/sinpe-movil.md
+
+# SINPE Móvil
+
+SINPE Móvil
+
+Human page: https://docs.onvopay.com/api/sinpe-movil
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Tarifas de envío
+
+URL: https://docs.onvopay.com/api/tarifas-de-envio
+Markdown: https://docs.onvopay.com/api/tarifas-de-envio.md
+
+# Tarifas de envío
+
+Tarifas de envío
+
+Human page: https://docs.onvopay.com/api/tarifas-de-envio
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Validar información de una cuenta bancaria
+
+URL: https://docs.onvopay.com/api/validar-informacion-de-una-cuenta-bancaria
+Markdown: https://docs.onvopay.com/api/validar-informacion-de-una-cuenta-bancaria.md
+
+# Validar información de una cuenta bancaria
+
+Valida el estado, moneda y verificación de una cuenta bancaria antes de crear o confirmar un método de pago.
+
+Endpoint: `POST /v1/bank-accounts/check-info`
+
+Human page: https://docs.onvopay.com/api/validar-informacion-de-una-cuenta-bancaria
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Verificar un Método de pago
+
+URL: https://docs.onvopay.com/api/verificar-un-metodo-de-pago
+Markdown: https://docs.onvopay.com/api/verificar-un-metodo-de-pago.md
+
+# Verificar un Método de pago
+
+Verifica un método de pago que requiere confirmación manual, como una cuenta bancaria.
+
+Endpoint: `POST /v1/payment-methods/{id}/verify`
+
+Human page: https://docs.onvopay.com/api/verificar-un-metodo-de-pago
+OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+---
+
+# Referencia de API ONVO
+
+La referencia de API de ONVO se genera desde el documento OpenAPI y se renderiza dentro del sitio de documentación.
+
+- Referencia de API: https://docs.onvopay.com/api
+- OpenAPI YAML: https://docs.onvopay.com/openapi.yaml
+
+Usá el archivo OpenAPI para generación de código, clientes de API y flujos de integración con agentes.

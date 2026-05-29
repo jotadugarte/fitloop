@@ -16,6 +16,16 @@ module ApplicationHelper
     session[:workspace_return_to].present? ? t("auth.nav.back") : t("auth.nav.home")
   end
 
+  def layout_flash_messages
+    return flash.to_hash unless suppress_sign_in_alert_in_layout?
+
+    flash.to_hash.except("alert", :alert)
+  end
+
+  def suppress_sign_in_alert_in_layout?
+    devise_controller? && controller_name == "sessions"
+  end
+
   def workspace_tab_id_from_request
     request.headers[ResolvesWorkspaceTab::TAB_HEADER].presence ||
       cookies[ResolvesWorkspaceTab::TAB_COOKIE].presence ||

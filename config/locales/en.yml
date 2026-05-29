@@ -125,8 +125,20 @@ en:
       title: "Payment or plan required"
       intro: "To download the nested DXF you need to pay for this download or have an active plan."
       pay_this_download: "Pay for this download"
+      continue_to_checkout: "Continue to payment"
+      iva_checkout_note: "Prices shown do not include VAT. To see the total, continue to checkout."
+      plan_quota_available: "You have an active plan with monthly quota remaining. Use your plan quota for this download."
+      download_with_plan: "Download with your plan"
       view_plans: "View plans"
       back_to_project: "Back to project"
+      selector:
+        currency_label: "Currency"
+        payment_method_label: "Payment method"
+        apply: "Apply"
+        card: "Card"
+      card_crc: "Card (CRC)"
+      card_crc_reference: "Regular card price"
+      meic_sinpe_hint: "Special price with SINPE Mobile. Card price is shown for reference."
       aside:
         title: "Your nested DXF is ready"
         lead: "Nesting finished. Choose how to unlock the download:"
@@ -172,7 +184,7 @@ en:
     planes:
       title: "Plans"
       success: "Plan activated. You can download the nested DXF from your project."
-      browse_intro: "Compare pricing and duration. To activate a plan for a workshop in progress, return to the project and choose View plans from the download screen."
+      browse_intro: "Select a plan and complete simulated checkout below. If you have an open workshop, you can also activate a plan from the project download screen."
       project_required: "Open a workshop project to activate a plan from here."
       tier_1: "1-month plan"
       tier_2: "2-month plan"
@@ -183,7 +195,10 @@ en:
         lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
       title: "Pay for this download"
+      title_plan: "Pay for this plan"
       demo_badge: "Demo environment — simulated payments (QA)"
+      process_payment: "Process payment"
+      savings_badge: "Save %{amount}"
       card_usd: "Card (USD)"
       sinpe_crc: "SINPE Mobile (CRC)"
       simulate_success: "Payment succeeded"
@@ -194,6 +209,35 @@ en:
       download_now: "Download now"
       single_download: "Single download"
       overage_hint: "With plan quota exhausted (50%)"
+      plan_quota_prioritized: "Your active plan still has monthly quota. Download from the project without paying for a single download."
+      region_currency: "Prices in %{currency}"
+      detail_title: "Details"
+      breakdown:
+        title: "Breakdown"
+        subtotal: "Subtotal"
+        net_subtotal: "Net subtotal"
+        tax: "VAT (13%)"
+        sinpe_discount: "SINPE discount"
+        total: "Total"
+      back_to_cart: "Back to cart"
+      back_to_paywall: "Back to payment options"
+      choose_payment_method: "Choose how to pay:"
+    cart:
+      title: "Cart"
+      add_to_cart: "Add to cart"
+      empty: "Your cart is empty."
+      checkout: "Go to checkout"
+      replace:
+        title: "Replace cart item"
+        intro: "You already have an item in your cart. Replace it with the new one?"
+        confirm: "Yes, replace"
+        cancel: "No, back to catalog"
+        current_line: "Current item"
+        pending_line: "New item"
+        line_download: "Single download"
+        line_plan: "%{months}-month plan"
+        line_unknown: "Unknown item"
+        invalid: "Could not update your cart. Try again from the catalog."
 
   home:
     index:
@@ -478,6 +522,7 @@ en:
       failure: "Could not sign in with that provider."
     session:
       sign_in_title: "Sign in"
+      password: "Password"
       submit: "Log in"
     confirmation:
       pending_title: "Confirm your email"

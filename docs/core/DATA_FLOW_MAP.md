@@ -221,7 +221,7 @@ orphan CompositePiece (mother has decorations)
 
 ---
 
-## 10. Accounts, paywall, and billing (W6)
+## 10. Accounts, paywall, cart, and billing (W6)
 
 **REQ:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`, `REQ-FIT-BILL-002`, `REQ-FIT-BILL-003` — ADR-0005.
 
@@ -230,20 +230,28 @@ Browser (anonymous or logged-in)
   → nest + preview (no account required)
   → GET nested DXF download
   → Billing::Entitlement (grant? plan quota? email confirmed?)
-       → deny → paywall (/planes, single checkout, /iniciar-sesion)
+       → deny → paywall catalog (/taller/descarga-pago)
        → allow → SignedDownloadToken → stream blob
+
+Paywall catalog
+  → POST /carrito (guest or user; prices snapshotted on Cart row)
+  → GET /carrito → redirect checkout (if line) or paywall (if empty)
+  → GET /checkout (requires sign-in + email confirmed)
+       → method-first breakdown (MEIC list vs SINPE discount; IVA CR only)
+       → POST /checkout/simular → Payment (+ snapshot) → grant or subscription
 ```
 
 | Stage | Component | Side effects |
 |-------|-----------|--------------|
-| Register/login | Devise + OmniAuth | `users` row; `email_confirmed_at`; `terms_accepted_at`; optional merge flow |
+| Register/login | Devise + OmniAuth | `users` row; `email_confirmed_at`; merge guest cart on sign-in (user cart wins) |
+| Cart add | `Billing::CartUpsert` | Upsert single `carts` row; replace requires confirm flow |
 | Workspace bind | `session[:workspaces][tab_id]` | Ephemeral `Project` unchanged ownership model |
-| Single purchase | Simulated checkout | `Payment` succeeded → `DownloadGrant` + copy `nested_dxf` → `retained_nested_dxf`; `retained_until` +24h |
-| Plan purchase | `/planes` checkout | `Subscription` active; `PlanMonthlyUsage` counter; extend `ends_at` from prior end |
+| Single purchase | Simulated checkout | `Payment` (+ financial snapshot) → `DownloadGrant` + `retained_nested_dxf`; `retained_until` +24h |
+| Plan purchase | Checkout from cart or `/planes/simular` | `Subscription` active; `PlanMonthlyUsage` counter; extend `ends_at` from prior end; cart cleared on success |
 | Mis pagos | `/mis-pagos` | List grants; download retained blob while `retained_until` valid (ignores workspace TTL) |
 | Purge | job / lazy | Drop `retained_nested_dxf` after `retained_until` |
 
-**Data separation:** `Project#nested_dxf` remains on ephemeral project until discard; **durable** copy only on single-purchase success. Plan downloads require live workspace bind + quota.
+**Data separation:** `Project#nested_dxf` remains on ephemeral project until discard; **durable** copy only on single-purchase success. Plan downloads require live workspace bind + quota. **Cart** rows are billing UX state only — not entitlements until checkout succeeds.
 
 ---
 

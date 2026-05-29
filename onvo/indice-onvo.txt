@@ -1,0 +1,115 @@
+# ONVO Docs
+
+> Documentación oficial para integrar ONVO: pagos, checkout, webhooks, autenticación, pruebas y referencia de API.
+
+Este archivo enumera las páginas principales en formato Markdown para herramientas de IA, editores y agentes. La documentación humana está disponible en https://docs.onvopay.com.
+
+## Guías
+
+- [Autenticación](https://docs.onvopay.com/authentication.md): Cómo autenticar solicitudes a la API de ONVO con llaves secretas y publicables.
+- [Enlaces de un solo uso](https://docs.onvopay.com/checkout/one-time-links.md): Cómo crear sesiones de Checkout de un solo uso.
+- [El cliente elige qué pagar](https://docs.onvopay.com/checkout/open-amount.md): Cómo crear un flujo de Checkout donde el comprador elige el monto a pagar.
+- [Checkout](https://docs.onvopay.com/checkout/overview.md): Cómo usar Checkout para delegar la experiencia de pago a ONVO.
+- [Markdown para IA](https://docs.onvopay.com/developer-tools/ai-markdown.md): Cómo usar los archivos Markdown y llms.txt de ONVO con agentes, editores y herramientas de IA.
+- [Primeros pasos](https://docs.onvopay.com/getting-started.md): Flujo recomendado para integrar ONVO desde pruebas locales hasta producción.
+- [Extensión para Magento](https://docs.onvopay.com/integrations/magento.md): Cómo instalar ONVO Pay en Magento.
+- [SDK web](https://docs.onvopay.com/integrations/sdk.md): Cómo usar el SDK web de ONVO para pagos embebidos.
+- [Plugin de WordPress](https://docs.onvopay.com/integrations/wordpress.md): Cómo instalar ONVO Pay en WordPress y WooCommerce.
+- [Inicio](https://docs.onvopay.com/index.md): Documentación oficial de ONVO para integrar pagos, checkout, webhooks y herramientas de desarrollo.
+- [Monitoreo de fraude](https://docs.onvopay.com/payments/fraud-monitoring.md): Cómo enviar señales del navegador para mejorar la prevención de fraude.
+- [Autorización y captura separadas](https://docs.onvopay.com/payments/manual-capture.md): Cómo autorizar un pago y capturarlo más tarde.
+- [Marketplaces](https://docs.onvopay.com/payments/marketplaces.md): Cómo operar pagos en nombre de vendedores usando cuentas marketplace.
+- [Pagos](https://docs.onvopay.com/payments/overview.md): Conceptos principales para procesar pagos con ONVO.
+- [Intenciones de pago](https://docs.onvopay.com/payments/payment-intents.md): Cómo crear, confirmar, capturar y cancelar intenciones de pago.
+- [Reembolsos](https://docs.onvopay.com/payments/refunds.md): Cómo devolver pagos procesados con ONVO.
+- [SINPE Móvil](https://docs.onvopay.com/payments/sinpe-mobile.md): Cómo cobrar pagos por SINPE Móvil con intenciones de pago.
+- [SINPE PIN](https://docs.onvopay.com/payments/sinpe-pin.md): Cómo cobrar pagos por SINPE PIN con intenciones de pago.
+- [Cargos recurrentes](https://docs.onvopay.com/payments/subscriptions.md): Cómo crear cargos recurrentes con productos, precios recurrentes y métodos de pago.
+- [Pruebas](https://docs.onvopay.com/payments/testing.md): Cómo probar integraciones de pago sin afectar redes bancarias reales.
+- [Autenticación 3DS](https://docs.onvopay.com/payments/three-ds.md): Cómo manejar autenticación 3D Secure en integraciones API.
+- [Errores](https://docs.onvopay.com/reference/errors.md): Cómo interpretar errores de la API de ONVO.
+- [Paginación](https://docs.onvopay.com/reference/pagination.md): Cómo navegar listas de recursos en la API de ONVO.
+- [Webhooks](https://docs.onvopay.com/webhooks.md): Cómo recibir eventos asincrónicos de ONVO.
+
+## API
+
+- [Referencia de API](https://docs.onvopay.com/api.md): Resumen Markdown de la referencia de API.
+- [OpenAPI YAML](https://docs.onvopay.com/openapi.yaml): Esquema OpenAPI fuente para clientes, SDKs y herramientas de IA.
+- [Actualizar cliente de una Sesión de Checkout](https://docs.onvopay.com/api/actualizar-cliente-de-una-sesion-de-checkout.md): Actualiza los datos de contacto del cliente en una sesión de Checkout.
+- [Actualizar item de un Cargo recurrente](https://docs.onvopay.com/api/actualizar-item-de-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar item de una Sesión de Checkout](https://docs.onvopay.com/api/actualizar-item-de-una-sesion-de-checkout.md): Actualiza el item seleccionado de una sesión de Checkout abierta.
+- [Actualizar un Cargo recurrente](https://docs.onvopay.com/api/actualizar-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar un Cliente](https://docs.onvopay.com/api/actualizar-un-cliente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar un Cupón](https://docs.onvopay.com/api/actualizar-un-cupon.md): Actualiza un cupón. Cuando enviás `binRules` o `promotionCodes`, ONVO reemplaza la lista anterior por la lista enviada.
+- [Actualizar un Método de pago](https://docs.onvopay.com/api/actualizar-un-metodo-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar un Precio](https://docs.onvopay.com/api/actualizar-un-precio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar un Producto](https://docs.onvopay.com/api/actualizar-un-producto.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar una Intención de pago](https://docs.onvopay.com/api/actualizar-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Actualizar una tarifa de envío](https://docs.onvopay.com/api/actualizar-una-tarifa-de-envio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Agregar item a un Cargo recurrente](https://docs.onvopay.com/api/agregar-item-a-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Borrar item de un Cargo recurrente](https://docs.onvopay.com/api/borrar-item-de-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Borrar un Cliente](https://docs.onvopay.com/api/borrar-un-cliente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Borrar un Cupón](https://docs.onvopay.com/api/borrar-un-cupon.md): Borra un cupón por su identificador.
+- [Borrar un Precio](https://docs.onvopay.com/api/borrar-un-precio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Borrar un Producto](https://docs.onvopay.com/api/borrar-un-producto.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Borrar una tarifa de envío](https://docs.onvopay.com/api/borrar-una-tarifa-de-envio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Cancelar un Cargo recurrente](https://docs.onvopay.com/api/cancelar-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Cancelar una Intención de pago](https://docs.onvopay.com/api/cancelar-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Capturar una Intención de pago](https://docs.onvopay.com/api/capturar-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Cargos recurrentes](https://docs.onvopay.com/api/cargos-recurrentes.md): Cargos recurrentes
+- [Clientes](https://docs.onvopay.com/api/clientes.md): Clientes
+- [Confirmar un Cargo recurrente](https://docs.onvopay.com/api/confirmar-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Confirmar una Intención de pago](https://docs.onvopay.com/api/confirmar-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Confirmar una Sesión de Checkout](https://docs.onvopay.com/api/confirmar-una-sesion-de-checkout.md): Confirma una sesión de Checkout con el método de pago seleccionado.
+- [Crear un Cargo recurrente](https://docs.onvopay.com/api/crear-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear un Cliente](https://docs.onvopay.com/api/crear-un-cliente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear un Cupón](https://docs.onvopay.com/api/crear-un-cupon.md): Crea un cupón que después podés asociar a una sesión de Checkout de un solo uso.
+- [Crear un Método de pago](https://docs.onvopay.com/api/crear-un-metodo-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear un Precio](https://docs.onvopay.com/api/crear-un-precio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear un Producto](https://docs.onvopay.com/api/crear-un-producto.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear un Reembolso](https://docs.onvopay.com/api/crear-un-reembolso.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear una Intención de pago](https://docs.onvopay.com/api/crear-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear una Sesión de Checkout](https://docs.onvopay.com/api/crear-una-sesion-de-checkout.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Crear una sesión desde un link de pago](https://docs.onvopay.com/api/crear-una-sesion-desde-un-link-de-pago.md): Crea una sesión de Checkout a partir de un link de pago existente.
+- [Crear una tarifa de envío](https://docs.onvopay.com/api/crear-una-tarifa-de-envio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Cupones](https://docs.onvopay.com/api/cupones.md): Cupones
+- [Desconectar un Método de pago](https://docs.onvopay.com/api/desconectar-un-metodo-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Expirar una Sesión de Checkout](https://docs.onvopay.com/api/expirar-una-sesion-de-checkout.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Intenciones de pago](https://docs.onvopay.com/api/intenciones-de-pago.md): Intenciones de pago
+- [Listar Cupones](https://docs.onvopay.com/api/listar-cupones.md): Lista los cupones creados en el modo de la API key.
+- [Listar pagos por SINPE Móvil](https://docs.onvopay.com/api/listar-pagos-por-sinpe-movil.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar renovaciones](https://docs.onvopay.com/api/listar-renovaciones.md): Lista las renovaciones de la cuenta. Las renovaciones representan cada período de cobro de un cargo recurrente. ONVO crea una renovación al inicio de la suscripción y en cada renovación exitosa. Cada renovación está asociada a una intención de pago y permite consultar el cobro que corresponde a ese período.
+- [Listar Sesiones de Checkout](https://docs.onvopay.com/api/listar-sesiones-de-checkout.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todas las Intenciones de pago](https://docs.onvopay.com/api/listar-todas-las-intenciones-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todas las tarifas de envío](https://docs.onvopay.com/api/listar-todas-las-tarifas-de-envio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todos los Cargos recurrentes](https://docs.onvopay.com/api/listar-todos-los-cargos-recurrentes.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todos los Clientes](https://docs.onvopay.com/api/listar-todos-los-clientes.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todos los Métodos de pago](https://docs.onvopay.com/api/listar-todos-los-metodos-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todos los Precios](https://docs.onvopay.com/api/listar-todos-los-precios.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Listar todos los Productos](https://docs.onvopay.com/api/listar-todos-los-productos.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Métodos de pago](https://docs.onvopay.com/api/metodos-de-pago.md): Métodos de pago
+- [Obtener las intenciones de pago de un Cliente](https://docs.onvopay.com/api/obtener-las-intenciones-de-pago-de-un-cliente.md): Lista las intenciones de pago asociadas a un cliente.
+- [Obtener los cargos recurrentes de un Cliente](https://docs.onvopay.com/api/obtener-los-cargos-recurrentes-de-un-cliente.md): Lista los cargos recurrentes asociados a un cliente.
+- [Obtener los métodos de pago de un Cliente](https://docs.onvopay.com/api/obtener-los-metodos-de-pago-de-un-cliente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Cargo Recurrente](https://docs.onvopay.com/api/obtener-un-cargo-recurrente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Cliente](https://docs.onvopay.com/api/obtener-un-cliente.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Cupón](https://docs.onvopay.com/api/obtener-un-cupon.md): Retorna un cupón por su identificador.
+- [Obtener un link de pago](https://docs.onvopay.com/api/obtener-un-link-de-pago.md): Retorna un link de pago creado desde Checkout.
+- [Obtener un Método de pago](https://docs.onvopay.com/api/obtener-un-metodo-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Precio](https://docs.onvopay.com/api/obtener-un-precio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Producto](https://docs.onvopay.com/api/obtener-un-producto.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener un Reembolso](https://docs.onvopay.com/api/obtener-un-reembolso.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener una Intención de pago](https://docs.onvopay.com/api/obtener-una-intencion-de-pago.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener una renovación](https://docs.onvopay.com/api/obtener-una-renovacion.md): Devuelve una renovación específica. Las renovaciones representan cada período de cobro de un cargo recurrente. ONVO crea una renovación al inicio de la suscripción y en cada renovación exitosa. Cada renovación está asociada a una intención de pago y permite consultar el cobro que corresponde a ese período.
+- [Obtener una Sesión de Checkout](https://docs.onvopay.com/api/obtener-una-sesion-de-checkout.md): Retorna una sesión de Checkout por su identificador.
+- [Obtener una tarifa de envío](https://docs.onvopay.com/api/obtener-una-tarifa-de-envio.md): Consultá la documentación de ONVO para ver detalles de integración y ejemplos.
+- [Obtener verificación de un Método de pago](https://docs.onvopay.com/api/obtener-verificacion-de-un-metodo-de-pago.md): Retorna el estado de verificación asociado a un método de pago.
+- [Precios](https://docs.onvopay.com/api/precios.md): Precios
+- [Productos](https://docs.onvopay.com/api/productos.md): Productos
+- [Reembolsos](https://docs.onvopay.com/api/reembolsos.md): Reembolsos
+- [Renovaciones](https://docs.onvopay.com/api/renovaciones.md): Renovaciones
+- [Sesiones de Checkout](https://docs.onvopay.com/api/sesiones-de-checkout.md): Sesiones de Checkout
+- [SINPE Móvil](https://docs.onvopay.com/api/sinpe-movil.md): SINPE Móvil
+- [Tarifas de envío](https://docs.onvopay.com/api/tarifas-de-envio.md): Tarifas de envío
+- [Validar información de una cuenta bancaria](https://docs.onvopay.com/api/validar-informacion-de-una-cuenta-bancaria.md): Valida el estado, moneda y verificación de una cuenta bancaria antes de crear o confirmar un método de pago.
+- [Verificar un Método de pago](https://docs.onvopay.com/api/verificar-un-metodo-de-pago.md): Verifica un método de pago que requiere confirmación manual, como una cuenta bancaria.
