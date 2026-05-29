@@ -17,9 +17,9 @@ Use with `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, and `onvo_test_*` API keys. T
 
 1. `GET /checkout` → choose **SINPE Móvil (CRC)** → **Procesar pago** (`POST /checkout/pagar`).
 2. Fill **cédula** (`sinpe_identification`) and **teléfono móvil del transferente** (`sinpe_mobile_number`) — this becomes ONVO `mobile_number` (see `Billing::Onvo::ConfirmSinpePayment`).
-3. Submit SINPE confirm → instructions show destination **+506 70196686** and exact amount from `CheckoutBreakdown`.
-4. App redirects to **`/checkout/procesando/:id`** (poll ~2.5s, max 60s). **Do not** grant download until `payment-intent.succeeded` webhook (or poll shows `succeeded`).
-5. In **test mode**, ONVO simulates the transfer from the **mobile number** you enter — **no real SINPE transfer** to ONVO’s number is required.
+3. Submit SINPE confirm → instructions show destination **+506 70196686** and exact amount from `CheckoutBreakdown`. The checkout **stays on this screen** until you click **“Ya hice la transferencia, continuar”**.
+4. After **Continue**, app opens **`/checkout/procesando/:id`** (poll ~2.5s, max 60s). **Do not** grant download until `payment-intent.succeeded` webhook (or poll shows `succeeded`).
+5. In **test mode**, ONVO simulates the transfer from the **mobile number** you enter — **no real SINPE transfer** to ONVO’s number is required (you may click Continue immediately after reading instructions).
 
 ## ONVO test numbers (SINPE Móvil)
 

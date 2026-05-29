@@ -95,7 +95,9 @@
        class="checkout-onvo__panel"
        data-testid="onvo-sinpe-panel"
        <%= "hidden" unless selected_payment_method.start_with?("sinpe") %>>
-    <section class="checkout-onvo__sinpe-how panel panel--inset" data-testid="onvo-sinpe-how">
+    <section class="checkout-onvo__sinpe-how panel panel--inset"
+             data-onvo-checkout-target="sinpeHow"
+             data-testid="onvo-sinpe-how">
       <h3 class="checkout-section-title"><%= t("billing.checkout.onvo.sinpe_how_title") %></h3>
       <ol class="checkout-onvo__steps">
         <li><%= t("billing.checkout.onvo.sinpe_how_step_1") %></li>
@@ -105,7 +107,9 @@
       </ol>
     </section>
 
-    <div class="checkout-onvo__sinpe-fields panel panel--inset" data-testid="onvo-sinpe-fields">
+    <div class="checkout-onvo__sinpe-fields panel panel--inset"
+         data-onvo-checkout-target="sinpeFields"
+         data-testid="onvo-sinpe-fields">
       <h3 class="checkout-section-title"><%= t("billing.checkout.onvo.sinpe_fields_title") %></h3>
       <div class="checkout-onvo__field field">
         <label for="sinpe_identification"><%= t("billing.checkout.onvo.sinpe_identification") %></label>
@@ -156,6 +160,14 @@
             data-action="click->onvo-checkout#processPayment"
             data-onvo-checkout-target="processButton">
       <%= t("billing.checkout.process_payment") %>
+    </button>
+    <button type="button"
+            class="btn btn-primary"
+            data-testid="checkout-sinpe-continue"
+            data-action="click->onvo-checkout#continueToProcessing"
+            data-onvo-checkout-target="sinpeContinueButton"
+            hidden>
+      <%= t("billing.checkout.onvo.sinpe_continue") %>
     </button>
     <%= link_to t("billing.checkout.back_to_paywall"),
                 download_paywall_workshop_path,

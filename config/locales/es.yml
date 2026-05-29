@@ -250,6 +250,7 @@ es:
         sinpe_mobile_number: "Teléfono móvil SINPE"
         sinpe_instructions_title: "Instrucciones de transferencia"
         sinpe_instructions_body: "Transfiere exactamente %{amount} al SINPE Móvil %{destination} desde la cuenta asociada a la identificación indicada. Te avisaremos cuando ONVO confirme el pago."
+        sinpe_continue: "Ya hice la transferencia, continuar"
         processing_title: "Procesando tu pago"
         processing_body: "Estamos confirmando tu pago con ONVO. Esta página se actualizará cuando el cobro quede listo."
         processing_success_title: "Pago confirmado"

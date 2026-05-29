@@ -95,7 +95,7 @@ Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in
 ### Checkout — SINPE Móvil (CRC, Costa Rica)
 
 - [ ] SINPE visible when geo is CR; form collects cédula + teléfono móvil del transferente
-- [ ] After confirm: instructions show destination **+506 70196686** and exact breakdown total
+- [ ] After confirm: instructions show destination **+506 70196686** and exact breakdown total; user clicks **Continue** when ready (no auto-redirect)
 - [ ] **Success (fast):** móvil `+50688888888` — no real transfer needed in test mode; ~15s to `succeeded`
 - [ ] **Delayed:** `+50688884444` — may exceed 60s processing UI; verify webhook still fulfills (reload Mis pagos)
 - [ ] **No transfer simulated:** `+50688889521` — stays pending after poll timeout

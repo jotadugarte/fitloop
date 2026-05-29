@@ -14,10 +14,13 @@ export default class extends Controller {
     "cardCvv",
     "sinpeIdentification",
     "sinpeMobileNumber",
+    "sinpeFields",
+    "sinpeHow",
     "sinpeInstructions",
     "sinpeInstructionsBody",
     "errorMessage",
     "processButton",
+    "sinpeContinueButton",
     "nestingRunId",
     "tierMonths",
     "paymentMethodField"
@@ -35,6 +38,7 @@ export default class extends Controller {
 
   connect() {
     this.paymentId = null
+    this.sinpeAwaitingTransfer = false
     this.syncPanels()
     this.syncRequiredFields()
   }
@@ -106,6 +110,8 @@ export default class extends Controller {
   async processPayment(event) {
     event.preventDefault()
     this.clearError()
+
+    if (this.sinpeAwaitingTransfer) return
 
     if (!this.isSinpe()) {
       const validationError = this.validateCardForm()
@@ -258,11 +264,19 @@ export default class extends Controller {
 
     this.sinpeInstructionsBodyTarget.textContent = this.sinpeInstructionsText(data)
     this.sinpeInstructionsTarget.hidden = false
-    this.processButtonTarget.disabled = true
+    if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = true
+    if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = true
+    this.processButtonTarget.hidden = true
+    if (this.hasSinpeContinueButtonTarget) this.sinpeContinueButtonTarget.hidden = false
+    this.sinpeAwaitingTransfer = true
+    this.sinpeInstructionsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
+  }
 
-    window.setTimeout(() => {
-      window.location.href = this.processingUrlValue.replace(":payment_id", paymentId)
-    }, 4000)
+  continueToProcessing(event) {
+    event.preventDefault()
+    if (!this.paymentId) return
+
+    window.location.href = this.processingUrlValue.replace(":payment_id", this.paymentId)
   }
 
   payFormData() {

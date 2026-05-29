@@ -235,6 +235,7 @@ en:
         sinpe_mobile_number: "SINPE mobile number"
         sinpe_instructions_title: "Transfer instructions"
         sinpe_instructions_body: "Transfer exactly %{amount} to SINPE Mobile %{destination} from the account linked to the ID above. We will notify you when ONVO confirms the payment."
+        sinpe_continue: "I've made the transfer, continue"
         processing_title: "Processing your payment"
         processing_body: "We are confirming your payment with ONVO. This page will update when the charge is ready."
         processing_success_title: "Payment confirmed"
