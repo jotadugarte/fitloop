@@ -36,7 +36,7 @@ export default class extends Controller {
     if (!response.ok) return
 
     const data = await response.json()
-    if (data.status === "succeeded" && data.redirect_url) {
+    if (data.status === "succeeded" && data.gateway_status === "succeeded" && data.redirect_url) {
       this.stopPolling()
       this.showSuccessThenRedirect(data.redirect_url)
       return

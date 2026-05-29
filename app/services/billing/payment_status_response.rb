@@ -3,7 +3,8 @@
 module Billing
   # [REQ-FIT-BILL-001] JSON payload for checkout payment status polling.
   class PaymentStatusResponse
-    ABANDONED_GATEWAY_STATUSES = %w[requires_payment_method requires_action canceled].freeze
+    DECLINED_GATEWAY_STATUSES = %w[requires_payment_method].freeze
+    ABANDONED_GATEWAY_STATUSES = %w[requires_action canceled].freeze
 
     def self.for(payment:, routes:)
       new(payment: payment, routes: routes).to_h
@@ -28,12 +29,13 @@ module Billing
 
     def redirect_url_if_ready
       return nil unless @payment.succeeded?
+      return nil unless @payment.gateway_status.to_s == "succeeded"
 
       if @payment.single_download?
         grant = DownloadGrant.find_by(user_id: @payment.user_id, nesting_run_id: @payment.nesting_run_id)
         return mis_pagos_success_url(auto_download: grant.id) if grant
 
-        return mis_pagos_success_url
+        return nil
       end
 
       mis_pagos_success_url if @payment.plan_subscription?
@@ -45,9 +47,15 @@ module Billing
 
     def checkout_return_url_if_abandoned
       return nil if @payment.succeeded? || @payment.failed?
+      return @routes.checkout_payment_failed_path(@payment) if declined_gateway_status?
+
       return nil unless ABANDONED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
 
       @routes.checkout_payment_canceled_path(@payment)
+    end
+
+    def declined_gateway_status?
+      DECLINED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
     end
 
     def checkout_failed_url_if_failed

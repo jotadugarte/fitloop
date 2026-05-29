@@ -236,6 +236,8 @@ es:
           card_number_test_only: "En modo prueba ONVO solo acepta tarjetas de test documentadas (por ejemplo Visa 4242 4242 4242 4242, 16 dígitos)."
         api_errors:
           test_payment_method: "Esa tarjeta no es válida en modo prueba de ONVO. Usá una tarjeta de test (por ejemplo 4242 4242 4242 4242)."
+          invalid_card_info: "Hubo un error con los datos de la tarjeta. Revisá el número, la fecha de expiración y el CVV."
+          generic: "No se pudo procesar el pago con tarjeta. Intentalo de nuevo."
         payment_canceled: "Cancelaste la verificación de la tarjeta. El pago no se completó; volvé a ingresar los datos de la tarjeta e intentá de nuevo."
         payment_failed: "El pago con tarjeta fue rechazado. Revisá los datos o probá otro método de pago."
         sinpe_how_title: "¿Cómo funciona SINPE Móvil?"
@@ -273,6 +275,7 @@ es:
         total: "Total"
       back_to_cart: "Volver al carrito"
       back_to_paywall: "Volver a opciones de pago"
+      back_to_project: "Volver al proyecto"
       choose_payment_method: "Elige cómo pagar:"
     cart:
       title: "Carrito"

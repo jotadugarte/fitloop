@@ -93,7 +93,7 @@ class CheckoutController < ApplicationController
       return_url: checkout_return_url(host: request.base_url)
     )
 
-    render json: result
+    render_confirm_card_result!(payment, result)
   rescue ArgumentError => error
     render json: { error: onvo_card_validation_message(error.message) }, status: :unprocessable_entity
   rescue Billing::Onvo::ApiError => error
@@ -311,6 +311,22 @@ class CheckoutController < ApplicationController
 
   def require_onvo_gateway!
     head :not_found unless Billing::Gateway.onvo?
+  end
+
+  def render_confirm_card_result!(payment, result)
+    status = result.fetch(:status).to_s
+    if status == "failed"
+      Billing::FailPayment.call(payment: payment)
+      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_entity
+      return
+    end
+
+    if status == "requires_payment_method"
+      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_entity
+      return
+    end
+
+    render json: result
   end
 
   def onvo_card_validation_message(key)

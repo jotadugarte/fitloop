@@ -48,6 +48,28 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
       expect(DownloadGrant.count).to eq(0)
     end
 
+    it "[REQ-FIT-BILL-001] returns checkout_return_url when gateway declined card" do
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_declined",
+        onvo_mode: "test",
+        gateway_status: "requires_payment_method"
+      )
+
+      get checkout_payment_status_path(payment)
+
+      body = JSON.parse(response.body)
+      expect(body.fetch("checkout_return_url")).to eq(checkout_payment_failed_path(payment))
+    end
+
     it "[REQ-FIT-BILL-001] returns checkout_return_url when gateway abandoned 3DS" do
       run = create_nesting_run!
       payment = Payment.create!(
@@ -61,13 +83,36 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
         gateway_provider: "onvo",
         onvo_payment_intent_id: "pi_abandoned",
         onvo_mode: "test",
-        gateway_status: "requires_payment_method"
+        gateway_status: "requires_action"
       )
 
       get checkout_payment_status_path(payment)
 
       body = JSON.parse(response.body)
       expect(body.fetch("checkout_return_url")).to eq(checkout_payment_canceled_path(payment))
+    end
+
+    it "[REQ-FIT-BILL-001] omits redirect_url when payment succeeded without grant" do
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "succeeded",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        paid_at: Time.current,
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_no_grant",
+        onvo_mode: "test",
+        gateway_status: "succeeded"
+      )
+
+      get checkout_payment_status_path(payment)
+
+      body = JSON.parse(response.body)
+      expect(body.fetch("redirect_url")).to be_nil
     end
 
     it "[REQ-FIT-BILL-001] returns redirect_url when payment succeeded and grant exists" do
