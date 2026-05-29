@@ -8,6 +8,7 @@ Use after automated specs are green. Record date, tester, and environment.
 - [ ] PostgreSQL running; `bin/rails db:migrate` applied
 - [ ] `.venv` active; `pip install -r nesting_engine/requirements.txt` done
 - [ ] `bin/dev` or `bin/rails server` + Solid Queue worker running
+- [ ] **ONVO QA only:** `.env` has `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET` (see [DEPLOY.md](DEPLOY.md) and [ADR-0006](core/ADRs/0006-onvo-live-billing.md))
 
 ## Workspace & access
 
@@ -49,6 +50,8 @@ Use after automated specs are green. Record date, tester, and environment.
 
 ## Billing (simulated) [REQ-FIT-BILL-001..003]
 
+Requires `BILLING_GATEWAY=simulate` (default dev). Demo **Pago exitoso** / **Pago fallido** buttons must be visible on checkout.
+
 - [ ] Nested DXF download without grant/plan → paywall `/projects/:id/descarga-pago` with links to checkout, planes, login
 - [ ] Preview (`placements.json`, SVG) remains free without payment
 - [ ] `GET /checkout?nesting_run_id=…` shows demo badge and **Pago exitoso** / **Pago fallido** for Tarjeta (USD) and SINPE (CRC)
@@ -67,6 +70,43 @@ Use after automated specs are green. Record date, tester, and environment.
 - [ ] Plan active + quota: project show shows “Incluido en tu plan”; download works while project bound
 - [ ] Plan download blocked after workshop TTL or discard (must re-nest)
 - [ ] Suspended user (`users.suspended_at`) cannot complete checkout or download
+
+## Billing (ONVO live, test mode) [REQ-FIT-BILL-001]
+
+Requires `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, and `onvo_test_*` keys. Checkout must **not** show simulate success/fail buttons; use **Procesar pago** and the ONVO SDK / SINPE form instead. Fulfillment is **webhook-first** — do not expect download until `payment-intent.succeeded` (processing poll is UX only).
+
+Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in `onvo/docs-completa-onvo.txt` (*Pruebas*).
+
+### Webhook (ngrok or staging)
+
+- [ ] Tunnel running (`ngrok http 3000` or fixed Northflank URL)
+- [ ] ONVO test dashboard webhook URL = `https://<host>/webhooks/onvo` with secret matching `ONVO_WEBHOOK_SECRET`
+- [ ] Rails restarted after ENV changes; ngrok inspector `http://127.0.0.1:4040` shows `payment-intent.succeeded` / `failed` deliveries
+- [ ] See [DEPLOY.md — ONVO webhooks in local development](DEPLOY.md#onvo-webhooks-in-local-development)
+
+### Checkout — card (CRC / USD)
+
+- [ ] `GET /checkout` → **Procesar pago** creates pending `Payment` + intent (no grant yet)
+- [ ] ONVO SDK loads (`sdk.onvopay.com`); card panel visible for `card_*` methods
+- [ ] **Approved:** Visa `4242424242424242` (any future expiry, any CVV) → redirect `/checkout/procesando/:id` → success within ~60s poll → download / Mis pagos
+- [ ] **3DS challenge:** `4000000000003220` → complete auth → browser may hit `/checkout/retorno?payment_intent_id=…` → processing page → success after webhook
+- [ ] **Declined:** `4000000000000002` → `Payment` `failed`; financial snapshot unchanged; no `DownloadGrant`
+
+### Checkout — SINPE Móvil (CRC, Costa Rica)
+
+- [ ] SINPE visible when geo is CR; form collects cédula + teléfono móvil del transferente
+- [ ] After confirm: instructions show destination **+506 70196686** and exact breakdown total
+- [ ] **Success (fast):** móvil `+50688888888` — no real transfer needed in test mode; ~15s to `succeeded`
+- [ ] **Delayed:** `+50688884444` — may exceed 60s processing UI; verify webhook still fulfills (reload Mis pagos)
+- [ ] **No transfer simulated:** `+50688889521` — stays pending after poll timeout
+- [ ] Full SINPE scenario table: [QA_ONVO_SINPE.md](QA_ONVO_SINPE.md)
+
+### Processing screen & failures
+
+- [ ] `/checkout/procesando/:id` polls `GET /checkout/pagos/:id/estado` every ~2.5s (max ~60s)
+- [ ] On `succeeded`, redirect to Mis pagos (or workshop per product rules); nested DXF downloadable
+- [ ] On long pending, “confirmando…” copy shown; user can check Mis pagos later after webhook
+- [ ] `payment-intent.failed` webhook marks payment failed without wiping snapshot fields
 
 ## Security & ops
 
