@@ -75,3 +75,7 @@ plan_4_months_sinpe_usd: 17.00
 onvo_sinpe_destination:
   number: "+506 70196686"
   holder_name: "ONVO Pay"
+
+# SINPE pending checkout — bloqueo de taller mientras confirma transferencia (REQ-FIT-BILL-001 v1.2).
+onvo_pending_checkout:
+  workshop_lock_minutes: 15
