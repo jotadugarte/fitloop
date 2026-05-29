@@ -132,29 +132,38 @@
       </section>
     <% end %>
 
-    <%= form_with url: (@onvo_checkout ? checkout_pay_path : checkout_simulate_path),
-                  method: :post,
-                  data: { turbo: false },
-                  class: "checkout-process-form" do %>
-      <%= hidden_field_tag :nesting_run_id, @nesting_run&.id if @nesting_run.present? %>
-      <%= hidden_field_tag :tier_months, @tier_months if plan_checkout %>
-      <%= hidden_field_tag :payment_method, selected_payment_method %>
-      <%= hidden_field_tag :outcome, selected_outcome %>
+    <% if @onvo_checkout %>
+      <%= render "checkout/onvo_payment",
+                 selected_payment_method: selected_payment_method,
+                 nesting_run: @nesting_run,
+                 tier_months: (plan_checkout ? @tier_months : nil),
+                 plan_checkout: plan_checkout,
+                 publishable_key: ENV.fetch("ONVO_PUBLISHABLE_KEY", "") %>
+    <% else %>
+      <%= form_with url: checkout_simulate_path,
+                    method: :post,
+                    data: { turbo: false },
+                    class: "checkout-process-form" do %>
+        <%= hidden_field_tag :nesting_run_id, @nesting_run&.id if @nesting_run.present? %>
+        <%= hidden_field_tag :tier_months, @tier_months if plan_checkout %>
+        <%= hidden_field_tag :payment_method, selected_payment_method %>
+        <%= hidden_field_tag :outcome, selected_outcome %>
 
-      <footer class="checkout-footer paywall-actions">
-        <%= button_tag t("billing.checkout.process_payment"),
-                       type: "submit",
-                       class: "btn btn-primary",
-                       data: { testid: "checkout-process-payment" } %>
-        <%= link_to t("billing.checkout.back_to_paywall"),
-                    download_paywall_workshop_path,
-                    class: "btn btn-secondary",
-                    data: { testid: "checkout-back-to-paywall", turbo: false } %>
-        <%= link_to t("billing.paywall.back_to_project"),
-                    project_path(@project),
-                    class: "btn btn-secondary",
-                    data: { testid: "checkout-back-to-project", turbo: false } %>
-      </footer>
+        <footer class="checkout-footer paywall-actions">
+          <%= button_tag t("billing.checkout.process_payment"),
+                         type: "submit",
+                         class: "btn btn-primary",
+                         data: { testid: "checkout-process-payment" } %>
+          <%= link_to t("billing.checkout.back_to_paywall"),
+                      download_paywall_workshop_path,
+                      class: "btn btn-secondary",
+                      data: { testid: "checkout-back-to-paywall", turbo: false } %>
+          <%= link_to t("billing.paywall.back_to_project"),
+                      project_path(@project),
+                      class: "btn btn-secondary",
+                      data: { testid: "checkout-back-to-project", turbo: false } %>
+        </footer>
+      <% end %>
     <% end %>
   </article>
 

@@ -212,6 +212,17 @@ es_panic:
       simulate_success: Pago exitoso
       simulate_failure: Pago fallido
       onvo_use_pay: Los pagos usan ONVO en vivo. Dale a «Procesar pago».
+      onvo:
+        fraud_monitoring_note: Tarjeta = ONVO seguro. Fitloop no guarda la tarjeta.
+        sinpe_fields_title: Datos del que transfiere (SINPE)
+        sinpe_identification: Cédula
+        sinpe_mobile_number: Celular SINPE
+        sinpe_instructions_title: Cómo transferir
+        sinpe_instructions_body: "Mandá exactamente %{amount} al SINPE %{destination} desde la cuenta de esa cédula. Avisamos cuando ONVO confirme."
+        processing_title: Procesando pago
+        processing_body: ONVO está confirmando. Esta pantalla avisa cuando termine.
+        processing_payment_ref: "Ref. pago #%{id}"
+        processing_view_payments: Ir a Mis pagos
       failure: El pago simulado falló. Otra vuelta.
       success_title: Pago recibido
       success_retention: Pago OK. Descarga en marcha; en Mis pagos 24 h aunque cierres el taller.

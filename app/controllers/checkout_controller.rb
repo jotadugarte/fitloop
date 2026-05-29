@@ -2,13 +2,15 @@
 
 # [REQ-FIT-BILL-001] Simulated checkout (single download or plan).
 class CheckoutController < ApplicationController
+  include BillingHelper
   include RequiresBillingConfirmation
   include ResolvesWorkspaceTab
   include SetsWorkspaceProject
 
-  before_action :set_workspace_project, only: %i[show simulate pay]
+  before_action :set_workspace_project, only: %i[show simulate pay processing]
   before_action :load_checkout_context, only: %i[show simulate pay]
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
+  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe]
 
   def show
     @billing_selection = billing_selection
@@ -54,6 +56,26 @@ class CheckoutController < ApplicationController
     }
   rescue Billing::Onvo::ApiError => error
     render json: { error: error.message }, status: :unprocessable_entity
+  end
+
+  def confirm_sinpe
+    payment = current_user.payments.find(params[:payment_id])
+    result = Billing::Onvo::ConfirmSinpePayment.call(
+      payment: payment,
+      identification: params[:sinpe_identification],
+      mobile_number: params[:sinpe_mobile_number]
+    )
+
+    render json: result.merge(
+      amount_label: format_onvo_amount(result.fetch(:amount), result.fetch(:currency))
+    )
+  rescue Billing::Onvo::ApiError => error
+    render json: { error: error.message }, status: :unprocessable_entity
+  end
+
+  def processing
+    @payment = current_user.payments.find(params[:payment_id])
+    render :processing
   end
 
   def simulate
@@ -230,6 +252,16 @@ class CheckoutController < ApplicationController
 
     discount = breakdown.fetch(:discount_amount).to_f
     discount.positive? ? discount : nil
+  end
+
+  def require_onvo_gateway!
+    head :not_found unless Billing::Gateway.onvo?
+  end
+
+  def format_onvo_amount(amount, currency)
+    return format_billing_crc(amount) if currency.to_s == "crc"
+
+    format_billing_usd(amount)
   end
 
   def checkout_redirect_params

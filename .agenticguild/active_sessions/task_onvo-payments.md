@@ -348,10 +348,10 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P6" name="Checkout UI — card SDK &amp; SINPE">
-    <step id="6.1" status="pending">Write system/request spec skeleton: checkout renders ONVO SDK container when card selected (stub SDK).</step>
-    <step id="6.2" status="pending">Add Stimulus `onvo_checkout_controller`: load `sdk.onvopay.com`, `onvo.pay({ publicKey, paymentIntentId, paymentType: "one_time", onSuccess, onError })`.</step>
-    <step id="6.3" status="pending">SINPE branch: form cédula + teléfono móvil; server creates `mobile_number` payment method + confirms intent; show ONVO destination number + exact amount instructions.</step>
-    <step id="6.4" status="pending">i18n `billing.checkout.onvo.*` (+ `es_panic` parity); fraud monitoring note per ONVO doc if required.</step>
+    <step id="6.1" status="complete">Write system/request spec skeleton: checkout renders ONVO SDK container when card selected (stub SDK).</step>
+    <step id="6.2" status="complete">Add Stimulus `onvo_checkout_controller`: load `sdk.onvopay.com`, `onvo.pay({ publicKey, paymentIntentId, paymentType: "one_time", onSuccess, onError })`.</step>
+    <step id="6.3" status="complete">SINPE branch: form cédula + teléfono móvil; server creates `mobile_number` payment method + confirms intent; show ONVO destination number + exact amount instructions.</step>
+    <step id="6.4" status="complete">i18n `billing.checkout.onvo.*` (+ `es_panic` parity); fraud monitoring note per ONVO doc if required.</step>
   </phase>
 
   <phase id="P7" name="Processing UX (poll + timeout)">

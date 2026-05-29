@@ -1,0 +1,86 @@
+<%# locals: (selected_payment_method:, nesting_run:, tier_months:, plan_checkout:, publishable_key:) %>
+<div class="checkout-onvo"
+     data-controller="onvo-checkout"
+     data-onvo-checkout-pay-url-value="<%= checkout_pay_path %>"
+     data-onvo-checkout-payment-method-value="<%= selected_payment_method %>"
+     data-onvo-checkout-publishable-key-value="<%= publishable_key %>"
+     data-onvo-checkout-processing-url-value="<%= checkout_processing_path(":payment_id") %>"
+     data-onvo-checkout-sinpe-url-value="<%= checkout_confirm_sinpe_path(":payment_id") %>"
+     data-sinpe-instructions-template="<%= t("billing.checkout.onvo.sinpe_instructions_body") %>"
+     data-testid="checkout-onvo-shell">
+
+  <p class="checkout-onvo__note"><%= t("billing.checkout.onvo.fraud_monitoring_note") %></p>
+
+  <div data-onvo-checkout-target="cardPanel"
+       data-testid="onvo-card-panel"
+       <%= "hidden" if selected_payment_method.start_with?("sinpe") %>>
+    <div class="checkout-onvo__sdk panel panel--inset"
+         data-onvo-checkout-target="sdkContainer"
+         data-testid="onvo-sdk-container"
+         aria-live="polite"></div>
+  </div>
+
+  <div data-onvo-checkout-target="sinpePanel"
+       data-testid="onvo-sinpe-panel"
+       <%= "hidden" unless selected_payment_method.start_with?("sinpe") %>>
+    <fieldset class="checkout-onvo__sinpe-fields panel panel--inset" data-testid="onvo-sinpe-fields">
+      <legend><%= t("billing.checkout.onvo.sinpe_fields_title") %></legend>
+      <div class="form-group">
+        <label for="sinpe_identification"><%= t("billing.checkout.onvo.sinpe_identification") %></label>
+        <input type="text"
+               id="sinpe_identification"
+               name="sinpe_identification"
+               class="form-control"
+               autocomplete="off"
+               data-onvo-checkout-target="sinpeIdentification"
+               required>
+      </div>
+      <div class="form-group">
+        <label for="sinpe_mobile_number"><%= t("billing.checkout.onvo.sinpe_mobile_number") %></label>
+        <input type="tel"
+               id="sinpe_mobile_number"
+               name="sinpe_mobile_number"
+               class="form-control"
+               autocomplete="tel"
+               data-onvo-checkout-target="sinpeMobileNumber"
+               required>
+      </div>
+    </fieldset>
+
+    <section class="checkout-onvo__sinpe-instructions panel panel--inset"
+             data-onvo-checkout-target="sinpeInstructions"
+             data-testid="onvo-sinpe-instructions"
+             hidden>
+      <h3 class="checkout-section-title"><%= t("billing.checkout.onvo.sinpe_instructions_title") %></h3>
+      <p data-onvo-checkout-target="sinpeInstructionsBody"></p>
+    </section>
+  </div>
+
+  <p class="checkout-onvo__error"
+     data-onvo-checkout-target="errorMessage"
+     data-testid="onvo-checkout-error"
+     hidden
+     role="alert"></p>
+
+  <footer class="checkout-footer paywall-actions">
+    <%= hidden_field_tag :nesting_run_id, nesting_run&.id, data: { onvo_checkout_target: "nestingRunId" } %>
+    <%= hidden_field_tag :tier_months, tier_months, data: { onvo_checkout_target: "tierMonths" } if plan_checkout %>
+    <%= hidden_field_tag :payment_method, selected_payment_method, data: { onvo_checkout_target: "paymentMethodField" } %>
+
+    <button type="button"
+            class="btn btn-primary"
+            data-testid="checkout-process-payment"
+            data-action="click->onvo-checkout#processPayment"
+            data-onvo-checkout-target="processButton">
+      <%= t("billing.checkout.process_payment") %>
+    </button>
+    <%= link_to t("billing.checkout.back_to_paywall"),
+                download_paywall_workshop_path,
+                class: "btn btn-secondary",
+                data: { testid: "checkout-back-to-paywall", turbo: false } %>
+    <%= link_to t("billing.paywall.back_to_project"),
+                project_path(@project),
+                class: "btn btn-secondary",
+                data: { testid: "checkout-back-to-project", turbo: false } %>
+  </footer>
+</div>
