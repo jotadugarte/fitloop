@@ -330,10 +330,10 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P3" name="Webhook (authoritative fulfillment)">
-    <step id="3.1" status="pending">Write failing request spec: `POST /webhooks/onvo` with valid `X-Webhook-Secret` + `payment-intent.succeeded` marks `Payment` succeeded and creates `DownloadGrant` (single_download fixture).</step>
-    <step id="3.2" status="pending">Write failing request spec: invalid/missing secret → 401; duplicate webhook → 200 idempotent no double grant.</step>
-    <step id="3.3" status="pending">Add route `post "/webhooks/onvo"` (skip CSRF); `Webhooks::OnvoController#create`.</step>
-    <step id="3.4" status="pending">Implement `Billing::Onvo::VerifyWebhook` + `Billing::Onvo::HandleWebhookEvent` delegating to `Billing::FulfillPayment` / `Billing::FailPayment`.</step>
+    <step id="3.1" status="complete">Write failing request spec: `POST /webhooks/onvo` with valid `X-Webhook-Secret` + `payment-intent.succeeded` marks `Payment` succeeded and creates `DownloadGrant` (single_download fixture).</step>
+    <step id="3.2" status="complete">Write failing request spec: invalid/missing secret → 401; duplicate webhook → 200 idempotent no double grant.</step>
+    <step id="3.3" status="complete">Add route `post "/webhooks/onvo"` (skip CSRF); `Webhooks::OnvoController#create`.</step>
+    <step id="3.4" status="complete">Implement `Billing::Onvo::VerifyWebhook` + `Billing::Onvo::HandleWebhookEvent` delegating to `Billing::FulfillPayment` / `Billing::FailPayment`.</step>
   </phase>
 
   <phase id="P4" name="Fulfillment extraction">
