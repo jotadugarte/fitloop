@@ -366,7 +366,7 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P9" name="SINPE confirm &amp; failure paths">
-    <step id="9.1" status="pending">Write failing webhook spec: `payment-intent.failed` → `Payment.failed` with snapshot preserved.</step>
+    <step id="9.1" status="complete">Write failing webhook spec: `payment-intent.failed` → `Payment.failed` with snapshot preserved.</step>
     <step id="9.2" status="pending">Manual QA notes: ONVO test SINPE numbers from `onvo/docs-completa-onvo.txt` testing section.</step>
   </phase>
 

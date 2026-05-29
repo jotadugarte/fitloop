@@ -86,6 +86,46 @@ RSpec.describe "ONVO webhooks", "[REQ-FIT-BILL-001]", type: :request do
       expect(DownloadGrant.count).to eq(0)
     end
 
+    it "[REQ-FIT-BILL-001] marks Payment failed and preserves checkout snapshot on payment-intent.failed" do
+      ctx = prepare_pending_onvo_payment!(intent_id: "pi_failed_webhook")
+      payment = ctx[:payment]
+      payment.update!(
+        purchaser_name: "Webhook Buyer",
+        purchaser_email: "buyer@example.com",
+        product_description: "single_download",
+        list_price: 10.0,
+        discount_amount: 1.0,
+        subtotal: 9.0,
+        tax_amount: 1.17,
+        total_amount: 10.17
+      )
+      snapshot_before = payment.attributes.slice(
+        "purchaser_name", "purchaser_email", "product_description",
+        "list_price", "discount_amount", "subtotal", "tax_amount", "total_amount",
+        "amount", "currency", "payment_method", "purpose"
+      )
+
+      payload = {
+        type: "payment-intent.failed",
+        data: {
+          id: payment.onvo_payment_intent_id,
+          status: "failed",
+          last_payment_error: { code: "card_declined", message: "Your card was declined." }
+        }
+      }
+
+      expect do
+        post_onvo_webhook!(payload)
+      end.not_to change(DownloadGrant, :count)
+
+      expect(response).to have_http_status(:ok)
+      payment.reload
+      expect(payment).to be_failed
+      expect(payment.gateway_status).to eq("failed")
+      expect(payment.paid_at).to be_nil
+      expect(payment.attributes.slice(*snapshot_before.keys)).to eq(snapshot_before)
+    end
+
     it "[REQ-FIT-BILL-001] is idempotent when the same succeeded webhook is delivered twice" do
       ctx = prepare_pending_onvo_payment!(intent_id: "pi_idempotent")
       payload = { type: "payment-intent.succeeded", data: { id: "pi_idempotent", status: "succeeded" } }
