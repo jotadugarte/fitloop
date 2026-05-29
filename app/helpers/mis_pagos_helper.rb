@@ -14,22 +14,22 @@ module MisPagosHelper
 
   def mis_pagos_download_status_class(row)
     if row.pending?
-      "mis-pagos-download-card__badge--pending"
+      "status-badge--processing"
     elsif row.downloadable?
-      "mis-pagos-download-card__badge--available"
+      "status-badge--completed"
     else
-      "mis-pagos-download-card__badge--expired"
+      "status-badge--failed"
     end
   end
 
-  def mis_pagos_download_card_class(row)
-    base = "mis-pagos-download-card"
+  def mis_pagos_download_row_class(row)
+    base = "mis-pagos-download-row"
     if row.pending?
-      "#{base} mis-pagos-download-card--pending"
+      "#{base} mis-pagos-download-row--pending"
     elsif row.downloadable?
-      "#{base} mis-pagos-download-card--ready"
+      "#{base} mis-pagos-download-row--ready"
     else
-      "#{base} mis-pagos-download-card--expired"
+      "#{base} mis-pagos-download-row--expired"
     end
   end
 

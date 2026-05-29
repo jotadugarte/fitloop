@@ -1337,24 +1337,56 @@ h3.fit-section__legend {
 
 /* ——— Mis pagos ——— */
 
-.mis-pagos-page .paywall-layout__main {
+.mis-pagos-page .paywall-layout__main,
+.mis-pagos-page__main {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 0;
 }
 
 .mis-pagos-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  margin-bottom: 1.25rem;
 }
 
-.mis-pagos-page__lead {
+.mis-pagos-page__lead,
+.mis-pagos-page__section-lead,
+.mis-pagos-page__empty-text {
   margin: 0;
-  max-width: 42rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.45;
   color: var(--fit-text-muted);
+}
+
+.mis-pagos-page__section-lead {
+  margin-bottom: 0.75rem;
+}
+
+.mis-pagos-page__section {
+  margin-bottom: 1.5rem;
+}
+
+.mis-pagos-page__section--plan-active {
+  border-color: color-mix(in srgb, var(--fit-success-border) 45%, var(--fit-border-strong));
+}
+
+.mis-pagos-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.mis-pagos-page__empty-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.mis-pagos-page__list-panel {
+  padding: 0;
+  overflow: hidden;
 }
 
 .mis-pagos-page__aside {
@@ -1365,278 +1397,122 @@ h3.fit-section__legend {
 }
 
 .mis-pagos-aside__info {
-  flex-shrink: 0;
-}
-
-.mis-pagos-aside__payments {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--fit-border);
-}
-
-.mis-pagos-aside__payments-header {
-  margin-bottom: 0.85rem;
-}
-
-.mis-pagos-aside__payments-title {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-aside__payments-lead {
   margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.4;
-  color: var(--fit-text-muted);
 }
 
-.mis-pagos-aside__payments-empty {
-  margin: 0;
-  font-size: 0.88rem;
-  color: var(--fit-text-muted);
+.mis-pagos-aside__action {
+  margin: 1.25rem 0 0;
 }
 
-.mis-pagos-payments-aside__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: min(32rem, 60vh);
+.mis-pagos-aside__action .btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.mis-pagos-download-list,
+.mis-pagos-payment-list {
   margin: 0;
   padding: 0;
-  overflow-y: auto;
   list-style: none;
 }
 
-.mis-pagos-payment-item {
-  padding: 0.7rem 0.8rem;
-  border: 1px solid var(--fit-border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--fit-navy) 3%, var(--fit-bg));
+.mis-pagos-download-row,
+.mis-pagos-payment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--fit-border);
+  border-left: 3px solid transparent;
+  background: var(--fit-surface);
 }
 
-.mis-pagos-payment-item__top {
+.mis-pagos-download-row:last-child,
+.mis-pagos-payment-row:last-child {
+  border-bottom: 0;
+}
+
+.mis-pagos-download-row--pending {
+  border-left-color: var(--fit-gold);
+  background: color-mix(in srgb, var(--fit-gold) 8%, var(--fit-surface));
+}
+
+.mis-pagos-download-row--ready {
+  border-left-color: var(--fit-success-border);
+}
+
+.mis-pagos-download-row--expired {
+  border-left-color: var(--fit-border-strong);
+  opacity: 0.88;
+}
+
+.mis-pagos-download-row__main {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.65rem;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 0.35rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
-.mis-pagos-payment-item__date {
-  font-size: 0.82rem;
+.mis-pagos-download-row__date {
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--fit-navy);
 }
 
-.mis-pagos-payment-item__amount {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--fit-navy);
-  white-space: nowrap;
-}
-
-.mis-pagos-payment-item__bottom {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.5rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.mis-pagos-payment-item__purpose {
-  font-size: 0.8rem;
-  color: var(--fit-text-muted);
-}
-
-.status-badge--compact {
-  padding: 0.12rem 0.45rem;
-  font-size: 0.68rem;
-}
-
-.mis-pagos-zone {
+.mis-pagos-download-row__meta {
   margin: 0;
-  padding: 1.2rem 1.3rem;
-}
-
-.mis-pagos-zone--plan-active {
-  border-color: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 40%, var(--fit-border));
-  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 6%, var(--fit-bg));
-}
-
-.mis-pagos-zone__header {
-  margin-bottom: 1rem;
-}
-
-.mis-pagos-zone__heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.75rem;
-  margin-bottom: 0.35rem;
-}
-
-.mis-pagos-zone__title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-zone__lead {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.45;
-  color: var(--fit-text-muted);
-}
-
-.mis-pagos-zone__summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.mis-pagos-zone__summary-chip {
-  display: inline-block;
-  padding: 0.15rem 0.55rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  border: 1px solid var(--fit-border);
-}
-
-.mis-pagos-zone__summary-chip--ready {
-  color: var(--fit-success-text);
-  background: color-mix(in srgb, var(--fit-success-bg) 90%, var(--fit-bg));
-  border-color: color-mix(in srgb, var(--fit-success-border) 40%, var(--fit-border));
-}
-
-.mis-pagos-zone__summary-chip--pending {
-  color: #8b4513;
-  background: color-mix(in srgb, #c9a227 14%, var(--fit-bg));
-  border-color: color-mix(in srgb, #b8860b 35%, var(--fit-border));
-}
-
-.mis-pagos-zone__empty {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
-}
-
-.mis-pagos-zone__empty-text {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: var(--fit-text-muted);
-}
-
-.mis-pagos-download-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mis-pagos-download-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.85rem 1rem;
-  align-items: center;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--fit-border);
-  border-radius: 10px;
-  background: var(--fit-bg);
-}
-
-.mis-pagos-download-card--pending {
-  background: color-mix(in srgb, #c53030 9%, var(--fit-bg));
-  border-color: color-mix(in srgb, #c53030 32%, var(--fit-border));
-}
-
-.mis-pagos-download-card--ready {
-  background: color-mix(in srgb, var(--fit-success-bg) 85%, var(--fit-bg));
-  border-color: color-mix(in srgb, var(--fit-success-border) 45%, var(--fit-border));
-}
-
-.mis-pagos-download-card--expired {
-  background: color-mix(in srgb, var(--fit-navy) 4%, var(--fit-bg));
-  opacity: 0.92;
-}
-
-.mis-pagos-download-card__main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  min-width: 0;
-}
-
-.mis-pagos-download-card__badge {
-  align-self: flex-start;
-  padding: 0.18rem 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  border: 1px solid var(--fit-border);
-}
-
-.mis-pagos-download-card__badge--pending {
-  color: #9b2c2c;
-  background: color-mix(in srgb, #c53030 12%, var(--fit-bg));
-  border-color: color-mix(in srgb, #c53030 35%, var(--fit-border));
-}
-
-.mis-pagos-download-card__badge--available {
-  color: var(--fit-success-text);
-  background: color-mix(in srgb, var(--fit-success-bg) 95%, var(--fit-bg));
-  border-color: color-mix(in srgb, var(--fit-success-border) 40%, var(--fit-border));
-}
-
-.mis-pagos-download-card__badge--expired {
-  color: var(--fit-text-muted);
-  background: color-mix(in srgb, var(--fit-navy) 6%, var(--fit-bg));
-}
-
-.mis-pagos-download-card__date {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-download-card__meta {
-  margin: 0;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   line-height: 1.4;
   color: var(--fit-text-muted);
 }
 
-.mis-pagos-download-card__meta--muted {
+.mis-pagos-download-row__meta--muted {
   color: var(--fit-alert-text);
 }
 
-.mis-pagos-download-card__action {
+.mis-pagos-download-row__action {
   flex-shrink: 0;
   white-space: nowrap;
 }
 
-.mis-pagos-section,
-.mis-pagos-section--active-plan {
-  margin: 0;
-  padding: 1.15rem 1.25rem;
+.mis-pagos-download-row__action--pending {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.mis-pagos-section--active-plan {
-  border-color: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 40%, var(--fit-border));
-  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 6%, var(--fit-bg));
+.mis-pagos-payment-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.mis-pagos-payment-row__date {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-payment-row__purpose {
+  font-size: 0.82rem;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-payment-row__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.mis-pagos-payment-row__amount {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--fit-navy);
+  white-space: nowrap;
 }
 
 .mis-pagos-active-plan__header {
@@ -1655,22 +1531,9 @@ h3.fit-section__legend {
   color: var(--fit-navy);
 }
 
-.mis-pagos-active-plan__badge {
-  display: inline-block;
-  padding: 0.2rem 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--fit-success-border, #3d8b5c);
-  background: color-mix(in srgb, var(--fit-success-border, #3d8b5c) 14%, var(--fit-bg));
-  border: 1px solid color-mix(in srgb, var(--fit-success-border, #3d8b5c) 35%, var(--fit-border));
-  border-radius: 999px;
-}
-
 .mis-pagos-active-plan__tier {
   margin: 0 0 0.35rem;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.2;
   color: var(--fit-success-border, #3d8b5c);
@@ -1689,7 +1552,6 @@ h3.fit-section__legend {
   padding: 0.85rem 1rem;
   background: color-mix(in srgb, var(--fit-navy) 4%, var(--fit-bg));
   border: 1px solid var(--fit-border);
-  border-radius: 8px;
 }
 
 .mis-pagos-active-plan__period-row {
@@ -1719,6 +1581,7 @@ h3.fit-section__legend {
   margin: 0;
   padding: 1rem 1.1rem;
   background: var(--fit-bg);
+  border: 1px solid var(--fit-border);
 }
 
 .mis-pagos-active-plan__quota-title {
@@ -1744,134 +1607,6 @@ h3.fit-section__legend {
   color: var(--fit-text-muted);
 }
 
-.mis-pagos-section__title {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-section__text {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: var(--fit-text);
-}
-
-.mis-pagos-section__text + .mis-pagos-section__text {
-  margin-top: 0.5rem;
-}
-
-.mis-pagos-section__text--emphasis {
-  font-weight: 600;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-section__empty {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: var(--fit-text-muted);
-}
-
-.mis-pagos-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mis-pagos-list__item {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1rem;
-  background: var(--fit-bg);
-  border: 1px solid var(--fit-border);
-  border-radius: 8px;
-}
-
-.mis-pagos-list__item--payment {
-  align-items: flex-start;
-}
-
-.mis-pagos-list__item--pending-download {
-  background: color-mix(in srgb, #c53030 9%, var(--fit-bg));
-  border-color: color-mix(in srgb, #c53030 32%, var(--fit-border));
-}
-
-.mis-pagos-list__item--download-ready {
-  background: color-mix(in srgb, var(--fit-success-bg) 85%, var(--fit-bg));
-  border-color: color-mix(in srgb, var(--fit-success-border) 45%, var(--fit-border));
-}
-
-.mis-pagos-list__primary {
-  display: flex;
-  flex: 1 1 12rem;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.mis-pagos-list__date {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-list__meta {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--fit-text-muted);
-}
-
-.mis-pagos-list__meta--muted {
-  color: var(--fit-alert-text);
-}
-
-.mis-pagos-list__purpose {
-  font-size: 0.9rem;
-  color: var(--fit-text);
-}
-
-.mis-pagos-list__payment-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.mis-pagos-list__amount {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--fit-navy);
-  white-space: nowrap;
-}
-
-.mis-pagos-list__action {
-  flex-shrink: 0;
-}
-
-.mis-pagos-list__action--pending {
-  pointer-events: none;
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.mis-pagos-aside__action {
-  margin: 1.25rem 0 0;
-}
-
-.mis-pagos-aside__action .btn {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
 .mis-pagos-auto-download {
   position: absolute;
   width: 0;
@@ -1882,21 +1617,34 @@ h3.fit-section__legend {
   white-space: nowrap;
 }
 
+.mis-pagos-page [data-testid="mis-pagos-payments"] .mis-pagos-payment-list {
+  max-height: min(32rem, 60vh);
+  overflow-y: auto;
+}
+
 @media (max-width: 768px) {
   .mis-pagos-page .paywall-layout__aside {
     order: 0;
   }
 
-  .mis-pagos-download-card {
+  .mis-pagos-download-row,
+  .mis-pagos-payment-row {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .mis-pagos-download-card__action {
+  .mis-pagos-download-row__action {
     width: 100%;
     text-align: center;
   }
 
-  .mis-pagos-payments-aside__list {
+  .mis-pagos-payment-row__meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mis-pagos-page [data-testid="mis-pagos-payments"] .mis-pagos-payment-list {
     max-height: none;
   }
 }
@@ -2404,11 +2152,10 @@ h3.fit-section__legend {
   z-index: 45;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: color-mix(in srgb, #c9a227 10%, var(--fit-bg));
-  border: 1px solid color-mix(in srgb, #b8860b 45%, var(--fit-border));
-  border-left: 4px solid #b8860b;
-  box-shadow: 0 2px 10px color-mix(in srgb, var(--fit-navy) 12%, transparent);
+  background: color-mix(in srgb, var(--fit-gold) 10%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-gold) 45%, var(--fit-border));
+  border-left: 4px solid var(--fit-gold);
+  box-shadow: none;
 }
 
 .pending-payment-lock-banner__inner {

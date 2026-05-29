@@ -1,15 +1,15 @@
 <%# locals: (payment:) %>
-<li class="mis-pagos-payment-item" data-testid="mis-pagos-payment-row">
-  <div class="mis-pagos-payment-item__top">
-    <time class="mis-pagos-payment-item__date" datetime="<%= payment.created_at.iso8601 %>">
+<li class="mis-pagos-payment-row" data-testid="mis-pagos-payment-row">
+  <div class="mis-pagos-payment-row__main">
+    <time class="mis-pagos-payment-row__date" datetime="<%= payment.created_at.iso8601 %>">
       <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>
     </time>
-    <span class="mis-pagos-payment-item__amount"><%= mis_pagos_payment_amount_label(payment) %></span>
+    <span class="mis-pagos-payment-row__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
   </div>
-  <div class="mis-pagos-payment-item__bottom">
-    <span class="mis-pagos-payment-item__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
-    <span class="status-badge status-badge--compact <%= payment_status_badge_class(payment.status) %>">
+  <div class="mis-pagos-payment-row__meta">
+    <span class="status-badge <%= payment_status_badge_class(payment.status) %>">
       <%= t("billing.mis_pagos.status.#{payment.status}") %>
     </span>
+    <span class="mis-pagos-payment-row__amount"><%= mis_pagos_payment_amount_label(payment) %></span>
   </div>
 </li>

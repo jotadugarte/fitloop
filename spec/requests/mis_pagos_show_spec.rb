@@ -45,7 +45,7 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="pending-payment-lock-processing-link"')
       expect(response.body).not_to include("context=workshop")
       expect(response.body).to include('data-testid="mis-pagos-pending-download-row"')
-      expect(response.body).to include("mis-pagos-download-card--pending")
+      expect(response.body).to include("mis-pagos-download-row--pending")
       expect(response.body).to include('data-testid="mis-pagos-download-pending"')
       expect(response.body).to include(I18n.t("billing.mis_pagos.awaiting_confirmation", locale: :es))
       expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')

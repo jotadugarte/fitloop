@@ -1,25 +1,23 @@
 <%# locals: (row:) %>
-<li class="<%= mis_pagos_download_card_class(row) %>"
+<li class="<%= mis_pagos_download_row_class(row) %>"
     data-testid="<%= row.pending? ? "mis-pagos-pending-download-row" : "mis-pagos-grant-row" %>">
-  <div class="mis-pagos-download-card__main">
-    <span class="mis-pagos-download-card__badge <%= mis_pagos_download_status_class(row) %>">
+  <div class="mis-pagos-download-row__main">
+    <span class="status-badge <%= mis_pagos_download_status_class(row) %>">
       <%= mis_pagos_download_status_label(row) %>
     </span>
-    <div class="mis-pagos-download-card__details">
-      <time class="mis-pagos-download-card__date" datetime="<%= row.sort_at.iso8601 %>">
-        <%= l_in_user_zone(row.sort_at, format: :short, user: current_user) %>
-      </time>
-      <% if row.pending? %>
-        <p class="mis-pagos-download-card__meta"><%= t("billing.mis_pagos.awaiting_confirmation") %></p>
-      <% elsif row.grant.retention_active? %>
-        <p class="mis-pagos-download-card__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(row.grant.retained_until, format: :short, user: current_user)) %></p>
-      <% else %>
-        <p class="mis-pagos-download-card__meta mis-pagos-download-card__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></p>
-      <% end %>
-    </div>
+    <time class="mis-pagos-download-row__date" datetime="<%= row.sort_at.iso8601 %>">
+      <%= l_in_user_zone(row.sort_at, format: :short, user: current_user) %>
+    </time>
+    <% if row.pending? %>
+      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.awaiting_confirmation") %></p>
+    <% elsif row.grant.retention_active? %>
+      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(row.grant.retained_until, format: :short, user: current_user)) %></p>
+    <% else %>
+      <p class="mis-pagos-download-row__meta mis-pagos-download-row__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></p>
+    <% end %>
   </div>
   <% if row.pending? %>
-    <span class="btn btn-primary btn--small mis-pagos-download-card__action mis-pagos-list__action--pending"
+    <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
           aria-disabled="true"
           data-testid="mis-pagos-download-pending">
       <%= t("billing.mis_pagos.download") %>
@@ -27,7 +25,7 @@
   <% elsif row.downloadable? %>
     <%= link_to t("billing.mis_pagos.download"),
                 mis_pagos_download_path(row.grant),
-                class: "btn btn-primary btn--small mis-pagos-download-card__action",
+                class: "btn btn-primary btn--small mis-pagos-download-row__action",
                 data: { turbo: false, testid: "mis-pagos-download" } %>
   <% end %>
 </li>

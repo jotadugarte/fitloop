@@ -1,16 +1,18 @@
 <%# locals: (payments:) %>
-<section class="mis-pagos-aside__payments" data-testid="mis-pagos-payments">
-  <header class="mis-pagos-aside__payments-header">
-    <h2 class="mis-pagos-aside__payments-title"><%= t("billing.mis_pagos.payment_history") %></h2>
-    <p class="mis-pagos-aside__payments-lead"><%= t("billing.mis_pagos.payments_lead") %></p>
-  </header>
-  <% if payments.any? %>
-    <ul class="mis-pagos-payments-aside__list">
-      <% payments.each do |payment| %>
-        <%= render "mis_pagos/payment_row", payment: payment %>
-      <% end %>
-    </ul>
-  <% else %>
-    <p class="mis-pagos-aside__payments-empty"><%= t("billing.mis_pagos.no_payments") %></p>
-  <% end %>
+<section class="fit-section panel panel--chrome mis-pagos-page__section" data-testid="mis-pagos-payments">
+  <h2 class="fit-section__legend"><%= t("billing.mis_pagos.payment_history") %></h2>
+  <div class="fit-section__content">
+    <p class="mis-pagos-page__section-lead"><%= t("billing.mis_pagos.payments_lead") %></p>
+    <% if payments.any? %>
+      <div class="panel panel--inset mis-pagos-page__list-panel">
+        <ul class="mis-pagos-payment-list">
+          <% payments.each do |payment| %>
+            <%= render "mis_pagos/payment_row", payment: payment %>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <p class="mis-pagos-page__empty-text"><%= t("billing.mis_pagos.no_payments") %></p>
+    <% end %>
+  </div>
 </section>
