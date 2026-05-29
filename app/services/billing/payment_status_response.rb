@@ -19,7 +19,8 @@ module Billing
         status: @payment.status,
         gateway_status: @payment.gateway_status,
         redirect_url: redirect_url_if_ready,
-        checkout_return_url: checkout_return_url_if_abandoned
+        checkout_return_url: checkout_return_url_if_abandoned,
+        checkout_failed_url: checkout_failed_url_if_failed
       }
     end
 
@@ -46,9 +47,13 @@ module Billing
       return nil if @payment.succeeded? || @payment.failed?
       return nil unless ABANDONED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
 
-      query = { payment_canceled: 1 }
-      query[:nesting_run_id] = @payment.nesting_run_id if @payment.nesting_run_id.present?
-      @routes.checkout_path(query)
+      @routes.checkout_payment_canceled_path(@payment)
+    end
+
+    def checkout_failed_url_if_failed
+      return nil unless @payment.failed?
+
+      @routes.checkout_payment_failed_path(@payment)
     end
   end
 end

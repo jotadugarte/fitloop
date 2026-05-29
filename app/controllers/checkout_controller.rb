@@ -10,10 +10,11 @@ class CheckoutController < ApplicationController
   before_action :set_workspace_project, only: %i[show simulate pay processing]
   before_action :load_checkout_context, only: %i[show simulate pay]
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
-  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe confirm_card three_ds_return]
+  before_action :require_onvo_gateway!, only: %i[
+    pay confirm_sinpe confirm_card three_ds_return payment_canceled_notice payment_failed_notice
+  ]
 
   def show
-    apply_onvo_checkout_return_flash!
     @billing_selection = billing_selection
     @available_payment_methods = billing_selection.fetch(:available_payment_methods)
     @simulate_outcome = resolve_simulate_outcome
@@ -117,6 +118,19 @@ class CheckoutController < ApplicationController
     payment = current_user.payments.find_by!(onvo_payment_intent_id: intent_id)
     intent = Billing::Onvo::ReconcilePaymentIntent.call(payment: payment)
     redirect_after_onvo_three_ds_return!(payment: payment, intent_status: intent.fetch(:status).to_s)
+  end
+
+  def payment_canceled_notice
+    payment = current_user.payments.find(params[:payment_id])
+    redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
+                alert: t("billing.checkout.onvo.payment_canceled")
+  end
+
+  def payment_failed_notice
+    payment = current_user.payments.find(params[:payment_id])
+    Billing::FailPayment.call(payment: payment) unless payment.failed?
+    redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
+                alert: t("billing.checkout.onvo.payment_failed")
   end
 
   def simulate
@@ -303,33 +317,18 @@ class CheckoutController < ApplicationController
     I18n.t("billing.checkout.onvo.validation.#{key}", default: key.to_s.humanize)
   end
 
-  def apply_onvo_checkout_return_flash!
-    return if params[:payment_canceled].blank? && params[:payment_failed].blank?
-
-    flash.now[:alert] = if params[:payment_canceled].present?
-                          t("billing.checkout.onvo.payment_canceled")
-                        else
-                          t("billing.checkout.onvo.payment_failed")
-                        end
-  end
-
   def redirect_after_onvo_three_ds_return!(payment:, intent_status:)
-    checkout_params = checkout_redirect_params_for_payment(payment)
-
     if %w[succeeded processing].include?(intent_status)
       redirect_to checkout_processing_path(payment)
       return
     end
 
     if intent_status == "failed"
-      Billing::FailPayment.call(payment: payment) unless payment.failed?
-      redirect_to checkout_path(checkout_params.merge(payment_failed: 1)),
-                  alert: t("billing.checkout.onvo.payment_failed")
+      redirect_to checkout_payment_failed_path(payment)
       return
     end
 
-    redirect_to checkout_path(checkout_params.merge(payment_canceled: 1)),
-                alert: t("billing.checkout.onvo.payment_canceled")
+    redirect_to checkout_payment_canceled_path(payment)
   end
 
   def checkout_redirect_params_for_payment(payment)

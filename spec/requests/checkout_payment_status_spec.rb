@@ -67,9 +67,7 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
       get checkout_payment_status_path(payment)
 
       body = JSON.parse(response.body)
-      expect(body.fetch("checkout_return_url")).to eq(
-        checkout_path(nesting_run_id: run.id, payment_canceled: 1)
-      )
+      expect(body.fetch("checkout_return_url")).to eq(checkout_payment_canceled_path(payment))
     end
 
     it "[REQ-FIT-BILL-001] returns redirect_url when payment succeeded and grant exists" do
