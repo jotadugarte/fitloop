@@ -19,11 +19,11 @@ module Billing
 
       def initialize(payment:, holder_name:, card_number:, exp_month:, exp_year:, cvv:, return_url:, client: nil)
         @payment = payment
-        @holder_name = holder_name.to_s.strip
-        @card_number = card_number.to_s.gsub(/\D/, "")
-        @exp_month = exp_month.to_i
-        @exp_year = exp_year.to_i
-        @cvv = cvv.to_s.strip
+        @holder_name = holder_name
+        @card_number = card_number
+        @exp_month = exp_month
+        @exp_year = exp_year
+        @cvv = cvv
         @return_url = return_url.to_s.strip
         @client = client
       end
@@ -32,8 +32,6 @@ module Billing
         raise ArgumentError, "payment required" if @payment.nil?
         raise ArgumentError, "ONVO intent required" if @payment.onvo_payment_intent_id.blank?
         raise ArgumentError, "card payment required" unless card_payment?
-
-        validate_card_fields!
 
         method = onvo_client.create_payment_method(
           type: "card",
@@ -66,14 +64,6 @@ module Billing
 
       def card_payment?
         @payment.payment_method.to_s.start_with?("card")
-      end
-
-      def validate_card_fields!
-        raise ArgumentError, "holder_name required" if @holder_name.empty?
-        raise ArgumentError, "card_number required" if @card_number.empty?
-        raise ArgumentError, "invalid exp_month" unless (1..12).cover?(@exp_month)
-        raise ArgumentError, "invalid exp_year" unless @exp_year.between?(2023, 2100)
-        raise ArgumentError, "cvv required" unless @cvv.match?(/\A\d{3,4}\z/)
       end
 
       def billing_payload

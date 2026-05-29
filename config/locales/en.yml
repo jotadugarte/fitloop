@@ -212,6 +212,12 @@ en:
         card_exp: "Expiration date"
         card_exp_placeholder: "MM / YY"
         card_cvv: "CVV"
+        validation:
+          holder_name_invalid: "Enter a valid name on card (letters only, 2–100 characters)."
+          card_number_invalid: "Card number must be 13–19 digits and pass validation."
+          card_exp_invalid: "Expiration must use MM/YY format (for example 12/28)."
+          card_exp_expired: "This card is expired. Check the expiration month and year."
+          card_cvv_invalid: "CVV must be 3 or 4 numeric digits."
         sinpe_how_title: "How SINPE Mobile works"
         sinpe_how_step_1: "Enter the ID and mobile number you will transfer from."
         sinpe_how_step_2: "Click “Process payment”; we show the exact amount and ONVO’s SINPE destination number."

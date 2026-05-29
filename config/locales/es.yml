@@ -227,6 +227,12 @@ es:
         card_exp: "Fecha de expiración"
         card_exp_placeholder: "MM / AA"
         card_cvv: "CVV"
+        validation:
+          holder_name_invalid: "Ingresá un nombre válido en la tarjeta (solo letras, entre 2 y 100 caracteres)."
+          card_number_invalid: "El número de tarjeta debe tener entre 13 y 19 dígitos y ser válido."
+          card_exp_invalid: "La fecha de expiración debe tener el formato MM/AA (por ejemplo 12/28)."
+          card_exp_expired: "La tarjeta está vencida. Revisá el mes y el año de expiración."
+          card_cvv_invalid: "El CVV debe tener 3 o 4 dígitos numéricos."
         sinpe_how_title: "¿Cómo funciona SINPE Móvil?"
         sinpe_how_step_1: "Ingresá la cédula y el teléfono móvil desde el que harás la transferencia."
         sinpe_how_step_2: "Pulsa «Procesar pago»; te mostraremos el monto exacto y el número SINPE destino de ONVO."

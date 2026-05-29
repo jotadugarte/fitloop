@@ -2,26 +2,33 @@
 
 module Billing
   module Onvo
-    # [REQ-FIT-BILL-001] Parse MM/YY or MM/YYYY card expiration input.
+    # [REQ-FIT-BILL-001] Parse MM/YY card expiration (slash required after normalization).
     module CardExpiration
       module_function
 
       def parse(value)
-        raw = value.to_s.strip
-        raise ArgumentError, "card_exp required" if raw.empty?
+        raw = normalize(value)
+        raise ArgumentError, "card_exp_invalid" if raw.empty?
 
-        if (match = raw.match(%r{\A(\d{1,2})\s*/\s*(\d{2,4})\z}))
-          month = match[1].to_i
-          year = normalize_year(match[2].to_i)
-          return { exp_month: month, exp_year: year }
-        end
+        match = raw.match(%r{\A(\d{2})/(\d{2})\z})
+        raise ArgumentError, "card_exp_invalid" unless match
 
-        digits = raw.gsub(/\D/, "")
-        if digits.length == 4
-          return { exp_month: digits[0, 2].to_i, exp_year: normalize_year(digits[2, 2].to_i) }
-        end
+        month = match[1].to_i
+        year = normalize_year(match[2].to_i)
+        raise ArgumentError, "card_exp_invalid" unless month.between?(1, 12)
 
-        raise ArgumentError, "invalid card_exp"
+        { exp_month: month, exp_year: year }
+      end
+
+      def normalize(value)
+        stripped = value.to_s.strip
+        return stripped if stripped.include?("/")
+
+        digits = stripped.gsub(/\D/, "")
+        return "" if digits.empty?
+        return "#{digits[0, 2]}/#{digits[2, 2]}" if digits.length == 4
+
+        stripped
       end
 
       def normalize_year(year)

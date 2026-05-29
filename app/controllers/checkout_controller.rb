@@ -75,20 +75,25 @@ class CheckoutController < ApplicationController
 
   def confirm_card
     payment = current_user.payments.find(params[:payment_id])
-    expiration = Billing::Onvo::CardExpiration.parse(params[:card_exp])
-    result = Billing::Onvo::ConfirmCardPayment.call(
-      payment: payment,
+    card = Billing::Onvo::CardInput.parse!(
       holder_name: params[:card_holder_name],
       card_number: params[:card_number],
-      exp_month: expiration.fetch(:exp_month),
-      exp_year: expiration.fetch(:exp_year),
-      cvv: params[:card_cvv],
+      card_exp: params[:card_exp],
+      cvv: params[:card_cvv]
+    )
+    result = Billing::Onvo::ConfirmCardPayment.call(
+      payment: payment,
+      holder_name: card.fetch(:holder_name),
+      card_number: card.fetch(:card_number),
+      exp_month: card.fetch(:exp_month),
+      exp_year: card.fetch(:exp_year),
+      cvv: card.fetch(:cvv),
       return_url: checkout_return_url(host: request.base_url)
     )
 
     render json: result
   rescue ArgumentError => error
-    render json: { error: error.message }, status: :unprocessable_entity
+    render json: { error: onvo_card_validation_message(error.message) }, status: :unprocessable_entity
   rescue Billing::Onvo::ApiError => error
     render json: { error: error.user_message }, status: :unprocessable_entity
   end
@@ -291,6 +296,10 @@ class CheckoutController < ApplicationController
 
   def require_onvo_gateway!
     head :not_found unless Billing::Gateway.onvo?
+  end
+
+  def onvo_card_validation_message(key)
+    I18n.t("billing.checkout.onvo.validation.#{key}", default: key.to_s.humanize)
   end
 
   def format_onvo_amount(amount, currency)
