@@ -44,7 +44,7 @@ RSpec.describe "Single download with plan overage pricing", "[REQ-FIT-BILL-002]"
 
       payment = Payment.last
       expect(payment).to be_succeeded
-      expect(payment.amount).to eq(Billing::Pricing.single_download_overage_usd)
+      expect(payment.amount).to eq(Billing::Pricing.single_download_overage_official_usd)
       expect(payment.purpose).to eq("single_download")
     end
 
