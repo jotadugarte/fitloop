@@ -198,6 +198,8 @@ en:
         title: "Payment confirming"
         message: "Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."
         view_processing: "View payment status"
+        processing_status_title: "Still confirming"
+        processing_status_body: "Confirmation can take several minutes (SINPE Mobile is often slower). Check My payments in a while—once ONVO approves the charge, your download will appear there. Do not pay again."
       title: "Pay for this download"
       title_plan: "Pay for this plan"
       demo_badge: "Demo environment — simulated payments (QA)"

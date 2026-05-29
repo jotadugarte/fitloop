@@ -109,6 +109,7 @@ class CheckoutController < ApplicationController
   def processing
     @payment = current_user.payments.find(params[:payment_id])
     @status_url = checkout_payment_status_path(@payment)
+    @processing_from_workshop = params[:context].to_s == "workshop"
     render :processing
   end
 

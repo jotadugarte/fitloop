@@ -213,6 +213,8 @@ es:
         title: "Pago en confirmación"
         message: "No cambies láminas ni vuelvas a anidar hasta que termine; si lo hacés, podés perder la descarga de este resultado."
         view_processing: "Ver estado del pago"
+        processing_status_title: "Confirmación en curso"
+        processing_status_body: "La confirmación del cobro puede tardar varios minutos (en SINPE Móvil es normal). Revisá Mis pagos en un rato: cuando ONVO apruebe el pago, la descarga aparecerá ahí. No vuelvas a pagar."
       title: "Pagar esta descarga"
       title_plan: "Pagar este plan"
       demo_badge: "Entorno de demostración — pagos simulados (QA)"

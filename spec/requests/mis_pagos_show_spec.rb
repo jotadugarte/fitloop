@@ -18,6 +18,33 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("billing.checkout.success_retention", locale: :es))
     end
+
+    it "[REQ-FIT-BILL-001] shows pending payment banner without processing link" do
+      project = Project.create!(ephemeral: true, title: "Mis pagos lock", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_mis_pagos_lock",
+        onvo_mode: "test",
+        gateway_status: "processing"
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="pending-payment-lock-banner"')
+      expect(response.body).to include(I18n.t("billing.checkout.pending_workshop_lock.title", locale: :es))
+      expect(response.body).not_to include('data-testid="pending-payment-lock-processing-link"')
+      expect(response.body).not_to include("context=workshop")
+    end
   end
 
   describe "GET /mis-pagos [REQ-FIT-BILL-002]" do

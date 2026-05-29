@@ -208,6 +208,8 @@ es_panic:
         title: Pago en confirmación
         message: No toques láminas ni re-anides hasta que cierre — o perdés la descarga.
         view_processing: Ver estado del pago
+        processing_status_title: Confirmación en curso
+        processing_status_body: El cobro puede tardar minutos (SINPE es lento). Mirá Mis pagos — ahí aparece la descarga cuando ONVO apruebe. No pagues otra vez.
       demo_badge: DEMO — pagos simulados (QA)
       process_payment: Procesar pago
       savings_badge: "Ahorra %{amount}"

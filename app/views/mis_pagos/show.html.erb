@@ -9,6 +9,10 @@
   <article class="paywall-layout__main panel panel--chrome">
     <h1 class="billing-page__title"><%= t("billing.mis_pagos.title") %></h1>
 
+    <%= render "projects/pending_payment_lock_banner",
+               lock: @pending_checkout_lock,
+               show_processing_link: false %>
+
     <section class="mis-pagos-section panel panel--inset<%= " mis-pagos-section--active-plan" if @subscription %>">
       <% if @subscription %>
         <%= render "mis_pagos/active_plan", subscription: @subscription, quota_counter: @quota_counter %>

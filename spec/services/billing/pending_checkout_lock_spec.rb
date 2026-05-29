@@ -46,4 +46,13 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
 
     expect(described_class.for(project: project, user: other)).to be_nil
   end
+
+  it "[REQ-FIT-BILL-001] for_user returns newest pending single-download payment" do
+    payment = pending_payment!
+
+    lock = described_class.for_user(user: user)
+
+    expect(lock).to be_active
+    expect(lock.payment_id).to eq(payment.id)
+  end
 end

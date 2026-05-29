@@ -10,6 +10,7 @@ class MisPagosController < ApplicationController
     @subscription = Subscription.active_at.find_by(user_id: current_user.id)
     @quota_counter = Billing::QuotaCounter.for(@subscription) if @subscription
     @payments = current_user.payments.order(created_at: :desc).limit(100)
+    @pending_checkout_lock = Billing::PendingCheckoutLock.for_user(user: current_user)
     @retained_grants = current_user.download_grants.single_purchase.order(created_at: :desc)
     @auto_download_grant = auto_download_grant
   end

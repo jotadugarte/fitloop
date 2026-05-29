@@ -5,15 +5,29 @@
      data-onvo-payment-processing-success-title-value="<%= t("billing.checkout.onvo.processing_success_title") %>"
      data-onvo-payment-processing-success-body-value="<%= t("billing.checkout.onvo.processing_success_body") %>"
      data-onvo-payment-processing-timeout-title-value="<%= t("billing.checkout.onvo.processing_timeout_title") %>"
+     data-onvo-payment-processing-revisit-value="<%= @processing_from_workshop %>"
+     data-onvo-payment-processing-revisit-title-value="<%= t("billing.checkout.pending_workshop_lock.processing_status_title") %>"
+     data-onvo-payment-processing-revisit-body-value="<%= t("billing.checkout.pending_workshop_lock.processing_status_body") %>"
      data-onvo-payment-processing-redirect-delay-ms-value="4000"
-     data-testid="checkout-processing">
+     data-testid="checkout-processing"
+     <% if @processing_from_workshop %>data-processing-context="workshop"<% end %>>
 
   <article class="panel panel--chrome">
     <h1 class="billing-page__title"
-        data-onvo-payment-processing-target="title"><%= t("billing.checkout.onvo.processing_title") %></h1>
+        data-onvo-payment-processing-target="title">
+      <% if @processing_from_workshop %>
+        <%= t("billing.checkout.pending_workshop_lock.processing_status_title") %>
+      <% else %>
+        <%= t("billing.checkout.onvo.processing_title") %>
+      <% end %>
+    </h1>
 
     <p data-onvo-payment-processing-target="message">
-      <%= t("billing.checkout.onvo.processing_body") %>
+      <% if @processing_from_workshop %>
+        <%= t("billing.checkout.pending_workshop_lock.processing_status_body") %>
+      <% else %>
+        <%= t("billing.checkout.onvo.processing_body") %>
+      <% end %>
     </p>
 
     <p class="checkout-processing__success-lead"

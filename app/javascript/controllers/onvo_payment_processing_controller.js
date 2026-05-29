@@ -10,13 +10,26 @@ export default class extends Controller {
     checkoutUrl: String,
     successTitle: String,
     successBody: String,
-    timeoutTitle: String
+    timeoutTitle: String,
+    revisit: { type: Boolean, default: false },
+    revisitTitle: String,
+    revisitBody: String
   }
 
   connect() {
     this.startedAt = Date.now()
+    if (this.revisitValue) this.applyRevisitCopy()
     this.poll()
     this.intervalId = window.setInterval(() => this.poll(), this.pollIntervalMsValue)
+  }
+
+  applyRevisitCopy() {
+    if (this.hasTitleTarget && this.revisitTitleValue) {
+      this.titleTarget.textContent = this.revisitTitleValue
+    }
+    if (this.hasMessageTarget && this.revisitBodyValue) {
+      this.messageTarget.textContent = this.revisitBodyValue
+    }
   }
 
   disconnect() {

@@ -2147,6 +2147,14 @@ h3.fit-section__legend {
   white-space: nowrap;
 }
 
+.pending-payment-lock-banner--compact {
+  margin-bottom: 1.25rem;
+}
+
+.pending-payment-lock-banner__inner--no-actions .pending-payment-lock-banner__content {
+  flex: 1 1 auto;
+}
+
 @media (max-width: 40rem) {
   .pending-payment-lock-banner__actions {
     flex: 1 1 100%;

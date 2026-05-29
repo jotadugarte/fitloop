@@ -46,8 +46,20 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="pending-payment-lock-banner"')
     expect(response.body).to include(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(response.body).to include("context=workshop")
     expect(response.body).to include('data-testid="renest-nesting"')
     expect(response.body).to include("disabled")
+  end
+
+  it "[REQ-FIT-BILL-001] payment status link shows slow-path processing copy" do
+    payment = Payment.find_by!(onvo_payment_intent_id: "pi_workshop_lock")
+
+    get checkout_processing_path(payment, context: "workshop")
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(I18n.t("billing.checkout.pending_workshop_lock.processing_status_body"))
+    expect(response.body).not_to include(I18n.t("billing.checkout.onvo.processing_body"))
+    expect(response.body).to include('data-processing-context="workshop"')
   end
 
   it "[REQ-FIT-BILL-001] blocks starting a new nest" do

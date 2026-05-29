@@ -1,11 +1,11 @@
-<%# locals: (project:) %>
-<% lock = pending_checkout_lock(project) %>
+<%# locals: (lock: nil, project: nil, show_processing_link: true) %>
+<% lock = lock || (project && pending_checkout_lock(project)) %>
 <% if lock&.active? %>
-  <aside class="pending-payment-lock-banner"
+  <aside class="pending-payment-lock-banner<%= " pending-payment-lock-banner--compact" unless show_processing_link %>"
          role="status"
          aria-labelledby="pending-payment-lock-title-<%= lock.payment_id %>"
          data-testid="pending-payment-lock-banner">
-    <div class="pending-payment-lock-banner__inner">
+    <div class="pending-payment-lock-banner__inner<%= " pending-payment-lock-banner__inner--no-actions" unless show_processing_link %>">
       <span class="pending-payment-lock-banner__icon" aria-hidden="true">⏳</span>
       <div class="pending-payment-lock-banner__content">
         <p id="pending-payment-lock-title-<%= lock.payment_id %>" class="pending-payment-lock-banner__title">
@@ -13,12 +13,14 @@
         </p>
         <p class="pending-payment-lock-banner__message"><%= lock.message %></p>
       </div>
-      <div class="pending-payment-lock-banner__actions">
-        <%= link_to t("billing.checkout.pending_workshop_lock.view_processing"),
-                    checkout_processing_path(lock.payment_id),
-                    class: "btn btn-secondary btn--compact pending-payment-lock-banner__cta",
-                    data: { turbo: false, testid: "pending-payment-lock-processing-link" } %>
-      </div>
+      <% if show_processing_link %>
+        <div class="pending-payment-lock-banner__actions">
+          <%= link_to t("billing.checkout.pending_workshop_lock.view_processing"),
+                      checkout_processing_path(lock.payment_id, context: "workshop"),
+                      class: "btn btn-secondary btn--compact pending-payment-lock-banner__cta",
+                      data: { turbo: false, testid: "pending-payment-lock-processing-link" } %>
+        </div>
+      <% end %>
     </div>
   </aside>
 <% end %>
