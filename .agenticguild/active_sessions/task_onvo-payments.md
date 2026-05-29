@@ -306,6 +306,7 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
       <constraint>Reference: `onvo/docs-completa-onvo.txt`, https://docs.onvopay.com</constraint>
     </constraints>
     <dev_webhook_url>https://barbecue-filing-getting.ngrok-free.dev/webhooks/onvo</dev_webhook_url>
+    <manual_qa_sinpe>docs/QA_ONVO_SINPE.md</manual_qa_sinpe>
   </meta>
 
   <phase id="P0" name="Anchors &amp; configuration">
@@ -367,7 +368,7 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
 
   <phase id="P9" name="SINPE confirm &amp; failure paths">
     <step id="9.1" status="complete">Write failing webhook spec: `payment-intent.failed` → `Payment.failed` with snapshot preserved.</step>
-    <step id="9.2" status="pending">Manual QA notes: ONVO test SINPE numbers from `onvo/docs-completa-onvo.txt` testing section.</step>
+    <step id="9.2" status="complete">Manual QA notes: ONVO test SINPE numbers from `onvo/docs-completa-onvo.txt` testing section.</step>
   </phase>
 
   <phase id="P10" name="Regression &amp; docs">
