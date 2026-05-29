@@ -29,7 +29,8 @@ export default class extends Controller {
     cardUrl: String,
     processingUrl: String,
     paymentMethod: String,
-    validationMessages: Object
+    validationMessages: Object,
+    testCards: { type: Array, default: [] }
   }
 
   connect() {
@@ -141,6 +142,10 @@ export default class extends Controller {
       return this.validationMessage("holder_name_invalid")
     }
 
+    if (this.hasTestCardsValue && this.testCardsValue.length > 0 && !this.testCardsValue.includes(cardNumber)) {
+      return this.validationMessage("card_number_test_only")
+    }
+
     if (!this.isValidCardNumber(cardNumber)) {
       return this.validationMessage("card_number_invalid")
     }
@@ -157,6 +162,10 @@ export default class extends Controller {
 
   isValidCardNumber(number) {
     if (!/^\d{13,19}$/.test(number)) return false
+
+    if (this.hasTestCardsValue && this.testCardsValue.length > 0 && !this.testCardsValue.includes(number)) {
+      return false
+    }
 
     let sum = 0
     let alternate = false

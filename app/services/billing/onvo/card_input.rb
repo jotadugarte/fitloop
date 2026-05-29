@@ -50,6 +50,11 @@ module Billing
         raise ArgumentError, "card_number_invalid" unless @card_number.match?(/\A[0-9]+\z/)
         raise ArgumentError, "card_number_invalid" unless @card_number.length.between?(CARD_NUMBER_MIN, CARD_NUMBER_MAX)
         raise ArgumentError, "card_number_invalid" unless luhn_valid?(@card_number)
+        raise ArgumentError, "card_number_test_only" if onvo_test_mode? && !TestCardNumbers.include?(@card_number)
+      end
+
+      def onvo_test_mode?
+        ENV.fetch("ONVO_MODE", "test") == "test"
       end
 
       def validate_cvv!

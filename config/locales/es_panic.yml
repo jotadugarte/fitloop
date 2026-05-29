@@ -226,6 +226,10 @@ es_panic:
           card_exp_invalid: Vencimiento MM/AA; mes 01–12 (ej. 12/28).
           card_exp_expired: Tarjeta vencida. Revisá mes y año.
           card_cvv_invalid: CVV inválido (3 o 4 dígitos).
+          card_number_test_only: Modo prueba ONVO — solo tarjetas de test (ej. 4242 4242 4242 4242, 16 dígitos).
+        api_errors:
+          test_payment_method: Tarjeta no válida en prueba ONVO. Usá 4242 4242 4242 4242.
+        card_test_mode_hint: "Prueba ONVO: Visa 4242 4242 4242 4242 (16 dígitos), vencimiento futuro, CVV cualquiera."
         sinpe_how_title: "¿Cómo va el SINPE?"
         sinpe_how_step_1: Poné cédula y celular desde el que transferís.
         sinpe_how_step_2: «Procesar pago» → te damos monto exacto y número SINPE de ONVO.

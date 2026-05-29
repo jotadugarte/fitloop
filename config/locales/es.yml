@@ -233,6 +233,10 @@ es:
           card_exp_invalid: "La fecha de expiración debe tener el formato MM/AA (mes 01–12, por ejemplo 12/28)."
           card_exp_expired: "La tarjeta está vencida. Revisá el mes y el año de expiración."
           card_cvv_invalid: "El CVV debe tener 3 o 4 dígitos numéricos."
+          card_number_test_only: "En modo prueba ONVO solo acepta tarjetas de test documentadas (por ejemplo Visa 4242 4242 4242 4242, 16 dígitos)."
+        api_errors:
+          test_payment_method: "Esa tarjeta no es válida en modo prueba de ONVO. Usá una tarjeta de test (por ejemplo 4242 4242 4242 4242)."
+        card_test_mode_hint: "Modo prueba ONVO: tarjeta aprobada Visa 4242 4242 4242 4242 (16 dígitos), cualquier vencimiento futuro y CVV."
         sinpe_how_title: "¿Cómo funciona SINPE Móvil?"
         sinpe_how_step_1: "Ingresá la cédula y el teléfono móvil desde el que harás la transferencia."
         sinpe_how_step_2: "Pulsa «Procesar pago»; te mostraremos el monto exacto y el número SINPE destino de ONVO."

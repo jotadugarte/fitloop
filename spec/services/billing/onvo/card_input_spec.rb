@@ -16,6 +16,20 @@ RSpec.describe Billing::Onvo::CardInput, "[REQ-FIT-BILL-001]", type: :service do
     expect(result.fetch(:exp_year)).to eq(2028)
   end
 
+  it "[REQ-FIT-BILL-001] rejects non-test card numbers in ONVO test mode" do
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with("ONVO_MODE", "test").and_return("test")
+
+    expect do
+      described_class.parse!(
+        holder_name: "Test User",
+        card_number: "424242424242424242",
+        card_exp: "12/28",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "card_number_test_only")
+  end
+
   it "[REQ-FIT-BILL-001] rejects letters in card number" do
     expect do
       described_class.parse!(

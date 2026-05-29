@@ -11,8 +11,12 @@
        card_number_invalid: t("billing.checkout.onvo.validation.card_number_invalid"),
        card_exp_invalid: t("billing.checkout.onvo.validation.card_exp_invalid"),
        card_exp_expired: t("billing.checkout.onvo.validation.card_exp_expired"),
-       card_cvv_invalid: t("billing.checkout.onvo.validation.card_cvv_invalid")
+       card_cvv_invalid: t("billing.checkout.onvo.validation.card_cvv_invalid"),
+       card_number_test_only: t("billing.checkout.onvo.validation.card_number_test_only")
      }.to_json %>"
+     <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
+     data-onvo-checkout-test-cards-value="<%= Billing::Onvo::TestCardNumbers::NUMBERS.to_json %>"
+     <% end %>
      data-sinpe-instructions-template="<%= t("billing.checkout.onvo.sinpe_instructions_body") %>"
      data-testid="checkout-onvo-shell">
 
@@ -38,6 +42,11 @@
                data-action="input->onvo-checkout#formatHolderName"
                required>
       </div>
+      <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
+        <p class="checkout-onvo__hint" data-testid="onvo-card-test-hint">
+          <%= t("billing.checkout.onvo.card_test_mode_hint") %>
+        </p>
+      <% end %>
       <div class="checkout-onvo__field field">
         <label for="card_number"><%= t("billing.checkout.onvo.card_number") %></label>
         <input type="text"
