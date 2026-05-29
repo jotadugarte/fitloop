@@ -48,6 +48,7 @@ Rails.application.routes.draw do
   post "checkout/pagar", to: "checkout#pay", as: :checkout_pay
   post "checkout/pagos/:payment_id/sinpe", to: "checkout#confirm_sinpe", as: :checkout_confirm_sinpe
   get "checkout/procesando/:payment_id", to: "checkout#processing", as: :checkout_processing
+  get "checkout/pagos/:payment_id/estado", to: "checkout#payment_status", as: :checkout_payment_status
 
   get "carrito", to: "cart#show", as: :cart
   post "carrito", to: "cart#create"

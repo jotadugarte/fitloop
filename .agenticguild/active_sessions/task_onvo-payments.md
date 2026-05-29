@@ -355,9 +355,9 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P7" name="Processing UX (poll + timeout)">
-    <step id="7.1" status="pending">Write failing request spec: `GET /checkout/pagos/:payment_id/estado` returns JSON `{ status }` from DB (not grant until succeeded).</step>
-    <step id="7.2" status="pending">Add `checkout/processing` view + Stimulus poll every 2–3s, max 60s; on succeeded redirect per today (mis_pagos / workshop); on timeout show “confirmando…” copy.</step>
-    <step id="7.3" status="pending">`onSuccess` SDK → redirect to processing (do not fulfill client-side).</step>
+    <step id="7.1" status="complete">Write failing request spec: `GET /checkout/pagos/:payment_id/estado` returns JSON `{ status }` from DB (not grant until succeeded).</step>
+    <step id="7.2" status="complete">Add `checkout/processing` view + Stimulus poll every 2–3s, max 60s; on succeeded redirect per today (mis_pagos / workshop); on timeout show “confirmando…” copy.</step>
+    <step id="7.3" status="complete">`onSuccess` SDK → redirect to processing (do not fulfill client-side).</step>
   </phase>
 
   <phase id="P8" name="3DS return">

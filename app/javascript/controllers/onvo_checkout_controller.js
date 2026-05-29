@@ -90,6 +90,10 @@ export default class extends Controller {
     this.sinpeInstructionsBodyTarget.textContent = this.sinpeInstructionsText(data)
     this.sinpeInstructionsTarget.hidden = false
     this.processButtonTarget.disabled = true
+
+    window.setTimeout(() => {
+      window.location.href = this.processingUrlValue.replace(":payment_id", paymentId)
+    }, 4000)
   }
 
   async startCardPayment(data) {

@@ -1,10 +1,26 @@
-<div class="paywall-layout checkout-page checkout-processing" data-testid="checkout-processing">
+<div class="paywall-layout checkout-page checkout-processing"
+     data-controller="onvo-payment-processing"
+     data-onvo-payment-processing-status-url-value="<%= @status_url %>"
+     data-onvo-payment-processing-checkout-url-value="<%= checkout_path %>"
+     data-testid="checkout-processing">
+
   <article class="panel panel--chrome">
     <h1 class="billing-page__title"><%= t("billing.checkout.onvo.processing_title") %></h1>
-    <p><%= t("billing.checkout.onvo.processing_body") %></p>
+
+    <p data-onvo-payment-processing-target="message">
+      <%= t("billing.checkout.onvo.processing_body") %>
+    </p>
+
+    <section data-onvo-payment-processing-target="timeoutPanel"
+             data-testid="checkout-processing-timeout"
+             hidden>
+      <p><%= t("billing.checkout.onvo.processing_timeout") %></p>
+    </section>
+
     <p class="checkout-processing__payment-id">
       <%= t("billing.checkout.onvo.processing_payment_ref", id: @payment.id) %>
     </p>
+
     <%= link_to t("billing.checkout.onvo.processing_view_payments"), mis_pagos_path, class: "btn btn-secondary" %>
   </article>
 </div>

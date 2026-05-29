@@ -213,6 +213,7 @@ en:
         sinpe_instructions_body: "Transfer exactly %{amount} to SINPE Mobile %{destination} from the account linked to the ID above. We will notify you when ONVO confirms the payment."
         processing_title: "Processing your payment"
         processing_body: "We are confirming your payment with ONVO. This page will update when the charge is ready."
+        processing_timeout: "We are still confirming your payment in the background. Check My payments in a few minutes."
         processing_payment_ref: "Internal reference: payment #%{id}"
         processing_view_payments: "View My payments"
       failure: "Simulated payment failed. Please try again."

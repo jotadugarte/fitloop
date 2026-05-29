@@ -75,7 +75,13 @@ class CheckoutController < ApplicationController
 
   def processing
     @payment = current_user.payments.find(params[:payment_id])
+    @status_url = checkout_payment_status_path(@payment)
     render :processing
+  end
+
+  def payment_status
+    payment = current_user.payments.find(params[:payment_id])
+    render json: Billing::PaymentStatusResponse.for(payment: payment, routes: self)
   end
 
   def simulate
