@@ -26,12 +26,16 @@ module Billing
 
       if @payment.single_download?
         grant = DownloadGrant.find_by(user_id: @payment.user_id, nesting_run_id: @payment.nesting_run_id)
-        return @routes.mis_pagos_path(auto_download: grant.id) if grant
+        return mis_pagos_success_url(auto_download: grant.id) if grant
 
-        return @routes.mis_pagos_path
+        return mis_pagos_success_url
       end
 
-      @routes.mis_pagos_path if @payment.plan_subscription?
+      mis_pagos_success_url if @payment.plan_subscription?
+    end
+
+    def mis_pagos_success_url(**params)
+      @routes.mis_pagos_path(params.merge(payment_succeeded: 1))
     end
   end
 end

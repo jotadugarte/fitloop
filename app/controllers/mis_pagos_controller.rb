@@ -5,6 +5,8 @@ class MisPagosController < ApplicationController
   include RequiresBillingConfirmation
 
   def show
+    flash.now[:notice] = t("billing.checkout.success_retention") if params[:payment_succeeded].present?
+
     @subscription = Subscription.active_at.find_by(user_id: current_user.id)
     @quota_counter = Billing::QuotaCounter.for(@subscription) if @subscription
     @payments = current_user.payments.order(created_at: :desc).limit(100)

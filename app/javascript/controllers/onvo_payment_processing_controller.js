@@ -1,12 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["message", "timeoutPanel"]
+  static targets = ["message", "timeoutPanel", "title", "successLead"]
   static values = {
     statusUrl: String,
     pollIntervalMs: { type: Number, default: 2500 },
     timeoutMs: { type: Number, default: 60000 },
-    checkoutUrl: String
+    redirectDelayMs: { type: Number, default: 1500 },
+    checkoutUrl: String,
+    successTitle: String,
+    successBody: String
   }
 
   connect() {
@@ -35,7 +38,7 @@ export default class extends Controller {
     const data = await response.json()
     if (data.status === "succeeded" && data.redirect_url) {
       this.stopPolling()
-      window.location.href = data.redirect_url
+      this.showSuccessThenRedirect(data.redirect_url)
       return
     }
 
@@ -53,6 +56,22 @@ export default class extends Controller {
     this.stopPolling()
     if (this.hasTimeoutPanelTarget) this.timeoutPanelTarget.hidden = false
     if (this.hasMessageTarget) this.messageTarget.hidden = true
+  }
+
+  showSuccessThenRedirect(url) {
+    if (this.hasTitleTarget && this.successTitleValue) {
+      this.titleTarget.textContent = this.successTitleValue
+    }
+    if (this.hasMessageTarget) this.messageTarget.hidden = true
+    if (this.hasTimeoutPanelTarget) this.timeoutPanelTarget.hidden = true
+    if (this.hasSuccessLeadTarget) {
+      this.successLeadTarget.textContent = this.successBodyValue
+      this.successLeadTarget.hidden = false
+    }
+
+    window.setTimeout(() => {
+      window.location.href = url
+    }, this.redirectDelayMsValue)
   }
 
   stopPolling() {

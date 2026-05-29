@@ -2,13 +2,22 @@
 
 require "rails_helper"
 
-RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-002]", type: :request do
+RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:user) { create_billing_user! }
 
   before do
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+  end
+
+  describe "GET /mis-pagos [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] shows checkout success notice after ONVO payment_succeeded redirect" do
+      get mis_pagos_path, params: { payment_succeeded: 1, locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("billing.checkout.success_retention", locale: :es))
+    end
   end
 
   describe "GET /mis-pagos [REQ-FIT-BILL-002]" do

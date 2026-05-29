@@ -74,7 +74,9 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
 
       body = JSON.parse(response.body)
       expect(body.fetch("status")).to eq("succeeded")
-      expect(body.fetch("redirect_url")).to eq(mis_pagos_path(auto_download: grant.id))
+      expect(body.fetch("redirect_url")).to eq(
+        mis_pagos_path(auto_download: grant.id, payment_succeeded: 1)
+      )
     end
 
     it "[REQ-FIT-BILL-001] forbids accessing another user payment" do

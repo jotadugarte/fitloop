@@ -221,6 +221,8 @@ es_panic:
         sinpe_instructions_body: "Mandá exactamente %{amount} al SINPE %{destination} desde la cuenta de esa cédula. Avisamos cuando ONVO confirme."
         processing_title: Procesando pago
         processing_body: ONVO está confirmando. Esta pantalla avisa cuando termine.
+        processing_success_title: Pago confirmado
+        processing_success_body: Cobro OK. En un toque baja el DXF y vas a Mis pagos.
         processing_timeout: Seguimos confirmando. Mirá Mis pagos en un rato.
         processing_payment_ref: "Ref. pago #%{id}"
         processing_view_payments: Ir a Mis pagos
