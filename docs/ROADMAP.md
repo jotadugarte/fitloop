@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-27 — P6/P7 merged on `main` (PR #11). Post-merge polish shipped on `main` (workshop `/taller`, locale drafts, billing TZ, workspace TTL). Plan-quota checkout gate + sign-in UX implemented locally (uncommitted).
+**Last audit:** 2026-05-28 — **Billing cart + MEIC UX** ready on branch `add-cart` (116 commits). P6/P7 merged on `main` (PR #11).
 
-**Next action:** Commit billing/auth UX polish on `main`; then **user analytics & admin bitácora**; then **ONVO payments** when external gates are met.
+**Next action:** Merge `add-cart`; then **Admin ventas** (snapshots ready); **user analytics & admin bitácora**; **ONVO payments** when external gates are met.
 
 ---
 
@@ -24,6 +24,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | P6 | User accounts (auth) | **Complete** (PR #11) |
 | P7 | Simulated billing | **Complete** (PR #11) |
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
+| Post-P7b | Billing cart + MEIC UX | **Complete** on branch `add-cart` (pending merge) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -110,6 +111,8 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 ### Post-P7 polish (local on `main`, uncommitted)
 
 - [x] **Billing: plan quota before single-download checkout** — block paywall/checkout when monthly plan quota available; overage at 50% when exhausted; `PlanDownloadAvailability.single_download_checkout_allowed?` (REQ-FIT-BILL-002, D33/D34) — 2026-05-27
+- [x] **Billing cart UX (single-item) + MEIC pricing display** — DB cart (guest/user), paywall catalog, method-first checkout, MEIC list/SINPE UX, geo defaults, payment snapshots, replace-confirm (REQ-FIT-BILL-001..002) — 2026-05-28 — Branch: `add-cart` — Session: `task_billing-cart.md`
+- [x] **Workshop: Mi taller panels collapsed by default** — sheet inventory + source DXF detail stay closed on `/taller` (REQ-FIT-UI-003) — 2026-05-28 — Branch: `add-cart` (mixed scope, D30)
 - [x] **Auth: sign-in failure UX** — inline alert in form (`auth_flash_alert`), `turbo: false`, password label `auth.session.password` (REQ-FIT-AUTH-002) — 2026-05-27
 
 ---
@@ -139,8 +142,8 @@ _(no pending engine items)_
 ### Product & platform
 
 - [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Depends on: P6/P7 merged — Session: `task_user-analytics_2026-05-21.md` (discovery archived in `.agenticguild/completed_sessions/`)
-- [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart** (columnas snapshot) — Session: `task_billing-cart.md`
-- [ ] **ONVO payments (live gateway)** — replace simulated checkout; ONVO SINPE + card SDK — Depends on: billing cart + MEIC UX on `main`; external: OT + ONVO sandbox — Re-explore after cart ships
+- [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart merged** (snapshot columns shipped on `add-cart`) — Session: `task_billing-cart.md`
+- [ ] **ONVO payments (live gateway)** — replace simulated checkout; ONVO SINPE + card SDK — Depends on: **Billing cart + MEIC UX merged to `main`**; external: OT + ONVO sandbox
 - [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: ONVO or P7 stable on `main` — Also noted in `.agenticguild/pending_refactors.md`
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
