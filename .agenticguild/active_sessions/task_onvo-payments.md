@@ -325,8 +325,8 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   <phase id="P2" name="ONVO API client &amp; money">
     <step id="2.1" status="complete">Write failing unit specs for `Billing::Onvo::MoneyMinorUnits.from_breakdown` (CRC/USD major → integer minor per ONVO rules).</step>
     <step id="2.2" status="complete">Implement `Billing::Onvo::Client` (Faraday/Net::HTTP): create payment intent, get intent, create/confirm payment method stubs; reads ENV; `mode` from `ONVO_MODE`.</step>
-    <step id="2.3" status="pending">Write failing spec: `Billing::Onvo::CreatePaymentIntent` builds payload from `CheckoutBreakdown` + `metadata: { payment_id }`.</step>
-    <step id="2.4" status="pending">Implement `CreatePaymentIntent` service.</step>
+    <step id="2.3" status="complete">Write failing spec: `Billing::Onvo::CreatePaymentIntent` builds payload from `CheckoutBreakdown` + `metadata: { payment_id }`.</step>
+    <step id="2.4" status="complete">Implement `CreatePaymentIntent` service.</step>
   </phase>
 
   <phase id="P3" name="Webhook (authoritative fulfillment)">
