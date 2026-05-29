@@ -1915,6 +1915,32 @@ h3.fit-section__legend {
   color: var(--fit-text-muted);
 }
 
+.checkout-onvo__test-hint {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  background: color-mix(in srgb, var(--fit-navy-light) 8%, var(--fit-surface));
+  border-color: color-mix(in srgb, var(--fit-navy-light) 25%, var(--fit-border));
+}
+
+.checkout-onvo__test-hint-summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+  list-style: none;
+}
+
+.checkout-onvo__test-hint-summary::-webkit-details-marker {
+  display: none;
+}
+
+.checkout-onvo__test-hint-body {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
 .checkout-onvo__sinpe-how .checkout-section-title {
   margin-top: 0;
 }

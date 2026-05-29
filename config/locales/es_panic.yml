@@ -229,7 +229,8 @@ es_panic:
           card_number_test_only: Modo prueba ONVO — solo tarjetas de test (ej. 4242 4242 4242 4242, 16 dígitos).
         api_errors:
           test_payment_method: Tarjeta no válida en prueba ONVO. Usá 4242 4242 4242 4242.
-        card_test_mode_hint: "Prueba ONVO: Visa 4242 4242 4242 4242 (16 dígitos), vencimiento futuro, CVV cualquiera."
+        card_test_mode_summary: Tarjetas de prueba ONVO
+        card_test_mode_hint: "Visa OK: 4242 4242 4242 4242. 3DS: 4000 0000 0000 3220. Declinada: 4000 0000 0000 0002."
         payment_canceled: Cancelaste la verificación. El pago no pasó — reingresá la tarjeta y probá otra vez.
         payment_failed: Tarjeta rechazada. Revisá datos o cambiá de método.
         sinpe_how_title: "¿Cómo va el SINPE?"
