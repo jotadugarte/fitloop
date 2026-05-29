@@ -53,6 +53,19 @@ class AuthBillingSpecDocVerifier
     "/webhooks/onvo"
   ].freeze
 
+  # SINPE pending checkout — workshop lock window, pre-retention, abandon/supersede (task_onvo-sinpe-pending-lock).
+  BILL_001_SINPE_PENDING_CHECKOUT_MARKERS = [
+    "workshop_lock_minutes",
+    "checkout_lock_active",
+    "checkout_abandoned",
+    "does not mark payment failed",
+    "late webhook",
+    "pre-retention",
+    "PreRetainNestedDxf",
+    "purge",
+    "FailPayment"
+  ].freeze
+
   ADR_ONVO_MARKERS = [
     "ONVO",
     "payment-intent",
@@ -138,6 +151,9 @@ class AuthBillingSpecDocVerifier
       if req_id == "REQ-FIT-BILL-001"
         BILL_001_ONVO_MARKERS.each do |marker|
           errors << "#{req_id} missing ONVO marker: #{marker}" unless section.match?(/#{Regexp.escape(marker)}/i)
+        end
+        BILL_001_SINPE_PENDING_CHECKOUT_MARKERS.each do |marker|
+          errors << "#{req_id} missing SINPE pending-checkout marker: #{marker}" unless section.match?(/#{Regexp.escape(marker)}/i)
         end
       end
     end

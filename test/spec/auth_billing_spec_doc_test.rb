@@ -9,4 +9,9 @@ class AuthBillingSpecDocTest < Minitest::Test
   def test_auth_and_billing_requirements_are_documented
     assert AuthBillingSpecDocVerifier.verify!
   end
+
+  # [REQ-FIT-BILL-001] SINPE pending checkout: workshop lock window, abandon, late fulfill, pre-retention, failed purge.
+  def test_bill_001_documents_sinpe_pending_checkout_lock_rules
+    assert AuthBillingSpecDocVerifier.verify!
+  end
 end

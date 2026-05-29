@@ -241,6 +241,20 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Client UX:** `onSuccess` → processing screen (poll `GET /checkout/pagos/:payment_id/estado` every 2–3s, max ~60s); do **not** grant on client callback alone.
 - **ENV:** `ONVO_MODE`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET`.
 
+**SINPE pending checkout — workshop lock & pre-retention (v1.2):**
+
+- **Config:** `config/billing.yml` → `onvo_pending_checkout.workshop_lock_minutes` (default **15**). `Billing::PendingCheckoutPolicy` computes `lock_expires_at` from `Payment#created_at` + window.
+- **Workshop lock:** `Payment#checkout_lock_active?` is true only when `payment_method` is **`sinpe_crc`**, `status` is `pending`, the payment is within `workshop_lock_minutes`, `checkout_lock_released_at` is blank, `superseded_at` is blank, and there is no **downloadable** grant (`DownloadGrant#retention_active?`). **`Billing::PendingCheckoutLock`** delegates to `checkout_lock_active?` (not raw pending).
+- **Card pending:** Tarjeta pending payments never set `checkout_lock_active?` — the workshop is not blocked while card checkout awaits ONVO.
+- **Lock ≠ payment status:** Workshop lock timeout or user abandon **does not mark payment failed**; `status` stays `pending` until the ONVO webhook (or simulate terminal path) updates it.
+- **Manual abandon:** `POST /checkout/pagos/:id/liberar` → **`Billing::ReleasePendingCheckoutLock`** sets `checkout_abandoned_at` and `checkout_lock_released_at` (v1 local only; no ONVO cancel API). Copy warns: if the user already transferred, do not abandon expecting cancellation.
+- **Supersede:** Starting a new SINPE checkout for the same `nesting_run_id` while another is pending → **`Billing::SupersedePendingCheckout`** marks the older row `superseded_at` and releases its lock before creating the new pending payment. Block duplicate checkout while `checkout_lock_active?` on the prior attempt.
+- **Late webhook:** `payment-intent.succeeded` after `checkout_abandoned_at` or after lock timeout still runs **`Billing::FulfillPayment`** — ONVO is authoritative; user may download once grant is fulfilled.
+- **pre-retention (SINPE only):** On SINPE checkout start, **`Billing::PreRetainNestedDxf`** copies `Project#nested_dxf` to `DownloadGrant#retained_nested_dxf` with **`retained_until` nil** until fulfill — staging only; **not** downloadable until `FulfillPayment` sets `retained_until = paid_at + 24.hours` (see REQ-FIT-BILL-003 D54).
+- **Failed webhook purge:** On `payment-intent.failed`, **`Billing::FailPayment`** **purge**s the pre-retained blob when the grant has `retained_nested_dxf` attached but `retention_active?` is false (staging never fulfilled). Fulfilled grants are not purged.
+- **Lazy lock release:** On first read after `workshop_lock_minutes` elapses, persist `checkout_lock_released_at` (no cron in v1).
+- **Status poll / Mis pagos:** Poll while `awaiting_gateway_confirmation?` (pending without terminal status), including after lock expired or abandoned, until `succeeded` or `failed`.
+
 **Checkout — simulated dev fallback (`BILLING_GATEWAY=simulate`):**
 
 - Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator (hidden when `onvo`).
