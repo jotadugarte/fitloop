@@ -33,35 +33,20 @@ module Billing
     end
 
     def record_failure!
-      Payment.create!(base_payment_attrs(status: "failed", paid_at: nil).merge(snapshot_fields))
+      payment = Payment.create!(
+        base_payment_attrs(status: "pending", paid_at: nil).merge(snapshot_fields)
+      )
+      FailPayment.call(payment: payment)
       :failed
     end
 
     def record_success!
-      paid_at = Time.current
-      result = nil
-      ActiveRecord::Base.transaction do
-        subscription = upsert_subscription!(paid_at)
-        payment = Payment.create!(
-          base_payment_attrs(status: "succeeded", paid_at: paid_at, subscription: subscription).merge(snapshot_fields)
-        )
-        result = { subscription: subscription, payment: payment, project: @project }
-      end
-      result
-    end
-
-    def upsert_subscription!(paid_at)
-      existing = Subscription.active_at(paid_at).find_by(user_id: @user.id)
-      anchor = existing&.ends_at || paid_at
-      ends_at = PlanPeriod.ends_at_for(starts_at: anchor, tier_months: @tier_months, time_zone: @user.time_zone)
-      return existing.tap { |sub| sub.update!(ends_at: ends_at) } if existing
-
-      Subscription.create!(
-        user: @user,
-        tier_months: @tier_months,
-        starts_at: paid_at,
-        ends_at: ends_at
+      payment = Payment.create!(
+        base_payment_attrs(status: "pending", paid_at: nil).merge(snapshot_fields)
       )
+      FulfillPayment.call(payment: payment)
+      payment.reload
+      { subscription: payment.subscription, payment: payment, project: @project }
     end
 
     def base_payment_attrs(status:, paid_at:, subscription: nil)

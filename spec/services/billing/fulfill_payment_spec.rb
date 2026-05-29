@@ -1,0 +1,124 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe Billing::FulfillPayment, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: :service do
+  include ActiveSupport::Testing::TimeHelpers
+
+  let(:user) { create_billing_user! }
+
+  describe "single_download [REQ-FIT-BILL-001] [REQ-FIT-BILL-003]" do
+    def pending_single_payment!
+      project = Project.create!(ephemeral: true, title: "Fulfill nest", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        purchaser_name: user.name,
+        purchaser_email: user.email,
+        total_amount: 1130
+      )
+      { payment: payment, run: run, project: project }
+    end
+
+    it "[REQ-FIT-BILL-001] marks pending payment succeeded and creates retained DownloadGrant" do
+      ctx = pending_single_payment!
+
+      expect do
+        described_class.call(payment: ctx[:payment])
+      end.to change(DownloadGrant, :count).by(1)
+
+      ctx[:payment].reload
+      expect(ctx[:payment]).to be_succeeded
+      expect(ctx[:payment].paid_at).to be_present
+
+      grant = DownloadGrant.find_by(user_id: user.id, nesting_run_id: ctx[:run].id)
+      expect(grant.retained_nested_dxf).to be_attached
+    end
+
+    it "[REQ-FIT-BILL-001] is idempotent when payment already succeeded" do
+      ctx = pending_single_payment!
+      described_class.call(payment: ctx[:payment])
+
+      expect do
+        described_class.call(payment: ctx[:payment])
+      end.not_to change(DownloadGrant, :count)
+    end
+  end
+
+  describe "plan_subscription [REQ-FIT-BILL-002]" do
+    it "[REQ-FIT-BILL-002] creates subscription and marks payment succeeded" do
+      paid_at = Time.zone.parse("2026-05-18 12:00:00")
+      payment = nil
+
+      travel_to(paid_at) do
+        payment = Payment.create!(
+          user: user,
+          status: "pending",
+          payment_method: "card_usd",
+          currency: "usd",
+          amount: Billing::Pricing.plan_1_month_card_usd,
+          purpose: "plan_subscription",
+          product_description: "plan_1_months"
+        )
+
+        expect do
+          described_class.call(payment: payment)
+        end.to change(Subscription, :count).by(1)
+      end
+
+      payment.reload
+      subscription = Subscription.last
+      expect(payment).to be_succeeded
+      expect(payment.subscription_id).to eq(subscription.id)
+      expect(subscription.tier_months).to eq(1)
+      expect(subscription.starts_at).to be_within(2.seconds).of(paid_at)
+    end
+
+    it "[REQ-FIT-BILL-002] extends ends_at when user already has an active plan (D28)" do
+      existing_ends = Time.zone.parse("2026-06-20 23:59:59")
+      create_active_subscription!(
+        user: user,
+        tier_months: 1,
+        starts_at: Time.zone.parse("2026-05-01 00:00:00"),
+        ends_at: existing_ends
+      )
+      paid_at = Time.zone.parse("2026-05-18 12:00:00")
+
+      travel_to(paid_at) do
+        payment = Payment.create!(
+          user: user,
+          status: "pending",
+          payment_method: "sinpe_crc",
+          currency: "crc",
+          amount: 10_000,
+          purpose: "plan_subscription",
+          product_description: "plan_2_months"
+        )
+
+        expect do
+          described_class.call(payment: payment)
+        end.not_to change(Subscription, :count)
+
+        payment.reload
+        expect(payment.subscription.ends_at).to be_within(1.second).of(
+          Billing::PlanPeriod.ends_at_for(
+            starts_at: existing_ends,
+            tier_months: 2,
+            time_zone: user.time_zone
+          )
+        )
+      end
+    end
+  end
+end

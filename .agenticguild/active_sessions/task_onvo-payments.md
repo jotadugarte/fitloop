@@ -337,8 +337,8 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P4" name="Fulfillment extraction">
-    <step id="4.1" status="pending">Write failing service specs for `Billing::FulfillPayment` (single_download + plan_subscription) mirroring current simulate success invariants (retain nested DXF, grant, subscription extension, snapshots).</step>
-    <step id="4.2" status="pending">Extract shared logic from `SimulateSingleDownload` / `SimulatePlanPurchase` into `FulfillPayment` / `FailPayment`; simulators call same services on success/failure.</step>
+    <step id="4.1" status="complete">Write failing service specs for `Billing::FulfillPayment` (single_download + plan_subscription) mirroring current simulate success invariants (retain nested DXF, grant, subscription extension, snapshots).</step>
+    <step id="4.2" status="complete">Extract shared logic from `SimulateSingleDownload` / `SimulatePlanPurchase` into `FulfillPayment` / `FailPayment`; simulators call same services on success/failure.</step>
   </phase>
 
   <phase id="P5" name="Checkout — start payment (replace simulate when onvo)">
