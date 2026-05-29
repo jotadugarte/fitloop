@@ -166,6 +166,7 @@ en:
       quota_remaining: "%{remaining} of %{limit} downloads this month"
       single_purchases: "Paid single downloads"
       no_single_purchases: "No paid single downloads yet."
+      awaiting_confirmation: "Waiting for payment confirmation"
       download: "Download"
       retained_until: "Available until %{until}"
       payment_history: "Payment history"

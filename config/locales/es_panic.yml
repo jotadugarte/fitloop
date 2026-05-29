@@ -176,6 +176,7 @@ es_panic:
       quota_remaining: "%{remaining} / %{limit} descargas este mes"
       single_purchases: Descargas sueltas pagadas
       no_single_purchases: Sin descargas sueltas todavía.
+      awaiting_confirmation: Esperando confirmación del pago
       download: Descargar
       retained_until: Hasta %{until}
       payment_history: Historial de pagos

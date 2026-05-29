@@ -1,0 +1,28 @@
+<%# locals: (row:) %>
+<li class="mis-pagos-list__item<%= " mis-pagos-list__item--pending-download" if row.pending? %>"
+    data-testid="<%= row.pending? ? "mis-pagos-pending-download-row" : "mis-pagos-grant-row" %>">
+  <div class="mis-pagos-list__primary">
+    <time class="mis-pagos-list__date" datetime="<%= row.sort_at.iso8601 %>">
+      <%= l_in_user_zone(row.sort_at, format: :short, user: current_user) %>
+    </time>
+    <% if row.pending? %>
+      <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.awaiting_confirmation") %></span>
+    <% elsif row.grant.retention_active? %>
+      <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(row.grant.retained_until, format: :short, user: current_user)) %></span>
+    <% else %>
+      <span class="mis-pagos-list__meta mis-pagos-list__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
+    <% end %>
+  </div>
+  <% if row.pending? %>
+    <span class="btn btn-primary btn--small mis-pagos-list__action mis-pagos-list__action--pending"
+          aria-disabled="true"
+          data-testid="mis-pagos-download-pending">
+      <%= t("billing.mis_pagos.download") %>
+    </span>
+  <% elsif row.downloadable? %>
+    <%= link_to t("billing.mis_pagos.download"),
+                mis_pagos_download_path(row.grant),
+                class: "btn btn-primary btn--small mis-pagos-list__action",
+                data: { turbo: false, testid: "mis-pagos-download" } %>
+  <% end %>
+</li>

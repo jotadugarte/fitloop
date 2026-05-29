@@ -181,6 +181,7 @@ es:
       quota_remaining: "%{remaining} de %{limit} descargas este mes"
       single_purchases: "Descargas sueltas pagadas"
       no_single_purchases: "Aún no tienes descargas sueltas pagadas."
+      awaiting_confirmation: "Esperando confirmación del pago"
       download: "Descargar"
       retained_until: "Disponible hasta %{until}"
       payment_history: "Historial de pagos"

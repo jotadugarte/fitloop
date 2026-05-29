@@ -1560,6 +1560,12 @@ h3.fit-section__legend {
   flex-shrink: 0;
 }
 
+.mis-pagos-list__action--pending {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .mis-pagos-aside__action {
   margin: 1.25rem 0 0;
 }

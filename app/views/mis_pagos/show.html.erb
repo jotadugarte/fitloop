@@ -1,4 +1,10 @@
-<div class="paywall-layout mis-pagos-page" data-testid="mis-pagos-page">
+<div class="paywall-layout mis-pagos-page"
+     data-testid="mis-pagos-page"
+     <% if @pending_payment_status_url.present? %>
+       data-controller="mis-pagos-pending-sync"
+       data-mis-pagos-pending-sync-status-url-value="<%= @pending_payment_status_url %>"
+       data-testid-mis-pagos-pending-sync="true"
+     <% end %>>
   <% if @auto_download_grant %>
     <div class="mis-pagos-auto-download"
          data-controller="auto-download"
@@ -23,27 +29,10 @@
 
     <section class="mis-pagos-section panel panel--inset" data-testid="mis-pagos-single-purchases">
       <h2 class="mis-pagos-section__title"><%= t("billing.mis_pagos.single_purchases") %></h2>
-      <% if @retained_grants.any? %>
+      <% if @single_purchase_rows.any? %>
         <ul class="mis-pagos-list">
-          <% @retained_grants.each do |grant| %>
-            <li class="mis-pagos-list__item" data-testid="mis-pagos-grant-row">
-              <div class="mis-pagos-list__primary">
-                <time class="mis-pagos-list__date" datetime="<%= grant.created_at.iso8601 %>">
-                  <%= l_in_user_zone(grant.created_at, format: :short, user: current_user) %>
-                </time>
-                <% if grant.retention_active? %>
-                  <span class="mis-pagos-list__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(grant.retained_until, format: :short, user: current_user)) %></span>
-                <% else %>
-                  <span class="mis-pagos-list__meta mis-pagos-list__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></span>
-                <% end %>
-              </div>
-              <% if grant.retention_active? %>
-                <%= link_to t("billing.mis_pagos.download"),
-                            mis_pagos_download_path(grant),
-                            class: "btn btn-primary btn--small mis-pagos-list__action",
-                            data: { turbo: false, testid: "mis-pagos-download" } %>
-              <% end %>
-            </li>
+          <% @single_purchase_rows.each do |row| %>
+            <%= render "mis_pagos/single_purchase_row", row: row %>
           <% end %>
         </ul>
       <% else %>

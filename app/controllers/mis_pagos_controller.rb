@@ -11,7 +11,8 @@ class MisPagosController < ApplicationController
     @quota_counter = Billing::QuotaCounter.for(@subscription) if @subscription
     @payments = current_user.payments.order(created_at: :desc).limit(100)
     @pending_checkout_lock = Billing::PendingCheckoutLock.for_user(user: current_user)
-    @retained_grants = current_user.download_grants.single_purchase.order(created_at: :desc)
+    @single_purchase_rows = Billing::MisPagos::SinglePurchaseRows.build(user: current_user)
+    @pending_payment_status_url = checkout_payment_status_path(@pending_checkout_lock.payment_id) if @pending_checkout_lock
     @auto_download_grant = auto_download_grant
   end
 
