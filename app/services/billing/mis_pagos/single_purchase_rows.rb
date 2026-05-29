@@ -24,8 +24,9 @@ module Billing
 
       def build
         grants = @user.download_grants.single_purchase.order(created_at: :desc).to_a
-        covered_run_ids = grants.map(&:nesting_run_id).compact.to_set
-        pending = pending_payments_excluding(covered_run_ids)
+        pending = PendingCheckoutLock.unfulfilled_pending_payments(user: @user)
+                                       .order(created_at: :desc)
+                                       .includes(:nesting_run)
 
         rows = grant_rows(grants) + pending_rows(pending)
         rows.sort_by(&:sort_at).reverse
@@ -43,13 +44,6 @@ module Billing
         end
       end
 
-      def pending_payments_excluding(covered_run_ids)
-        Payment.pending.single_download
-               .where(user_id: @user.id)
-               .order(created_at: :desc)
-               .includes(:nesting_run)
-               .reject { |payment| covered_run_ids.include?(payment.nesting_run_id) }
-      end
     end
   end
 end

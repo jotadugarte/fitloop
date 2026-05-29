@@ -55,4 +55,17 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
     expect(lock).to be_active
     expect(lock.payment_id).to eq(payment.id)
   end
+
+  it "[REQ-FIT-BILL-001] is inactive when grant already exists for the nesting run" do
+    payment = pending_payment!
+    DownloadGrant.create!(
+      user: user,
+      nesting_run: run,
+      kind: :single_purchase,
+      retained_until: 1.day.from_now
+    )
+
+    expect(described_class.for(project: project, user: user)).to be_nil
+    expect(described_class.for_user(user: user)).to be_nil
+  end
 end

@@ -13,10 +13,7 @@ module Billing
     def self.for_user(user:)
       return nil if user.nil?
 
-      payment = Payment.pending.single_download
-                       .where(user_id: user.id)
-                       .order(created_at: :desc)
-                       .first
+      payment = unfulfilled_pending_payments(user: user).order(created_at: :desc).first
       return nil if payment.nil?
 
       new(payment: payment)
@@ -25,10 +22,17 @@ module Billing
     def self.pending_payment_for(project:, user:)
       return nil if project.nil? || user.nil?
 
-      Payment.pending.single_download
-             .where(user_id: user.id)
-             .joins(:nesting_run)
-             .find_by(nesting_runs: { project_id: project.id })
+      unfulfilled_pending_payments(user: user)
+        .joins(:nesting_run)
+        .where(nesting_runs: { project_id: project.id })
+        .order(created_at: :desc)
+        .first
+    end
+
+    def self.unfulfilled_pending_payments(user:)
+      granted_run_ids = DownloadGrant.single_purchase.where(user_id: user.id).select(:nesting_run_id)
+
+      Payment.pending.single_download.where(user_id: user.id).where.not(nesting_run_id: granted_run_ids)
     end
 
     def initialize(payment:)
@@ -36,7 +40,12 @@ module Billing
     end
 
     def active?
-      @payment.pending?
+      return false unless @payment.pending?
+
+      !DownloadGrant.single_purchase.exists?(
+        user_id: @payment.user_id,
+        nesting_run_id: @payment.nesting_run_id
+      )
     end
 
     def payment_id
