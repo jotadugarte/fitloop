@@ -394,6 +394,8 @@ es_panic:
       dxf_upload_legend: Los benditos vectores (Archivos DXF)
       dxf_upload_label: Suba el bendito .dxf
       dxf_upload_choose: Buscar el .dxf
+      dxf_upload_no_files: Nada elegido todavía
+      dxf_upload_files_selected: "%{count} .dxf en la fila"
       dxf_upload_hint: Solo archivos .dxf por favor, no intente subir un PDF.
       dxf_upload_setup_hint: Si sube un archivo corrupto, el servidor va a llorar.
       dxf_upload_failed: El archivo murió al subir.

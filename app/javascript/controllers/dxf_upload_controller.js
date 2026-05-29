@@ -3,11 +3,16 @@ import { fitloopAlert } from "fitloop_dialog"
 import { withWorkspaceTabHeaders } from "workspace_tab"
 
 export default class extends Controller {
-  static targets = ["input"]
-  static values = { url: String }
+  static targets = ["input", "fileName"]
+  static values = { url: String, emptyFiles: String, filesSelected: String }
+
+  connect() {
+    this.updateFileLabel()
+  }
 
   upload() {
     const files = this.inputTarget.files
+    this.updateFileLabel()
     if (!files?.length) return
 
     const body = new FormData()
@@ -36,6 +41,7 @@ export default class extends Controller {
         }
 
         this.inputTarget.value = ""
+        this.updateFileLabel()
       })
       .catch(() => {
         fitloopAlert(this.uploadFailedMessage)
@@ -48,6 +54,34 @@ export default class extends Controller {
 
   get uploadFailedMessage() {
     return this.element.dataset.dxfUploadFailedValue || "Upload failed"
+  }
+
+  updateFileLabel() {
+    if (!this.hasFileNameTarget) return
+
+    const files = this.inputTarget.files
+    if (!files?.length) {
+      this.fileNameTarget.textContent = this.emptyFilesLabel
+      return
+    }
+
+    if (files.length === 1) {
+      this.fileNameTarget.textContent = files[0].name
+      return
+    }
+
+    this.fileNameTarget.textContent = this.filesSelectedLabel(files.length)
+  }
+
+  get emptyFilesLabel() {
+    return this.hasEmptyFilesValue ? this.emptyFilesValue : "No files selected"
+  }
+
+  filesSelectedLabel(count) {
+    const template = this.hasFilesSelectedValue
+      ? this.filesSelectedValue
+      : "%{count} files selected"
+    return template.replace("%{count}", String(count))
   }
 
   expandLayerSections() {

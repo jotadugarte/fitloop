@@ -2547,6 +2547,28 @@ h3.fit-section__legend {
   margin: 0;
 }
 
+.project-dxf-file-input__control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.project-dxf-file-input__button {
+  margin: 0;
+}
+
+.project-dxf-file-input__status {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--fit-text-muted);
+}
+
+.project-dxf-file-input:focus-within .project-dxf-file-input__button {
+  outline: 2px solid var(--fit-navy-light);
+  outline-offset: 2px;
+}
+
 .project-dxf-upload__layers {
   margin-top: 1rem;
 }

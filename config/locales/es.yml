@@ -401,6 +401,8 @@ es:
       dxf_upload_legend: "Archivos DXF"
       dxf_upload_label: "Archivos DXF"
       dxf_upload_choose: "Elegir archivos DXF"
+      dxf_upload_no_files: "Ningún archivo seleccionado"
+      dxf_upload_files_selected: "%{count} archivos seleccionados"
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
       dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."

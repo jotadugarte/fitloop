@@ -19,17 +19,27 @@
        data-controller="dxf-upload"
        data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: context) %>"
        data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
-    <div class="field">
-      <label for="<%= input_id %>" class="visually-hidden"><%= t("projects.form.dxf_upload_choose") %></label>
+    <div class="field project-dxf-file-input"
+         data-dxf-upload-empty-files-value="<%= t("projects.form.dxf_upload_no_files") %>"
+         data-dxf-upload-files-selected-value="<%= t("projects.form.dxf_upload_files_selected") %>">
       <%= file_field_tag "files[]",
             multiple: true,
             accept: ".dxf,application/dxf",
             id: input_id,
+            class: "project-dxf-file-input__input visually-hidden",
             data: {
               dxf_upload_target: "input",
               action: "change->dxf-upload#upload",
               testid: testid
             } %>
+      <div class="project-dxf-file-input__control">
+        <label for="<%= input_id %>" class="btn btn-secondary project-dxf-file-input__button">
+          <%= t("projects.form.dxf_upload_choose") %>
+        </label>
+        <span class="project-dxf-file-input__status"
+              data-dxf-upload-target="fileName"
+              aria-live="polite"><%= t("projects.form.dxf_upload_no_files") %></span>
+      </div>
     </div>
 
     <div class="project-dxf-upload__layers">
