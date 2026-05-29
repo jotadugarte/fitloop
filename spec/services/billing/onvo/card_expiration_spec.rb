@@ -17,4 +17,8 @@ RSpec.describe Billing::Onvo::CardExpiration, "[REQ-FIT-BILL-001]", type: :servi
   it "[REQ-FIT-BILL-001] rejects values that cannot form MM/YY" do
     expect { described_class.parse("129") }.to raise_error(ArgumentError, "card_exp_invalid")
   end
+
+  it "[REQ-FIT-BILL-001] rejects month greater than 12" do
+    expect { described_class.parse("33/45") }.to raise_error(ArgumentError, "card_exp_invalid")
+  end
 end

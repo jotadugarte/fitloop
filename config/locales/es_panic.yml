@@ -223,7 +223,7 @@ es_panic:
         validation:
           holder_name_invalid: Nombre en tarjeta inválido (solo letras, 2–100 caracteres).
           card_number_invalid: Número de tarjeta inválido (13–19 dígitos).
-          card_exp_invalid: Vencimiento en formato MM/AA (ej. 12/28).
+          card_exp_invalid: Vencimiento MM/AA; mes 01–12 (ej. 12/28).
           card_exp_expired: Tarjeta vencida. Revisá mes y año.
           card_cvv_invalid: CVV inválido (3 o 4 dígitos).
         sinpe_how_title: "¿Cómo va el SINPE?"

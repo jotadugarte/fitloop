@@ -75,12 +75,27 @@ export default class extends Controller {
   }
 
   formatCardExp(event) {
-    const digits = event.target.value.replace(/\D/g, "").slice(0, 4)
-    if (digits.length <= 2) {
-      event.target.value = digits
-      return
+    event.target.value = this.formatCardExpValue(event.target.value)
+  }
+
+  formatCardExpValue(raw) {
+    let digits = raw.replace(/\D/g, "").slice(0, 4)
+    if (digits.length === 0) return ""
+
+    if (digits.length === 1 && Number.parseInt(digits, 10) > 1) {
+      digits = `0${digits}`
     }
-    event.target.value = `${digits.slice(0, 2)}/${digits.slice(2)}`
+
+    if (digits.length >= 2) {
+      let month = Number.parseInt(digits.slice(0, 2), 10)
+      if (month === 0) month = 1
+      if (month > 12) month = 12
+      digits = `${String(month).padStart(2, "0")}${digits.slice(2)}`
+    }
+
+    if (digits.length <= 2) return digits
+
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`
   }
 
   formatCardCvv(event) {
