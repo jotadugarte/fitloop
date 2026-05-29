@@ -70,45 +70,25 @@
         <p class="mis-pagos-zone__empty-text"><%= t("billing.mis_pagos.no_single_purchases") %></p>
       <% end %>
     </section>
-
-    <section class="mis-pagos-zone panel panel--inset" data-testid="mis-pagos-payments">
-      <header class="mis-pagos-zone__header">
-        <h2 class="mis-pagos-zone__title"><%= t("billing.mis_pagos.payment_history") %></h2>
-        <p class="mis-pagos-zone__lead"><%= t("billing.mis_pagos.payments_lead") %></p>
-      </header>
-      <% if @payments.any? %>
-        <div class="mis-pagos-payments-table">
-          <div class="mis-pagos-payments-table__head" aria-hidden="true">
-            <span><%= t("billing.mis_pagos.payments_table.date") %></span>
-            <span><%= t("billing.mis_pagos.payments_table.type") %></span>
-            <span><%= t("billing.mis_pagos.payments_table.status") %></span>
-            <span><%= t("billing.mis_pagos.payments_table.amount") %></span>
-          </div>
-          <ul class="mis-pagos-payments-table__body">
-            <% @payments.each do |payment| %>
-              <%= render "mis_pagos/payment_row", payment: payment %>
-            <% end %>
-          </ul>
-        </div>
-      <% else %>
-        <p class="mis-pagos-zone__empty-text"><%= t("billing.mis_pagos.no_payments") %></p>
-      <% end %>
-    </section>
   </article>
 
   <aside class="paywall-layout__aside panel panel--inset mis-pagos-page__aside" aria-labelledby="mis-pagos-aside-title">
-    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
-    <h2 id="mis-pagos-aside-title" class="paywall-aside__title"><%= t("billing.mis_pagos.aside.title") %></h2>
-    <p class="paywall-aside__lead"><%= t("billing.mis_pagos.aside.lead") %></p>
-    <ul class="paywall-aside__benefits">
-      <li><%= t("billing.paywall.aside.benefit_retention") %></li>
-      <li><%= t("billing.paywall.aside.benefit_plan") %></li>
-    </ul>
-    <p class="mis-pagos-aside__action">
-      <%= link_to t("billing.mis_pagos.aside.view_plans"),
-                  download_paywall_workshop_path,
-                  class: "btn btn-secondary",
-                  data: { turbo_frame: "_top" } %>
-    </p>
+    <div class="mis-pagos-aside__info">
+      <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
+      <h2 id="mis-pagos-aside-title" class="paywall-aside__title"><%= t("billing.mis_pagos.aside.title") %></h2>
+      <p class="paywall-aside__lead"><%= t("billing.mis_pagos.aside.lead") %></p>
+      <ul class="paywall-aside__benefits">
+        <li><%= t("billing.paywall.aside.benefit_retention") %></li>
+        <li><%= t("billing.paywall.aside.benefit_plan") %></li>
+      </ul>
+      <p class="mis-pagos-aside__action">
+        <%= link_to t("billing.mis_pagos.aside.view_plans"),
+                    download_paywall_workshop_path,
+                    class: "btn btn-secondary",
+                    data: { turbo_frame: "_top" } %>
+      </p>
+    </div>
+
+    <%= render "mis_pagos/payment_history", payments: @payments %>
   </aside>
 </div>

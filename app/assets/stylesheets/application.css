@@ -1359,6 +1359,101 @@ h3.fit-section__legend {
 
 .mis-pagos-page__aside {
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mis-pagos-aside__info {
+  flex-shrink: 0;
+}
+
+.mis-pagos-aside__payments {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--fit-border);
+}
+
+.mis-pagos-aside__payments-header {
+  margin-bottom: 0.85rem;
+}
+
+.mis-pagos-aside__payments-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-aside__payments-lead {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-aside__payments-empty {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-payments-aside__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: min(32rem, 60vh);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.mis-pagos-payment-item {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--fit-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--fit-navy) 3%, var(--fit-bg));
+}
+
+.mis-pagos-payment-item__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.mis-pagos-payment-item__date {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-payment-item__amount {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--fit-navy);
+  white-space: nowrap;
+}
+
+.mis-pagos-payment-item__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mis-pagos-payment-item__purpose {
+  font-size: 0.8rem;
+  color: var(--fit-text-muted);
+}
+
+.status-badge--compact {
+  padding: 0.12rem 0.45rem;
+  font-size: 0.68rem;
 }
 
 .mis-pagos-zone {
@@ -1531,59 +1626,6 @@ h3.fit-section__legend {
 .mis-pagos-download-card__action {
   flex-shrink: 0;
   white-space: nowrap;
-}
-
-.mis-pagos-payments-table__head,
-.mis-pagos-payments-table__row {
-  display: grid;
-  grid-template-columns: minmax(9rem, 1.2fr) minmax(7rem, 1fr) minmax(6rem, 0.9fr) minmax(5rem, 0.7fr);
-  gap: 0.75rem 1rem;
-  align-items: center;
-}
-
-.mis-pagos-payments-table__head {
-  padding: 0 0.5rem 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--fit-text-muted);
-  border-bottom: 1px solid var(--fit-border);
-}
-
-.mis-pagos-payments-table__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.mis-pagos-payments-table__row {
-  padding: 0.85rem 0.5rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--fit-border) 70%, transparent);
-}
-
-.mis-pagos-payments-table__row:last-child {
-  border-bottom: 0;
-}
-
-.mis-pagos-payments-table__cell {
-  min-width: 0;
-  font-size: 0.92rem;
-  color: var(--fit-text);
-}
-
-.mis-pagos-payments-table__cell--date {
-  font-weight: 600;
-  color: var(--fit-navy);
-}
-
-.mis-pagos-payments-table__cell--amount {
-  font-weight: 700;
-  color: var(--fit-navy);
-  text-align: right;
 }
 
 .mis-pagos-section,
@@ -1841,6 +1883,10 @@ h3.fit-section__legend {
 }
 
 @media (max-width: 768px) {
+  .mis-pagos-page .paywall-layout__aside {
+    order: 0;
+  }
+
   .mis-pagos-download-card {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1850,35 +1896,8 @@ h3.fit-section__legend {
     text-align: center;
   }
 
-  .mis-pagos-payments-table__head {
-    display: none;
-  }
-
-  .mis-pagos-payments-table__row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.35rem;
-    padding: 0.95rem 0.35rem;
-  }
-
-  .mis-pagos-payments-table__cell {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem 0.65rem;
-    align-items: baseline;
-  }
-
-  .mis-pagos-payments-table__cell::before {
-    content: attr(data-label);
-    flex: 0 0 5.5rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--fit-text-muted);
-  }
-
-  .mis-pagos-payments-table__cell--amount {
-    text-align: left;
+  .mis-pagos-payments-aside__list {
+    max-height: none;
   }
 }
 

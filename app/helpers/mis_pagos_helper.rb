@@ -34,6 +34,13 @@ module MisPagosHelper
   end
 
   def mis_pagos_payment_amount_label(payment)
-    "#{payment.currency.upcase} #{number_with_delimiter(payment.amount, delimiter: ',')}"
+    amount = payment.total_amount || payment.amount
+    formatted = number_with_precision(
+      amount,
+      precision: amount.to_f == amount.to_i ? 0 : 2,
+      delimiter: ",",
+      separator: "."
+    )
+    "#{payment.currency.upcase} #{formatted}"
   end
 end
