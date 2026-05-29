@@ -9,7 +9,8 @@ export default class extends Controller {
     redirectDelayMs: { type: Number, default: 4000 },
     checkoutUrl: String,
     successTitle: String,
-    successBody: String
+    successBody: String,
+    timeoutTitle: String
   }
 
   connect() {
@@ -66,6 +67,9 @@ export default class extends Controller {
 
   showTimeout() {
     this.stopPolling()
+    if (this.hasTitleTarget && this.timeoutTitleValue) {
+      this.titleTarget.textContent = this.timeoutTitleValue
+    }
     if (this.hasTimeoutPanelTarget) this.timeoutPanelTarget.hidden = false
     if (this.hasMessageTarget) this.messageTarget.hidden = true
   }

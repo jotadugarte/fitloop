@@ -209,6 +209,9 @@ es:
       aside:
         lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
     checkout:
+      pending_workshop_lock:
+        message: "Tenés un pago en confirmación para este anidado. No cambies láminas ni vuelvas a anidar hasta que termine; si lo hacés, podés perder la descarga de este resultado."
+        view_processing: "Ver estado del pago"
       title: "Pagar esta descarga"
       title_plan: "Pagar este plan"
       demo_badge: "Entorno de demostración — pagos simulados (QA)"
@@ -257,10 +260,12 @@ es:
         sinpe_instructions_note: "Transferí desde la cuenta asociada a la cédula indicada. Te avisaremos cuando ONVO confirme el pago."
         sinpe_continue: "Ya hice la transferencia, continuar"
         processing_title: "Procesando tu pago"
-        processing_body: "Estamos confirmando tu pago con ONVO. Esta página se actualizará cuando el cobro quede listo."
+        processing_body: "Estamos confirmando tu pago con ONVO. Esta página se actualizará sola cuando el cobro quede listo (suele tardar unos segundos)."
         processing_success_title: "Pago confirmado"
         processing_success_body: "Tu pago fue aprobado. En un momento iniciamos la descarga y te llevamos a Mis pagos."
-        processing_timeout: "Seguimos confirmando tu pago en segundo plano. Revisá Mis pagos en unos minutos; te avisaremos cuando esté listo."
+        processing_timeout_title: "Confirmación en curso"
+        processing_timeout: "Pasaron 60 segundos y ONVO aún no confirmó el cobro. En SINPE Móvil esto puede ser normal: a veces la acreditación tarda varios minutos."
+        processing_timeout_next: "No vuelvas a pagar. Revisá Mis pagos en unos minutos (o recargá esa página). Esta pantalla ya no se actualiza sola; cuando el cobro se apruebe, la descarga aparecerá ahí."
         processing_payment_ref: "Referencia interna: pago #%{id}"
         processing_view_payments: "Ver Mis pagos"
       failure: "El pago simulado falló. Inténtalo de nuevo."

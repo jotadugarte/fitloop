@@ -2071,6 +2071,53 @@ h3.fit-section__legend {
   font-weight: 500;
 }
 
+.checkout-processing__timeout {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  background: color-mix(in srgb, var(--fit-navy) 6%, var(--fit-bg));
+  border-color: color-mix(in srgb, var(--fit-navy) 25%, var(--fit-border));
+}
+
+.checkout-processing__timeout-lead {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.checkout-processing__timeout-next {
+  margin: 0;
+  color: var(--fit-text-muted, #4a5568);
+}
+
+.pending-payment-lock-banner {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--fit-navy) 8%, var(--fit-bg));
+  border: 1px solid color-mix(in srgb, var(--fit-navy) 28%, var(--fit-border));
+}
+
+.pending-payment-lock-banner__message {
+  margin: 0 0 0.65rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.pending-payment-lock-banner__actions {
+  margin: 0;
+}
+
+.pending-payment-lock-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.pending-payment-lock-fieldset:disabled {
+  opacity: 0.72;
+}
+
 .status-badge--processing {
   color: var(--fit-navy-dark);
   background: #e8eef5;

@@ -4,6 +4,7 @@
      data-onvo-payment-processing-checkout-url-value="<%= checkout_path %>"
      data-onvo-payment-processing-success-title-value="<%= t("billing.checkout.onvo.processing_success_title") %>"
      data-onvo-payment-processing-success-body-value="<%= t("billing.checkout.onvo.processing_success_body") %>"
+     data-onvo-payment-processing-timeout-title-value="<%= t("billing.checkout.onvo.processing_timeout_title") %>"
      data-onvo-payment-processing-redirect-delay-ms-value="4000"
      data-testid="checkout-processing">
 
@@ -21,10 +22,13 @@
        hidden
        role="status"></p>
 
-    <section data-onvo-payment-processing-target="timeoutPanel"
+    <section class="checkout-processing__timeout panel panel--inset"
+             data-onvo-payment-processing-target="timeoutPanel"
              data-testid="checkout-processing-timeout"
-             hidden>
-      <p><%= t("billing.checkout.onvo.processing_timeout") %></p>
+             hidden
+             role="status">
+      <p class="checkout-processing__timeout-lead"><%= t("billing.checkout.onvo.processing_timeout") %></p>
+      <p class="checkout-processing__timeout-next"><%= t("billing.checkout.onvo.processing_timeout_next") %></p>
     </section>
 
     <p class="checkout-processing__payment-id">

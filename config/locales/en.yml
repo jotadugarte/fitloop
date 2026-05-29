@@ -194,6 +194,9 @@ en:
       aside:
         lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
+      pending_workshop_lock:
+        message: "A payment for this nest is still being confirmed. Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."
+        view_processing: "View payment status"
       title: "Pay for this download"
       title_plan: "Pay for this plan"
       demo_badge: "Demo environment — simulated payments (QA)"
@@ -242,10 +245,12 @@ en:
         sinpe_instructions_note: "Transfer from the account linked to the ID you entered. We will notify you when ONVO confirms the payment."
         sinpe_continue: "I've made the transfer, continue"
         processing_title: "Processing your payment"
-        processing_body: "We are confirming your payment with ONVO. This page will update when the charge is ready."
+        processing_body: "We are confirming your payment with ONVO. This page will update automatically when the charge is ready (usually within a few seconds)."
         processing_success_title: "Payment confirmed"
         processing_success_body: "Your payment was approved. We will start your download and take you to My payments in a moment."
-        processing_timeout: "We are still confirming your payment in the background. Check My payments in a few minutes."
+        processing_timeout_title: "Still confirming"
+        processing_timeout: "60 seconds have passed and ONVO has not confirmed the charge yet. With SINPE Mobile this can be normal: crediting sometimes takes several minutes."
+        processing_timeout_next: "Do not pay again. Check My payments in a few minutes (or reload that page). This screen will no longer update on its own; once the charge is approved, your download will appear there."
         processing_payment_ref: "Internal reference: payment #%{id}"
         processing_view_payments: "View My payments"
       failure: "Simulated payment failed. Please try again."

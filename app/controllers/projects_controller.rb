@@ -4,6 +4,7 @@
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
   include RequiresNestedDownloadAuthorization
+  include BlocksWorkshopDuringPendingPayment
 
   layout "application"
 
@@ -122,6 +123,8 @@ class ProjectsController < ApplicationController
   private
 
   def update_workspace_sheets!
+    return if reject_workshop_mutation_if_pending_payment!
+
     attributes = workspace_sheet_params
     sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
     @project.assign_attributes(attributes)

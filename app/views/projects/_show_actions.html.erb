@@ -1,4 +1,5 @@
 <%= turbo_frame_tag dom_id(project, :show_actions) do %>
+  <% lock_active = workshop_mutations_locked?(project) %>
   <section class="project-show__actions panel panel--chrome fit-section">
     <h2 class="fit-section__legend"><%= t("projects.show.actions_title") %></h2>
 
@@ -12,21 +13,24 @@
                           params: { nest_updated_pieces: true },
                           class: "btn btn-primary",
                           form: { data: { turbo_frame: "_top" } },
-                          data: { testid: "nest-updated-pieces" } %>
+                          data: { testid: "nest-updated-pieces" },
+                          disabled: lock_active %>
           <% elsif project.nested_dxf.attached? && (project.completed? || project.partial?) %>
             <%= button_to t("nesting.renest"),
                             project_nesting_runs_path(project),
                             method: :post,
                             class: "btn btn-secondary",
                             form: { data: { turbo_frame: "_top" } },
-                            data: { testid: "renest-nesting" } %>
+                            data: { testid: "renest-nesting" },
+                            disabled: lock_active %>
           <% elsif project.draft? || project.ready? || project.failed? %>
             <%= button_to t("nesting.start"),
                             project_nesting_runs_path(project),
                             method: :post,
                             class: "btn btn-primary",
                             form: { data: { turbo_frame: "_top" } },
-                            data: { testid: "start-nesting" } %>
+                            data: { testid: "start-nesting" },
+                            disabled: lock_active %>
           <% end %>
 
           <% active_run = project.nesting_runs.order(created_at: :desc).find_by(status: "processing") %>

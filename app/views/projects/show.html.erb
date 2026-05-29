@@ -14,6 +14,7 @@
     <div class="project-show__hero-status">
       <%= render "status_badge", project: @project %>
     </div>
+    <%= render "pending_payment_lock_banner", project: @project %>
     <%= render "show_welcome" %>
   </div>
 

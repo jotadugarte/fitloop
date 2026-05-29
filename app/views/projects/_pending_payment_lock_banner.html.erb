@@ -1,0 +1,15 @@
+<%# locals: (project:) %>
+<% lock = pending_checkout_lock(project) %>
+<% if lock&.active? %>
+  <aside class="pending-payment-lock-banner panel panel--inset"
+         role="status"
+         data-testid="pending-payment-lock-banner">
+    <p class="pending-payment-lock-banner__message"><%= lock.message %></p>
+    <p class="pending-payment-lock-banner__actions">
+      <%= link_to t("billing.checkout.pending_workshop_lock.view_processing"),
+                  checkout_processing_path(lock.payment_id),
+                  class: "btn btn-secondary btn--compact",
+                  data: { turbo: false, testid: "pending-payment-lock-processing-link" } %>
+    </p>
+  </aside>
+<% end %>

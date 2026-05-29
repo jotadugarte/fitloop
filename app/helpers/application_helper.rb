@@ -54,6 +54,16 @@ module ApplicationHelper
     toolbar_workspace_project ? workshop_path : start_project_path
   end
 
+  def pending_checkout_lock(project)
+    return nil unless current_user
+
+    Billing::PendingCheckoutLock.for(project: project, user: current_user)
+  end
+
+  def workshop_mutations_locked?(project)
+    pending_checkout_lock(project)&.active?
+  end
+
   def toolbar_workshop_button_class
     base = "btn btn--compact toolbar-workshop__btn"
     toolbar_workspace_project ? "#{base} btn-primary" : "#{base} btn-secondary"

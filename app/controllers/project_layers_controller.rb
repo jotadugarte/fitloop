@@ -5,6 +5,7 @@
 class ProjectLayersController < ApplicationController
   include StartsNesting
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
 
@@ -18,6 +19,8 @@ class ProjectLayersController < ApplicationController
   end
 
   def update
+    return if reject_workshop_mutation_if_pending_payment!
+
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
 
     readiness = ProjectReadinessValidator.validate(@project)

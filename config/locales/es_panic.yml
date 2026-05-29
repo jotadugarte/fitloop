@@ -204,6 +204,9 @@ es_panic:
       aside:
         lead: Planes con cupo mensual. Elige meses y simula pago USD o CRC.
     checkout:
+      pending_workshop_lock:
+        message: Pago en confirmación para este anidado. No toques láminas ni re-anides hasta que cierre — o perdés la descarga.
+        view_processing: Ver estado del pago
       demo_badge: DEMO — pagos simulados (QA)
       process_payment: Procesar pago
       savings_badge: "Ahorra %{amount}"
@@ -250,10 +253,12 @@ es_panic:
         sinpe_instructions_note: Transferí desde la cuenta de esa cédula. Avisamos cuando ONVO confirme.
         sinpe_continue: Ya transferí, continuar
         processing_title: Procesando pago
-        processing_body: ONVO está confirmando. Esta pantalla avisa cuando termine.
+        processing_body: ONVO está confirmando. Esta pantalla se actualiza sola cuando termine (segundos).
         processing_success_title: Pago confirmado
         processing_success_body: Cobro OK. En un toque baja el DXF y vas a Mis pagos.
-        processing_timeout: Seguimos confirmando. Mirá Mis pagos en un rato.
+        processing_timeout_title: Confirmación en curso
+        processing_timeout: Pasaron 60 s y ONVO aún no confirmó. En SINPE puede tardar varios minutos — es normal.
+        processing_timeout_next: No pagues otra vez. Mirá Mis pagos en un rato o recargá esa página. Acá ya no se actualiza sola; cuando aprueben, la descarga aparece ahí.
         processing_payment_ref: "Ref. pago #%{id}"
         processing_view_payments: Ir a Mis pagos
       failure: El pago simulado falló. Otra vuelta.
