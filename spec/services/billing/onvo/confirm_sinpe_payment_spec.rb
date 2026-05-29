@@ -43,6 +43,7 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
 
     expect(result.fetch(:status)).to eq("processing")
     expect(result.fetch(:destination_number)).to include("506")
+    expect(result.fetch(:destination_holder_name)).to eq(Billing::Onvo::SinpeDestination.holder_name)
     expect(payment.reload.gateway_status).to eq("processing")
   end
 end

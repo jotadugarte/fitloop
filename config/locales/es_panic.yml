@@ -242,7 +242,10 @@ es_panic:
         sinpe_identification: Cédula
         sinpe_mobile_number: Celular SINPE
         sinpe_instructions_title: Cómo transferir
-        sinpe_instructions_body: "Mandá exactamente %{amount} al SINPE %{destination} desde la cuenta de esa cédula. Avisamos cuando ONVO confirme."
+        sinpe_destination_amount: Monto exacto
+        sinpe_destination_number: Número SINPE
+        sinpe_destination_name: Nombre del beneficiario
+        sinpe_instructions_note: Transferí desde la cuenta de esa cédula. Avisamos cuando ONVO confirme.
         sinpe_continue: Ya transferí, continuar
         processing_title: Procesando pago
         processing_body: ONVO está confirmando. Esta pantalla avisa cuando termine.

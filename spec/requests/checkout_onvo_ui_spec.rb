@@ -59,8 +59,9 @@ RSpec.describe "ONVO checkout UI", "[REQ-FIT-BILL-001]", type: :request do
       expect(response.body).to match(/data-testid="onvo-card-panel"[^>]*\shidden/)
       expect(response.body).to include('name="sinpe_identification"')
       expect(response.body).to include('name="sinpe_mobile_number"')
-      expect(response.body).to include('data-testid="checkout-sinpe-continue"')
-      expect(response.body).to include(I18n.t("billing.checkout.onvo.sinpe_continue", locale: :es))
+      expect(response.body).to include(I18n.t("billing.checkout.onvo.sinpe_destination_name", locale: :es))
+      expect(response.body).to include('data-onvo-checkout-target="secondaryActions"')
+      expect(response.body).not_to include('data-onvo-checkout-target="sinpeContinueButton"')
     end
   end
 end

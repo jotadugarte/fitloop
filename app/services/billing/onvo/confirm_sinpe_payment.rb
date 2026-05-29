@@ -4,8 +4,6 @@ module Billing
   module Onvo
     # [REQ-FIT-BILL-001] Create mobile_number payment method and confirm SINPE intent.
     class ConfirmSinpePayment
-      DEFAULT_DESTINATION_NUMBER = "+506 70196686"
-
       def self.call(payment:, identification:, mobile_number:, client: nil)
         new(payment: payment, identification: identification, mobile_number: mobile_number, client: client).call
       end
@@ -46,7 +44,8 @@ module Billing
         {
           payment_id: @payment.id,
           status: intent.fetch(:status),
-          destination_number: DEFAULT_DESTINATION_NUMBER,
+          destination_number: SinpeDestination.number,
+          destination_holder_name: SinpeDestination.holder_name,
           amount: @payment.total_amount,
           currency: @payment.currency
         }

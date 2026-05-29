@@ -17,7 +17,8 @@
      <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
      data-onvo-checkout-test-cards-value="<%= Billing::Onvo::TestCardNumbers::NUMBERS.to_json %>"
      <% end %>
-     data-sinpe-instructions-template="<%= t("billing.checkout.onvo.sinpe_instructions_body") %>"
+     data-onvo-checkout-process-payment-label-value="<%= t("billing.checkout.process_payment") %>"
+     data-onvo-checkout-sinpe-continue-label-value="<%= t("billing.checkout.onvo.sinpe_continue") %>"
      data-testid="checkout-onvo-shell">
 
   <div data-onvo-checkout-target="cardPanel"
@@ -139,7 +140,21 @@
              data-testid="onvo-sinpe-instructions"
              hidden>
       <h3 class="checkout-section-title"><%= t("billing.checkout.onvo.sinpe_instructions_title") %></h3>
-      <p class="checkout-onvo__lead" data-onvo-checkout-target="sinpeInstructionsBody"></p>
+      <dl class="checkout-onvo__sinpe-transfer-details">
+        <div class="checkout-onvo__sinpe-transfer-row">
+          <dt><%= t("billing.checkout.onvo.sinpe_destination_amount") %></dt>
+          <dd data-onvo-checkout-target="sinpeInstructionAmount"></dd>
+        </div>
+        <div class="checkout-onvo__sinpe-transfer-row">
+          <dt><%= t("billing.checkout.onvo.sinpe_destination_number") %></dt>
+          <dd data-onvo-checkout-target="sinpeInstructionNumber"></dd>
+        </div>
+        <div class="checkout-onvo__sinpe-transfer-row">
+          <dt><%= t("billing.checkout.onvo.sinpe_destination_name") %></dt>
+          <dd data-onvo-checkout-target="sinpeInstructionName"></dd>
+        </div>
+      </dl>
+      <p class="checkout-onvo__lead"><%= t("billing.checkout.onvo.sinpe_instructions_note") %></p>
     </section>
   </div>
 
@@ -155,27 +170,22 @@
     <%= hidden_field_tag :payment_method, selected_payment_method, data: { onvo_checkout_target: "paymentMethodField" } %>
 
     <button type="button"
-            class="btn btn-primary"
+            class="btn btn-primary checkout-onvo__primary-action"
             data-testid="checkout-process-payment"
             data-action="click->onvo-checkout#processPayment"
             data-onvo-checkout-target="processButton">
       <%= t("billing.checkout.process_payment") %>
     </button>
-    <button type="button"
-            class="btn btn-primary"
-            data-testid="checkout-sinpe-continue"
-            data-action="click->onvo-checkout#continueToProcessing"
-            data-onvo-checkout-target="sinpeContinueButton"
-            hidden>
-      <%= t("billing.checkout.onvo.sinpe_continue") %>
-    </button>
-    <%= link_to t("billing.checkout.back_to_paywall"),
-                download_paywall_workshop_path,
-                class: "btn btn-secondary",
-                data: { testid: "checkout-back-to-paywall", turbo: false } %>
-    <%= link_to t("billing.checkout.back_to_project"),
-                project_path(@project),
-                class: "btn btn-secondary",
-                data: { testid: "checkout-back-to-project", turbo: false } %>
+    <div class="checkout-onvo__secondary-actions"
+         data-onvo-checkout-target="secondaryActions">
+      <%= link_to t("billing.checkout.back_to_paywall"),
+                  download_paywall_workshop_path,
+                  class: "btn btn-secondary",
+                  data: { testid: "checkout-back-to-paywall", turbo: false } %>
+      <%= link_to t("billing.checkout.back_to_project"),
+                  project_path(@project),
+                  class: "btn btn-secondary",
+                  data: { testid: "checkout-back-to-project", turbo: false } %>
+    </div>
   </footer>
 </div>

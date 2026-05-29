@@ -2006,6 +2006,62 @@ h3.fit-section__legend {
   margin-top: 0.25rem;
 }
 
+.checkout-onvo__footer [hidden] {
+  display: none !important;
+}
+
+.checkout-onvo__primary-action {
+  flex: 1 1 100%;
+}
+
+.checkout-onvo__secondary-actions {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.checkout-onvo__secondary-actions .btn {
+  flex: 1 1 12rem;
+}
+
+.checkout-onvo__sinpe-transfer-details {
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.checkout-onvo__sinpe-transfer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--fit-border);
+}
+
+.checkout-onvo__sinpe-transfer-row:first-child {
+  padding-top: 0;
+}
+
+.checkout-onvo__sinpe-transfer-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.checkout-onvo__sinpe-transfer-row dt {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fit-navy);
+}
+
+.checkout-onvo__sinpe-transfer-row dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fit-text);
+  word-break: break-word;
+}
+
 .checkout-processing__success-lead {
   margin: 1rem 0 0;
   padding: 0.75rem 1rem;

@@ -17,10 +17,12 @@ export default class extends Controller {
     "sinpeFields",
     "sinpeHow",
     "sinpeInstructions",
-    "sinpeInstructionsBody",
+    "sinpeInstructionAmount",
+    "sinpeInstructionNumber",
+    "sinpeInstructionName",
     "errorMessage",
     "processButton",
-    "sinpeContinueButton",
+    "secondaryActions",
     "nestingRunId",
     "tierMonths",
     "paymentMethodField"
@@ -33,6 +35,8 @@ export default class extends Controller {
     processingUrl: String,
     paymentMethod: String,
     validationMessages: Object,
+    processPaymentLabel: String,
+    sinpeContinueLabel: String,
     testCards: { type: Array, default: [] }
   }
 
@@ -111,7 +115,10 @@ export default class extends Controller {
     event.preventDefault()
     this.clearError()
 
-    if (this.sinpeAwaitingTransfer) return
+    if (this.sinpeAwaitingTransfer) {
+      this.continueToProcessing(event)
+      return
+    }
 
     if (!this.isSinpe()) {
       const validationError = this.validateCardForm()
@@ -134,7 +141,7 @@ export default class extends Controller {
       }
     } catch (error) {
       this.showError(error.message)
-      this.processButtonTarget.disabled = false
+      this.resetPrimaryButton()
     }
   }
 
@@ -262,12 +269,28 @@ export default class extends Controller {
     const data = await response.json()
     if (!response.ok) throw new Error(data.error || "SINPE confirmation failed")
 
-    this.sinpeInstructionsBodyTarget.textContent = this.sinpeInstructionsText(data)
+    this.showSinpeTransferStep(data)
+  }
+
+  showSinpeTransferStep(data) {
+    if (this.hasSinpeInstructionAmountTarget) {
+      this.sinpeInstructionAmountTarget.textContent = data.amount_label || data.amount
+    }
+    if (this.hasSinpeInstructionNumberTarget) {
+      this.sinpeInstructionNumberTarget.textContent = data.destination_number
+    }
+    if (this.hasSinpeInstructionNameTarget) {
+      this.sinpeInstructionNameTarget.textContent = data.destination_holder_name
+    }
+
     this.sinpeInstructionsTarget.hidden = false
     if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = true
     if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = true
-    this.processButtonTarget.hidden = true
-    if (this.hasSinpeContinueButtonTarget) this.sinpeContinueButtonTarget.hidden = false
+    if (this.hasSecondaryActionsTarget) this.secondaryActionsTarget.hidden = true
+
+    this.processButtonTarget.textContent = this.sinpeContinueLabelValue
+    this.processButtonTarget.disabled = false
+    this.processButtonTarget.dataset.testid = "checkout-sinpe-continue"
     this.sinpeAwaitingTransfer = true
     this.sinpeInstructionsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }
@@ -276,7 +299,15 @@ export default class extends Controller {
     event.preventDefault()
     if (!this.paymentId) return
 
+    this.processButtonTarget.disabled = true
     window.location.href = this.processingUrlValue.replace(":payment_id", this.paymentId)
+  }
+
+  resetPrimaryButton() {
+    this.processButtonTarget.disabled = false
+    if (this.hasProcessPaymentLabelValue) {
+      this.processButtonTarget.textContent = this.processPaymentLabelValue
+    }
   }
 
   payFormData() {
@@ -289,17 +320,6 @@ export default class extends Controller {
     }
     body.append("payment_method", this.paymentMethodValue)
     return body
-  }
-
-  sinpeInstructionsText(data) {
-    const template = this.element.dataset.sinpeInstructionsTemplate
-    if (!template) {
-      return `Transfer exactly ${data.amount} ${data.currency} to ${data.destination_number}`
-    }
-    return template
-      .replace("%{amount}", data.amount_label || data.amount)
-      .replace("%{currency}", data.currency)
-      .replace("%{destination}", data.destination_number)
   }
 
   isSinpe() {

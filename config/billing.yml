@@ -70,3 +70,8 @@ plan_4_months_official_crc: 8400
 plan_4_months_sinpe_crc: 8000
 plan_4_months_card_usd: 18.00
 plan_4_months_sinpe_usd: 17.00
+
+# ONVO SINPE Móvil — número y nombre que ve el cliente al transferir (hot-reload con billing.yml).
+onvo_sinpe_destination:
+  number: "+506 70196686"
+  holder_name: "ONVO Pay"

@@ -53,6 +53,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     body = JSON.parse(response.body)
     expect(body.fetch("status")).to eq("processing")
     expect(body.fetch("destination_number")).to be_present
+    expect(body.fetch("destination_holder_name")).to eq(Billing::Onvo::SinpeDestination.holder_name)
     expect(payment.reload.gateway_status).to eq("processing")
   end
 end
