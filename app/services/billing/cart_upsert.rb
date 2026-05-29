@@ -33,10 +33,10 @@ module Billing
     private
 
     def validate!
-      raise ArgumentError, "invalid kind" unless %w[single_download plan].include?(@kind)
-      raise ArgumentError, "invalid currency_mode" unless %w[crc usd].include?(@currency_mode)
+      raise ArgumentError, "invalid kind" unless Cart.kinds.key?(@kind)
+      raise ArgumentError, "invalid currency_mode" unless Cart.currency_modes.key?(@currency_mode)
 
-      if @kind == "single_download"
+      if @kind == Cart.kinds[:single_download]
         raise ArgumentError, "nesting_run_id required" if @nesting_run_id.blank?
       else
         raise ArgumentError, "tier_months required" unless Subscription::ALLOWED_TIER_MONTHS.include?(@tier_months.to_i)
@@ -63,7 +63,7 @@ module Billing
         sinpe_price_cents: sinpe_cents
       }
 
-      if @kind == "plan"
+      if @kind == Cart.kinds[:plan]
         base.merge(tier_months: @tier_months.to_i, user_id: @user&.id, guest_token: @user ? nil : @guest_token)
       else
         base.merge(nesting_run_id: @nesting_run_id, user_id: @user&.id, guest_token: @user ? nil : @guest_token)
@@ -72,7 +72,7 @@ module Billing
 
     def price_cents_pair
       currency = @currency_mode == "usd" ? :usd : :crc
-      if @kind == "plan"
+      if @kind == Cart.kinds[:plan]
         card_usd, official_crc, sinpe_crc = Pricing.plan_price_triple(@tier_months)
         list = currency == :usd ? card_usd : official_crc
         sinpe = currency == :usd ? card_usd : sinpe_crc

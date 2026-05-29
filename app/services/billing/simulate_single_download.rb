@@ -3,12 +3,6 @@
 module Billing
   # [REQ-FIT-BILL-001] Simulated single-download checkout (D37).
   class SimulateSingleDownload
-    METHODS = {
-      "card_usd" => { payment_method: "card_usd", currency: :usd, card: true },
-      "card_crc" => { payment_method: "card_crc", currency: :crc, card: true },
-      "sinpe_crc" => { payment_method: "sinpe_crc", currency: :crc, card: false }
-    }.freeze
-
     def self.call(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
       new(
         user: user,
@@ -32,7 +26,7 @@ module Billing
       unless PlanDownloadAvailability.single_download_checkout_allowed?(user: @user)
         raise ArgumentError, "active plan monthly quota must be used before single purchase"
       end
-      raise ArgumentError, "unknown payment_method" unless METHODS.key?(@payment_method)
+      raise ArgumentError, "unknown payment_method" unless CheckoutPaymentMethod::ALL.include?(@payment_method)
       raise ArgumentError, "nested_dxf missing" unless @nesting_run.project.nested_dxf.attached?
       return record_failure! if @outcome == "failure"
 
@@ -42,7 +36,7 @@ module Billing
     private
 
     def config
-      METHODS.fetch(@payment_method)
+      CheckoutPaymentMethod.config_for(@payment_method)
     end
 
     def unit_amount
@@ -56,7 +50,7 @@ module Billing
       Pricing.price(
         product: :single_download,
         currency: config.fetch(:currency),
-        payment_method: config.fetch(:card) ? :card : :sinpe,
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
         overage: overage
       )
     end
@@ -71,7 +65,7 @@ module Billing
     def billing_context
       {
         currency: config.fetch(:currency),
-        payment_method: config.fetch(:card) ? :card : :sinpe,
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
         iva_applicable: @iva_applicable
       }
     end
@@ -157,7 +151,7 @@ module Billing
     end
 
     def cart_currency_matches?(cart)
-      cart.currency_mode.to_s == config.fetch(:currency).to_s
+      cart.currency_mode == config.fetch(:currency).to_s
     end
 
     def cents_to_amount(cents, currency)

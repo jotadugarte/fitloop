@@ -29,13 +29,13 @@ class CartController < ApplicationController
   end
 
   def replace
-    return redirect_to(download_paywall_workshop_path) if @pending_cart.blank?
+    return redirect_to(download_paywall_workshop_path) if @pending_cart.nil?
 
     @existing_cart = current_cart
   end
 
   def update
-    return redirect_to(download_paywall_workshop_path) if @pending_cart.blank?
+    return redirect_to(download_paywall_workshop_path) if @pending_cart.nil?
 
     upsert_cart_from_pending!
     session.delete(:pending_cart)
@@ -59,9 +59,8 @@ class CartController < ApplicationController
   def cart_line_summary(source)
     return t("billing.cart.replace.line_unknown") if source.blank?
 
-    kind = source.is_a?(Cart) ? source.kind : source.fetch("kind").to_s
-    if kind == "plan"
-      tier = source.is_a?(Cart) ? source.tier_months : source.fetch("tier_months")
+    kind, tier = cart_line_kind_and_tier(source)
+    if kind == Cart.kinds[:plan]
       t("billing.cart.replace.line_plan", months: tier.to_i)
     else
       t("billing.cart.replace.line_download")
@@ -69,6 +68,18 @@ class CartController < ApplicationController
   end
 
   private
+
+  def cart_line_kind_and_tier(source)
+    case source
+    when Cart
+      [source.kind, source.tier_months]
+    when Billing::PendingCart
+      [source.kind, source.tier_months]
+    else
+      data = source.stringify_keys
+      [data.fetch("kind").to_s, data["tier_months"]]
+    end
+  end
 
   def upsert_cart!
     guest_token = session[:cart_guest_token] ||= SecureRandom.uuid
@@ -85,29 +96,31 @@ class CartController < ApplicationController
 
   def upsert_cart_from_pending!
     guest_token = session[:cart_guest_token] ||= SecureRandom.uuid
-    pending = @pending_cart.symbolize_keys
     Billing::CartUpsert.call(
       user: current_user,
       guest_token: guest_token,
-      kind: pending.fetch(:kind),
-      nesting_run_id: pending[:nesting_run_id],
-      tier_months: pending[:tier_months],
-      currency_mode: pending.fetch(:currency_mode)
+      kind: @pending_cart.kind,
+      nesting_run_id: @pending_cart.nesting_run_id,
+      tier_months: @pending_cart.tier_months,
+      currency_mode: @pending_cart.currency_mode
     )
     session[:cart_guest_token] = guest_token unless current_user
   end
 
   def stash_pending_cart!
-    session[:pending_cart] = {
+    session[:pending_cart] = Billing::PendingCart.new(
       "kind" => cart_kind_param,
       "nesting_run_id" => params[:nesting_run_id],
       "tier_months" => params[:tier_months],
       "currency_mode" => resolved_currency_mode
-    }
+    ).to_h
   end
 
   def load_pending_cart!
-    @pending_cart = session[:pending_cart]
+    @pending_cart = Billing::PendingCart.from_session(session[:pending_cart])
+  rescue ArgumentError
+    session.delete(:pending_cart)
+    @pending_cart = nil
   end
 
   def resolved_currency_mode
@@ -126,7 +139,7 @@ class CartController < ApplicationController
     kind = cart_kind_param
     return true unless existing.kind == kind
 
-    if kind == "plan"
+    if kind == Cart.kinds[:plan]
       existing.tier_months.to_i != params[:tier_months].to_i
     else
       existing.nesting_run_id.to_i != params[:nesting_run_id].to_i

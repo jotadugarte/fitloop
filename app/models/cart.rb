@@ -1,6 +1,12 @@
+# frozen_string_literal: true
+
+# [REQ-FIT-BILL-001] Single-item shopping cart (guest or user-bound).
 class Cart < ApplicationRecord
   belongs_to :nesting_run, optional: true
   belongs_to :user, optional: true
+
+  enum :kind, { single_download: "single_download", plan: "plan" }, validate: true
+  enum :currency_mode, { crc: "crc", usd: "usd" }, validate: true
 
   validate :must_have_guest_or_user
   validate :must_have_exactly_one_product_reference

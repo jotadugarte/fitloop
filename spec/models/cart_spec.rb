@@ -8,6 +8,22 @@ RSpec.describe Cart, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]" do
   end
 
   describe "invariants [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] rejects invalid enum values (D6)" do
+      user = create_billing_user!
+
+      cart = described_class.new(
+        kind: "not_a_kind",
+        currency_mode: "usd",
+        list_price_cents: 250,
+        sinpe_price_cents: 200,
+        nesting_run: NestingRun.new,
+        user: user
+      )
+
+      expect(cart).not_to be_valid
+      expect(cart.errors[:kind]).to be_present
+    end
+
     it "[REQ-FIT-BILL-001] requires either guest_token or user (D6)" do
       cart = described_class.new(
         kind: "single_download",

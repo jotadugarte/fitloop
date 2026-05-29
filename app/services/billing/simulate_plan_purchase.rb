@@ -4,7 +4,7 @@ module Billing
   # [REQ-FIT-BILL-002] Simulated plan subscription checkout (D28, D29, D37).
   class SimulatePlanPurchase
     ALLOWED_TIERS = Subscription::ALLOWED_TIER_MONTHS.freeze
-    ALLOWED_METHODS = %w[card_usd card_crc sinpe_crc].freeze
+    ALLOWED_METHODS = CheckoutPaymentMethod::ALL.freeze
 
     def self.call(user:, tier_months:, payment_method:, outcome:, project:)
       new(user: user, tier_months: tier_months, payment_method: payment_method, outcome: outcome, project: project).call
@@ -70,7 +70,7 @@ module Billing
         subscription: subscription,
         status: status,
         payment_method: @payment_method,
-        currency: @payment_method == "card_usd" ? "usd" : "crc",
+        currency: CheckoutPaymentMethod.currency_for(@payment_method).to_s,
         amount: plan_amount,
         purpose: "plan_subscription",
         paid_at: paid_at
@@ -79,7 +79,7 @@ module Billing
 
     def plan_amount
       breakdown = plan_breakdown
-      @payment_method == "sinpe_crc" ? breakdown.fetch(:subtotal) : breakdown.fetch(:list_price)
+      CheckoutPaymentMethod.sinpe?(@payment_method) ? breakdown.fetch(:subtotal) : breakdown.fetch(:list_price)
     end
 
     def plan_breakdown
@@ -92,7 +92,7 @@ module Billing
 
     def cart_for_plan
       cart = Cart.find_by(user_id: @user.id)
-      return nil unless cart&.kind == "plan"
+      return nil unless cart&.plan?
       return nil unless cart.tier_months.to_i == @tier_months
       return nil unless cart_currency_matches?(cart)
 
@@ -100,16 +100,14 @@ module Billing
     end
 
     def cart_currency_matches?(cart)
-      expected = @payment_method == "card_usd" ? "usd" : "crc"
-      cart.currency_mode.to_s == expected
+      cart.currency_mode == CheckoutPaymentMethod.currency_for(@payment_method).to_s
     end
 
     def billing_context_for_snapshot
-      currency = @payment_method == "card_usd" ? :usd : :crc
-      payment_method = @payment_method.start_with?("sinpe") ? :sinpe : :card
+      currency = CheckoutPaymentMethod.currency_for(@payment_method)
       {
         currency: currency,
-        payment_method: payment_method,
+        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
         iva_applicable: currency == :crc
       }
     end

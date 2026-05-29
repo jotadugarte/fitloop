@@ -43,38 +43,22 @@ module Billing
       # - currency and payment_method must be compatible
       # Postcondition:
       # - returns a positive numeric amount
+      PRICE_KEY_RESOLVERS = {
+        %i[crc card] => :price_key_for_official_crc,
+        %i[crc sinpe] => :price_key_for_sinpe_crc,
+        %i[usd card] => :price_key_for_official_usd
+      }.freeze
+
       def price(product:, currency:, payment_method:, overage:, tier_months: nil)
-        raise ArgumentError, "product must be a Symbol" unless product.is_a?(Symbol)
-        raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(currency)
-        raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(payment_method)
-        raise ArgumentError, "overage must be boolean" unless overage == true || overage == false
-        if product == :plan
-          raise ArgumentError, "tier_months required for product :plan" if tier_months.nil?
-          raise ArgumentError, "plan overage is not supported" if overage
-        end
+        validate_price_args!(product:, currency:, payment_method:, overage:, tier_months:)
 
-        if currency == :crc && payment_method == :card
-          key = price_key_for_official_crc(product:, overage:, tier_months: tier_months)
-          amount = fetch(key)
-          raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
-          return amount
-        end
+        resolver = PRICE_KEY_RESOLVERS[[ currency, payment_method ]]
+        raise ArgumentError, "unsupported currency/payment_method combination" unless resolver
 
-        if currency == :crc && payment_method == :sinpe
-          key = price_key_for_sinpe_crc(product:, overage:, tier_months: tier_months)
-          amount = fetch(key)
-          raise ArgumentError, "amount must be positive" unless amount.to_i.positive?
-          return amount
-        end
-
-        if currency == :usd && payment_method == :card
-          key = price_key_for_official_usd(product:, overage:, tier_months: tier_months)
-          amount = fetch(key)
-          raise ArgumentError, "amount must be positive" unless amount.to_f.positive?
-          return amount
-        end
-
-        raise ArgumentError, "unsupported currency/payment_method combination"
+        key = send(resolver, product:, overage:, tier_months: tier_months)
+        amount = fetch(key)
+        validate_price_amount!(amount, key, currency)
+        amount
       end
 
       def single_download_overage_usd
@@ -90,6 +74,22 @@ module Billing
       end
 
       private
+
+      def validate_price_args!(product:, currency:, payment_method:, overage:, tier_months:)
+        raise ArgumentError, "product must be a Symbol" unless product.is_a?(Symbol)
+        raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(currency)
+        raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(payment_method)
+        raise ArgumentError, "overage must be boolean" unless overage == true || overage == false
+        return unless product == :plan
+
+        raise ArgumentError, "tier_months required for product :plan" if tier_months.nil?
+        raise ArgumentError, "plan overage is not supported" if overage
+      end
+
+      def validate_price_amount!(amount, _key, currency)
+        positive = currency == :usd ? amount.to_f.positive? : amount.to_i.positive?
+        raise ArgumentError, "amount must be positive" unless positive
+      end
 
       def price_key_for_official_crc(product:, overage:, tier_months:)
         case product
