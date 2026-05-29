@@ -6,7 +6,7 @@ export default class extends Controller {
     statusUrl: String,
     pollIntervalMs: { type: Number, default: 2500 },
     timeoutMs: { type: Number, default: 60000 },
-    redirectDelayMs: { type: Number, default: 1500 },
+    redirectDelayMs: { type: Number, default: 4000 },
     checkoutUrl: String,
     successTitle: String,
     successBody: String
