@@ -3,6 +3,9 @@ import { Controller } from "@hotwired/stimulus"
 const CARD_NUMBER_MAX = 19
 const CARD_CVV_MAX = 4
 const HOLDER_NAME_MAX = 100
+const SINPE_IDENTIFICATION_MIN = 9
+const SINPE_IDENTIFICATION_MAX = 12
+const SINPE_MOBILE_LEN = 8
 
 export default class extends Controller {
   static targets = [
@@ -111,6 +114,14 @@ export default class extends Controller {
     event.target.value = event.target.value.replace(/\D/g, "").slice(0, CARD_CVV_MAX)
   }
 
+  formatSinpeIdentification(event) {
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, SINPE_IDENTIFICATION_MAX)
+  }
+
+  formatSinpeMobileNumber(event) {
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, SINPE_MOBILE_LEN)
+  }
+
   async processPayment(event) {
     event.preventDefault()
     this.clearError()
@@ -122,6 +133,12 @@ export default class extends Controller {
 
     if (!this.isSinpe()) {
       const validationError = this.validateCardForm()
+      if (validationError) {
+        this.showError(validationError)
+        return
+      }
+    } else {
+      const validationError = this.validateSinpeForm()
       if (validationError) {
         this.showError(validationError)
         return
@@ -168,6 +185,21 @@ export default class extends Controller {
 
     if (!/^\d{3,4}$/.test(cvv)) {
       return this.validationMessage("card_cvv_invalid")
+    }
+
+    return null
+  }
+
+  validateSinpeForm() {
+    const identification = this.sinpeIdentificationTarget.value.replace(/\D/g, "")
+    const mobileNumber = this.sinpeMobileNumberTarget.value.replace(/\D/g, "")
+
+    if (identification.length < SINPE_IDENTIFICATION_MIN || identification.length > SINPE_IDENTIFICATION_MAX) {
+      return this.validationMessage("sinpe_identification_invalid")
+    }
+
+    if (mobileNumber.length !== SINPE_MOBILE_LEN) {
+      return this.validationMessage("sinpe_mobile_number_invalid")
     }
 
     return null
@@ -257,8 +289,8 @@ export default class extends Controller {
   async confirmSinpe(paymentId) {
     const url = this.sinpeUrlValue.replace(":payment_id", paymentId)
     const body = new FormData()
-    body.append("sinpe_identification", this.sinpeIdentificationTarget.value)
-    body.append("sinpe_mobile_number", this.sinpeMobileNumberTarget.value)
+    body.append("sinpe_identification", this.sinpeIdentificationTarget.value.replace(/\D/g, ""))
+    body.append("sinpe_mobile_number", this.sinpeMobileNumberTarget.value.replace(/\D/g, ""))
 
     const response = await fetch(url, {
       method: "POST",

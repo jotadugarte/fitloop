@@ -219,6 +219,8 @@ en:
           card_exp_expired: "This card is expired. Check the expiration month and year."
           card_cvv_invalid: "CVV must be 3 or 4 numeric digits."
           card_number_test_only: "ONVO test mode only accepts documented test cards (e.g. Visa 4242 4242 4242 4242, 16 digits)."
+          sinpe_identification_invalid: "ID number must be 9 to 12 numeric digits."
+          sinpe_mobile_number_invalid: "SINPE mobile number must be exactly 8 numeric digits."
         api_errors:
           test_payment_method: "That card is not valid in ONVO test mode. Use a documented test card (e.g. 4242 4242 4242 4242)."
           invalid_card_info: "There was an error with the card information provided. Please review card number, expiration date and CVV."

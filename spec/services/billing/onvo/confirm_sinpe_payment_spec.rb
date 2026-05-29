@@ -26,7 +26,7 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
     expect(client).to receive(:create_payment_method).with(
       hash_including(
         type: "mobile_number",
-        mobileNumber: hash_including(identification: "1-2345-6789", number: "+50688887777")
+        mobileNumber: hash_including(identification: "123456789", number: "+50688887777")
       )
     ).and_return(id: "pm_mobile")
 
@@ -36,7 +36,7 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
 
     result = described_class.call(
       payment: payment,
-      identification: "1-2345-6789",
+      identification: "123456789",
       mobile_number: "88887777",
       client: client
     )

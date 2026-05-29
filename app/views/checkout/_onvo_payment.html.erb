@@ -12,7 +12,9 @@
        card_exp_invalid: t("billing.checkout.onvo.validation.card_exp_invalid"),
        card_exp_expired: t("billing.checkout.onvo.validation.card_exp_expired"),
        card_cvv_invalid: t("billing.checkout.onvo.validation.card_cvv_invalid"),
-       card_number_test_only: t("billing.checkout.onvo.validation.card_number_test_only")
+       card_number_test_only: t("billing.checkout.onvo.validation.card_number_test_only"),
+       sinpe_identification_invalid: t("billing.checkout.onvo.validation.sinpe_identification_invalid"),
+       sinpe_mobile_number_invalid: t("billing.checkout.onvo.validation.sinpe_mobile_number_invalid")
      }.to_json %>"
      <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
      data-onvo-checkout-test-cards-value="<%= Billing::Onvo::TestCardNumbers::NUMBERS.to_json %>"
@@ -119,7 +121,12 @@
                name="sinpe_identification"
                class="checkout-onvo__input"
                autocomplete="off"
+               inputmode="numeric"
+               maxlength="12"
+               minlength="9"
+               pattern="[0-9]{9,12}"
                data-onvo-checkout-target="sinpeIdentification"
+               data-action="input->onvo-checkout#formatSinpeIdentification"
                required>
       </div>
       <div class="checkout-onvo__field field">
@@ -129,8 +136,12 @@
                name="sinpe_mobile_number"
                class="checkout-onvo__input"
                autocomplete="tel"
-               inputmode="tel"
+               inputmode="numeric"
+               maxlength="8"
+               minlength="8"
+               pattern="[0-9]{8}"
                data-onvo-checkout-target="sinpeMobileNumber"
+               data-action="input->onvo-checkout#formatSinpeMobileNumber"
                required>
       </div>
     </div>

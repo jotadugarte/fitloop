@@ -62,15 +62,21 @@ class CheckoutController < ApplicationController
 
   def confirm_sinpe
     payment = current_user.payments.find(params[:payment_id])
-    result = Billing::Onvo::ConfirmSinpePayment.call(
-      payment: payment,
+    sinpe = Billing::Onvo::SinpeInput.parse!(
       identification: params[:sinpe_identification],
       mobile_number: params[:sinpe_mobile_number]
+    )
+    result = Billing::Onvo::ConfirmSinpePayment.call(
+      payment: payment,
+      identification: sinpe.fetch(:identification),
+      mobile_number: sinpe.fetch(:mobile_number)
     )
 
     render json: result.merge(
       amount_label: format_onvo_amount(result.fetch(:amount), result.fetch(:currency))
     )
+  rescue ArgumentError => error
+    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_entity
   rescue Billing::Onvo::ApiError => error
     render json: { error: error.user_message }, status: :unprocessable_entity
   end
@@ -95,7 +101,7 @@ class CheckoutController < ApplicationController
 
     render_confirm_card_result!(payment, result)
   rescue ArgumentError => error
-    render json: { error: onvo_card_validation_message(error.message) }, status: :unprocessable_entity
+    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_entity
   rescue Billing::Onvo::ApiError => error
     render json: { error: error.user_message }, status: :unprocessable_entity
   end
@@ -329,9 +335,11 @@ class CheckoutController < ApplicationController
     render json: result
   end
 
-  def onvo_card_validation_message(key)
+  def onvo_validation_message(key)
     I18n.t("billing.checkout.onvo.validation.#{key}", default: key.to_s.humanize)
   end
+
+  alias onvo_card_validation_message onvo_validation_message
 
   def redirect_after_onvo_three_ds_return!(payment:, intent_status:)
     if %w[succeeded processing].include?(intent_status)

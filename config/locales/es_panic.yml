@@ -227,6 +227,8 @@ es_panic:
           card_exp_expired: Tarjeta vencida. Revisá mes y año.
           card_cvv_invalid: CVV inválido (3 o 4 dígitos).
           card_number_test_only: Modo prueba ONVO — solo tarjetas de test (ej. 4242 4242 4242 4242, 16 dígitos).
+          sinpe_identification_invalid: Cédula entre 9 y 12 dígitos numéricos.
+          sinpe_mobile_number_invalid: Celular SINPE exactamente 8 dígitos numéricos.
         api_errors:
           test_payment_method: Tarjeta no válida en prueba ONVO. Usá 4242 4242 4242 4242.
           invalid_card_info: Datos de tarjeta inválidos. Revisá número, vencimiento y CVV.

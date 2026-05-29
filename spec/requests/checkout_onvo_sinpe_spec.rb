@@ -47,7 +47,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(client).to receive(:confirm_payment_intent).and_return(id: "pi_sinpe_req", status: "processing")
 
     post checkout_confirm_sinpe_path(payment),
-         params: { sinpe_identification: "1-2345-6789", sinpe_mobile_number: "88887777" }
+         params: { sinpe_identification: "123456789", sinpe_mobile_number: "88887777" }
 
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
@@ -55,5 +55,57 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(body.fetch("destination_number")).to be_present
     expect(body.fetch("destination_holder_name")).to eq(Billing::Onvo::SinpeDestination.holder_name)
     expect(payment.reload.gateway_status).to eq("processing")
+  end
+
+  it "[REQ-FIT-BILL-001] rejects invalid SINPE identification length" do
+    payment = Payment.create!(
+      user: user,
+      nesting_run: create_nesting_run!,
+      status: "pending",
+      payment_method: "sinpe_crc",
+      currency: "crc",
+      amount: 1130,
+      total_amount: 1130,
+      purpose: "single_download",
+      gateway_provider: "onvo",
+      onvo_payment_intent_id: "pi_sinpe_invalid",
+      onvo_mode: "test",
+      gateway_status: "requires_payment_method"
+    )
+
+    post checkout_confirm_sinpe_path(payment),
+         params: { sinpe_identification: "12345678", sinpe_mobile_number: "88887777" }
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    body = JSON.parse(response.body)
+    expect(body.fetch("error")).to eq(
+      I18n.t("billing.checkout.onvo.validation.sinpe_identification_invalid")
+    )
+  end
+
+  it "[REQ-FIT-BILL-001] rejects invalid SINPE mobile length" do
+    payment = Payment.create!(
+      user: user,
+      nesting_run: create_nesting_run!,
+      status: "pending",
+      payment_method: "sinpe_crc",
+      currency: "crc",
+      amount: 1130,
+      total_amount: 1130,
+      purpose: "single_download",
+      gateway_provider: "onvo",
+      onvo_payment_intent_id: "pi_sinpe_invalid_mobile",
+      onvo_mode: "test",
+      gateway_status: "requires_payment_method"
+    )
+
+    post checkout_confirm_sinpe_path(payment),
+         params: { sinpe_identification: "123456789", sinpe_mobile_number: "8888777" }
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    body = JSON.parse(response.body)
+    expect(body.fetch("error")).to eq(
+      I18n.t("billing.checkout.onvo.validation.sinpe_mobile_number_invalid")
+    )
   end
 end
