@@ -54,6 +54,25 @@ RSpec.describe Billing::FulfillPayment, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]",
         described_class.call(payment: ctx[:payment])
       end.not_to change(DownloadGrant, :count)
     end
+
+    it "[REQ-FIT-BILL-001] refreshes retention when grant already active for the nesting run" do
+      ctx = pending_single_payment!
+      grant = DownloadGrant.create!(
+        user: user,
+        nesting_run: ctx[:run],
+        kind: :single_purchase,
+        retained_until: 1.hour.from_now,
+        created_at: 2.days.ago,
+        updated_at: 2.days.ago
+      )
+
+      described_class.call(payment: ctx[:payment])
+
+      grant.reload
+      expect(grant.updated_at).to be > 2.days.ago
+      expect(grant.retained_until).to be > 1.hour.from_now
+      expect(grant.retained_nested_dxf).to be_attached
+    end
   end
 
   describe "plan_subscription [REQ-FIT-BILL-002]" do

@@ -1,0 +1,19 @@
+<%# locals: (payment:) %>
+<li class="mis-pagos-payments-table__row" data-testid="mis-pagos-payment-row">
+  <div class="mis-pagos-payments-table__cell mis-pagos-payments-table__cell--date" data-label="<%= t("billing.mis_pagos.payments_table.date") %>">
+    <time datetime="<%= payment.created_at.iso8601 %>">
+      <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>
+    </time>
+  </div>
+  <div class="mis-pagos-payments-table__cell mis-pagos-payments-table__cell--purpose" data-label="<%= t("billing.mis_pagos.payments_table.type") %>">
+    <%= t("billing.mis_pagos.purpose.#{payment.purpose}") %>
+  </div>
+  <div class="mis-pagos-payments-table__cell mis-pagos-payments-table__cell--status" data-label="<%= t("billing.mis_pagos.payments_table.status") %>">
+    <span class="status-badge <%= payment_status_badge_class(payment.status) %>">
+      <%= t("billing.mis_pagos.status.#{payment.status}") %>
+    </span>
+  </div>
+  <div class="mis-pagos-payments-table__cell mis-pagos-payments-table__cell--amount" data-label="<%= t("billing.mis_pagos.payments_table.amount") %>">
+    <%= mis_pagos_payment_amount_label(payment) %>
+  </div>
+</li>

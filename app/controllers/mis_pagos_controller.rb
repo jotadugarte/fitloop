@@ -12,6 +12,8 @@ class MisPagosController < ApplicationController
     @payments = current_user.payments.order(created_at: :desc).limit(100)
     @pending_checkout_lock = Billing::PendingCheckoutLock.for_user(user: current_user)
     @single_purchase_rows = Billing::MisPagos::SinglePurchaseRows.build(user: current_user)
+    @downloads_ready_count = @single_purchase_rows.count(&:downloadable?)
+    @downloads_pending_count = @single_purchase_rows.count(&:pending?)
     @pending_payment_status_url = checkout_payment_status_path(@pending_checkout_lock.payment_id) if @pending_checkout_lock
     @auto_download_grant = auto_download_grant
   end

@@ -168,6 +168,8 @@ es:
       retention_expired: "La descarga retenida expiró. El archivo ya no está disponible."
     mis_pagos:
       title: "Mis pagos"
+      page_lead: "Tus descargas retenidas y el historial de cobros de tu cuenta."
+      plan_section: "Plan"
       active_plan: "Plan activo"
       no_active_plan: "No tienes un plan activo."
       plan_ends: "Vence el %{ends_at}"
@@ -179,12 +181,31 @@ es:
       quota_monthly_heading: "Cupo mensual de descargas"
       quota_monthly_hint: "El cupo se renueva cada mes natural del calendario; no es el total de descargas del plan completo."
       quota_remaining: "%{remaining} de %{limit} descargas este mes"
+      downloads_heading: "Descargas sueltas"
+      downloads_lead: "DXF anidados que pagaste. Cada uno queda disponible 24 horas desde la confirmación del pago."
       single_purchases: "Descargas sueltas pagadas"
       no_single_purchases: "Aún no tienes descargas sueltas pagadas."
       awaiting_confirmation: "Esperando confirmación del pago"
       download: "Descargar"
       retained_until: "Disponible hasta %{until}"
+      download_status:
+        pending: "Confirmando pago"
+        available: "Lista para descargar"
+        expired: "Expirada"
+      summary:
+        available:
+          one: "1 disponible"
+          other: "%{count} disponibles"
+        pending:
+          one: "1 en confirmación"
+          other: "%{count} en confirmación"
       payment_history: "Historial de pagos"
+      payments_lead: "Registro de cobros por descargas sueltas y planes."
+      payments_table:
+        date: "Fecha"
+        type: "Concepto"
+        status: "Estado"
+        amount: "Monto"
       no_payments: "Sin pagos registrados."
       purpose:
         single_download: "Descarga suelta"

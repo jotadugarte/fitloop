@@ -153,6 +153,8 @@ en:
       retention_expired: "The retained download has expired. The file is no longer available."
     mis_pagos:
       title: "My payments"
+      page_lead: "Your retained downloads and payment history in one place."
+      plan_section: "Plan"
       active_plan: "Active plan"
       no_active_plan: "You do not have an active plan."
       plan_ends: "Expires on %{ends_at}"
@@ -164,12 +166,31 @@ en:
       quota_monthly_heading: "Monthly download quota"
       quota_monthly_hint: "Quota resets each calendar month; it is not the total for your full plan term."
       quota_remaining: "%{remaining} of %{limit} downloads this month"
+      downloads_heading: "Single downloads"
+      downloads_lead: "Nested DXF files you paid for. Each stays available for 24 hours after payment confirmation."
       single_purchases: "Paid single downloads"
       no_single_purchases: "No paid single downloads yet."
       awaiting_confirmation: "Waiting for payment confirmation"
       download: "Download"
       retained_until: "Available until %{until}"
+      download_status:
+        pending: "Confirming payment"
+        available: "Ready to download"
+        expired: "Expired"
+      summary:
+        available:
+          one: "1 available"
+          other: "%{count} available"
+        pending:
+          one: "1 confirming"
+          other: "%{count} confirming"
       payment_history: "Payment history"
+      payments_lead: "Record of single-download and plan charges."
+      payments_table:
+        date: "Date"
+        type: "Type"
+        status: "Status"
+        amount: "Amount"
       no_payments: "No payments recorded."
       purpose:
         single_download: "Single download"
