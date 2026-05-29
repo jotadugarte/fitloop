@@ -3,6 +3,19 @@
 
   <p class="checkout-page__intro"><%= t("billing.cart.replace.intro") %></p>
 
+  <% if @existing_cart.present? %>
+    <dl class="checkout-breakdown__list cart-replace-page__lines">
+      <div class="checkout-breakdown__row" data-testid="cart-replace-current">
+        <dt><%= t("billing.cart.replace.current_line") %></dt>
+        <dd><%= cart_line_summary(@existing_cart) %></dd>
+      </div>
+      <div class="checkout-breakdown__row" data-testid="cart-replace-pending">
+        <dt><%= t("billing.cart.replace.pending_line") %></dt>
+        <dd><%= cart_line_summary(@pending_cart) %></dd>
+      </div>
+    </dl>
+  <% end %>
+
   <div class="checkout-methods">
     <%= button_to t("billing.cart.replace.confirm"),
                   cart_path,
@@ -10,9 +23,10 @@
                   class: "btn btn-primary",
                   data: { testid: "cart-replace-confirm", turbo: false } %>
 
-    <%= link_to t("billing.cart.replace.cancel"),
-                download_paywall_workshop_path,
-                class: "btn btn-secondary",
-                data: { testid: "cart-replace-cancel", turbo: false } %>
+    <%= button_to t("billing.cart.replace.cancel"),
+                  cart_replace_cancel_path,
+                  method: :delete,
+                  class: "btn btn-secondary",
+                  data: { testid: "cart-replace-cancel", turbo: false } %>
   </div>
 </div>

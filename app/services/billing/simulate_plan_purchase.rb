@@ -83,7 +83,25 @@ module Billing
     end
 
     def plan_breakdown
-      CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context_for_snapshot)
+      if (cart = cart_for_plan)
+        CheckoutBreakdown.for_cart(cart: cart, billing_context: billing_context_for_snapshot)
+      else
+        CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context_for_snapshot)
+      end
+    end
+
+    def cart_for_plan
+      cart = Cart.find_by(user_id: @user.id)
+      return nil unless cart&.kind == "plan"
+      return nil unless cart.tier_months.to_i == @tier_months
+      return nil unless cart_currency_matches?(cart)
+
+      cart
+    end
+
+    def cart_currency_matches?(cart)
+      expected = @payment_method == "card_usd" ? "usd" : "crc"
+      cart.currency_mode.to_s == expected
     end
 
     def billing_context_for_snapshot

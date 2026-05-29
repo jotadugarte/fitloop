@@ -149,7 +149,15 @@ module Billing
     end
 
     def cart_for_run
-      Cart.find_by(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      cart = Cart.find_by(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      return nil unless cart
+      return nil unless cart_currency_matches?(cart)
+
+      cart
+    end
+
+    def cart_currency_matches?(cart)
+      cart.currency_mode.to_s == config.fetch(:currency).to_s
     end
 
     def cents_to_amount(cents, currency)

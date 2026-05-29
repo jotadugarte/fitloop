@@ -109,12 +109,12 @@ class CheckoutController < ApplicationController
   def checkout_breakdown_preview
     billing_context = billing_context_for_checkout
 
-    if plan_checkout?
-      return Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
-    end
-
     if @cart && params[:nesting_run_id].blank?
       return Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
+    end
+
+    if plan_checkout?
+      return Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
     end
 
     Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
@@ -182,10 +182,10 @@ class CheckoutController < ApplicationController
       iva_applicable: billing_selection.fetch(:iva_applicable)
     }
 
-    breakdown = if plan_checkout?
-                  Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
-                elsif @cart && params[:nesting_run_id].blank?
+    breakdown = if @cart && params[:nesting_run_id].blank?
                   Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
+                elsif plan_checkout?
+                  Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
                 else
                   Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
                 end

@@ -5,7 +5,9 @@ class CartController < ApplicationController
   include SetsWorkspaceProject
 
   before_action :set_workspace_project, only: :create
-  before_action :load_pending_cart!, only: %i[replace update]
+  before_action :load_pending_cart!, only: %i[replace update cancel_replace]
+
+  helper_method :cart_line_summary
 
   def show
     cart = current_cart
@@ -16,7 +18,7 @@ class CartController < ApplicationController
 
   def create
     existing = current_cart
-    if existing && different_cart_line?(existing) && !replace_confirmed?
+    if existing && different_cart_line?(existing)
       stash_pending_cart!
       redirect_to cart_replace_path
       return
@@ -28,6 +30,8 @@ class CartController < ApplicationController
 
   def replace
     return redirect_to(download_paywall_workshop_path) if @pending_cart.blank?
+
+    @existing_cart = current_cart
   end
 
   def update
@@ -36,12 +40,32 @@ class CartController < ApplicationController
     upsert_cart_from_pending!
     session.delete(:pending_cart)
     redirect_to checkout_path
+  rescue ArgumentError
+    session.delete(:pending_cart)
+    redirect_to download_paywall_workshop_path, alert: t("billing.cart.replace.invalid")
+  end
+
+  def cancel_replace
+    session.delete(:pending_cart)
+    redirect_to download_paywall_workshop_path
   end
 
   def destroy
     current_cart&.destroy!
     session.delete(:pending_cart)
     redirect_to download_paywall_workshop_path
+  end
+
+  def cart_line_summary(source)
+    return t("billing.cart.replace.line_unknown") if source.blank?
+
+    kind = source.is_a?(Cart) ? source.kind : source.fetch("kind").to_s
+    if kind == "plan"
+      tier = source.is_a?(Cart) ? source.tier_months : source.fetch("tier_months")
+      t("billing.cart.replace.line_plan", months: tier.to_i)
+    else
+      t("billing.cart.replace.line_download")
+    end
   end
 
   private
@@ -96,10 +120,6 @@ class CartController < ApplicationController
 
   def cart_kind_param
     params.fetch(:kind)
-  end
-
-  def replace_confirmed?
-    ActiveModel::Type::Boolean.new.cast(params[:replace_confirm])
   end
 
   def different_cart_line?(existing)

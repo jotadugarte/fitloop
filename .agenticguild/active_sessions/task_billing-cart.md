@@ -170,6 +170,7 @@ Immutable at attempt time: `purchaser_name`, `purchaser_email`, `product_descrip
 | 2026-05-27 | D26 | Tabla CRC oficial/SINPE/ahorro; Q-IVA B; overage 50% verificado |
 | 2026-05-27 | D27–D28 | Tabla USD; overage por montos (no %) |
 | 2026-05-27 | D29 | ONVO cobra en USD o CRC según selección; SINPE solo disponible para país CR |
+| 2026-05-28 | D30 | Branch `add-cart` incluye también collapse panels Mi taller (REQ-FIT-UI-003) — documentar en PR como mixed scope; split opcional post-merge |
 
 ---
 

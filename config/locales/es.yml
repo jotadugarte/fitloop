@@ -247,6 +247,12 @@ es:
         intro: "Ya tienes un artículo en el carrito. ¿Deseas reemplazarlo por el nuevo?"
         confirm: "Sí, reemplazar"
         cancel: "No, volver al catálogo"
+        current_line: "Artículo actual"
+        pending_line: "Nuevo artículo"
+        line_download: "Descarga única"
+        line_plan: "Plan %{months} meses"
+        line_unknown: "Artículo desconocido"
+        invalid: "No se pudo actualizar el carrito. Vuelve a intentarlo desde el catálogo."
 
   home:
     index:

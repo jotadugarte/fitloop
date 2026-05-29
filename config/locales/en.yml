@@ -232,6 +232,12 @@ en:
         intro: "You already have an item in your cart. Replace it with the new one?"
         confirm: "Yes, replace"
         cancel: "No, back to catalog"
+        current_line: "Current item"
+        pending_line: "New item"
+        line_download: "Single download"
+        line_plan: "%{months}-month plan"
+        line_unknown: "Unknown item"
+        invalid: "Could not update your cart. Try again from the catalog."
 
   home:
     index:

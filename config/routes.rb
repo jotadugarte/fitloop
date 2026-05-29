@@ -47,6 +47,7 @@ Rails.application.routes.draw do
   get "carrito", to: "cart#show", as: :cart
   post "carrito", to: "cart#create"
   get "carrito/reemplazar", to: "cart#replace", as: :cart_replace
+  delete "carrito/reemplazar", to: "cart#cancel_replace", as: :cart_replace_cancel
   patch "carrito", to: "cart#update"
   delete "carrito", to: "cart#destroy"
 

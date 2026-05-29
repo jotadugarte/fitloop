@@ -129,5 +129,26 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
     expect(response.body).not_to include('data-testid="checkout-iva"')
     expect(response.body).to include('data-billing-currency="usd"')
   end
+
+  it "[REQ-FIT-BILL-001] uses cart price snapshot for plan checkout breakdown (D17)" do
+    user = create_billing_user!(email: "plan-cart@example.com")
+    begin_workspace_session!
+    sign_in_user! user
+
+    Cart.create!(
+      kind: "plan",
+      tier_months: 1,
+      currency_mode: "crc",
+      overage: false,
+      user: user,
+      list_price_cents: 9_999,
+      sinpe_price_cents: 8_888
+    )
+
+    get "/checkout", headers: { "CF-IPCountry" => "CR" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("₡9,999")
+  end
 end
 

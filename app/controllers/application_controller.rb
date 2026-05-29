@@ -15,6 +15,7 @@ class ApplicationController < ActionController::Base
     if resource.is_a?(User)
       Billing::CartMergeOnLogin.call(user: resource, guest_token: session[:cart_guest_token])
       session.delete(:cart_guest_token)
+      session.delete(:pending_cart)
     end
 
     super

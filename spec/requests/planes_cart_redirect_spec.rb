@@ -24,6 +24,30 @@ RSpec.describe "Planes redirect when cart has item", "[REQ-FIT-BILL-001]", type:
 
       expect(response).to redirect_to("/checkout")
     end
+
+    it "[REQ-FIT-BILL-001] does not redirect when only another user's cart exists (D12)" do
+      other_user = create_billing_user!(email: "other-cart@example.com")
+      user = create_billing_user!(email: "viewer@example.com")
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      Cart.create!(
+        kind: "single_download",
+        nesting_run: run,
+        currency_mode: "crc",
+        overage: false,
+        user: other_user,
+        list_price_cents: 1200,
+        sinpe_price_cents: 1000
+      )
+
+      sign_in_user! user
+      get "/planes"
+
+      expect(response).to have_http_status(:ok)
+      expect(response).not_to redirect_to("/checkout")
+    end
   end
 end
 
