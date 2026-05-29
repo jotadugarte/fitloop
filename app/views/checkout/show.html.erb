@@ -7,9 +7,11 @@
 
 <div class="paywall-layout checkout-page" data-testid="checkout-page" data-billing-currency="<%= currency %>">
   <article class="paywall-layout__main panel panel--chrome">
-    <p class="checkout-demo-badge" data-testid="checkout-demo" role="status">
-      <%= t("billing.checkout.demo_badge") %>
-    </p>
+    <% unless @onvo_checkout %>
+      <p class="checkout-demo-badge" data-testid="checkout-demo" role="status">
+        <%= t("billing.checkout.demo_badge") %>
+      </p>
+    <% end %>
 
     <h1 class="billing-page__title"><%= plan_checkout ? t("billing.checkout.title_plan") : t("billing.checkout.title") %></h1>
 
@@ -130,7 +132,7 @@
       </section>
     <% end %>
 
-    <%= form_with url: checkout_simulate_path,
+    <%= form_with url: (@onvo_checkout ? checkout_pay_path : checkout_simulate_path),
                   method: :post,
                   data: { turbo: false },
                   class: "checkout-process-form" do %>

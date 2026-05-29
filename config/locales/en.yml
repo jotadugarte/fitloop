@@ -203,6 +203,7 @@ en:
       sinpe_crc: "SINPE Mobile (CRC)"
       simulate_success: "Payment succeeded"
       simulate_failure: "Payment failed"
+      onvo_use_pay: "Live payments use ONVO. Use “Process payment” to start checkout."
       failure: "Simulated payment failed. Please try again."
       success_title: "Payment received"
       success_retention: "Payment received. Your download has started and the file will stay in My payments for 24 hours even if you leave the workshop."

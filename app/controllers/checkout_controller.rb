@@ -6,9 +6,9 @@ class CheckoutController < ApplicationController
   include ResolvesWorkspaceTab
   include SetsWorkspaceProject
 
-  before_action :set_workspace_project, only: %i[show simulate]
-  before_action :load_checkout_context, only: %i[show simulate]
-  before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate], if: :single_download_checkout?
+  before_action :set_workspace_project, only: %i[show simulate pay]
+  before_action :load_checkout_context, only: %i[show simulate pay]
+  before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
 
   def show
     @billing_selection = billing_selection
@@ -19,10 +19,48 @@ class CheckoutController < ApplicationController
     @checkout_breakdown = checkout_breakdown_preview
     @plan_quota_exhausted =
       Billing::PlanDownloadAvailability.plan_quota_exhausted?(user: current_user)
+    @onvo_checkout = Billing::Gateway.onvo?
     render :show
   end
 
+  def pay
+    unless Billing::Gateway.onvo?
+      head :not_found
+      return
+    end
+
+    selection = billing_selection
+    @available_payment_methods = selection.fetch(:available_payment_methods)
+    payment_method = resolve_selected_payment_method(selection: selection)
+    billing_context = {
+      currency: selection.fetch(:currency),
+      payment_method: resolve_breakdown_payment_method(selection: selection),
+      iva_applicable: selection.fetch(:iva_applicable)
+    }
+
+    result = Billing::StartOnvoCheckout.call(
+      user: current_user,
+      payment_method: payment_method,
+      billing_context: billing_context,
+      nesting_run: @nesting_run,
+      tier_months: plan_checkout? ? @tier_months : nil,
+      cart: @cart
+    )
+
+    render json: {
+      payment_id: result.fetch(:payment).id,
+      onvo_payment_intent_id: result.fetch(:onvo_payment_intent_id),
+      onvo_publishable_key: ENV.fetch("ONVO_PUBLISHABLE_KEY", nil)
+    }
+  rescue Billing::Onvo::ApiError => error
+    render json: { error: error.message }, status: :unprocessable_entity
+  end
+
   def simulate
+    if Billing::Gateway.onvo?
+      redirect_to checkout_path(checkout_redirect_params), alert: t("billing.checkout.onvo_use_pay")
+      return
+    end
     billing_context = {
       currency: billing_selection.fetch(:currency),
       iva_applicable: billing_selection.fetch(:iva_applicable)
@@ -192,6 +230,13 @@ class CheckoutController < ApplicationController
 
     discount = breakdown.fetch(:discount_amount).to_f
     discount.positive? ? discount : nil
+  end
+
+  def checkout_redirect_params
+    params = {}
+    params[:nesting_run_id] = @nesting_run.id if @nesting_run.present?
+    params[:tier_months] = @tier_months if plan_checkout?
+    params
   end
 
   def redirect_after_plan_purchase!(result)

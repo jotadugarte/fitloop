@@ -218,6 +218,7 @@ es:
       sinpe_crc: "SINPE Móvil (CRC)"
       simulate_success: "Pago exitoso"
       simulate_failure: "Pago fallido"
+      onvo_use_pay: "Los pagos usan ONVO en vivo. Usa «Procesar pago» para iniciar el cobro."
       failure: "El pago simulado falló. Inténtalo de nuevo."
       success_title: "Pago recibido"
       success_retention: "Pago recibido. La descarga se inició y el archivo quedará en Mis pagos durante 24 horas aunque cierres el taller."

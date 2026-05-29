@@ -342,9 +342,9 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P5" name="Checkout — start payment (replace simulate when onvo)">
-    <step id="5.1" status="pending">Write failing request spec: `BILLING_GATEWAY=onvo` POST checkout pay creates `Payment` pending + returns intent id (no grant yet).</step>
-    <step id="5.2" status="pending">Add `CheckoutController#pay` (or rename flow): create pending `Payment` from cart + `CheckoutBreakdown`; call `CreatePaymentIntent`; store `onvo_payment_intent_id`.</step>
-    <step id="5.3" status="pending">Remove/hide simulate success/fail buttons when `Billing::Gateway.onvo?`; keep simulate behind `BILLING_GATEWAY=simulate` for dev fallback.</step>
+    <step id="5.1" status="complete">Write failing request spec: `BILLING_GATEWAY=onvo` POST checkout pay creates `Payment` pending + returns intent id (no grant yet).</step>
+    <step id="5.2" status="complete">Add `CheckoutController#pay` (or rename flow): create pending `Payment` from cart + `CheckoutBreakdown`; call `CreatePaymentIntent`; store `onvo_payment_intent_id`.</step>
+    <step id="5.3" status="complete">Remove/hide simulate success/fail buttons when `Billing::Gateway.onvo?`; keep simulate behind `BILLING_GATEWAY=simulate` for dev fallback.</step>
   </phase>
 
   <phase id="P6" name="Checkout UI — card SDK &amp; SINPE">

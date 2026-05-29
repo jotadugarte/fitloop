@@ -45,6 +45,7 @@ Rails.application.routes.draw do
   post "planes/simular", to: "planes#simulate", as: :planes_simulate
   get "checkout", to: "checkout#show"
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
+  post "checkout/pagar", to: "checkout#pay", as: :checkout_pay
 
   get "carrito", to: "cart#show", as: :cart
   post "carrito", to: "cart#create"
