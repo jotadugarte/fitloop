@@ -42,14 +42,6 @@
                data-action="input->onvo-checkout#formatHolderName"
                required>
       </div>
-      <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
-        <details class="checkout-onvo__test-hint panel panel--inset" data-testid="onvo-card-test-hint">
-          <summary class="checkout-onvo__test-hint-summary">
-            <%= t("billing.checkout.onvo.card_test_mode_summary") %>
-          </summary>
-          <p class="checkout-onvo__test-hint-body"><%= t("billing.checkout.onvo.card_test_mode_hint") %></p>
-        </details>
-      <% end %>
       <div class="checkout-onvo__field field">
         <label for="card_number"><%= t("billing.checkout.onvo.card_number") %></label>
         <input type="text"

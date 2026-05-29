@@ -221,8 +221,6 @@ en:
           card_number_test_only: "ONVO test mode only accepts documented test cards (e.g. Visa 4242 4242 4242 4242, 16 digits)."
         api_errors:
           test_payment_method: "That card is not valid in ONVO test mode. Use a documented test card (e.g. 4242 4242 4242 4242)."
-        card_test_mode_summary: "ONVO test cards (test mode)"
-        card_test_mode_hint: "Approved Visa: 4242 4242 4242 4242 (16 digits). 3DS: 4000 0000 0000 3220. Declined: 4000 0000 0000 0002. Any future expiry and CVV."
         payment_canceled: "You canceled card verification. The payment was not completed; enter your card details again and try once more."
         payment_failed: "The card payment was declined. Check your details or try another payment method."
         sinpe_how_title: "How SINPE Mobile works"
