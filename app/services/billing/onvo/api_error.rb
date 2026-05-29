@@ -11,6 +11,12 @@ module Billing
         @status = status
         @body = body
       end
+
+      def user_message
+        detail = body.is_a?(Hash) ? body[:message] || body["message"] : nil
+        detail = detail.join(", ") if detail.is_a?(Array)
+        detail.presence || message
+      end
     end
   end
 end

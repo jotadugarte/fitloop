@@ -10,7 +10,7 @@ class CheckoutController < ApplicationController
   before_action :set_workspace_project, only: %i[show simulate pay processing]
   before_action :load_checkout_context, only: %i[show simulate pay]
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
-  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe three_ds_return]
+  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe confirm_card three_ds_return]
 
   def show
     @billing_selection = billing_selection
@@ -55,7 +55,7 @@ class CheckoutController < ApplicationController
       onvo_publishable_key: ENV.fetch("ONVO_PUBLISHABLE_KEY", nil)
     }
   rescue Billing::Onvo::ApiError => error
-    render json: { error: error.message }, status: :unprocessable_entity
+    render json: { error: error.user_message }, status: :unprocessable_entity
   end
 
   def confirm_sinpe
@@ -70,7 +70,27 @@ class CheckoutController < ApplicationController
       amount_label: format_onvo_amount(result.fetch(:amount), result.fetch(:currency))
     )
   rescue Billing::Onvo::ApiError => error
+    render json: { error: error.user_message }, status: :unprocessable_entity
+  end
+
+  def confirm_card
+    payment = current_user.payments.find(params[:payment_id])
+    expiration = Billing::Onvo::CardExpiration.parse(params[:card_exp])
+    result = Billing::Onvo::ConfirmCardPayment.call(
+      payment: payment,
+      holder_name: params[:card_holder_name],
+      card_number: params[:card_number],
+      exp_month: expiration.fetch(:exp_month),
+      exp_year: expiration.fetch(:exp_year),
+      cvv: params[:card_cvv],
+      return_url: checkout_return_url(host: request.base_url)
+    )
+
+    render json: result
+  rescue ArgumentError => error
     render json: { error: error.message }, status: :unprocessable_entity
+  rescue Billing::Onvo::ApiError => error
+    render json: { error: error.user_message }, status: :unprocessable_entity
   end
 
   def processing

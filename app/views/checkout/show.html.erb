@@ -137,8 +137,7 @@
                  selected_payment_method: selected_payment_method,
                  nesting_run: @nesting_run,
                  tier_months: (plan_checkout ? @tier_months : nil),
-                 plan_checkout: plan_checkout,
-                 publishable_key: ENV.fetch("ONVO_PUBLISHABLE_KEY", "") %>
+                 plan_checkout: plan_checkout %>
     <% else %>
       <%= form_with url: checkout_simulate_path,
                     method: :post,

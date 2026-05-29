@@ -214,6 +214,17 @@ es_panic:
       onvo_use_pay: Los pagos usan ONVO en vivo. Dale a «Procesar pago».
       onvo:
         fraud_monitoring_note: Tarjeta = ONVO seguro. Fitloop no guarda la tarjeta.
+        card_fields_title: Datos de la tarjeta
+        card_holder_name: Nombre en la tarjeta
+        card_number: Número de tarjeta
+        card_exp: Vence
+        card_exp_placeholder: MM / AA
+        card_cvv: CVV
+        sinpe_how_title: "¿Cómo va el SINPE?"
+        sinpe_how_step_1: Poné cédula y celular desde el que transferís.
+        sinpe_how_step_2: «Procesar pago» → te damos monto exacto y número SINPE de ONVO.
+        sinpe_how_step_3: Transferí desde esa cuenta (misma cédula).
+        sinpe_how_step_4: ONVO confirma → activamos la descarga (unos segundos).
         sinpe_fields_title: Datos del que transfiere (SINPE)
         sinpe_identification: Cédula
         sinpe_mobile_number: Celular SINPE

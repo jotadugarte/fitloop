@@ -44,14 +44,13 @@ module Billing
         post_json("/payment-methods", payload)
       end
 
-      def confirm_payment_intent(payment_intent_id, payment_method_id:)
+      def confirm_payment_intent(payment_intent_id, payment_method_id:, return_url: nil)
         raise ArgumentError, "payment_intent_id required" if payment_intent_id.to_s.strip.empty?
         raise ArgumentError, "payment_method_id required" if payment_method_id.to_s.strip.empty?
 
-        post_json(
-          "/payment-intents/#{payment_intent_id}/confirm",
-          { paymentMethodId: payment_method_id }
-        )
+        payload = { paymentMethodId: payment_method_id }
+        payload[:returnUrl] = return_url if return_url.present?
+        post_json("/payment-intents/#{payment_intent_id}/confirm", payload)
       end
 
       private

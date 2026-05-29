@@ -102,6 +102,25 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
       )
       expect(result.fetch(:status)).to eq("processing")
     end
+
+    it "[REQ-FIT-BILL-001] includes returnUrl when provided" do
+      transport.stub_post(
+        "/payment-intents/pi_abc/confirm",
+        status: 200,
+        body: { "id" => "pi_abc", "status" => "requires_action" }
+      )
+
+      client.confirm_payment_intent(
+        "pi_abc",
+        payment_method_id: "pm_card",
+        return_url: "https://example.com/checkout/retorno"
+      )
+
+      expect(transport.calls.last.fetch(:body)).to eq(
+        paymentMethodId: "pm_card",
+        returnUrl: "https://example.com/checkout/retorno"
+      )
+    end
   end
 
   describe "API errors [REQ-FIT-BILL-001]" do
