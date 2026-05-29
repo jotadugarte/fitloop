@@ -70,6 +70,26 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     expect(project.nesting_runs.where(status: "processing").count).to eq(0)
   end
 
+  it "[REQ-FIT-BILL-001] disables nested DXF download in preview" do
+    get workshop_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="download-nested-dxf-pending"')
+    expect(response.body).not_to include('data-testid="download-nested-dxf"')
+  end
+
+  it "[REQ-FIT-BILL-001] blocks nested DXF download and paywall while payment pending" do
+    get nested_dxf_workshop_path
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+
+    get download_paywall_workshop_path
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+  end
+
   it "[REQ-FIT-BILL-001] blocks saving sheet inventory" do
     patch workspace_workshop_path,
           params: {

@@ -11,6 +11,7 @@ class ProjectsController < ApplicationController
   before_action :set_workspace_project, only: %i[
     show edit update nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :reject_workshop_mutation_if_pending_payment!, only: :nested_dxf
   before_action :authorize_nested_download!, only: :nested_dxf
 
   def index
