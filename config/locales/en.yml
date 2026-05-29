@@ -195,7 +195,8 @@ en:
         lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
       pending_workshop_lock:
-        message: "A payment for this nest is still being confirmed. Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."
+        title: "Payment confirming"
+        message: "Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."
         view_processing: "View payment status"
       title: "Pay for this download"
       title_plan: "Pay for this plan"

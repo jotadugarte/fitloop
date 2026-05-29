@@ -210,7 +210,8 @@ es:
         lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
     checkout:
       pending_workshop_lock:
-        message: "Tenés un pago en confirmación para este anidado. No cambies láminas ni vuelvas a anidar hasta que termine; si lo hacés, podés perder la descarga de este resultado."
+        title: "Pago en confirmación"
+        message: "No cambies láminas ni vuelvas a anidar hasta que termine; si lo hacés, podés perder la descarga de este resultado."
         view_processing: "Ver estado del pago"
       title: "Pagar esta descarga"
       title_plan: "Pagar este plan"

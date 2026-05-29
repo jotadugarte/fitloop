@@ -1,15 +1,24 @@
 <%# locals: (project:) %>
 <% lock = pending_checkout_lock(project) %>
 <% if lock&.active? %>
-  <aside class="pending-payment-lock-banner panel panel--inset"
+  <aside class="pending-payment-lock-banner"
          role="status"
+         aria-labelledby="pending-payment-lock-title-<%= lock.payment_id %>"
          data-testid="pending-payment-lock-banner">
-    <p class="pending-payment-lock-banner__message"><%= lock.message %></p>
-    <p class="pending-payment-lock-banner__actions">
-      <%= link_to t("billing.checkout.pending_workshop_lock.view_processing"),
-                  checkout_processing_path(lock.payment_id),
-                  class: "btn btn-secondary btn--compact",
-                  data: { turbo: false, testid: "pending-payment-lock-processing-link" } %>
-    </p>
+    <div class="pending-payment-lock-banner__inner">
+      <span class="pending-payment-lock-banner__icon" aria-hidden="true">⏳</span>
+      <div class="pending-payment-lock-banner__content">
+        <p id="pending-payment-lock-title-<%= lock.payment_id %>" class="pending-payment-lock-banner__title">
+          <%= t("billing.checkout.pending_workshop_lock.title") %>
+        </p>
+        <p class="pending-payment-lock-banner__message"><%= lock.message %></p>
+      </div>
+      <div class="pending-payment-lock-banner__actions">
+        <%= link_to t("billing.checkout.pending_workshop_lock.view_processing"),
+                    checkout_processing_path(lock.payment_id),
+                    class: "btn btn-secondary btn--compact pending-payment-lock-banner__cta",
+                    data: { turbo: false, testid: "pending-payment-lock-processing-link" } %>
+      </div>
+    </div>
   </aside>
 <% end %>
