@@ -95,6 +95,11 @@
       24. Paywall nested DXF only: gate downloads with `RequiresNestedDownloadAuthorization`; preview, `nesting_sync`, and placements JSON stay free. Prices live in `config/billing.yml` (hot-reload), not hardcoded in controllers.
       25. Billing v1 is simulated only: use `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` until an ADR introduces a live payment gateway (see `SYSTEM_ARCHITECTURE.md` kill list).
       26. Request specs: root `RSpec.describe` must include `[REQ-FIT-*]` constant(s) for the domain under test (auth, billing, workspace), in addition to nested `it` tags — complements rule 21 (service class describes).
+      27. Billing cart: exactly one `Cart` row per guest (`guest_token`) or user (`user_id`); replace requires confirm (`/carrito/reemplazar` → PATCH `/carrito`); `Billing::CartMergeOnLogin` discards guest cart when user cart exists (user wins).
+      28. Cart price snapshot: `list_price_cents` / `sinpe_price_cents` / `currency_mode` set at POST `/carrito`; checkout and simulate prefer cart cents when currency matches payment method.
+      29. MEIC pricing: paywall shows SINPE hero + card reference in CR; SINPE discount line only at checkout (not at add-to-cart). IVA 13% calculated and shown at checkout for CR only.
+      30. Billing payment methods: use `Billing::CheckoutPaymentMethod` (aligned with `Payment` enums); do not invent ad-hoc method strings in simulate services.
+      31. Pending cart replace payload: validate via `Billing::PendingCart`; clear `session[:pending_cart]` on login, cancel, and successful replace.
     </rules>
   </project_rules>
 </agentic_guild_os>

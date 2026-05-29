@@ -135,9 +135,10 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 |-------|------------------|----------------|
 | **Auth** | Devise + OmniAuth controllers under `app/controllers/users/` | Register, login, email confirmation, password reset, OAuth callbacks; account edit/delete |
 | **Workspace** | `Workspace`, `SetsWorkspaceProject`, `ResolvesWorkspaceTab` | Ephemeral `Project` per browser tab (`session[:workspaces]`); tab cookie/header; 120s TTL after tab close (ADR-0004, extended in ADR-0005) |
-| **Paywall** | `RequiresNestedDownloadAuthorization`, `DownloadPaywallController` | Nested DXF only; guests and unconfirmed users redirected; signed download token (~15 min) |
-| **Billing** | `Billing::Entitlement`, `Billing::Simulate*`, `config/billing.yml` | Simulated card (USD) and SINPE (CRC); plans 1/2/4 months; monthly quota; single-purchase 24h retention on `DownloadGrant` |
-| **Account UI** | `/mis-pagos`, `/planes`, `/checkout` | Plan purchase and retained download after workspace loss |
+| **Paywall** | `DownloadPaywallController`, `RequiresNestedDownloadAuthorization` | Nested DXF only; catalog at `/taller/descarga-pago` with MEIC pricing; guests and unconfirmed users redirected; signed download token (~15 min) |
+| **Cart** | `Cart`, `CartController`, `Billing::CartUpsert`, `Billing::CartMergeOnLogin`, `Billing::PendingCart` | Single-item DB cart (guest or user); price snapshot at add; replace-confirm; merge on login (user wins) |
+| **Billing** | `Billing::Pricing`, `Billing::CheckoutBreakdown`, `Billing::CheckoutPaymentMethod`, `Billing::Simulate*`, `config/billing.yml` | Simulated card (CRC/USD) and SINPE (CRC); MEIC list vs SINPE discount; IVA CR only at checkout; plans 1/2/4 months; monthly quota; payment snapshots; 24h retention on `DownloadGrant` |
+| **Account UI** | `/mis-pagos`, `/planes`, `/carrito`, `/checkout` | Plan purchase and retained download after workspace loss; cart is internal redirect to checkout |
 
 Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
 

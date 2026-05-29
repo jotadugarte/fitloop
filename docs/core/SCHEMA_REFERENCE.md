@@ -1,8 +1,8 @@
 # Schema Reference — Fitloop
 
-**Source of truth:** `db/schema.rb` (version `2026_05_21_025640`). Regenerate this doc when migrations change.
+**Source of truth:** `db/schema.rb` (version `2026_05_28_032214`). Regenerate this doc when migrations change.
 
-**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (+ Active Storage attachments on `Project`). **Planned (ADR-0005, P6/P7):** `User`, `Subscription`, `Purchase`, `Payment`, `DownloadGrant`, `PlanMonthlyUsage`.
+**ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece`, `User`, `Subscription`, `Payment`, `DownloadGrant`, `PlanMonthlyUsage`, `Cart` (+ Active Storage attachments on `Project` and `DownloadGrant`).
 
 ---
 
@@ -186,24 +186,94 @@ Standard Rails 8 tables for blob metadata:
 
 ---
 
-## Planned tables (ADR-0005 — auth + billing, not yet migrated)
+## Auth and billing (ADR-0005)
 
 ### `users`
 
 | Column | Type | Notes |
 |--------|------|-------|
-| `email` | string | Unique, case-insensitive |
-| `encrypted_password` | string | Devise; min 12 chars for email auth |
+| `email` | string | Unique (Devise) |
+| `encrypted_password` | string | Min 12 chars for email auth |
 | `name` | string | Required at registration |
-| `email_confirmed_at` | datetime | Gate before billing |
+| `confirmed_at` | datetime | Gate before billing (`billing_ready?`) |
 | `terms_accepted_at` | datetime | Required at registration |
 | `terms_version` | string | Legal version id |
-| `time_zone` | string | Required before plan purchase |
+| `time_zone` | string | Plan period anchoring |
 | `suspended_at` | datetime | Blocks pay/download when set |
+| `provider`, `uid` | string | OmniAuth (optional) |
 
-### `subscriptions`, `purchases`, `payments`, `download_grants`, `plan_monthly_usages`
+### `carts`
 
-See `REQ-FIT-BILL-001..003` in `SPEC.md`. `download_grants.retained_nested_dxf` (Active Storage) + `retained_until` for single-purchase 24h retention.
+Single-item shopping line for paywall → checkout (guest or signed-in user).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `kind` | string | `single_download` \| `plan` (Rails enum on `Cart`) |
+| `nesting_run_id` | bigint | FK → `nesting_runs`; set when `kind == single_download` |
+| `tier_months` | integer | Set when `kind == plan` (1, 2, or 4) |
+| `currency_mode` | string | `crc` \| `usd` — snapshot currency at add |
+| `overage` | boolean | Single-download overage flag (default false) |
+| `list_price_cents` | integer | Official/card list price at add (integer CRC cents or USD cents) |
+| `sinpe_price_cents` | integer | SINPE reference price at add |
+| `guest_token` | string | UUID for anonymous cart (unique partial index) |
+| `user_id` | bigint | FK → `users` (unique partial index) |
+
+**Business rules:** Exactly one of `guest_token` or `user_id`. Exactly one of `nesting_run_id` or `tier_months`. On login, guest cart merges to user or is discarded if user already has a cart.
+
+### `payments`
+
+Simulated checkout records; financial snapshot columns support admin reporting (D20).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | bigint | FK → `users` |
+| `status` | string | `pending`, `succeeded`, `failed` |
+| `payment_method` | string | `card_usd`, `card_crc`, `sinpe_crc` |
+| `currency` | string | `usd` \| `crc` |
+| `amount` | decimal | Charged unit amount (method-specific base) |
+| `purpose` | string | `single_download` \| `plan_subscription` |
+| `nesting_run_id` | bigint | Optional; single-download payments |
+| `subscription_id` | bigint | Optional; plan payments |
+| `paid_at` | datetime | Set on success |
+| `purchaser_name` | string | Immutable snapshot at attempt |
+| `purchaser_email` | string | Immutable snapshot at attempt |
+| `product_description` | string | Immutable snapshot at attempt |
+| `list_price` | decimal | List/card price before discount |
+| `discount_amount` | decimal | SINPE promo (0 for card) |
+| `subtotal` | decimal | Net before tax |
+| `tax_amount` | decimal | IVA (0 outside CR) |
+| `total_amount` | decimal | Final total |
+
+**Business rules:** Snapshot populated for both `succeeded` and `failed` simulated attempts.
+
+### `subscriptions`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | bigint | FK → `users` |
+| `tier_months` | integer | 1, 2, or 4 |
+| `starts_at` | datetime | First purchase instant |
+| `ends_at` | datetime | Extended on repurchase from prior `ends_at` |
+
+### `download_grants`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `user_id` | bigint | FK → `users` |
+| `nesting_run_id` | bigint | FK → `nesting_runs` |
+| `kind` | string | `single_purchase` \| `plan_included` |
+| `retained_until` | datetime | Single purchase: `paid_at + 24h` |
+
+**Active Storage:** `retained_nested_dxf` attachment for single-purchase retention after workspace discard.
+
+### `plan_monthly_usages`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `subscription_id` | bigint | FK → `subscriptions` |
+| `period_year`, `period_month` | integer | Calendar month bucket |
+| `downloads_used` | integer | Counter within period |
+| `quota_limit` | integer | Default 50 |
 
 ---
 
@@ -211,8 +281,10 @@ See `REQ-FIT-BILL-001..003` in `SPEC.md`. `download_grants.retained_nested_dxf` 
 
 ```
 User 1──* Subscription
-User 1──* Purchase
+User 1──* Payment
 User 1──* DownloadGrant
+User 0..1 Cart
+Cart *──0..1 NestingRun
 DownloadGrant *──1 NestingRun (via nesting_run_id)
 Project 1──* SheetStock
 Project 1──* ProjectLayer
@@ -232,3 +304,7 @@ Project 1──* ActiveStorage::Attachment (input_dxf × N, nested_dxf × 1, pla
 `Project.status` — Rails `enum` on string column (see `app/models/project.rb`).
 
 `NestingRun.status` — string column; values set by `Nesting::JobRunner` / `StatusMapper` (`processing`, `completed`, `partial`, `failed`).
+
+`Cart.kind`, `Cart.currency_mode` — Rails string enums (`single_download`/`plan`, `crc`/`usd`).
+
+`Payment.status`, `Payment.payment_method`, `Payment.currency`, `Payment.purpose` — Rails string enums (see `app/models/payment.rb`).

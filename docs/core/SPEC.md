@@ -201,24 +201,39 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Scope:** Paywall and simulated payments for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button.
 
-**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Seed keys: `single_download_usd`, `single_download_sinpe_crc`, `plan_*` tiers 1/2/4 months.
+**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time).
 
 **Regional currency and tax (country resolution):**
 
 - Country from `CF-IPCountry` header, with GeoLite2 fallback and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (same stack as `Billing::GeoPaymentDefaults`).
-- **`country_code == 'CR'`:** Paywall, cart, and checkout show prices **only in CRC**. **IVA 13%** is calculated on the net subtotal (after SINPE discount when applicable), shown as an explicit line in cart/checkout breakdown, and persisted on `Payment` snapshot fields (`tax_amount`, `total_amount`) before gateway handoff.
-- **`country_code != 'CR'`:** UI shows prices **only in USD**. **No IVA** — do not calculate, charge, or render a tax line in cart/checkout.
-- Currency is **not user-selectable**; session may store **payment method** only when the region allows (SINPE + card in CR; card only internationally).
+- **Default:** `country_code == 'CR'` → CRC + SINPE/card methods; otherwise USD + card only.
+- **Manual override:** Paywall/workspace billing selector may set `session[:billing_currency]` and `session[:billing_payment_method]`; overrides IP default until changed.
+- **`country_code == 'CR'`:** Prices in CRC. **IVA 13%** on net subtotal (after SINPE discount when applicable), shown only at **checkout**, persisted on `Payment` snapshot fields (`tax_amount`, `total_amount`).
+- **`country_code != 'CR'` (or USD selected):** Prices in USD. **No IVA** — do not calculate, charge, or render a tax line.
+
+**Cart (single-item, `REQ-FIT-BILL-001` v1.1):**
+
+- One line per guest (`guest_token`) or user (`user_id`); unique partial indexes enforce at most one row each.
+- **Kinds:** `single_download` (requires `nesting_run_id`) or `plan` (requires `tier_months` ∈ {1, 2, 4}).
+- **Snapshot at add:** `list_price_cents`, `sinpe_price_cents`, `currency_mode` (`crc` \| `usd`), `overage` flag — frozen until replace or currency refresh.
+- **Replace:** POST `/carrito` with a different line → confirm at `/carrito/reemplazar` → PATCH `/carrito` applies pending session payload (`Billing::PendingCart`).
+- **Guest flow:** Guest may POST `/carrito`; **checkout requires sign-in** (`RequiresBillingConfirmation`). On login, **user cart wins** — guest cart discarded if both exist (`Billing::CartMergeOnLogin`).
+- **Routes:** GET `/carrito` redirects to checkout when a line exists, else paywall. GET `/planes` redirects to checkout when the signed-in user has a cart line.
+
+**MEIC pricing UX (list vs SINPE):**
+
+- Paywall catalog (`/taller/descarga-pago`): hero **SINPE** price in CR; struck/reference **card official** price. Abroad (USD): card price only, no SINPE copy.
+- Checkout: dynamic breakdown — list subtotal, optional SINPE discount line, IVA (CR only), total. Method selector precedes breakdown (method-first flow).
 
 **Checkout (simulated, D37):**
 
-- Methods: **Tarjeta (CRC or USD per region)** and **SINPE Móvil (CRC, CR only)**.
+- Methods: **Tarjeta (CRC or USD per selection/region)** and **SINPE Móvil (CRC, CR only)**.
 - Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator.
-- Guest at paywall must **register/login** first (no guest checkout, D40).
+- **Payment snapshot (D20, D24):** On simulate (success or failure), persist immutable purchaser + financial breakdown on `Payment` (`purchaser_name`, `purchaser_email`, `product_description`, `list_price`, `discount_amount`, `subtotal`, `tax_amount`, `total_amount`, `payment_method`, `currency`). Simulation prefers cart snapshot cents when cart currency matches checkout method.
 
-**Paywall UX (D42):** Clear copy “Se requiere pago o plan” with paths to single-run pay, `/planes`, `/iniciar-sesion`.
+**Paywall UX (D42):** Catalog at `/taller/descarga-pago` with inline plans + “Añadir al carrito”; paths to checkout (after login), `/iniciar-sesion`.
 
-**Tests:** billing doc verifier; checkout request specs (implementation plan P4).
+**Tests:** billing doc verifier; cart, checkout, and paywall request specs.
 
 ### REQ-FIT-BILL-002 (detail)
 
