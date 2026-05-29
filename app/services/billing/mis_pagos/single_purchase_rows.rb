@@ -23,16 +23,23 @@ module Billing
       end
 
       def build
-        grants = @user.download_grants.single_purchase.order(created_at: :desc).to_a
-        pending = PendingCheckoutLock.unfulfilled_pending_payments(user: @user)
-                                       .order(created_at: :desc)
-                                       .includes(:nesting_run)
+        pending = active_pending_payments
+        pending_run_ids = pending.map(&:nesting_run_id).compact.to_set
+        grants = @user.download_grants.single_purchase
+                      .order(created_at: :desc)
+                      .reject { |grant| pending_run_ids.include?(grant.nesting_run_id) }
 
         rows = grant_rows(grants) + pending_rows(pending)
         rows.sort_by(&:sort_at).reverse
       end
 
       private
+
+      def active_pending_payments
+        PendingCheckoutLock.pending_single_download_payments(user: @user)
+                           .order(created_at: :desc)
+                           .select { |payment| PendingCheckoutLock.new(payment: payment).active? }
+      end
 
       def grant_rows(grants)
         grants.map { |grant| Row.new(sort_at: grant.created_at, grant: grant, pending_payment: nil) }
@@ -43,7 +50,6 @@ module Billing
           Row.new(sort_at: payment.created_at, grant: nil, pending_payment: payment)
         end
       end
-
     end
   end
 end

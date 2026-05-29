@@ -50,4 +50,22 @@ RSpec.describe Billing::MisPagos::SinglePurchaseRows, "[REQ-FIT-BILL-001] [REQ-F
     expect(rows.first.grant).to eq(grant)
     expect(rows.first.pending_payment).to be_nil
   end
+
+  it "[REQ-FIT-BILL-001] shows pending row instead of older grant while a new payment is in flight" do
+    DownloadGrant.create!(
+      user: user,
+      nesting_run: run,
+      kind: :single_purchase,
+      retained_until: 1.day.from_now,
+      created_at: 2.days.ago,
+      updated_at: 2.days.ago
+    )
+    payment = pending_payment!
+
+    rows = described_class.build(user: user)
+
+    expect(rows.length).to eq(1)
+    expect(rows.first.pending_payment).to eq(payment)
+    expect(rows.first.grant).to be_nil
+  end
 end

@@ -52,10 +52,10 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end
 
-    it "[REQ-FIT-BILL-001] hides pending banner when grant exists but payment row still pending" do
+    it "[REQ-FIT-BILL-001] hides pending banner when grant was refreshed for the pending checkout" do
       project = Project.create!(ephemeral: true, title: "Stale pending", status: :completed)
       run = project.nesting_runs.create!(status: "completed")
-      Payment.create!(
+      payment = Payment.create!(
         user: user,
         nesting_run: run,
         status: "pending",
@@ -67,13 +67,16 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
         gateway_provider: "onvo",
         onvo_payment_intent_id: "pi_stale_pending",
         onvo_mode: "test",
-        gateway_status: "processing"
+        gateway_status: "processing",
+        created_at: 2.hours.ago
       )
       DownloadGrant.create!(
         user: user,
         nesting_run: run,
         kind: :single_purchase,
-        retained_until: 1.day.from_now
+        retained_until: 1.day.from_now,
+        created_at: 3.hours.ago,
+        updated_at: Time.current
       )
 
       get mis_pagos_path, params: { locale: "es" }
@@ -81,6 +84,7 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include('data-testid="pending-payment-lock-banner"')
       expect(response.body).not_to include('data-testid-mis-pagos-pending-sync="true"')
+      expect(payment).to be_pending
     end
   end
 

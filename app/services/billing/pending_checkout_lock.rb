@@ -13,7 +13,9 @@ module Billing
     def self.for_user(user:)
       return nil if user.nil?
 
-      payment = unfulfilled_pending_payments(user: user).order(created_at: :desc).first
+      payment = pending_single_download_payments(user: user)
+                .order(created_at: :desc)
+                .detect { |candidate| new(payment: candidate).active? }
       return nil if payment.nil?
 
       new(payment: payment)
@@ -22,17 +24,15 @@ module Billing
     def self.pending_payment_for(project:, user:)
       return nil if project.nil? || user.nil?
 
-      unfulfilled_pending_payments(user: user)
+      pending_single_download_payments(user: user)
         .joins(:nesting_run)
         .where(nesting_runs: { project_id: project.id })
         .order(created_at: :desc)
-        .first
+        .detect { |candidate| new(payment: candidate).active? }
     end
 
-    def self.unfulfilled_pending_payments(user:)
-      granted_run_ids = DownloadGrant.single_purchase.where(user_id: user.id).select(:nesting_run_id)
-
-      Payment.pending.single_download.where(user_id: user.id).where.not(nesting_run_id: granted_run_ids)
+    def self.pending_single_download_payments(user:)
+      Payment.pending.single_download.where(user_id: user.id)
     end
 
     def initialize(payment:)
@@ -41,12 +41,25 @@ module Billing
 
     def active?
       return false unless @payment.pending?
+      return false if superseded_by_successful_checkout?
 
-      !DownloadGrant.single_purchase.exists?(
+      grant = DownloadGrant.single_purchase.find_by(
         user_id: @payment.user_id,
         nesting_run_id: @payment.nesting_run_id
       )
+      return true if grant.nil?
+
+      !(grant.updated_at >= @payment.created_at && grant.retention_active?)
     end
+
+    def superseded_by_successful_checkout?
+      Payment.succeeded.single_download
+             .where(user_id: @payment.user_id, nesting_run_id: @payment.nesting_run_id)
+             .where("created_at >= ?", @payment.created_at)
+             .exists?
+    end
+
+    private :superseded_by_successful_checkout?
 
     def payment_id
       @payment.id

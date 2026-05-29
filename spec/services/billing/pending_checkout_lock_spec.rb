@@ -7,20 +7,22 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
   let(:project) { Project.create!(ephemeral: true, title: "Lock spec", status: :completed) }
   let(:run) { project.nesting_runs.create!(status: "completed") }
 
-  def pending_payment!
+  def pending_payment!(**attrs)
     Payment.create!(
-      user: user,
-      nesting_run: run,
-      status: "pending",
-      payment_method: "sinpe_crc",
-      currency: "crc",
-      amount: 1130,
-      total_amount: 1130,
-      purpose: "single_download",
-      gateway_provider: "onvo",
-      onvo_payment_intent_id: "pi_lock_spec",
-      onvo_mode: "test",
-      gateway_status: "processing"
+      {
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_lock_spec_#{SecureRandom.hex(4)}",
+        onvo_mode: "test",
+        gateway_status: "processing"
+      }.merge(attrs)
     )
   end
 
@@ -56,13 +58,58 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
     expect(lock.payment_id).to eq(payment.id)
   end
 
-  it "[REQ-FIT-BILL-001] is inactive when grant already exists for the nesting run" do
-    payment = pending_payment!
+  it "[REQ-FIT-BILL-001] stays active when an older grant exists for the same nesting run" do
     DownloadGrant.create!(
       user: user,
       nesting_run: run,
       kind: :single_purchase,
-      retained_until: 1.day.from_now
+      retained_until: 1.day.from_now,
+      created_at: 2.days.ago,
+      updated_at: 2.days.ago
+    )
+    payment = pending_payment!
+
+    lock = described_class.for(project: project, user: user)
+
+    expect(lock).to be_active
+    expect(lock.payment_id).to eq(payment.id)
+  end
+
+  it "[REQ-FIT-BILL-001] is inactive when grant was refreshed after the pending payment started" do
+    payment = pending_payment!(created_at: 2.hours.ago)
+    DownloadGrant.create!(
+      user: user,
+      nesting_run: run,
+      kind: :single_purchase,
+      retained_until: 1.day.from_now,
+      created_at: 3.hours.ago,
+      updated_at: Time.current
+    )
+
+    expect(described_class.for(project: project, user: user)).to be_nil
+    expect(described_class.for_user(user: user)).to be_nil
+  end
+
+  it "[REQ-FIT-BILL-001] is inactive when a newer succeeded payment exists for the same run" do
+    pending_payment!(
+      created_at: 2.hours.ago,
+      onvo_payment_intent_id: "pi_old_pending"
+    )
+    Payment.create!(
+      user: user,
+      nesting_run: run,
+      status: "succeeded",
+      paid_at: Time.current,
+      payment_method: "sinpe_crc",
+      currency: "crc",
+      amount: 1130,
+      total_amount: 1130,
+      purpose: "single_download",
+      gateway_provider: "onvo",
+      onvo_payment_intent_id: "pi_new_succeeded",
+      onvo_mode: "test",
+      gateway_status: "succeeded",
+      created_at: 1.hour.ago
     )
 
     expect(described_class.for(project: project, user: user)).to be_nil
