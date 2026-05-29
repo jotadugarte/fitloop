@@ -3,6 +3,8 @@
 module Billing
   # [REQ-FIT-BILL-001] JSON payload for checkout payment status polling.
   class PaymentStatusResponse
+    ABANDONED_GATEWAY_STATUSES = %w[requires_payment_method requires_action canceled].freeze
+
     def self.for(payment:, routes:)
       new(payment: payment, routes: routes).to_h
     end
@@ -15,7 +17,9 @@ module Billing
     def to_h
       {
         status: @payment.status,
-        redirect_url: redirect_url_if_ready
+        gateway_status: @payment.gateway_status,
+        redirect_url: redirect_url_if_ready,
+        checkout_return_url: checkout_return_url_if_abandoned
       }
     end
 
@@ -36,6 +40,15 @@ module Billing
 
     def mis_pagos_success_url(**params)
       @routes.mis_pagos_path(params.merge(payment_succeeded: 1))
+    end
+
+    def checkout_return_url_if_abandoned
+      return nil if @payment.succeeded? || @payment.failed?
+      return nil unless ABANDONED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
+
+      query = { payment_canceled: 1 }
+      query[:nesting_run_id] = @payment.nesting_run_id if @payment.nesting_run_id.present?
+      @routes.checkout_path(query)
     end
   end
 end

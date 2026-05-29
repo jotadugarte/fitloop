@@ -42,6 +42,12 @@ export default class extends Controller {
       return
     }
 
+    if (data.checkout_return_url) {
+      this.stopPolling()
+      window.location.href = data.checkout_return_url
+      return
+    }
+
     if (data.status === "failed") {
       this.stopPolling()
       window.location.href = `${this.checkoutUrlValue}?payment_failed=1`

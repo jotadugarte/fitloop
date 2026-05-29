@@ -42,8 +42,34 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
       expect(body.fetch("status")).to eq("pending")
+      expect(body.fetch("gateway_status")).to eq("processing")
       expect(body.fetch("redirect_url")).to be_nil
+      expect(body.fetch("checkout_return_url")).to be_nil
       expect(DownloadGrant.count).to eq(0)
+    end
+
+    it "[REQ-FIT-BILL-001] returns checkout_return_url when gateway abandoned 3DS" do
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_abandoned",
+        onvo_mode: "test",
+        gateway_status: "requires_payment_method"
+      )
+
+      get checkout_payment_status_path(payment)
+
+      body = JSON.parse(response.body)
+      expect(body.fetch("checkout_return_url")).to eq(
+        checkout_path(nesting_run_id: run.id, payment_canceled: 1)
+      )
     end
 
     it "[REQ-FIT-BILL-001] returns redirect_url when payment succeeded and grant exists" do

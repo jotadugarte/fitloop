@@ -237,6 +237,8 @@ es:
         api_errors:
           test_payment_method: "Esa tarjeta no es válida en modo prueba de ONVO. Usá una tarjeta de test (por ejemplo 4242 4242 4242 4242)."
         card_test_mode_hint: "Modo prueba ONVO: tarjeta aprobada Visa 4242 4242 4242 4242 (16 dígitos), cualquier vencimiento futuro y CVV."
+        payment_canceled: "Cancelaste la verificación de la tarjeta. El pago no se completó; volvé a ingresar los datos de la tarjeta e intentá de nuevo."
+        payment_failed: "El pago con tarjeta fue rechazado. Revisá los datos o probá otro método de pago."
         sinpe_how_title: "¿Cómo funciona SINPE Móvil?"
         sinpe_how_step_1: "Ingresá la cédula y el teléfono móvil desde el que harás la transferencia."
         sinpe_how_step_2: "Pulsa «Procesar pago»; te mostraremos el monto exacto y el número SINPE destino de ONVO."

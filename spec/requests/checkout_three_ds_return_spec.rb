@@ -54,6 +54,36 @@ RSpec.describe "ONVO 3DS return", "[REQ-FIT-BILL-001]", type: :request do
       expect(payment.reload.gateway_status).to eq("processing")
     end
 
+    it "[REQ-FIT-BILL-001] returns to checkout when 3DS was canceled" do
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_3ds_canceled",
+        onvo_mode: "test",
+        gateway_status: "requires_action"
+      )
+
+      expect(client).to receive(:get_payment_intent).with("pi_3ds_canceled").and_return(
+        id: "pi_3ds_canceled",
+        status: "requires_payment_method"
+      )
+
+      get checkout_return_path, params: { payment_intent_id: "pi_3ds_canceled" }
+
+      expect(response).to redirect_to(
+        checkout_path(nesting_run_id: run.id, payment_canceled: 1)
+      )
+      expect(flash[:alert]).to eq(I18n.t("billing.checkout.onvo.payment_canceled"))
+      expect(payment.reload.gateway_status).to eq("requires_payment_method")
+    end
+
     it "[REQ-FIT-BILL-001] returns not found for unknown payment intent" do
       get checkout_return_path, params: { payment_intent_id: "pi_missing" }
 
