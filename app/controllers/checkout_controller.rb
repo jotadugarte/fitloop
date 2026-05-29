@@ -10,7 +10,7 @@ class CheckoutController < ApplicationController
   before_action :set_workspace_project, only: %i[show simulate pay processing]
   before_action :load_checkout_context, only: %i[show simulate pay]
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
-  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe]
+  before_action :require_onvo_gateway!, only: %i[pay confirm_sinpe three_ds_return]
 
   def show
     @billing_selection = billing_selection
@@ -82,6 +82,15 @@ class CheckoutController < ApplicationController
   def payment_status
     payment = current_user.payments.find(params[:payment_id])
     render json: Billing::PaymentStatusResponse.for(payment: payment, routes: self)
+  end
+
+  def three_ds_return
+    intent_id = params[:payment_intent_id].to_s.strip
+    raise ActiveRecord::RecordNotFound if intent_id.blank?
+
+    payment = current_user.payments.find_by!(onvo_payment_intent_id: intent_id)
+    Billing::Onvo::ReconcilePaymentIntent.call(payment: payment)
+    redirect_to checkout_processing_path(payment)
   end
 
   def simulate

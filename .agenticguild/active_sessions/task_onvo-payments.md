@@ -361,8 +361,8 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 
   <phase id="P8" name="3DS return">
-    <step id="8.1" status="pending">Write failing request spec: `GET /checkout/retorno?payment_intent_id=` redirects to processing when intent requires_action completed.</step>
-    <step id="8.2" status="pending">Implement `CheckoutController#return` route; reconcile intent via `Billing::Onvo::Client#get_intent`.</step>
+    <step id="8.1" status="complete">Write failing request spec: `GET /checkout/retorno?payment_intent_id=` redirects to processing when intent requires_action completed.</step>
+    <step id="8.2" status="complete">Implement `CheckoutController#return` route; reconcile intent via `Billing::Onvo::Client#get_intent`.</step>
   </phase>
 
   <phase id="P9" name="SINPE confirm &amp; failure paths">
