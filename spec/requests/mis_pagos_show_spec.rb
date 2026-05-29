@@ -45,10 +45,42 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="pending-payment-lock-processing-link"')
       expect(response.body).not_to include("context=workshop")
       expect(response.body).to include('data-testid="mis-pagos-pending-download-row"')
+      expect(response.body).to include("mis-pagos-list__item--pending-download")
       expect(response.body).to include('data-testid="mis-pagos-download-pending"')
       expect(response.body).to include(I18n.t("billing.mis_pagos.awaiting_confirmation", locale: :es))
       expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
+    end
+
+    it "[REQ-FIT-BILL-001] hides pending banner when grant exists but payment row still pending" do
+      project = Project.create!(ephemeral: true, title: "Stale pending", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_stale_pending",
+        onvo_mode: "test",
+        gateway_status: "processing"
+      )
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: :single_purchase,
+        retained_until: 1.day.from_now
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('data-testid="pending-payment-lock-banner"')
+      expect(response.body).not_to include('data-testid-mis-pagos-pending-sync="true"')
     end
   end
 

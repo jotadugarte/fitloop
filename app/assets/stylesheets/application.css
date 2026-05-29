@@ -1513,6 +1513,16 @@ h3.fit-section__legend {
   align-items: flex-start;
 }
 
+.mis-pagos-list__item--pending-download {
+  background: color-mix(in srgb, #c53030 9%, var(--fit-bg));
+  border-color: color-mix(in srgb, #c53030 32%, var(--fit-border));
+}
+
+.mis-pagos-list__item--download-ready {
+  background: color-mix(in srgb, var(--fit-success-bg) 85%, var(--fit-bg));
+  border-color: color-mix(in srgb, var(--fit-success-border) 45%, var(--fit-border));
+}
+
 .mis-pagos-list__primary {
   display: flex;
   flex: 1 1 12rem;

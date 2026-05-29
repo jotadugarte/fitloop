@@ -1,5 +1,8 @@
 <%# locals: (row:) %>
-<li class="mis-pagos-list__item<%= " mis-pagos-list__item--pending-download" if row.pending? %>"
+<% item_class = "mis-pagos-list__item" %>
+<% item_class += " mis-pagos-list__item--pending-download" if row.pending? %>
+<% item_class += " mis-pagos-list__item--download-ready" if row.downloadable? %>
+<li class="<%= item_class %>"
     data-testid="<%= row.pending? ? "mis-pagos-pending-download-row" : "mis-pagos-grant-row" %>">
   <div class="mis-pagos-list__primary">
     <time class="mis-pagos-list__date" datetime="<%= row.sort_at.iso8601 %>">
