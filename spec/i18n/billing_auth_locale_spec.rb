@@ -21,6 +21,23 @@ RSpec.describe "Billing and auth locale keys", "[REQ-FIT-BILL-001] [REQ-FIT-BILL
     billing.download.retention_expired
     billing.mis_pagos.title
     billing.mis_pagos.download
+    billing.checkout.pending_lock.abandon_confirm_title
+    billing.checkout.pending_lock.abandon_confirm_body
+    billing.checkout.pending_lock.abandon_confirm_button
+    billing.checkout.pending_lock.cancel_attempt
+    billing.checkout.pending_lock.duplicate_checkout_blocked
+    billing.checkout.pending_lock.lock_expired_title
+    billing.checkout.pending_lock.lock_expired_message
+    billing.mis_pagos.pending_confirming
+    billing.mis_pagos.pending_unconfirmed
+    billing.mis_pagos.superseded
+    billing.mis_pagos.superseded_attempt
+    billing.mis_pagos.cancel_attempt
+    billing.mis_pagos.retry_checkout
+    billing.mis_pagos.view_processing
+    billing.mis_pagos.payment_confirmed_download
+    billing.mis_pagos.download_status.unconfirmed
+    billing.mis_pagos.status.superseded
     billing.planes.title
     billing.planes.success
     billing.suspended

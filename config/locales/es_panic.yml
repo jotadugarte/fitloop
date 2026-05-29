@@ -181,10 +181,19 @@ es_panic:
       single_purchases: Descargas sueltas pagadas
       no_single_purchases: Sin descargas sueltas todavía.
       awaiting_confirmation: Esperando confirmación del pago
+      pending_confirming: Confirmando pago
+      pending_unconfirmed: Sin confirmar
+      superseded: Reemplazado
+      superseded_attempt: Intento reemplazado
+      cancel_attempt: Cancelar intento
+      retry_checkout: Volver a pagar
+      view_processing: Ver estado del pago
+      payment_confirmed_download: Pago confirmado — Descargar
       download: Descargar
       retained_until: Hasta %{until}
       download_status:
         pending: Confirmando pago
+        unconfirmed: Sin confirmar
         available: Lista para bajar
         expired: Expirada
       summary:
@@ -209,6 +218,7 @@ es_panic:
         succeeded: Exitoso
         failed: Fallido
         pending: Pendiente
+        superseded: Reemplazado
       aside:
         title: Descargas y planes
         lead: Tu plan, las sueltas que pagaste y el historial de pagos simulados.
@@ -226,6 +236,14 @@ es_panic:
       aside:
         lead: Planes con cupo mensual. Elige meses y simula pago USD o CRC.
     checkout:
+      pending_lock:
+        abandon_confirm_title: "¿Cancelar este intento de pago?"
+        abandon_confirm_body: Se desbloquea el taller. El banco puede seguir en pending. Si ya mandaste SINPE, no canceles acá — mirá Mis pagos.
+        abandon_confirm_button: Sí, cancelar intento
+        cancel_attempt: Cancelar intento
+        duplicate_checkout_blocked: Ya hay un SINPE en curso para este anidado. Mis pagos o esperá el bloqueo del taller.
+        lock_expired_title: Se acabó el tiempo de bloqueo en taller
+        lock_expired_message: Podés anidar o cambiar láminas. Si ya pagaste, la descarga cae en Mis pagos cuando ONVO confirme.
       pending_workshop_lock:
         title: Pago en confirmación
         message: No toques láminas ni re-anides hasta que cierre — o perdés la descarga.

@@ -186,10 +186,19 @@ es:
       single_purchases: "Descargas sueltas pagadas"
       no_single_purchases: "Aún no tienes descargas sueltas pagadas."
       awaiting_confirmation: "Esperando confirmación del pago"
+      pending_confirming: "Confirmando pago"
+      pending_unconfirmed: "Sin confirmar"
+      superseded: "Reemplazado"
+      superseded_attempt: "Intento reemplazado"
+      cancel_attempt: "Cancelar intento"
+      retry_checkout: "Volver a pagar"
+      view_processing: "Ver estado del pago"
+      payment_confirmed_download: "Pago confirmado — Descargar"
       download: "Descargar"
       retained_until: "Disponible hasta %{until}"
       download_status:
         pending: "Confirmando pago"
+        unconfirmed: "Sin confirmar"
         available: "Lista para descargar"
         expired: "Expirada"
       summary:
@@ -214,6 +223,7 @@ es:
         succeeded: "Exitoso"
         failed: "Fallido"
         pending: "Pendiente"
+        superseded: "Reemplazado"
       aside:
         title: "Descargas y planes"
         lead: "Aquí ves tu plan activo, las descargas sueltas que pagaste y el historial de pagos simulados."
@@ -231,6 +241,14 @@ es:
       aside:
         lead: "Los planes incluyen cupo mensual de descargas. Elige la duración que prefieras y simula el pago en USD o CRC."
     checkout:
+      pending_lock:
+        abandon_confirm_title: "¿Cancelar este intento de pago?"
+        abandon_confirm_body: "Se desbloqueará el taller. El pago puede seguir pendiente en el banco. Si ya transferiste por SINPE Móvil, no canceles aquí — esperá la confirmación en Mis pagos."
+        abandon_confirm_button: "Sí, cancelar intento"
+        cancel_attempt: "Cancelar intento"
+        duplicate_checkout_blocked: "Ya tenés un pago SINPE en curso para este anidado. Revisá Mis pagos o esperá a que termine el bloqueo del taller."
+        lock_expired_title: "Tiempo de espera en taller finalizado"
+        lock_expired_message: "Podés volver a anidar o cambiar láminas. Si ya pagaste, la descarga aparecerá en Mis pagos cuando ONVO confirme el cobro."
       pending_workshop_lock:
         title: "Pago en confirmación"
         message: "No cambies láminas ni vuelvas a anidar hasta que termine; si lo hacés, podés perder la descarga de este resultado."

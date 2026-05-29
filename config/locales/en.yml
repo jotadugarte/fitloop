@@ -171,10 +171,19 @@ en:
       single_purchases: "Paid single downloads"
       no_single_purchases: "No paid single downloads yet."
       awaiting_confirmation: "Waiting for payment confirmation"
+      pending_confirming: "Confirming payment"
+      pending_unconfirmed: "Unconfirmed"
+      superseded: "Replaced"
+      superseded_attempt: "Replaced attempt"
+      cancel_attempt: "Cancel attempt"
+      retry_checkout: "Pay again"
+      view_processing: "View payment status"
+      payment_confirmed_download: "Payment confirmed — Download"
       download: "Download"
       retained_until: "Available until %{until}"
       download_status:
         pending: "Confirming payment"
+        unconfirmed: "Unconfirmed"
         available: "Ready to download"
         expired: "Expired"
       summary:
@@ -199,6 +208,7 @@ en:
         succeeded: "Succeeded"
         failed: "Failed"
         pending: "Pending"
+        superseded: "Replaced"
       aside:
         title: "Downloads and plans"
         lead: "View your active plan, paid single downloads, and simulated payment history."
@@ -216,6 +226,14 @@ en:
       aside:
         lead: "Plans include a monthly download quota. Pick a duration and simulate payment in USD or CRC."
     checkout:
+      pending_lock:
+        abandon_confirm_title: "Cancel this payment attempt?"
+        abandon_confirm_body: "The workshop will unlock. The bank transfer may still be pending. If you already sent SINPE Mobile, do not cancel here — wait for confirmation in My payments."
+        abandon_confirm_button: "Yes, cancel attempt"
+        cancel_attempt: "Cancel attempt"
+        duplicate_checkout_blocked: "You already have a SINPE payment in progress for this nest. Check My payments or wait for the workshop lock to end."
+        lock_expired_title: "Workshop wait period ended"
+        lock_expired_message: "You can nest again or change sheets. If you already paid, the download will appear in My payments once ONVO confirms the charge."
       pending_workshop_lock:
         title: "Payment confirming"
         message: "Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."

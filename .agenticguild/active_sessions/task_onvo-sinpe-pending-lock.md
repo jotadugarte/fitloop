@@ -166,7 +166,7 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
     <step id="0.1" status="complete">Write failing spec (or extend `auth_billing_spec_doc_test` / billing doc verifier) asserting REQ-FIT-BILL-001 documents: SINPE workshop lock window, abandon without fail, late webhook fulfill, pre-retention, failed webhook purge.</step>
     <step id="0.2" status="complete">Update `docs/core/SPEC.md` REQ-FIT-BILL-001 detail with pending-checkout lock rules (reference decision log in task file).</step>
     <step id="0.3" status="complete">Add `config/billing.yml` key `onvo_pending_checkout.workshop_lock_minutes: 15`; implement `Billing::PendingCheckoutPolicy` (read config, `lock_expires_at`, `lock_active?`).</step>
-    <step id="0.4">Add i18n keys under `billing.checkout.pending_lock.*`, `billing.mis_pagos.pending_*`, `billing.mis_pagos.superseded`, abandon confirm copy — `es.yml`, `en.yml`, `es_panic.yml`; run/fix `spec/i18n/locale_key_parity_spec.rb`.</step>
+    <step id="0.4" status="complete">Add i18n keys under `billing.checkout.pending_lock.*`, `billing.mis_pagos.pending_*`, `billing.mis_pagos.superseded`, abandon confirm copy — `es.yml`, `en.yml`, `es_panic.yml`; run/fix `spec/i18n/locale_key_parity_spec.rb`.</step>
     <step id="0.5">Update `docs/QA_ONVO_SINPE.md` (88889521 → 15 min workshop unlock) and `docs/QA_MANUAL_CHECKLIST.md` (timeout, manual cancel, late webhook, failed purge).</step>
   </phase>
 
