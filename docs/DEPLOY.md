@@ -75,8 +75,26 @@ Copy `.env.example` to `.env` and set:
 |----------|---------|
 | `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection (see `config/database.yml`) |
 | `RAILS_MASTER_KEY` | Decrypt `config/credentials.yml.enc` (Rails secrets) |
+| `BILLING_GATEWAY` | `simulate` (default dev) or `onvo` for live ONVO checkout |
+| `ONVO_MODE`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET` | ONVO API + webhook verification ([ADR-0006](core/ADRs/0006-onvo-live-billing.md)) |
 
 `Dxf::Python.executable` prefers `Rails.root.join(".venv/bin/python")`; falls back to `python3` on `PATH`.
+
+### ONVO webhooks in local development
+
+ONVO sends webhooks from the public internet. `localhost` is not reachable unless you expose HTTPS.
+
+1. Start Rails: `bin/dev` (port 3000).
+2. Start a tunnel, e.g. [ngrok](https://ngrok.com/): `ngrok http 3000`.
+3. Register the webhook URL in the ONVO **test** dashboard: `https://<your-subdomain>.ngrok-free.app/webhooks/onvo` (path must match `POST /webhooks/onvo`).
+4. Set `ONVO_WEBHOOK_SECRET` in `.env` to the secret shown in ONVO; restart Rails after changing ENV.
+5. Allow the ngrok host in Rails if needed (`config.hosts` — Fitloop already permits common `*.ngrok-free.dev` patterns in development).
+
+**Caveats:**
+
+- Free ngrok URLs **change** when you restart the tunnel unless you use a reserved domain — update the ONVO dashboard each time.
+- Use the ngrok **inspector** at `http://127.0.0.1:4040` to replay or debug webhook payloads during integration.
+- **Staging (Northflank):** prefer a fixed HTTPS URL for a stable webhook endpoint; see `task_onvo-payments.md` ops checklist.
 
 ## First-time setup
 

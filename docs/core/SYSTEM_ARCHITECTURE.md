@@ -18,7 +18,7 @@
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
 | **i18n** | Rails I18n | `en`, `es` in v1; optional joke locale `es_panic` (easter egg, same key tree as `es`) |
 | **Auth** | **Devise** + **OmniAuth** | Email/password + optional Google, Facebook, Apple (ENV-gated). Spanish routes (`/iniciar-sesion`, `/crear-cuenta`, `/mi-cuenta`, …). See ADR-0005. |
-| **Billing (v1)** | Rails + `config/billing.yml` | **Simulated** checkout only (no live payment gateway). Paywall on **nested DXF** download; preview and `placements.json` remain free. See ADR-0005. |
+| **Billing (v1)** | Rails + `config/billing.yml` + **ONVO** (`BILLING_GATEWAY=onvo`) | Live **ONVO** Payment Intents + webhook (`ADR-0006`) or **simulated** checkout (`BILLING_GATEWAY=simulate`, ADR-0005). Paywall on **nested DXF** download; preview and `placements.json` remain free. |
 | **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
@@ -46,7 +46,7 @@ AI agents **must not** introduce the following without an ADR:
 * 🚫 **Python owning persistence:** no SQLAlchemy/ORM project DB in the engine; Rails is system of record.
 * 🚫 **Tailwind / CSS-in-JS** unless explicitly adopted later via ADR (default: Rails/CSS following app conventions).
 * 🚫 **Margin as inter-piece gap:** Do not apply `margin_mm` between pieces on the same sheet. Sheet-edge inset only (`nest_placement`); piece-to-piece clearance via `kerf_mm` in `nest_types.apply_kerf` (see §7 and `REQ-FIT-NEST-002`).
-* 🚫 **Live payment gateways in billing v1:** no Stripe, ONVO, or card capture in production paths until a follow-on ADR replaces simulated checkout (`Billing::SimulateSingleDownload`, `Billing::SimulatePlanPurchase`).
+* 🚫 **Unsanctioned payment gateways:** no Stripe or providers outside **ADR-0006**. Live card/SINPE capture only via **ONVO** when `BILLING_GATEWAY=onvo` (`Billing::Onvo::*`, `POST /webhooks/onvo`). Simulated buttons remain for `BILLING_GATEWAY=simulate` (`Billing::SimulateSingleDownload`, `Billing::SimulatePlanPurchase`).
 * 🚫 **Billing math in Python:** prices, grants, subscriptions, and paywall checks stay in Rails.
 
 ---
@@ -54,7 +54,7 @@ AI agents **must not** introduce the following without an ADR:
 ## 4. Environment & Infrastructure
 
 * **Deployment target:** Single host (or container) with Rails + PostgreSQL + Python venv for `nesting_engine` on the same machine (v1).
-* **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); OmniAuth client IDs/secrets via ENV (see `.env.example`); **no access secrets on `Project`** (session bind only per ADR-0004).
+* **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); OmniAuth and **ONVO** keys via ENV (see `.env.example`, ADR-0006); **no access secrets on `Project`** (session bind only per ADR-0004).
 * **Storage:** Active Storage (disk or cloud per env) for DXF inputs and nested output.
 
 ---
@@ -129,7 +129,7 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 
 ---
 
-## 10. User accounts and simulated billing (normative)
+## 10. User accounts and billing (normative)
 
 | Layer | Module / service | Responsibility |
 |-------|------------------|----------------|
@@ -137,9 +137,9 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 | **Workspace** | `Workspace`, `SetsWorkspaceProject`, `ResolvesWorkspaceTab` | Ephemeral `Project` per browser tab (`session[:workspaces]`); tab cookie/header; 120s TTL after tab close (ADR-0004, extended in ADR-0005) |
 | **Paywall** | `DownloadPaywallController`, `RequiresNestedDownloadAuthorization` | Nested DXF only; catalog at `/taller/descarga-pago` with MEIC pricing; guests and unconfirmed users redirected; signed download token (~15 min) |
 | **Cart** | `Cart`, `CartController`, `Billing::CartUpsert`, `Billing::CartMergeOnLogin`, `Billing::PendingCart` | Single-item DB cart (guest or user); price snapshot at add; replace-confirm; merge on login (user wins) |
-| **Billing** | `Billing::Pricing`, `Billing::CheckoutBreakdown`, `Billing::CheckoutPaymentMethod`, `Billing::Simulate*`, `config/billing.yml` | Simulated card (CRC/USD) and SINPE (CRC); MEIC list vs SINPE discount; IVA CR only at checkout; plans 1/2/4 months; monthly quota; payment snapshots; 24h retention on `DownloadGrant` |
+| **Billing** | `Billing::Pricing`, `Billing::CheckoutBreakdown`, `Billing::CheckoutPaymentMethod`, `Billing::Onvo::*`, `Billing::FulfillPayment`, `Billing::Simulate*`, `config/billing.yml` | **ONVO** card (CRC/USD) and SINPE (CRC) when `BILLING_GATEWAY=onvo`; simulated fallback; MEIC list vs SINPE discount; IVA CR only at checkout; webhook at `POST /webhooks/onvo`; plans 1/2/4 months; monthly quota; payment snapshots; 24h retention on `DownloadGrant` |
 | **Account UI** | `/mis-pagos`, `/planes`, `/carrito`, `/checkout` | Plan purchase and retained download after workspace loss; cart is internal redirect to checkout |
 
 Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
 
-**Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003` in `docs/core/SPEC.md`. **ADR:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.
+**Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003` in `docs/core/SPEC.md`. **ADRs:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`, `docs/core/ADRs/0006-onvo-live-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.

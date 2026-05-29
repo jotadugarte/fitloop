@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -114,8 +114,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
     t.datetime "created_at", null: false
     t.string "currency", null: false
     t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.string "failure_code"
+    t.string "failure_message"
+    t.string "gateway_provider"
+    t.string "gateway_status"
     t.decimal "list_price", precision: 12, scale: 2, default: "0.0", null: false
     t.bigint "nesting_run_id"
+    t.string "onvo_mode"
+    t.string "onvo_payment_intent_id"
     t.datetime "paid_at"
     t.string "payment_method", null: false
     t.string "product_description", default: "", null: false
@@ -130,6 +136,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["nesting_run_id"], name: "index_payments_on_nesting_run_id"
+    t.index ["onvo_payment_intent_id"], name: "index_payments_on_onvo_payment_intent_id"
     t.index ["subscription_id"], name: "index_payments_on_subscription_id"
     t.index ["user_id"], name: "index_payments_on_user_id"
   end
