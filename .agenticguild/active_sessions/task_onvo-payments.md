@@ -374,6 +374,8 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   <phase id="P10" name="Regression &amp; docs">
     <step id="10.1" status="complete">Run full billing request spec suite; tag new files `[REQ-FIT-BILL-001]` on root `RSpec.describe`.</step>
     <step id="10.2" status="complete">Update `docs/QA_MANUAL_CHECKLIST.md`: ONVO test card, SINPE test flow, ngrok webhook, processing screen.</step>
-    <step id="10.3" status="pending">Update `docs/ROADMAP.md` ONVO item when merged; note Northflank + full Docker nesting as follow-up.</step>
+    <step id="10.3" status="complete">Update `docs/ROADMAP.md` ONVO item when merged; note Northflank + full Docker nesting as follow-up.</step>
   </phase>
 </implementation_plan>
+
+**Status (2026-05-28):** Implementation plan P0–P10 complete on branch `feat/onvo-payments`. Merge after `add-cart`; run `finish-branch` skill for PR.
