@@ -126,6 +126,30 @@ RSpec.describe "ONVO webhooks", "[REQ-FIT-BILL-001]", type: :request do
       expect(payment.attributes.slice(*snapshot_before.keys)).to eq(snapshot_before)
     end
 
+    it "[REQ-FIT-BILL-001] fulfills abandoned pending payment on late payment-intent.succeeded" do
+      ctx = prepare_pending_onvo_payment!(intent_id: "pi_late_after_abandon")
+      Billing::PreRetainNestedDxf.call(user: ctx[:payment].user, nesting_run: ctx[:run])
+      ctx[:payment].update!(
+        checkout_abandoned_at: 2.minutes.ago,
+        checkout_lock_released_at: 2.minutes.ago,
+        checkout_lock_reason: "user_abandoned"
+      )
+
+      payload = {
+        type: "payment-intent.succeeded",
+        data: { id: ctx[:payment].onvo_payment_intent_id, status: "succeeded" }
+      }
+
+      post_onvo_webhook!(payload)
+
+      expect(response).to have_http_status(:ok)
+      ctx[:payment].reload
+      expect(ctx[:payment]).to be_succeeded
+      grant = DownloadGrant.find_by!(user_id: ctx[:payment].user_id, nesting_run_id: ctx[:run].id)
+      expect(grant.retention_active?).to be(true)
+      expect(grant.retained_nested_dxf).to be_attached
+    end
+
     it "[REQ-FIT-BILL-001] is idempotent when the same succeeded webhook is delivered twice" do
       ctx = prepare_pending_onvo_payment!(intent_id: "pi_idempotent")
       payload = { type: "payment-intent.succeeded", data: { id: "pi_idempotent", status: "succeeded" } }
