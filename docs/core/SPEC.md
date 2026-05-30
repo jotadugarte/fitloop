@@ -209,7 +209,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Scope:** Paywall and **ONVO live payments** (or **simulated** checkout when `BILLING_GATEWAY=simulate`) for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button. See **ADR-0006** for gateway contract.
 
-**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time).
+**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time). **Typed domain layer:** validated value objects under `app/models/billing/` (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.) enforce billing invariants at service boundaries; see ADR-0005 addendum.
 
 **Regional currency and tax (country resolution):**
 

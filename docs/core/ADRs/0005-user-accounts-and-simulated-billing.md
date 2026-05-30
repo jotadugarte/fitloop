@@ -72,3 +72,10 @@ Fitloop v1 shipped **ephemeral workspace access only** (ADR-0004 / `REQ-FIT-AUTH
 
 - Requirements: `docs/core/SPEC.md` (REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003 detail sections)
 - Extends: `docs/core/ADRs/0004-ephemeral-session-access.md` (does not supersede)
+
+## Addendum: Billing domain value objects (2026-05-30)
+
+**Status:** Accepted (extends this ADR; no behavioral change to HTTP/JSON)
+
+Pure-Ruby value objects live under `app/models/billing/` (`Billing::TierMonths`, `Billing::PaymentMethod`, `Billing::Money`, `Billing::CountryCode`, etc.). **Services** in `app/services/billing/` accept these types at boundaries; **ActiveRecord** enums on `Payment`, `Cart`, and `Subscription` remain the persistence layer unchanged. Controllers parse params → VOs immediately; invalid domain states fail at construction (`ArgumentError`), not deep inside pricing math.
+

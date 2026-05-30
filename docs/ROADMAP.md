@@ -138,7 +138,7 @@ Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `
 
 ### Pre-live (0–5)
 
-0. [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** (done, PR #19)
+0. [x] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** (done, PR #19)
 1. [ ] **Nesting / workshop domain types (CbC refactor)** — value objects for `margin_mm`, `kerf_mm`, piece keys (`Nesting::PieceKey`), and related workshop/nesting primitives in Rails + `nesting_engine/`; high CbC value but **separate domain** — do not mix with billing refactor (REQ-FIT-NEST-002, REQ-FIT-DOM-001, ADR-0001) — Depends on: **none** (may run parallel to Pre-live #0; not a blocker for admin)
 2. [ ] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAIL`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton + shared layout for ventas and analytics — Depends on: **Billing domain types (CbC refactor)**
 3. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
