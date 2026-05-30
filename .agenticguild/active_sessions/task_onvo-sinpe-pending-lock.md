@@ -183,8 +183,8 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
     <step id="2.2" status="complete">Refactor `Billing::PendingCheckoutLock#active?` to use `payment.checkout_lock_active?` (not raw pending); lazy-persist `checkout_lock_released_at` on timeout via `ReleasePendingCheckoutLock` or policy helper.</step>
     <step id="2.3" status="complete">Write failing `release_pending_checkout_lock_spec`: manual abandon sets `checkout_abandoned_at` + `checkout_lock_released_at`; does not change `status`.</step>
     <step id="2.4" status="complete">Implement `Billing::ReleasePendingCheckoutLock`.</step>
-    <step id="2.5">Write failing `supersede_pending_checkout_spec`: marks older pending same run `superseded_at` + releases lock.</step>
-    <step id="2.6">Implement `Billing::SupersedePendingCheckout`; wire into `Billing::StartOnvoCheckout` before `create_pending_payment!`.</step>
+    <step id="2.5" status="complete">Write failing `supersede_pending_checkout_spec`: marks older pending same run `superseded_at` + releases lock.</step>
+    <step id="2.6" status="complete">Implement `Billing::SupersedePendingCheckout`; wire into `Billing::StartOnvoCheckout` before `create_pending_payment!`.</step>
   </phase>
 
   <phase id="P3" name="Pre-retention &amp; fulfillment">

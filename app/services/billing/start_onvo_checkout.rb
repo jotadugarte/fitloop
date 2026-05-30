@@ -29,6 +29,7 @@ module Billing
       raise ArgumentError, "ONVO gateway not enabled" unless Gateway.onvo?
 
       breakdown = resolve_breakdown
+      supersede_prior_sinpe_checkout!
       payment = create_pending_payment!(breakdown)
       intent = Onvo::CreatePaymentIntent.call(payment: payment, breakdown: breakdown, client: @client)
 
@@ -58,6 +59,16 @@ module Billing
       return false unless subscription
 
       QuotaCounter.for(subscription).exhausted?
+    end
+
+    def supersede_prior_sinpe_checkout!
+      return unless sinpe_single_download_checkout?
+
+      SupersedePendingCheckout.call(user: @user, nesting_run: @nesting_run)
+    end
+
+    def sinpe_single_download_checkout?
+      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.to_s == "sinpe_crc"
     end
 
     def create_pending_payment!(breakdown)
