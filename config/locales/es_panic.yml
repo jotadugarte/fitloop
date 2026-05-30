@@ -287,6 +287,7 @@ es_panic:
           test_payment_method_sinpe: Número SINPE no válido en prueba ONVO. Usá 88888888 (ver QA_ONVO_SINPE).
           invalid_card_info: Datos de tarjeta inválidos. Revisá número, vencimiento y CVV.
           generic: No se pudo procesar el pago con tarjeta. Probá de nuevo.
+          generic_sinpe: No se pudo confirmar SINPE. Revisá cédula/celular y probá otra vez.
         payment_canceled: Cancelaste la verificación. El pago no pasó — reingresá la tarjeta y probá otra vez.
         payment_failed: Tarjeta rechazada. Revisá datos o cambiá de método.
         sinpe_how_title: "¿Cómo va el SINPE?"

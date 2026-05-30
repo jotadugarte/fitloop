@@ -62,6 +62,36 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
   end
 
+  it "[REQ-FIT-BILL-001] re-confirms SINPE idempotently after Cambiar datos with same transferor data" do
+    payment = Payment.create!(
+      user: user,
+      nesting_run: create_nesting_run!,
+      status: "pending",
+      payment_method: "sinpe_crc",
+      currency: "crc",
+      amount: 1130,
+      total_amount: 1130,
+      purpose: "single_download",
+      gateway_provider: "onvo",
+      onvo_payment_intent_id: "pi_sinpe_reconfirm",
+      onvo_mode: "test",
+      gateway_status: "requires_payment_method",
+      sinpe_transfer_identification: "123456789",
+      sinpe_transfer_mobile_number: "88888888"
+    )
+
+    expect(client).not_to receive(:create_payment_method)
+    expect(client).not_to receive(:confirm_payment_intent)
+
+    post checkout_confirm_sinpe_path(payment),
+         params: { sinpe_identification: "123456789", sinpe_mobile_number: "88888888" }
+
+    expect(response).to have_http_status(:ok)
+    body = JSON.parse(response.body)
+    expect(body.fetch("transfer_identification")).to eq("123456789")
+    expect(body.fetch("transfer_mobile_number")).to eq("88888888")
+  end
+
   it "[REQ-FIT-BILL-001] rejects invalid SINPE identification length" do
     payment = Payment.create!(
       user: user,

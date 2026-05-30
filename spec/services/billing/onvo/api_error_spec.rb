@@ -68,4 +68,17 @@ RSpec.describe Billing::Onvo::ApiError, "[REQ-FIT-BILL-001]" do
       I18n.t("billing.checkout.onvo.api_errors.generic")
     )
   end
+
+  it "[REQ-FIT-BILL-001] falls back to SINPE generic copy when context is sinpe" do
+    error = described_class.new(
+      "ONVO error",
+      status: 422,
+      body: { message: "Unexpected processor failure" },
+      context: :sinpe
+    )
+
+    expect(error.user_message).to eq(
+      I18n.t("billing.checkout.onvo.api_errors.generic_sinpe")
+    )
+  end
 end

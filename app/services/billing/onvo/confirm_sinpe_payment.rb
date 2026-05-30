@@ -21,6 +21,11 @@ module Billing
         raise ArgumentError, "mobile_number required" if @mobile_number.empty?
         raise ArgumentError, "ONVO intent required" if @payment.onvo_payment_intent_id.blank?
 
+        if sinpe_transfer_already_confirmed?
+          sync_transferor_fields_if_changed!
+          return instructions_payload
+        end
+
         method = onvo_client.create_payment_method(
           type: "mobile_number",
           mobileNumber: {
@@ -45,19 +50,52 @@ module Billing
           sinpe_transfer_mobile_number: @mobile_number
         )
 
+        instructions_payload(status: intent.fetch(:status))
+      end
+
+      private
+
+      def sinpe_transfer_already_confirmed?
+        return false unless @payment.sinpe_crc? && @payment.pending? && !@payment.superseded?
+        return false if @payment.sinpe_transfer_identification.blank?
+
+        # Intent already submitted to ONVO (awaiting bank transfer).
+        return true if @payment.sinpe_awaiting_transfer?
+
+        # Same transferor after «Cambiar datos» — refresh instructions without a second ONVO confirm.
+        transferor_fields_unchanged?
+      end
+
+      def sync_transferor_fields_if_changed!
+        return if transferor_fields_unchanged?
+
+        @payment.update!(
+          sinpe_transfer_identification: @identification,
+          sinpe_transfer_mobile_number: @mobile_number
+        )
+      end
+
+      def transferor_fields_unchanged?
+        normalize_digits(@payment.sinpe_transfer_identification) == normalize_digits(@identification) &&
+          normalize_digits(@payment.sinpe_transfer_mobile_number) == normalize_digits(@mobile_number)
+      end
+
+      def instructions_payload(status: @payment.gateway_status)
         {
           payment_id: @payment.id,
-          status: intent.fetch(:status),
+          status: status,
           destination_number: SinpeDestination.number,
           destination_holder_name: SinpeDestination.holder_name,
           amount: @payment.total_amount,
           currency: @payment.currency,
-          transfer_identification: @identification,
-          transfer_mobile_number: @mobile_number
+          transfer_identification: @payment.sinpe_transfer_identification.presence || @identification,
+          transfer_mobile_number: @payment.sinpe_transfer_mobile_number.presence || @mobile_number
         }
       end
 
-      private
+      def normalize_digits(value)
+        value.to_s.gsub(/\D/, "")
+      end
 
       def onvo_client
         @client ||= Client.from_env

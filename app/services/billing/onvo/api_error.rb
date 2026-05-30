@@ -29,6 +29,7 @@ module Billing
         return :test_payment_method_sinpe if @context == :sinpe && test_payment_method_error?(extract_detail)
         return :test_payment_method if test_payment_method_error?(extract_detail)
         return :invalid_card_info if invalid_card_info_error?(extract_detail)
+        return :generic_sinpe if @context == :sinpe
 
         :generic
       end

@@ -14,7 +14,7 @@
   <% end %>
   <div class="paywall-layout__main mis-pagos-page__main">
     <header class="mis-pagos-page__header">
-      <h1 class="billing-page__title"><%= t("billing.mis_pagos.title") %></h1>
+      <h1 class="billing-page__title mis-pagos-page__title"><%= t("billing.mis_pagos.title") %></h1>
       <p class="mis-pagos-page__lead"><%= t("billing.mis_pagos.page_lead") %></p>
     </header>
 
@@ -30,8 +30,8 @@
             <%= render "mis_pagos/active_plan", subscription: @subscription, quota_counter: @quota_counter %>
           </div>
         <% else %>
-          <div class="panel panel--inset mis-pagos-page__empty-row" data-testid="mis-pagos-no-plan">
-            <p class="mis-pagos-page__empty-text"><%= t("billing.mis_pagos.no_active_plan") %></p>
+          <div class="mis-pagos-page__plan-strip" data-testid="mis-pagos-no-plan">
+            <p class="mis-pagos-page__plan-strip-text"><%= t("billing.mis_pagos.no_active_plan") %></p>
             <%= link_to t("billing.mis_pagos.aside.view_plans"),
                         download_paywall_workshop_path,
                         class: "btn btn-secondary btn--compact",
@@ -44,23 +44,25 @@
     <section class="fit-section panel panel--chrome mis-pagos-page__section" data-testid="mis-pagos-single-purchases">
       <h2 class="fit-section__legend"><%= t("billing.mis_pagos.downloads_heading") %></h2>
       <div class="fit-section__content">
-        <% if @downloads_ready_count.positive? || @downloads_pending_count.positive? %>
-          <div class="mis-pagos-page__summary">
-            <% if @downloads_ready_count.positive? %>
-              <span class="status-badge status-badge--completed">
-                <%= t("billing.mis_pagos.summary.available", count: @downloads_ready_count) %>
-              </span>
-            <% end %>
-            <% if @downloads_pending_count.positive? %>
-              <span class="status-badge status-badge--processing">
-                <%= t("billing.mis_pagos.summary.pending", count: @downloads_pending_count) %>
-              </span>
-            <% end %>
-          </div>
-        <% end %>
-        <p class="mis-pagos-page__section-lead"><%= t("billing.mis_pagos.downloads_lead") %></p>
+        <div class="mis-pagos-page__downloads-intro">
+          <% if @downloads_ready_count.positive? || @downloads_pending_count.positive? %>
+            <div class="mis-pagos-page__summary">
+              <% if @downloads_ready_count.positive? %>
+                <span class="status-badge status-badge--completed">
+                  <%= t("billing.mis_pagos.summary.available", count: @downloads_ready_count) %>
+                </span>
+              <% end %>
+              <% if @downloads_pending_count.positive? %>
+                <span class="status-badge status-badge--processing">
+                  <%= t("billing.mis_pagos.summary.pending", count: @downloads_pending_count) %>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+          <p class="mis-pagos-page__section-lead mis-pagos-page__section-lead--downloads"><%= t("billing.mis_pagos.downloads_lead") %></p>
+        </div>
         <% if @single_purchase_rows.any? %>
-          <div class="panel panel--inset mis-pagos-page__list-panel">
+          <div class="mis-pagos-page__card-stack">
             <ul class="mis-pagos-download-list">
               <% @single_purchase_rows.each do |row| %>
                 <%= render "mis_pagos/single_purchase_row", row: row %>
@@ -78,17 +80,17 @@
     <section class="fit-section panel panel--chrome mis-pagos-page__section">
       <h2 id="mis-pagos-aside-title" class="fit-section__legend"><%= t("billing.mis_pagos.aside.title") %></h2>
       <div class="fit-section__content">
-        <div class="panel panel--inset mis-pagos-aside__info">
-          <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo" %>
-          <p class="paywall-aside__lead"><%= t("billing.mis_pagos.aside.lead") %></p>
-          <ul class="paywall-aside__benefits">
+        <div class="mis-pagos-aside__info panel panel--inset">
+          <%= image_tag "/images/logo.png", alt: t("application.name"), class: "paywall-aside__logo mis-pagos-aside__logo" %>
+          <p class="paywall-aside__lead mis-pagos-aside__lead"><%= t("billing.mis_pagos.aside.lead") %></p>
+          <ul class="paywall-aside__benefits mis-pagos-aside__benefits">
             <li><%= t("billing.paywall.aside.benefit_retention") %></li>
             <li><%= t("billing.paywall.aside.benefit_plan") %></li>
           </ul>
           <p class="mis-pagos-aside__action">
             <%= link_to t("billing.mis_pagos.aside.view_plans"),
                         download_paywall_workshop_path,
-                        class: "btn btn-secondary",
+                        class: "btn btn-secondary btn--compact",
                         data: { turbo_frame: "_top" } %>
           </p>
         </div>

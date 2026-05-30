@@ -279,6 +279,7 @@ en:
           test_payment_method_sinpe: "That SINPE number is not valid in ONVO test mode. Use a test number (e.g. 88888888)."
           invalid_card_info: "There was an error with the card information provided. Please review card number, expiration date and CVV."
           generic: "The card payment could not be processed. Please try again."
+          generic_sinpe: "SINPE Mobile could not be confirmed. Check your ID and phone number and try again."
         payment_canceled: "You canceled card verification. The payment was not completed; enter your card details again and try once more."
         payment_failed: "The card payment was declined. Check your details or try another payment method."
         sinpe_how_title: "How SINPE Mobile works"

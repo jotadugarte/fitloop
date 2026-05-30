@@ -1,5 +1,5 @@
 <%# locals: (payment:) %>
-<li class="mis-pagos-payment-row" data-testid="mis-pagos-payment-row">
+<li class="mis-pagos-payment-row<%= " mis-pagos-payment-row--succeeded" if payment.succeeded? %>" data-testid="mis-pagos-payment-row">
   <div class="mis-pagos-payment-row__main">
     <time class="mis-pagos-payment-row__date" datetime="<%= payment.created_at.iso8601 %>">
       <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>

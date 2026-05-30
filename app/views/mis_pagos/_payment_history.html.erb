@@ -4,7 +4,7 @@
   <div class="fit-section__content">
     <p class="mis-pagos-page__section-lead"><%= t("billing.mis_pagos.payments_lead") %></p>
     <% if payments.any? %>
-      <div class="panel panel--inset mis-pagos-page__list-panel">
+      <div class="mis-pagos-page__card-stack mis-pagos-page__card-stack--history">
         <ul class="mis-pagos-payment-list">
           <% payments.each do |payment| %>
             <%= render "mis_pagos/payment_row", payment: payment %>

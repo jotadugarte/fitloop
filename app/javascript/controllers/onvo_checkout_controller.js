@@ -188,7 +188,8 @@ export default class extends Controller {
       }
     } catch (error) {
       this.showError(error.message)
-      this.resetPrimaryButton()
+    } finally {
+      if (!this.sinpeAwaitingTransfer) this.resetPrimaryButton()
     }
   }
 
