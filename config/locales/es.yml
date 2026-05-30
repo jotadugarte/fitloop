@@ -250,6 +250,7 @@ es:
         abandon_confirm_title: "¿Cancelar este intento de pago?"
         abandon_confirm_body: "Se desbloqueará el taller. El pago puede seguir pendiente en el banco. Si ya transferiste por SINPE Móvil, no canceles aquí — esperá la confirmación en Mis pagos."
         abandon_confirm_button: "Sí, cancelar intento"
+        abandon_confirm_dismiss: "No, volver"
         cancel_attempt: "Cancelar intento"
         duplicate_checkout_blocked: "Ya tenés un pago SINPE en curso para este anidado. Revisá Mis pagos o esperá a que termine el bloqueo del taller."
         lock_expired_title: "Tiempo de espera en taller finalizado"

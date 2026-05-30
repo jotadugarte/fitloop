@@ -47,7 +47,8 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).to include('data-testid="mis-pagos-pending-download-row"')
       expect(response.body).to include("mis-pagos-download-row--pending-awaiting")
       expect(response.body).not_to include('data-testid="mis-pagos-download-pending"')
-      expect(response.body).to include(I18n.t("billing.mis_pagos.pending_confirming", locale: :es))
+      expect(response.body).to include(I18n.t("billing.checkout.pending_lock.abandon_confirm_dismiss", locale: :es))
+      expect(response.body).to include(I18n.t("billing.checkout.pending_lock.abandon_confirm_button", locale: :es))
       expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end

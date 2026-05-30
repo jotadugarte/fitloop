@@ -9,9 +9,22 @@ function target(name) {
   return dialogElement()?.querySelector(`[data-fitloop-dialog-target='${name}']`)
 }
 
+function defaultAcceptLabel() {
+  return dialogElement()?.dataset.defaultAccept || "OK"
+}
+
+function defaultCancelLabel() {
+  return dialogElement()?.dataset.defaultCancel || "Cancel"
+}
+
 function resetDialogState() {
   const cancelBtn = target("cancel")
-  if (cancelBtn) cancelBtn.hidden = true
+  const acceptBtn = target("accept")
+  if (cancelBtn) {
+    cancelBtn.hidden = true
+    cancelBtn.textContent = defaultCancelLabel()
+  }
+  if (acceptBtn) acceptBtn.textContent = defaultAcceptLabel()
 }
 
 function showDialog() {
@@ -22,11 +35,31 @@ function showDialog() {
   return true
 }
 
+function readConfirmOptions(formElement, submitter) {
+  const nodes = [submitter, formElement].filter(Boolean)
+  const read = (key) => {
+    for (const node of nodes) {
+      const value = node.dataset?.[key]
+      if (value) return value
+    }
+    return null
+  }
+
+  return {
+    title: read("turboConfirmTitle"),
+    acceptLabel: read("turboConfirmAccept") || read("turboConfirmButton"),
+    cancelLabel: read("turboConfirmCancel")
+  }
+}
+
 export function configureTurboConfirm() {
   const turbo = window.Turbo
   if (!turbo?.config?.forms) return
 
-  turbo.config.forms.confirm = (message) => fitloopConfirm(message)
+  turbo.config.forms.confirm = (message, formElement, submitter) => {
+    const options = readConfirmOptions(formElement, submitter)
+    return fitloopConfirm(message, options.title, options)
+  }
 }
 
 export function fitloopAlert(message, title = null) {
@@ -56,7 +89,7 @@ export function fitloopAlert(message, title = null) {
   })
 }
 
-export function fitloopConfirm(message, title = null) {
+export function fitloopConfirm(message, title = null, { acceptLabel = null, cancelLabel = null } = {}) {
   resetDialogState()
   const dialog = dialogElement()
   if (!dialog) return Promise.resolve(window.confirm(message))
@@ -64,9 +97,14 @@ export function fitloopConfirm(message, title = null) {
   const titleEl = target("title")
   const messageEl = target("message")
   const cancelBtn = target("cancel")
+  const acceptBtn = target("accept")
   if (titleEl) titleEl.textContent = title || dialog.dataset.defaultTitle || "Fitloop"
   if (messageEl) messageEl.textContent = message
-  if (cancelBtn) cancelBtn.hidden = false
+  if (cancelBtn) {
+    cancelBtn.hidden = false
+    if (cancelLabel) cancelBtn.textContent = cancelLabel
+  }
+  if (acceptBtn && acceptLabel) acceptBtn.textContent = acceptLabel
 
   return new Promise((resolve) => {
     const onClose = () => {

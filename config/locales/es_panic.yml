@@ -245,6 +245,7 @@ es_panic:
         abandon_confirm_title: "¿Cancelar este intento de pago?"
         abandon_confirm_body: Se desbloquea el taller. El banco puede seguir en pending. Si ya mandaste SINPE, no canceles acá — mirá Mis pagos.
         abandon_confirm_button: Sí, cancelar intento
+        abandon_confirm_dismiss: No, volver
         cancel_attempt: Cancelar intento
         duplicate_checkout_blocked: Ya hay un SINPE en curso para este anidado. Mis pagos o esperá el bloqueo del taller.
         lock_expired_title: Se acabó el tiempo de bloqueo en taller

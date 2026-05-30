@@ -63,8 +63,13 @@
                       checkout_release_pending_lock_path(row.pending_payment),
                       method: :post,
                       class: "btn btn-secondary btn--small",
-                      form: { data: { turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body") } },
-                      data: { testid: "mis-pagos-cancel-attempt" } %>
+                      data: {
+                        turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body"),
+                        turbo_confirm_title: t("billing.checkout.pending_lock.abandon_confirm_title"),
+                        turbo_confirm_accept: t("billing.checkout.pending_lock.abandon_confirm_button"),
+                        turbo_confirm_cancel: t("billing.checkout.pending_lock.abandon_confirm_dismiss"),
+                        testid: "mis-pagos-cancel-attempt"
+                      } %>
         <% if row.pending_lock_expired? && row.pending_payment.nesting_run_id.present? %>
           <%= link_to t("billing.mis_pagos.retry_checkout"),
                       checkout_path(nesting_run_id: row.pending_payment.nesting_run_id),

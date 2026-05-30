@@ -24,6 +24,7 @@ RSpec.describe "Billing and auth locale keys", "[REQ-FIT-BILL-001] [REQ-FIT-BILL
     billing.checkout.pending_lock.abandon_confirm_title
     billing.checkout.pending_lock.abandon_confirm_body
     billing.checkout.pending_lock.abandon_confirm_button
+    billing.checkout.pending_lock.abandon_confirm_dismiss
     billing.checkout.pending_lock.cancel_attempt
     billing.checkout.pending_lock.duplicate_checkout_blocked
     billing.checkout.pending_lock.lock_expired_title

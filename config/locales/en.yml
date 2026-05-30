@@ -235,6 +235,7 @@ en:
         abandon_confirm_title: "Cancel this payment attempt?"
         abandon_confirm_body: "The workshop will unlock. The bank transfer may still be pending. If you already sent SINPE Mobile, do not cancel here — wait for confirmation in My payments."
         abandon_confirm_button: "Yes, cancel attempt"
+        abandon_confirm_dismiss: "No, go back"
         cancel_attempt: "Cancel attempt"
         duplicate_checkout_blocked: "You already have a SINPE payment in progress for this nest. Check My payments or wait for the workshop lock to end."
         lock_expired_title: "Workshop wait period ended"
