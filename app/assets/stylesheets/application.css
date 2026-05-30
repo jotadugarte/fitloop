@@ -1647,6 +1647,11 @@ h3.fit-section__legend {
   color: var(--fit-text-muted);
 }
 
+.mis-pagos-payment-row__reference {
+  font-size: 0.82rem;
+  color: var(--fit-text-muted);
+}
+
 .mis-pagos-payment-row__meta {
   display: flex;
   flex-wrap: wrap;

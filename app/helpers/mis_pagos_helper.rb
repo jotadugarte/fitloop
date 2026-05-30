@@ -95,13 +95,22 @@ module MisPagosHelper
 
   def mis_pagos_row_reference(row)
     payment = row.payment_for_display
-    return nil unless payment
+    return nil unless payment&.single_download?
 
-    if row.pending?
-      t("billing.mis_pagos.row_reference_attempt", id: payment.id)
+    if payment.purchase_reference.present?
+      key = row.pending? ? "row_reference_attempt" : "row_reference_payment"
+      t("billing.mis_pagos.#{key}", reference: payment.purchase_reference)
     else
-      t("billing.mis_pagos.row_reference_payment", id: payment.id)
+      legacy_key = row.pending? ? "row_reference_attempt_legacy" : "row_reference_payment_legacy"
+      t("billing.mis_pagos.#{legacy_key}", id: payment.id)
     end
+  end
+
+  def mis_pagos_payment_reference_label(payment)
+    return nil unless payment.single_download?
+    return nil if payment.purchase_reference.blank?
+
+    t("billing.mis_pagos.payment_reference", reference: payment.purchase_reference)
   end
 
   def mis_pagos_row_payment_method(row)

@@ -20,7 +20,13 @@ class Payment < ApplicationRecord
   validates :onvo_payment_intent_id, presence: true, if: :onvo_gateway?
   validates :onvo_mode, presence: true, if: :onvo_gateway?
   validates :gateway_status, presence: true, if: :onvo_gateway?
+  validates :purchase_reference,
+            format: { with: /\A\d{12}\z/ },
+            allow_nil: true,
+            uniqueness: true
   validate :onvo_succeeded_requires_gateway_confirmation, if: :onvo_gateway?
+
+  before_create :assign_purchase_reference_for_single_download
 
   def onvo_gateway?
     gateway_provider == "onvo"
@@ -81,4 +87,13 @@ class Payment < ApplicationRecord
 
     errors.add(:gateway_status, "must be succeeded for confirmed ONVO payment")
   end
+
+  def assign_purchase_reference_for_single_download
+    return unless single_download?
+    return if purchase_reference.present?
+
+    self.purchase_reference = Billing::PurchaseReference.generate
+  end
+
+  private :assign_purchase_reference_for_single_download
 end

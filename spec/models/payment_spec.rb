@@ -117,6 +117,40 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "purchase_reference [REQ-FIT-BILL-001]" do
+    let(:project) { Project.create!(ephemeral: true, title: "Reference spec", status: :completed) }
+    let(:run) { project.nesting_runs.create!(status: "completed") }
+
+    it "[REQ-FIT-BILL-001] assigns a 12-digit reference for single_download payments" do
+      payment = described_class.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download"
+      )
+
+      expect(payment.purchase_reference).to match(/\A\d{12}\z/)
+    end
+
+    it "[REQ-FIT-BILL-001] does not assign reference for plan_subscription payments" do
+      payment = described_class.create!(
+        user: user,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 5000,
+        total_amount: 5000,
+        purpose: "plan_subscription"
+      )
+
+      expect(payment.purchase_reference).to be_nil
+    end
+  end
+
   describe "#checkout_lock_active? [REQ-FIT-BILL-001]" do
     let(:project) { Project.create!(ephemeral: true, title: "Lock model spec", status: :completed) }
     let(:run) { project.nesting_runs.create!(status: "completed") }

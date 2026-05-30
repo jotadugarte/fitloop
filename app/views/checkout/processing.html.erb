@@ -46,7 +46,8 @@
     </section>
 
     <p class="checkout-processing__payment-id">
-      <%= t("billing.checkout.onvo.processing_payment_ref", id: @payment.id) %>
+      <%= t("billing.checkout.onvo.processing_payment_ref",
+            reference: @payment.purchase_reference.presence || @payment.id) %>
     </p>
 
     <%= link_to t("billing.checkout.onvo.processing_view_payments"), mis_pagos_path, class: "btn btn-secondary" %>

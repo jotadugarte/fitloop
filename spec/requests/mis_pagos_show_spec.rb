@@ -22,7 +22,7 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
     it "[REQ-FIT-BILL-001] shows pending payment banner without processing link" do
       project = Project.create!(ephemeral: true, title: "Mis pagos lock", status: :completed)
       run = project.nesting_runs.create!(status: "completed")
-      Payment.create!(
+      payment = Payment.create!(
         user: user,
         nesting_run: run,
         status: "pending",
@@ -40,6 +40,10 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       get mis_pagos_path, params: { locale: "es" }
 
       expect(response).to have_http_status(:ok)
+      expect(payment.purchase_reference).to match(/\A\d{12}\z/)
+      expect(response.body).to include(
+        I18n.t("billing.mis_pagos.row_reference_attempt", reference: payment.purchase_reference, locale: :es)
+      )
       expect(response.body).to include('data-testid="pending-payment-lock-banner"')
       expect(response.body).to include(I18n.t("billing.checkout.pending_workshop_lock.title", locale: :es))
       expect(response.body).not_to include('data-testid="pending-payment-lock-processing-link"')

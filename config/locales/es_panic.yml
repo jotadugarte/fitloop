@@ -193,8 +193,11 @@ es_panic:
       download: Descargar
       unnamed_project: Proyecto del taller
       row_nested_at: Anidado %{at}
-      row_reference_payment: Pago #%{id}
-      row_reference_attempt: Intento #%{id}
+      row_reference_payment: Ref. %{reference}
+      row_reference_attempt: Ref. %{reference}
+      row_reference_payment_legacy: Pago #%{id}
+      row_reference_attempt_legacy: Intento #%{id}
+      payment_reference: Ref. %{reference}
       retained_until: Hasta %{until}
       download_status:
         pending: Confirmando pago
@@ -315,7 +318,7 @@ es_panic:
         processing_timeout_title: Confirmación en curso
         processing_timeout: Pasaron 60 s y ONVO aún no confirmó. En SINPE puede tardar varios minutos — es normal.
         processing_timeout_next: No pagues otra vez. Mirá Mis pagos en un rato o recargá esa página. Acá ya no se actualiza sola; cuando aprueben, la descarga aparece ahí.
-        processing_payment_ref: "Ref. pago #%{id}"
+        processing_payment_ref: Ref. %{reference}
         processing_view_payments: Ir a Mis pagos
       failure: El pago simulado falló. Otra vuelta.
       success_title: Pago recibido
