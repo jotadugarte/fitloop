@@ -269,4 +269,47 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
       expect(payment.total_amount).to eq(2.0)
     end
   end
+
+  describe "#incomplete_card_checkout_attempt? [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] is true for failed card attempt superseded by a later success on the same run" do
+      run = create_nesting_run!
+      first = described_class.create!(
+        user: user,
+        nesting_run: run,
+        status: "failed",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_first",
+        onvo_mode: "test",
+        gateway_status: "failed",
+        created_at: 2.minutes.ago
+      )
+      described_class.create!(
+        user: user,
+        nesting_run: run,
+        status: "succeeded",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        paid_at: Time.current,
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_second",
+        onvo_mode: "test",
+        gateway_status: "succeeded",
+        created_at: 1.minute.ago
+      )
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: 1.day.from_now
+      )
+
+      expect(first.incomplete_card_checkout_attempt?).to be(true)
+    end
+  end
 end

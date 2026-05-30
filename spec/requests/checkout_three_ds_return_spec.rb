@@ -54,6 +54,38 @@ RSpec.describe "ONVO 3DS return", "[REQ-FIT-BILL-001]", type: :request do
       expect(payment.reload.gateway_status).to eq("processing")
     end
 
+    it "[REQ-FIT-BILL-001] returns to checkout when 3DS failed at gateway (user canceled)" do
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_3ds_failed",
+        onvo_mode: "test",
+        gateway_status: "requires_action"
+      )
+
+      expect(client).to receive(:get_payment_intent).with("pi_3ds_failed").and_return(
+        id: "pi_3ds_failed",
+        status: "failed"
+      )
+
+      get checkout_return_path, params: { payment_intent_id: "pi_3ds_failed" }
+
+      expect(response).to redirect_to(checkout_payment_canceled_path(payment))
+
+      follow_redirect!
+
+      expect(payment.reload).to be_pending
+      expect(payment).not_to be_failed
+      expect(payment.checkout_abandoned_at).to be_present
+    end
+
     it "[REQ-FIT-BILL-001] returns to checkout when 3DS was canceled" do
       run = create_nesting_run!
       payment = Payment.create!(

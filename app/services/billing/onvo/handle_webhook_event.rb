@@ -26,11 +26,24 @@ module Billing
           raise(PaymentNotFound, "payment not found for intent #{@event.payment_intent_id}")
       end
 
+      def abandon_incomplete_card_webhook?(payment)
+        return true if payment.checkout_abandoned_at.present?
+
+        payment.incomplete_card_checkout_attempt?
+      end
+
+      def abandon_incomplete_card_instead!(payment)
+        Billing::AbandonIncompleteCardCheckout.call(payment: payment)
+        :abandoned
+      end
+
       def dispatch_for(payment)
         case @event.type
         when "payment-intent.succeeded"
           Billing::FulfillPayment.call(payment: payment)
         when "payment-intent.failed"
+          return abandon_incomplete_card_instead!(payment) if abandon_incomplete_card_webhook?(payment)
+
           Billing::FailPayment.call(payment: payment)
         else
           :ignored

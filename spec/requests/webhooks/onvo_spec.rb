@@ -86,6 +86,37 @@ RSpec.describe "ONVO webhooks", "[REQ-FIT-BILL-001]", type: :request do
       expect(DownloadGrant.count).to eq(0)
     end
 
+    it "[REQ-FIT-BILL-001] abandons incomplete card checkout on payment-intent.failed without marking failed" do
+      user = create_billing_user!(email: "onvo-card-failed@example.com")
+      run = create_nesting_run!
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_card_failed_webhook",
+        onvo_mode: "test",
+        gateway_status: "requires_action"
+      )
+
+      payload = {
+        type: "payment-intent.failed",
+        data: { id: payment.onvo_payment_intent_id, status: "failed" }
+      }
+
+      post_onvo_webhook!(payload)
+
+      expect(response).to have_http_status(:ok)
+      payment.reload
+      expect(payment).to be_pending
+      expect(payment).not_to be_failed
+      expect(payment.checkout_abandoned_at).to be_present
+    end
+
     it "[REQ-FIT-BILL-001] marks Payment failed and preserves checkout snapshot on payment-intent.failed" do
       ctx = prepare_pending_onvo_payment!(intent_id: "pi_failed_webhook")
       payment = ctx[:payment]

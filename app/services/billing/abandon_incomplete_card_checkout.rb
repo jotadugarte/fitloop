@@ -16,15 +16,22 @@ module Billing
     def call
       raise ArgumentError, "payment required" if @payment.nil?
       return :not_card unless card_payment?
-      return :already_terminal if @payment.succeeded? || @payment.failed?
+      return :already_terminal if @payment.succeeded?
       return :already_abandoned if @payment.checkout_abandoned_at.present?
+      return :not_incomplete unless @payment.incomplete_card_checkout_attempt?
 
       now = Time.current
-      @payment.update!(
+      attrs = {
         checkout_abandoned_at: now,
         checkout_lock_released_at: now,
         checkout_lock_reason: REASON
-      )
+      }
+      if @payment.failed?
+        attrs[:status] = :pending
+        attrs[:failure_code] = nil
+        attrs[:failure_message] = nil
+      end
+      @payment.update!(attrs)
       :abandoned
     end
 
@@ -33,5 +40,6 @@ module Billing
     def card_payment?
       @payment.card_crc? || @payment.card_usd?
     end
+
   end
 end

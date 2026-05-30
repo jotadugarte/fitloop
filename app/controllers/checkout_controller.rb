@@ -394,6 +394,11 @@ class CheckoutController < ApplicationController
       return
     end
 
+    if card_checkout_payment?(payment)
+      redirect_to checkout_payment_canceled_path(payment)
+      return
+    end
+
     if intent_status == "failed"
       redirect_to checkout_payment_failed_path(payment)
       return
@@ -420,9 +425,7 @@ class CheckoutController < ApplicationController
   end
 
   def incomplete_card_checkout_abandonment?(payment)
-    card_checkout_payment?(payment) &&
-      payment.pending? &&
-      payment.gateway_status.to_s == "requires_payment_method"
+    payment.incomplete_card_checkout_attempt?
   end
 
   def format_onvo_amount(amount, currency)

@@ -15,11 +15,7 @@ class Payment < ApplicationRecord
 
   ONVO_GATEWAY_SUCCEEDED = "succeeded"
 
-  scope :listed_in_payment_history, lambda {
-    where(
-      "(payments.status != 'pending') OR (payments.checkout_abandoned_at IS NULL)"
-    )
-  }
+  scope :listed_in_payment_history, -> { where(checkout_abandoned_at: nil) }
 
   validates :amount, numericality: { greater_than: 0 }
   validates :paid_at, presence: true, if: :succeeded?
@@ -86,6 +82,24 @@ class Payment < ApplicationRecord
     return false if grant.nil?
 
     grant.retention_active? && grant.updated_at >= created_at
+  end
+
+  def incomplete_card_checkout_attempt?
+    return false unless card_crc? || card_usd?
+    return false if succeeded?
+    return true if superseded_by_later_successful_checkout?
+    return false unless pending? || failed?
+
+    !downloadable_grant_for_run?
+  end
+
+  def superseded_by_later_successful_checkout?
+    return false if nesting_run_id.blank?
+
+    Payment.succeeded.single_download
+           .where(user_id: user_id, nesting_run_id: nesting_run_id)
+           .where("created_at > ?", created_at)
+           .exists?
   end
 
   def onvo_succeeded_requires_gateway_confirmation

@@ -30,6 +30,7 @@ module Billing
 
       breakdown = resolve_breakdown
       supersede_prior_sinpe_checkout!
+      abandon_prior_incomplete_card_checkouts!
       payment = create_pending_payment!(breakdown)
       pre_retain_nested_dxf!
       intent = Onvo::CreatePaymentIntent.call(payment: payment, breakdown: breakdown, client: @client)
@@ -66,6 +67,27 @@ module Billing
       return unless sinpe_single_download_checkout?
 
       SupersedePendingCheckout.call(user: @user, nesting_run: @nesting_run)
+    end
+
+    def abandon_prior_incomplete_card_checkouts!
+      return unless card_single_download_checkout?
+
+      prior_incomplete_card_payments.each do |payment|
+        Billing::AbandonIncompleteCardCheckout.call(payment: payment)
+      end
+    end
+
+    def card_single_download_checkout?
+      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.to_s.start_with?("card")
+    end
+
+    def prior_incomplete_card_payments
+      Payment.where(user_id: @user.id, nesting_run_id: @nesting_run.id, superseded_at: nil)
+             .where(payment_method: %w[card_crc card_usd])
+             .where(status: %w[pending failed])
+             .order(created_at: :asc)
+             .to_a
+             .select(&:incomplete_card_checkout_attempt?)
     end
 
     def sinpe_single_download_checkout?

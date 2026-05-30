@@ -36,6 +36,18 @@ RSpec.describe Billing::AbandonIncompleteCardCheckout, "[REQ-FIT-BILL-001]", typ
       expect(payment.checkout_lock_reason).to eq("user_canceled_3ds")
     end
 
+    it "[REQ-FIT-BILL-001] recovers a mistakenly failed incomplete card checkout" do
+      payment = card_payment!(status: "failed", gateway_status: "failed", failure_code: "card_declined")
+
+      described_class.call(payment: payment)
+
+      payment.reload
+      expect(payment).to be_pending
+      expect(payment).not_to be_failed
+      expect(payment.checkout_abandoned_at).to be_present
+      expect(payment.failure_code).to be_nil
+    end
+
     it "[REQ-FIT-BILL-001] is idempotent when already abandoned" do
       payment = card_payment!(checkout_abandoned_at: 1.minute.ago, checkout_lock_reason: "user_canceled_3ds")
 
