@@ -54,6 +54,14 @@ class Payment < ApplicationRecord
     superseded_at.present?
   end
 
+  def sinpe_awaiting_transfer?
+    sinpe_crc? && pending? && gateway_status.to_s == "processing"
+  end
+
+  def sinpe_checkout_resumable?
+    sinpe_crc? && pending? && !superseded?
+  end
+
   private
 
   def downloadable_grant_for_run?

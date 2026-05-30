@@ -15,12 +15,19 @@
       <p class="mis-pagos-download-row__meta mis-pagos-download-row__meta--muted"><%= t("billing.checkout.pending_lock.lock_expired_message") %></p>
     <% elsif row.downloadable? %>
       <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(row.grant.retained_until, format: :short, user: current_user)) %></p>
+    <% elsif row.pending? %>
+      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.pending_confirming") %></p>
     <% else %>
       <p class="mis-pagos-download-row__meta mis-pagos-download-row__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></p>
     <% end %>
   </div>
   <div class="mis-pagos-download-row__actions">
-    <% if row.pending_lock_active? %>
+    <% if row.pending? && row.pending_payment.sinpe_crc? %>
+      <% sinpe_action = mis_pagos_sinpe_primary_action(row.pending_payment) %>
+      <%= link_to sinpe_action.fetch(:label),
+                  sinpe_action.fetch(:url),
+                  class: "btn btn-primary btn--small",
+                  data: { testid: sinpe_action.fetch(:testid), turbo: false } %>
       <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
             aria-disabled="true"
             data-testid="mis-pagos-download-pending">
@@ -32,27 +39,16 @@
                     class: "btn btn-secondary btn--small",
                     form: { data: { turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body") } },
                     data: { testid: "mis-pagos-cancel-attempt" } %>
-      <%= link_to t("billing.mis_pagos.view_processing"),
-                  checkout_processing_path(row.pending_payment),
-                  class: "btn btn-secondary btn--small",
-                  data: { testid: "mis-pagos-view-processing" } %>
-    <% elsif row.pending_lock_expired? %>
-      <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
-            aria-disabled="true"
-            data-testid="mis-pagos-download-pending">
-        <%= t("billing.mis_pagos.download") %>
-      </span>
-      <%= button_to t("billing.mis_pagos.cancel_attempt"),
-                    checkout_release_pending_lock_path(row.pending_payment),
-                    method: :post,
-                    class: "btn btn-secondary btn--small",
-                    form: { data: { turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body") } },
-                    data: { testid: "mis-pagos-cancel-attempt" } %>
-      <% if row.pending_payment.nesting_run_id.present? %>
+      <% if row.pending_lock_expired? && row.pending_payment.nesting_run_id.present? %>
         <%= link_to t("billing.mis_pagos.retry_checkout"),
                     checkout_path(nesting_run_id: row.pending_payment.nesting_run_id),
                     class: "btn btn-secondary btn--small",
                     data: { testid: "mis-pagos-retry-checkout" } %>
+      <% elsif !row.pending_payment.sinpe_awaiting_transfer? %>
+        <%= link_to t("billing.mis_pagos.view_processing"),
+                    checkout_processing_path(row.pending_payment),
+                    class: "btn btn-secondary btn--small",
+                    data: { testid: "mis-pagos-view-processing" } %>
       <% end %>
     <% elsif row.downloadable? %>
       <%= link_to t("billing.mis_pagos.download"),

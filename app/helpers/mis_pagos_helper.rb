@@ -61,6 +61,22 @@ module MisPagosHelper
     end
   end
 
+  def mis_pagos_sinpe_primary_action(payment)
+    if payment.sinpe_awaiting_transfer?
+      {
+        label: t("billing.checkout.onvo.sinpe_continue"),
+        url: checkout_processing_path(payment),
+        testid: "mis-pagos-sinpe-continue"
+      }
+    else
+      {
+        label: t("billing.mis_pagos.sinpe_resume"),
+        url: checkout_path(nesting_run_id: payment.nesting_run_id, payment_id: payment.id),
+        testid: "mis-pagos-sinpe-resume"
+      }
+    end
+  end
+
   def mis_pagos_payment_amount_label(payment)
     amount = payment.total_amount || payment.amount
     formatted = number_with_precision(

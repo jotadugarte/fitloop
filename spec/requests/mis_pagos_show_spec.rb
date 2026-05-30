@@ -113,7 +113,7 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')
       expect(response.body).to include(checkout_payment_status_path(payment))
       expect(response.body).to include("mis-pagos-download-row--pending-unconfirmed")
-      expect(response.body).to include('data-testid="mis-pagos-retry-checkout"')
+      expect(response.body).to include('data-testid="mis-pagos-sinpe-continue"')
     end
   end
 

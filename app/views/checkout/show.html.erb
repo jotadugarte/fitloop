@@ -25,6 +25,7 @@
                     data: { turbo: false },
                     class: "checkout-method-selector__form" do %>
         <%= hidden_field_tag :nesting_run_id, @nesting_run&.id if params[:nesting_run_id].present? %>
+        <%= hidden_field_tag :payment_id, params[:payment_id] if params[:payment_id].present? %>
         <%= hidden_field_tag :outcome, selected_outcome %>
 
         <div class="checkout-method-selector__options">
@@ -137,7 +138,8 @@
                  selected_payment_method: selected_payment_method,
                  nesting_run: @nesting_run,
                  tier_months: (plan_checkout ? @tier_months : nil),
-                 plan_checkout: plan_checkout %>
+                 plan_checkout: plan_checkout,
+                 resume_sinpe_payment: @resume_sinpe_payment %>
     <% else %>
       <%= form_with url: checkout_simulate_path,
                     method: :post,
