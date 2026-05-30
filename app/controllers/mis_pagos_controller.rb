@@ -14,11 +14,19 @@ class MisPagosController < ApplicationController
     @single_purchase_rows = Billing::MisPagos::SinglePurchaseRows.build(user: current_user)
     @downloads_ready_count = @single_purchase_rows.count(&:downloadable?)
     @downloads_pending_count = @single_purchase_rows.count(&:pending?)
-    @pending_payment_status_url = checkout_payment_status_path(@pending_checkout_lock.payment_id) if @pending_checkout_lock
+    @pending_payment_for_poll = pending_payment_for_poll
+    @pending_payment_status_url = checkout_payment_status_path(@pending_payment_for_poll) if @pending_payment_for_poll
     @auto_download_grant = auto_download_grant
   end
 
   private
+
+  def pending_payment_for_poll
+    Payment.pending.single_download
+           .where(user_id: current_user.id, superseded_at: nil)
+           .order(created_at: :desc)
+           .detect(&:awaiting_gateway_confirmation?)
+  end
 
   def auto_download_grant
     return unless params[:auto_download].present?

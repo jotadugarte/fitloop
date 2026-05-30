@@ -45,9 +45,9 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="pending-payment-lock-processing-link"')
       expect(response.body).not_to include("context=workshop")
       expect(response.body).to include('data-testid="mis-pagos-pending-download-row"')
-      expect(response.body).to include("mis-pagos-download-row--pending")
+      expect(response.body).to include("mis-pagos-download-row--pending-awaiting")
       expect(response.body).to include('data-testid="mis-pagos-download-pending"')
-      expect(response.body).to include(I18n.t("billing.mis_pagos.awaiting_confirmation", locale: :es))
+      expect(response.body).to include(I18n.t("billing.mis_pagos.pending_confirming", locale: :es))
       expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end
@@ -85,6 +85,35 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="pending-payment-lock-banner"')
       expect(response.body).not_to include('data-testid-mis-pagos-pending-sync="true"')
       expect(payment).to be_pending
+    end
+
+    it "[REQ-FIT-BILL-001] polls payment status when lock expired but payment still pending" do
+      project = Project.create!(ephemeral: true, title: "Expired poll", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_mis_pagos_expired_poll",
+        onvo_mode: "test",
+        gateway_status: "processing",
+        created_at: 20.minutes.ago
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('data-testid="pending-payment-lock-banner"')
+      expect(response.body).to include('data-testid-mis-pagos-pending-sync="true"')
+      expect(response.body).to include(checkout_payment_status_path(payment))
+      expect(response.body).to include("mis-pagos-download-row--pending-unconfirmed")
+      expect(response.body).to include('data-testid="mis-pagos-retry-checkout"')
     end
   end
 

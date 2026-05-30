@@ -27,6 +27,13 @@ export default class extends Controller {
     if (!response.ok) return
 
     const data = await response.json()
+
+    if (data.checkout_lock_expired && data.status === "pending") {
+      this.stopPolling()
+      window.location.reload()
+      return
+    }
+
     if (data.status === "succeeded" && data.gateway_status === "succeeded" && data.redirect_url) {
       this.stopPolling()
       window.location.href = data.redirect_url
