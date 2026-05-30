@@ -174,8 +174,8 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
     <step id="1.1" status="complete">Write failing model spec: `Payment#checkout_lock_active?` true only for `sinpe_crc` pending within window; false for card; false after timeout lazy release; false when superseded/abandoned.</step>
     <step id="1.2" status="complete">Migration: add `checkout_lock_released_at`, `checkout_abandoned_at`, `superseded_at` (optional `checkout_lock_reason`) to `payments`.</step>
     <step id="1.3" status="complete">Implement `Payment` methods: `checkout_lock_active?`, `checkout_lock_expired?`, `awaiting_gateway_confirmation?`, `superseded?`; delegate window to `PendingCheckoutPolicy`.</step>
-    <step id="1.4">Write failing model spec: `DownloadGrant` allows `retained_until` nil for single_purchase staging (pre-retention); still requires `retained_until` after fulfill path.</step>
-    <step id="1.5">Relax `DownloadGrant` validation: `retained_until` required only when `retention_committed?` or when `retention_active?` would be true — document invariant in model comment.</step>
+    <step id="1.4" status="complete">Write failing model spec: `DownloadGrant` allows `retained_until` nil for single_purchase staging (pre-retention); still requires `retained_until` after fulfill path.</step>
+    <step id="1.5" status="complete">Relax `DownloadGrant` validation: `retained_until` required only when `retention_committed?` or when `retention_active?` would be true — document invariant in model comment.</step>
   </phase>
 
   <phase id="P2" name="Lock services">

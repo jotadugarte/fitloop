@@ -199,8 +199,12 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
 
     it "[REQ-FIT-BILL-001] stays true with pre-retained grant without retained_until" do
       payment = pending_payment!(payment_method: "sinpe_crc")
-      grant = DownloadGrant.new(user: user, nesting_run: run, kind: "single_purchase")
-      grant.save!(validate: false)
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
 
       expect(payment.checkout_lock_active?).to be(true)
     end

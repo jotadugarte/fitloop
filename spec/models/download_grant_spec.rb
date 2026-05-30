@@ -37,11 +37,10 @@ RSpec.describe DownloadGrant, "[REQ-FIT-BILL-003]" do
       expect(duplicate.errors).to be_of_kind(:nesting_run_id, :taken)
     end
 
-    it "[REQ-FIT-BILL-003] requires retained_until for single_purchase grants (D54)" do
+    it "[REQ-FIT-BILL-003] allows single_purchase without retained_until before retention is committed (D54 staging)" do
       grant = described_class.new(user: user, nesting_run: nesting_run, kind: "single_purchase")
 
-      expect(grant).not_to be_valid
-      expect(grant.errors).to be_of_kind(:retained_until, :blank)
+      expect(grant).to be_valid
     end
 
     it "[REQ-FIT-BILL-003] allows plan_included without retained_until" do
