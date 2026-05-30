@@ -93,7 +93,7 @@
       22. `dxf_preview.build_source_preview` stays a thin orchestrator (≤60 lines); file placement and bounds logic live in helpers (`_file_preview_placement`, `_merge_shifted_layers`, etc.).
       23. Workspace multi-tab: resolve ephemeral projects with `X-Workspace-Tab-Id` and cookie `fitloop_workspace_tab_id` (`ResolvesWorkspaceTab`). If `session[:workspaces]` has non-default tab binds and both header and cookie are absent, redirect to start (`SetsWorkspaceProject#missing_tab_id_for_bound_workspaces?`). See ADR-0005 and `Workspace::WORKSPACES_KEY`.
       24. Paywall nested DXF only: gate downloads with `RequiresNestedDownloadAuthorization`; preview, `nesting_sync`, and placements JSON stay free. Prices live in `config/billing.yml` (hot-reload), not hardcoded in controllers.
-      25. Billing v1 is simulated only: use `Billing::SimulateSingleDownload` and `Billing::SimulatePlanPurchase` until an ADR introduces a live payment gateway (see `SYSTEM_ARCHITECTURE.md` kill list).
+      25. Billing gateway switch: `Billing::Gateway` reads `BILLING_GATEWAY` (`simulate` | `onvo`). Live ONVO (ADR-0006) uses `StartOnvoCheckout`, webhooks → `FulfillPayment`/`FailPayment`; dev simulate uses `SimulateSingleDownload`/`SimulatePlanPurchase`. Never grant entitlements on client callback or poll alone — webhook or verified terminal intent is authoritative.
       26. Request specs: root `RSpec.describe` must include `[REQ-FIT-*]` constant(s) for the domain under test (auth, billing, workspace), in addition to nested `it` tags — complements rule 21 (service class describes).
       27. Billing cart: exactly one `Cart` row per guest (`guest_token`) or user (`user_id`); replace requires confirm (`/carrito/reemplazar` → PATCH `/carrito`); `Billing::CartMergeOnLogin` discards guest cart when user cart exists (user wins).
       28. Cart price snapshot: `list_price_cents` / `sinpe_price_cents` / `currency_mode` set at POST `/carrito`; checkout and simulate prefer cart cents when currency matches payment method.
@@ -105,6 +105,10 @@
       34. Checkout breakdown SSOT: display and `Payment` snapshot fields must come from `Billing::CheckoutBreakdown` (`for_cart`, `for_plan`, or `for_single_download`); no ad-hoc totals in controllers or simulate services.
       35. Plan price triples: use `Billing::Pricing.plan_price_triple` for tier card-USD + official/SINPE CRC; do not duplicate tier case chains in helpers or services.
       36. Workshop `/taller` panels: `workshop-sheet-inventory` and `workshop-source-dxf-detail` stay collapsed by default; `collapsible_persistence_controller` must not restore them open on that path (`REQ-FIT-UI-003`).
+      37. SINPE workshop lock: only `sinpe_crc` pending payments activate `checkout_lock_active?` (default 15 min from `billing.yml` `onvo_pending_checkout.workshop_lock_minutes`); card pending never blocks workshop mutations (`BlocksWorkshopDuringPendingPayment`).
+      38. Checkout lock ≠ payment status: workshop lock timeout or manual abandon (`ReleasePendingCheckoutLock`) must not mark `Payment` `failed`; ONVO webhook remains authoritative for terminal state including late succeed after abandon.
+      39. SINPE pre-retention: `PreRetainNestedDxf` at SINPE checkout start copies `nested_dxf` with `retained_until` nil; `FulfillPayment` sets 24h window; `FailPayment` purges staging blob when grant never had `retention_active?`.
+      40. Mis pagos pending rows: poll while `Payment#awaiting_gateway_confirmation?` — includes abandoned SINPE (transfer may still complete); excludes abandoned card 3DS attempts from rows and `listed_in_payment_history`. Use `Billing::CheckoutLockReason` constants when writing `checkout_lock_reason`.
     </rules>
   </project_rules>
 </agentic_guild_os>

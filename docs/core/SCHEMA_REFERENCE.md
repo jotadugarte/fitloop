@@ -1,6 +1,6 @@
 # Schema Reference — Fitloop
 
-**Source of truth:** `db/schema.rb` (version `2026_05_28_032214`). Regenerate this doc when migrations change.
+**Source of truth:** `db/schema.rb` (version `2026_05_30_220000`). Regenerate this doc when migrations change.
 
 **ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece`, `User`, `Subscription`, `Payment`, `DownloadGrant`, `PlanMonthlyUsage`, `Cart` (+ Active Storage attachments on `Project` and `DownloadGrant`).
 
@@ -222,7 +222,7 @@ Single-item shopping line for paywall → checkout (guest or signed-in user).
 
 ### `payments`
 
-Simulated checkout records; financial snapshot columns support admin reporting (D20).
+Checkout records (simulated dev or ONVO live); immutable financial snapshot columns support admin reporting (D20). Gateway fields populated when `gateway_provider` is `onvo` (ADR-0006).
 
 | Column | Type | Notes |
 |--------|------|-------|
@@ -243,8 +243,23 @@ Simulated checkout records; financial snapshot columns support admin reporting (
 | `subtotal` | decimal | Net before tax |
 | `tax_amount` | decimal | IVA (0 outside CR) |
 | `total_amount` | decimal | Final total |
+| `gateway_provider` | string | `onvo` when live ONVO checkout |
+| `onvo_payment_intent_id` | string | ONVO intent id (unique index) |
+| `onvo_mode` | string | `test` \| `live` |
+| `gateway_status` | string | ONVO intent status mirror (e.g. `processing`, `succeeded`, `failed`) |
+| `failure_code` | string | Optional gateway failure code |
+| `failure_message` | string | Optional gateway failure message |
+| `purchase_reference` | string(12) | Unique 12-digit display ref for single_download (Mis pagos) |
+| `sinpe_transfer_identification` | string | Transferor cédula captured at SINPE confirm |
+| `sinpe_transfer_mobile_number` | string | Transferor mobile captured at SINPE confirm |
+| `checkout_abandoned_at` | datetime | User abandoned local checkout (SINPE cancel intent or card 3DS cancel) |
+| `checkout_lock_released_at` | datetime | Workshop lock released (timeout, abandon, supersede) |
+| `checkout_lock_reason` | string | `timeout` \| `user_abandoned` \| `superseded` \| `user_canceled_3ds` (`Billing::CheckoutLockReason`) |
+| `superseded_at` | datetime | Replaced by newer pending checkout for same `nesting_run_id` |
 
-**Business rules:** Snapshot populated for both `succeeded` and `failed` simulated attempts.
+**Indexes:** `onvo_payment_intent_id`; partial unique `purchase_reference` where not null.
+
+**Business rules:** Snapshot populated at checkout attempt (simulate or ONVO). Terminal `status` for ONVO comes from webhook or verified intent — not client SDK alone. SINPE workshop lock (`checkout_lock_active?`) is independent of `status`: timeout/abandon does **not** mark `failed`. `listed_in_payment_history` scope excludes rows with `checkout_abandoned_at` set.
 
 ### `subscriptions`
 
@@ -262,9 +277,11 @@ Simulated checkout records; financial snapshot columns support admin reporting (
 | `user_id` | bigint | FK → `users` |
 | `nesting_run_id` | bigint | FK → `nesting_runs` |
 | `kind` | string | `single_purchase` \| `plan_included` |
-| `retained_until` | datetime | Single purchase: `paid_at + 24h` |
+| `retained_until` | datetime | Single purchase: `paid_at + 24h` when fulfilled; **nil** during SINPE pre-retention staging |
 
 **Active Storage:** `retained_nested_dxf` attachment for single-purchase retention after workspace discard.
+
+**Business rules:** `retention_active?` requires `retained_until` in the future — pre-retained SINPE staging (blob copied at checkout start) is **not** downloadable until `FulfillPayment` sets `retained_until`. Failed ONVO webhook purges staging blob when `retention_active?` is false.
 
 ### `plan_monthly_usages`
 
@@ -307,4 +324,4 @@ Project 1──* ActiveStorage::Attachment (input_dxf × N, nested_dxf × 1, pla
 
 `Cart.kind`, `Cart.currency_mode` — Rails string enums (`single_download`/`plan`, `crc`/`usd`).
 
-`Payment.status`, `Payment.payment_method`, `Payment.currency`, `Payment.purpose` — Rails string enums (see `app/models/payment.rb`).
+`Payment.status`, `Payment.payment_method`, `Payment.currency`, `Payment.purpose`, `Payment.gateway_provider`, `Payment.onvo_mode` — Rails string enums (see `app/models/payment.rb`).

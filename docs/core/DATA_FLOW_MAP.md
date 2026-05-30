@@ -223,7 +223,7 @@ orphan CompositePiece (mother has decorations)
 
 ## 10. Accounts, paywall, cart, and billing (W6)
 
-**REQ:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`, `REQ-FIT-BILL-002`, `REQ-FIT-BILL-003` — ADR-0005.
+**REQ:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`, `REQ-FIT-BILL-002`, `REQ-FIT-BILL-003` — ADR-0005 (simulate), ADR-0006 (ONVO live).
 
 ```
 Browser (anonymous or logged-in)
@@ -238,7 +238,24 @@ Paywall catalog
   → GET /carrito → redirect checkout (if line) or paywall (if empty)
   → GET /checkout (requires sign-in + email confirmed)
        → method-first breakdown (MEIC list vs SINPE discount; IVA CR only)
-       → POST /checkout/simular → Payment (+ snapshot) → grant or subscription
+
+BILLING_GATEWAY=simulate (dev)
+  → POST /checkout/simular → Payment (+ snapshot) → FulfillPayment / FailPayment (sync)
+
+BILLING_GATEWAY=onvo (live)
+  → POST /checkout/pagar → StartOnvoCheckout → Payment pending + ONVO intent id
+       → card: POST /checkout/pagos/:id/tarjeta → confirm intent (3DS → GET /checkout/retorno)
+       → sinpe: POST /checkout/pagos/:id/sinpe → transfer instructions → /checkout/procesando/:id (poll)
+  → POST /webhooks/onvo (X-Webhook-Secret)
+       → payment-intent.succeeded → FulfillPayment (idempotent)
+       → payment-intent.failed → FailPayment (purge SINPE pre-retention staging when applicable)
+  → GET /checkout/pagos/:id/estado (poll; client must not grant alone)
+
+SINPE pending checkout (v1.2)
+  → PreRetainNestedDxf at checkout start (blob copied; retained_until nil)
+  → checkout_lock_active? blocks workshop ≤ workshop_lock_minutes (sinpe_crc only)
+  → abandon / timeout releases workshop lock without marking payment failed
+  → late webhook after abandon still FulfillPayment
 ```
 
 | Stage | Component | Side effects |
@@ -246,12 +263,15 @@ Paywall catalog
 | Register/login | Devise + OmniAuth | `users` row; `email_confirmed_at`; merge guest cart on sign-in (user cart wins) |
 | Cart add | `Billing::CartUpsert` | Upsert single `carts` row; replace requires confirm flow |
 | Workspace bind | `session[:workspaces][tab_id]` | Ephemeral `Project` unchanged ownership model |
-| Single purchase | Simulated checkout | `Payment` (+ financial snapshot) → `DownloadGrant` + `retained_nested_dxf`; `retained_until` +24h |
-| Plan purchase | Checkout from cart or `/planes/simular` | `Subscription` active; `PlanMonthlyUsage` counter; extend `ends_at` from prior end; cart cleared on success |
-| Mis pagos | `/mis-pagos` | List grants; download retained blob while `retained_until` valid (ignores workspace TTL) |
-| Purge | job / lazy | Drop `retained_nested_dxf` after `retained_until` |
+| Single purchase (simulate) | `SimulateSingleDownload` | `Payment` (+ snapshot) → `FulfillPayment` → `DownloadGrant` + `retained_nested_dxf`; `retained_until` +24h |
+| Single purchase (ONVO) | `StartOnvoCheckout` + webhook | Pending `Payment` + intent; SINPE may pre-retain blob; terminal via `FulfillPayment`/`FailPayment` |
+| Plan purchase | Checkout from cart or plan flow | `Subscription` active; `PlanMonthlyUsage` counter; extend `ends_at` from prior end; cart cleared on success |
+| Mis pagos | `/mis-pagos` | Grant rows when `retention_active?`; pending SINPE rows while `awaiting_gateway_confirmation?`; payment history excludes `checkout_abandoned_at` |
+| Purge | job / lazy / FailPayment | Drop staging or expired `retained_nested_dxf` after `retained_until` or failed pre-retention |
 
-**Data separation:** `Project#nested_dxf` remains on ephemeral project until discard; **durable** copy only on single-purchase success. Plan downloads require live workspace bind + quota. **Cart** rows are billing UX state only — not entitlements until checkout succeeds.
+**Data separation:** `Project#nested_dxf` remains on ephemeral project until discard; **durable** copy only on single-purchase success (or SINPE pre-retention staging before fulfill). Plan downloads require live workspace bind + quota. **Cart** rows are billing UX state only — not entitlements until checkout succeeds.
+
+**Forbidden:** grant download or plan entitlement on ONVO client callback alone; mark SINPE payment `failed` on workshop lock timeout or manual abandon; nest math or payment logic in Python (Rails billing only).
 
 ---
 
