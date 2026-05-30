@@ -1417,7 +1417,16 @@ h3.fit-section__legend {
   list-style: none;
 }
 
-.mis-pagos-download-row,
+.mis-pagos-download-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--fit-border);
+  border-left: 3px solid transparent;
+  background: var(--fit-surface);
+}
+
 .mis-pagos-payment-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1449,7 +1458,34 @@ h3.fit-section__legend {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  justify-content: flex-end;
+  width: 100%;
+}
+
+.mis-pagos-download-row__actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+@media (min-width: 769px) {
+  .mis-pagos-download-row--ready,
+  .mis-pagos-download-row--expired {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .mis-pagos-download-row--ready .mis-pagos-download-row__main,
+  .mis-pagos-download-row--expired .mis-pagos-download-row__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .mis-pagos-download-row--ready .mis-pagos-download-row__actions,
+  .mis-pagos-download-row--expired .mis-pagos-download-row__actions {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-end;
+  }
 }
 
 .mis-pagos-download-row--ready {
@@ -1640,12 +1676,16 @@ h3.fit-section__legend {
     order: 0;
   }
 
-  .mis-pagos-download-row,
   .mis-pagos-payment-row {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .mis-pagos-download-row__action {
+  .mis-pagos-download-row__actions .btn,
+  .mis-pagos-download-row__actions form {
+    flex: 1 1 100%;
+  }
+
+  .mis-pagos-download-row__actions form .btn {
     width: 100%;
     text-align: center;
   }

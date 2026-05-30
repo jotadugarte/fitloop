@@ -1,6 +1,6 @@
 # Task: ONVO SINPE — bloqueo de taller con ventana (no eterno)
 
-**Status:** Spec locked — handoff to `start-task`  
+**Status:** Complete (P0–P7 implemented)  
 **REQ:** REQ-FIT-BILL-001 (extend detail)  
 **Related:** `task_onvo-payments.md` (gateway base locked); this task is a **follow-on UX/domain** slice on top of live ONVO.
 
@@ -192,35 +192,35 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
     <step id="3.2" status="complete">Implement `Billing::PreRetainNestedDxf`; call from `StartOnvoCheckout` when `payment_method == sinpe_crc` after pending payment created.</step>
     <step id="3.3" status="complete">Write failing `fulfill_payment_spec`: late succeed after abandon still grants; sets `retained_until`; skips re-copy if blob present.</step>
     <step id="3.4" status="complete">Adjust `FulfillPayment` / `RetainNestedDxf` for staging grant (set `retained_until` on fulfill; copy only if blob missing).</step>
-    <step id="3.5">Write failing `fail_payment_spec`: failed webhook purges pre-retained blob (no `retention_active?`); does not purge fulfilled grant.</step>
-    <step id="3.6">Implement purge in `Billing::FailPayment` for staging grants tied to payment's `nesting_run_id`.</step>
-    <step id="3.7">Write failing webhook/request spec: abandoned payment + late `payment-intent.succeeded` → grant + download.</step>
+    <step id="3.5" status="complete">Write failing `fail_payment_spec`: failed webhook purges pre-retained blob (no `retention_active?`); does not purge fulfilled grant.</step>
+    <step id="3.6" status="complete">Implement purge in `Billing::FailPayment` for staging grants tied to payment's `nesting_run_id`.</step>
+    <step id="3.7" status="complete">Write failing webhook/request spec: abandoned payment + late `payment-intent.succeeded` → grant + download.</step>
   </phase>
 
   <phase id="P4" name="HTTP &amp; checkout guard">
-    <step id="4.1">Write failing request spec: `POST /checkout/pagos/:id/liberar` releases lock (owner only); payment stays pending.</step>
-    <step id="4.2">Add route + `CheckoutController#release_pending_lock` → `ReleasePendingCheckoutLock`.</step>
-    <step id="4.3">Write failing request spec: duplicate SINPE checkout blocked while `checkout_lock_active?`; allowed after timeout/abandon.</step>
-    <step id="4.4">Guard `StartOnvoCheckout` / checkout pay action when lock active (flash + redirect Mis pagos).</step>
-    <step id="4.5">Write failing request specs: workshop mutations blocked during active SINPE lock; allowed after 15 min travel; allowed after POST liberar.</step>
+    <step id="4.1" status="complete">Write failing request spec: `POST /checkout/pagos/:id/liberar` releases lock (owner only); payment stays pending.</step>
+    <step id="4.2" status="complete">Add route + `CheckoutController#release_pending_lock` → `ReleasePendingCheckoutLock`.</step>
+    <step id="4.3" status="complete">Write failing request spec: duplicate SINPE checkout blocked while `checkout_lock_active?`; allowed after timeout/abandon.</step>
+    <step id="4.4" status="complete">Guard `StartOnvoCheckout` / checkout pay action when lock active (flash + redirect Mis pagos).</step>
+    <step id="4.5" status="complete">Write failing request specs: workshop mutations blocked during active SINPE lock; allowed after 15 min travel; allowed after POST liberar.</step>
   </phase>
 
   <phase id="P5" name="Status poll API">
-    <step id="5.1">Write failing `payment_status_response_spec`: JSON includes `checkout_lock_active`, `checkout_lock_expired`, `release_pending_url`, `retry_checkout_url`.</step>
-    <step id="5.2">Extend `Billing::PaymentStatusResponse` and `checkout_payment_status` route auth.</step>
-    <step id="5.3">Write failing request spec: Mis pagos sets `pending_payment_status_url` when `awaiting_gateway_confirmation?` even if lock expired.</step>
-    <step id="5.4">Update `MisPagosController` + `mis_pagos_pending_sync_controller.js` to poll until succeeded/failed and reload on lock expired.</step>
+    <step id="5.1" status="complete">Write failing `payment_status_response_spec`: JSON includes `checkout_lock_active`, `checkout_lock_expired`, `release_pending_url`, `retry_checkout_url`.</step>
+    <step id="5.2" status="complete">Extend `Billing::PaymentStatusResponse` and `checkout_payment_status` route auth.</step>
+    <step id="5.3" status="complete">Write failing request spec: Mis pagos sets `pending_payment_status_url` when `awaiting_gateway_confirmation?` even if lock expired.</step>
+    <step id="5.4" status="complete">Update `MisPagosController` + `mis_pagos_pending_sync_controller.js` to poll until succeeded/failed and reload on lock expired.</step>
   </phase>
 
   <phase id="P6" name="Mis pagos &amp; workshop UI">
-    <step id="6.1">Write failing `single_purchase_rows_spec`: rows for lock-active pending, expired pending with CTAs, excludes superseded; grant row only when `retention_active?`.</step>
-    <step id="6.2">Refactor `Billing::MisPagos::SinglePurchaseRows` for pending states; payment history shows superseded label.</step>
-    <step id="6.3">Update `_single_purchase_row.html.erb`, `_pending_payment_lock_banner.html.erb`, `checkout/processing.html.erb`, Mis pagos section title locale.</step>
-    <step id="6.4">CSS modifiers `--pending-awaiting` vs `--pending-unconfirmed`; no false Descargar button.</step>
+    <step id="6.1" status="complete">Write failing `single_purchase_rows_spec`: rows for lock-active pending, expired pending with CTAs, excludes superseded; grant row only when `retention_active?`.</step>
+    <step id="6.2" status="complete">Refactor `Billing::MisPagos::SinglePurchaseRows` for pending states; payment history shows superseded label.</step>
+    <step id="6.3" status="complete">Update `_single_purchase_row.html.erb`, `_pending_payment_lock_banner.html.erb`, `checkout/processing.html.erb`, Mis pagos section title locale.</step>
+    <step id="6.4" status="complete">CSS modifiers `--pending-awaiting` vs `--pending-unconfirmed`; no false Descargar button.</step>
   </phase>
 
   <phase id="P7" name="Regression">
-    <step id="7.1">Run billing-related specs (`pending_checkout_lock`, checkout, mis_pagos, webhook, fulfill/fail); fix regressions.</step>
-    <step id="7.2">Tag new/modified root request `RSpec.describe` with `[REQ-FIT-BILL-001]` where applicable.</step>
+    <step id="7.1" status="complete">Run billing-related specs (`pending_checkout_lock`, checkout, mis_pagos, webhook, fulfill/fail); fix regressions.</step>
+    <step id="7.2" status="complete">Tag new/modified root request `RSpec.describe` with `[REQ-FIT-BILL-001]` where applicable.</step>
   </phase>
 </implementation_plan>
