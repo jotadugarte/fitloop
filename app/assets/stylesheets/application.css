@@ -1434,9 +1434,22 @@ h3.fit-section__legend {
   border-bottom: 0;
 }
 
-.mis-pagos-download-row--pending {
+.mis-pagos-download-row--pending-awaiting {
   border-left-color: var(--fit-gold);
   background: color-mix(in srgb, var(--fit-gold) 8%, var(--fit-surface));
+}
+
+.mis-pagos-download-row--pending-unconfirmed {
+  border-left-color: var(--fit-alert-border);
+  background: color-mix(in srgb, var(--fit-alert-border) 6%, var(--fit-surface));
+}
+
+.mis-pagos-download-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .mis-pagos-download-row--ready {

@@ -8,24 +8,57 @@
     <time class="mis-pagos-download-row__date" datetime="<%= row.sort_at.iso8601 %>">
       <%= l_in_user_zone(row.sort_at, format: :short, user: current_user) %>
     </time>
-    <% if row.pending? %>
-      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.awaiting_confirmation") %></p>
-    <% elsif row.grant.retention_active? %>
+    <% if row.pending_lock_active? %>
+      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.pending_confirming") %></p>
+    <% elsif row.pending_lock_expired? %>
+      <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.pending_unconfirmed") %></p>
+      <p class="mis-pagos-download-row__meta mis-pagos-download-row__meta--muted"><%= t("billing.checkout.pending_lock.lock_expired_message") %></p>
+    <% elsif row.downloadable? %>
       <p class="mis-pagos-download-row__meta"><%= t("billing.mis_pagos.retained_until", until: l_in_user_zone(row.grant.retained_until, format: :short, user: current_user)) %></p>
     <% else %>
       <p class="mis-pagos-download-row__meta mis-pagos-download-row__meta--muted" data-testid="mis-pagos-expired"><%= t("billing.download.retention_expired") %></p>
     <% end %>
   </div>
-  <% if row.pending? %>
-    <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
-          aria-disabled="true"
-          data-testid="mis-pagos-download-pending">
-      <%= t("billing.mis_pagos.download") %>
-    </span>
-  <% elsif row.downloadable? %>
-    <%= link_to t("billing.mis_pagos.download"),
-                mis_pagos_download_path(row.grant),
-                class: "btn btn-primary btn--small mis-pagos-download-row__action",
-                data: { turbo: false, testid: "mis-pagos-download" } %>
-  <% end %>
+  <div class="mis-pagos-download-row__actions">
+    <% if row.pending_lock_active? %>
+      <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
+            aria-disabled="true"
+            data-testid="mis-pagos-download-pending">
+        <%= t("billing.mis_pagos.download") %>
+      </span>
+      <%= button_to t("billing.mis_pagos.cancel_attempt"),
+                    checkout_release_pending_lock_path(row.pending_payment),
+                    method: :post,
+                    class: "btn btn-secondary btn--small",
+                    form: { data: { turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body") } },
+                    data: { testid: "mis-pagos-cancel-attempt" } %>
+      <%= link_to t("billing.mis_pagos.view_processing"),
+                  checkout_processing_path(row.pending_payment),
+                  class: "btn btn-secondary btn--small",
+                  data: { testid: "mis-pagos-view-processing" } %>
+    <% elsif row.pending_lock_expired? %>
+      <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
+            aria-disabled="true"
+            data-testid="mis-pagos-download-pending">
+        <%= t("billing.mis_pagos.download") %>
+      </span>
+      <%= button_to t("billing.mis_pagos.cancel_attempt"),
+                    checkout_release_pending_lock_path(row.pending_payment),
+                    method: :post,
+                    class: "btn btn-secondary btn--small",
+                    form: { data: { turbo_confirm: t("billing.checkout.pending_lock.abandon_confirm_body") } },
+                    data: { testid: "mis-pagos-cancel-attempt" } %>
+      <% if row.pending_payment.nesting_run_id.present? %>
+        <%= link_to t("billing.mis_pagos.retry_checkout"),
+                    checkout_path(nesting_run_id: row.pending_payment.nesting_run_id),
+                    class: "btn btn-secondary btn--small",
+                    data: { testid: "mis-pagos-retry-checkout" } %>
+      <% end %>
+    <% elsif row.downloadable? %>
+      <%= link_to t("billing.mis_pagos.download"),
+                  mis_pagos_download_path(row.grant),
+                  class: "btn btn-primary btn--small mis-pagos-download-row__action",
+                  data: { turbo: false, testid: "mis-pagos-download" } %>
+    <% end %>
+  </div>
 </li>

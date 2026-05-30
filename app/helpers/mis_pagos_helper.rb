@@ -3,7 +3,9 @@
 # [REQ-FIT-BILL-002] Mis pagos presentation helpers.
 module MisPagosHelper
   def mis_pagos_download_status_label(row)
-    if row.pending?
+    if row.pending_lock_expired?
+      t("billing.mis_pagos.download_status.unconfirmed")
+    elsif row.pending?
       t("billing.mis_pagos.download_status.pending")
     elsif row.downloadable?
       t("billing.mis_pagos.download_status.available")
@@ -13,7 +15,9 @@ module MisPagosHelper
   end
 
   def mis_pagos_download_status_class(row)
-    if row.pending?
+    if row.pending_lock_expired?
+      "status-badge--failed"
+    elsif row.pending?
       "status-badge--processing"
     elsif row.downloadable?
       "status-badge--completed"
@@ -24,12 +28,36 @@ module MisPagosHelper
 
   def mis_pagos_download_row_class(row)
     base = "mis-pagos-download-row"
-    if row.pending?
-      "#{base} mis-pagos-download-row--pending"
+    if row.pending_lock_expired?
+      "#{base} mis-pagos-download-row--pending-unconfirmed"
+    elsif row.pending?
+      "#{base} mis-pagos-download-row--pending-awaiting"
     elsif row.downloadable?
       "#{base} mis-pagos-download-row--ready"
     else
       "#{base} mis-pagos-download-row--expired"
+    end
+  end
+
+  def mis_pagos_payment_status_label(payment)
+    if payment.superseded?
+      t("billing.mis_pagos.status.superseded")
+    else
+      t("billing.mis_pagos.status.#{payment.status}")
+    end
+  end
+
+  def mis_pagos_payment_status_badge_class(payment)
+    return "status-badge--failed" if payment.superseded?
+
+    mis_pagos_payment_status_badge_class_for_status(payment.status)
+  end
+
+  def mis_pagos_payment_status_badge_class_for_status(status)
+    case status.to_s
+    when "succeeded" then "status-badge--completed"
+    when "pending" then "status-badge--processing"
+    else "status-badge--failed"
     end
   end
 

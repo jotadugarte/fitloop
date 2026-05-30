@@ -9,6 +9,14 @@ module Billing
           pending_payment.present?
         end
 
+        def pending_lock_active?
+          pending? && pending_payment.checkout_lock_active?
+        end
+
+        def pending_lock_expired?
+          pending? && !pending_lock_active? && pending_payment.awaiting_gateway_confirmation?
+        end
+
         def downloadable?
           grant.present? && grant.retention_active?
         end
@@ -23,11 +31,11 @@ module Billing
       end
 
       def build
-        pending = active_pending_payments
+        pending = awaiting_pending_payments
         pending_run_ids = pending.map(&:nesting_run_id).compact.to_set
         grants = @user.download_grants.single_purchase
                       .order(created_at: :desc)
-                      .reject { |grant| pending_run_ids.include?(grant.nesting_run_id) }
+                      .select { |grant| grant.retention_active? && !pending_run_ids.include?(grant.nesting_run_id) }
 
         rows = grant_rows(grants) + pending_rows(pending)
         rows.sort_by(&:sort_at).reverse
@@ -35,10 +43,11 @@ module Billing
 
       private
 
-      def active_pending_payments
+      def awaiting_pending_payments
         PendingCheckoutLock.pending_single_download_payments(user: @user)
+                           .where(superseded_at: nil)
                            .order(created_at: :desc)
-                           .select { |payment| PendingCheckoutLock.new(payment: payment).active? }
+                           .select(&:awaiting_gateway_confirmation?)
       end
 
       def grant_rows(grants)
