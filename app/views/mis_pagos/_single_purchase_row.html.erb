@@ -12,14 +12,6 @@
                     class: "btn btn-primary btn--small mis-pagos-download-row__action",
                     data: { turbo: false, testid: "mis-pagos-download" } %>
       </div>
-    <% elsif row.pending? %>
-      <div class="mis-pagos-download-row__cta mis-pagos-download-row__cta--disabled">
-        <span class="btn btn-primary btn--small mis-pagos-download-row__action mis-pagos-download-row__action--pending"
-              aria-disabled="true"
-              data-testid="mis-pagos-download-pending">
-          <%= t("billing.mis_pagos.download") %>
-        </span>
-      </div>
     <% end %>
   </div>
 
