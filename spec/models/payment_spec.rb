@@ -117,6 +117,99 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "#checkout_lock_active? [REQ-FIT-BILL-001]" do
+    let(:project) { Project.create!(ephemeral: true, title: "Lock model spec", status: :completed) }
+    let(:run) { project.nesting_runs.create!(status: "completed") }
+
+    def pending_payment!(payment_method:, created_at: 5.minutes.ago, **attrs)
+      described_class.create!(
+        {
+          user: user,
+          nesting_run: run,
+          status: "pending",
+          payment_method: payment_method,
+          currency: "crc",
+          amount: 1130,
+          total_amount: 1130,
+          purpose: "single_download",
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_lock_#{SecureRandom.hex(4)}",
+          onvo_mode: "test",
+          gateway_status: "processing",
+          created_at: created_at
+        }.merge(attrs)
+      )
+    end
+
+    it "[REQ-FIT-BILL-001] is true for sinpe_crc pending within workshop lock window" do
+      payment = pending_payment!(payment_method: "sinpe_crc")
+
+      expect(payment.checkout_lock_active?).to be(true)
+    end
+
+    it "[REQ-FIT-BILL-001] is false for card pending within workshop lock window" do
+      payment = pending_payment!(payment_method: "card_crc")
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false after workshop_lock_minutes elapse" do
+      payment = pending_payment!(payment_method: "sinpe_crc", created_at: 16.minutes.ago)
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false when checkout_lock_released_at is set" do
+      payment = pending_payment!(payment_method: "sinpe_crc", checkout_lock_released_at: 1.minute.ago)
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false when checkout_abandoned_at is set" do
+      payment = pending_payment!(
+        payment_method: "sinpe_crc",
+        checkout_abandoned_at: 1.minute.ago,
+        checkout_lock_released_at: 1.minute.ago
+      )
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false when superseded_at is set" do
+      payment = pending_payment!(
+        payment_method: "sinpe_crc",
+        superseded_at: 1.minute.ago,
+        checkout_lock_released_at: 1.minute.ago
+      )
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false when a downloadable grant exists for the nesting run" do
+      payment = pending_payment!(payment_method: "sinpe_crc")
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: 1.day.from_now
+      )
+
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] stays true with pre-retained grant without retained_until" do
+      payment = pending_payment!(payment_method: "sinpe_crc")
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
+
+      expect(payment.checkout_lock_active?).to be(true)
+    end
+  end
+
   describe "payment snapshot fields [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] persists purchaser and amount breakdown for succeeded and failed payments (D20, D24)" do
       payment = described_class.create!(
