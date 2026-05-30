@@ -16,13 +16,31 @@ module Billing
     def call
       return :already_terminal if @payment.failed?
 
-      @payment.update!(
-        status: :failed,
-        gateway_status: "failed",
-        failure_code: @failure_code,
-        failure_message: @failure_message
-      )
+      ActiveRecord::Base.transaction do
+        @payment.update!(
+          status: :failed,
+          gateway_status: "failed",
+          failure_code: @failure_code,
+          failure_message: @failure_message
+        )
+        purge_staging_pre_retention!
+      end
       :failed
+    end
+
+    private
+
+    def purge_staging_pre_retention!
+      return unless @payment.single_download? && @payment.nesting_run_id.present?
+
+      grant = DownloadGrant.find_by(
+        user_id: @payment.user_id,
+        nesting_run_id: @payment.nesting_run_id
+      )
+      return if grant.nil?
+      return if grant.retention_active?
+
+      grant.purge_retained_blob!
     end
   end
 end
