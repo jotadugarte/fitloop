@@ -169,14 +169,15 @@ export default class extends Controller {
 
     try {
       if (!this.paymentId) {
-        const data = await this.startPayment()
-        this.paymentId = data.payment_id
+        const started = await this.startPayment()
+        this.paymentId = started.payment_id
       }
 
+      const paymentId = this.paymentId
       if (this.isSinpe()) {
-        await this.confirmSinpe(data.payment_id)
+        await this.confirmSinpe(paymentId)
       } else {
-        await this.confirmCard(data.payment_id)
+        await this.confirmCard(paymentId)
       }
     } catch (error) {
       this.showError(error.message)
