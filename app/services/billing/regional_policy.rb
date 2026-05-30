@@ -13,7 +13,8 @@ module Billing
       end
 
       def for_country(country_code)
-        code = normalize_country(country_code)
+        code_vo = CountryCode.parse(country_code)
+        code = code_vo&.to_s
         costa_rica = code == COSTA_RICA
 
         {
@@ -29,10 +30,7 @@ module Billing
       private
 
       def normalize_country(country_code)
-        return nil if country_code.nil?
-
-        stripped = country_code.to_s.strip.upcase
-        stripped.empty? ? nil : stripped
+        CountryCode.parse(country_code)&.to_s
       end
     end
   end

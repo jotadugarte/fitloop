@@ -29,7 +29,7 @@ module Billing
       def release_expired_lock!(payment)
         assert_payment!(payment)
         return payment if lock_released?(payment)
-        return payment unless payment.sinpe_crc? && payment.pending?
+        return payment unless payment.payment_method_vo.sinpe? && payment.pending?
         return payment if Time.current < lock_expires_at(payment)
 
         payment.update!(

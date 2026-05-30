@@ -31,11 +31,10 @@ module Billing
     end
 
     def self.parse_payment_method(value)
-      case value
-      when "card", :card then :card
-      when "sinpe", :sinpe then :sinpe
-      else nil
-      end
+      parsed = BillingMethod.parse(value)
+      parsed.to_sym
+    rescue ArgumentError
+      nil
     end
   end
 end
