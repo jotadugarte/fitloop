@@ -42,6 +42,13 @@ class CheckoutController < ApplicationController
       iva_applicable: selection.fetch(:iva_applicable)
     }
 
+    if duplicate_sinpe_checkout_blocked?
+      return render json: {
+        error: t("billing.checkout.pending_lock.duplicate_checkout_blocked"),
+        redirect_url: mis_pagos_path
+      }, status: :conflict
+    end
+
     result = Billing::StartOnvoCheckout.call(
       user: current_user,
       payment_method: payment_method,
@@ -118,6 +125,12 @@ class CheckoutController < ApplicationController
     render json: Billing::PaymentStatusResponse.for(payment: payment, routes: self)
   end
 
+  def release_pending_lock
+    payment = current_user.payments.find(params[:payment_id])
+    Billing::ReleasePendingCheckoutLock.call(payment: payment, user: current_user)
+    redirect_to mis_pagos_path, notice: t("billing.checkout.pending_lock.released")
+  end
+
   def three_ds_return
     intent_id = params[:payment_intent_id].to_s.strip
     raise ActiveRecord::RecordNotFound if intent_id.blank?
@@ -191,6 +204,14 @@ class CheckoutController < ApplicationController
 
   def single_download_checkout?
     @checkout_kind == :single_download
+  end
+
+  def duplicate_sinpe_checkout_blocked?
+    return false unless single_download_checkout? && @nesting_run
+
+    Payment.pending.single_download.sinpe_crc
+           .where(user_id: current_user.id, nesting_run_id: @nesting_run.id, superseded_at: nil)
+           .any?(&:checkout_lock_active?)
   end
 
   def load_checkout_context

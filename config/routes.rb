@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   post "checkout/pagos/:payment_id/tarjeta", to: "checkout#confirm_card", as: :checkout_confirm_card
   get "checkout/procesando/:payment_id", to: "checkout#processing", as: :checkout_processing
   get "checkout/pagos/:payment_id/estado", to: "checkout#payment_status", as: :checkout_payment_status
+  post "checkout/pagos/:payment_id/liberar", to: "checkout#release_pending_lock", as: :checkout_release_pending_lock
   get "checkout/pagos/:payment_id/cancelado", to: "checkout#payment_canceled_notice", as: :checkout_payment_canceled
   get "checkout/pagos/:payment_id/rechazado", to: "checkout#payment_failed_notice", as: :checkout_payment_failed
   get "checkout/retorno", to: "checkout#three_ds_return", as: :checkout_return

@@ -244,6 +244,7 @@ es_panic:
         duplicate_checkout_blocked: Ya hay un SINPE en curso para este anidado. Mis pagos o esperá el bloqueo del taller.
         lock_expired_title: Se acabó el tiempo de bloqueo en taller
         lock_expired_message: Podés anidar o cambiar láminas. Si ya pagaste, la descarga cae en Mis pagos cuando ONVO confirme.
+        released: Intento cancelado. Podés anidar o cambiar láminas.
       pending_workshop_lock:
         title: Pago en confirmación
         message: No toques láminas ni re-anides hasta que cierre — o perdés la descarga.

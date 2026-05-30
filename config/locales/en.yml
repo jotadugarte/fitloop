@@ -234,6 +234,7 @@ en:
         duplicate_checkout_blocked: "You already have a SINPE payment in progress for this nest. Check My payments or wait for the workshop lock to end."
         lock_expired_title: "Workshop wait period ended"
         lock_expired_message: "You can nest again or change sheets. If you already paid, the download will appear in My payments once ONVO confirms the charge."
+        released: "Payment attempt canceled. You can nest again or change sheets."
       pending_workshop_lock:
         title: "Payment confirming"
         message: "Do not change sheets or run nesting again until it finishes; otherwise you may lose this download."

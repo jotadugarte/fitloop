@@ -3,6 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :request do
+  include ActiveSupport::Testing::TimeHelpers
   let(:user) { create_billing_user! }
 
   before do
@@ -110,5 +111,24 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
 
     expect(response).to have_http_status(:unprocessable_content).or have_http_status(:unprocessable_entity)
     expect(project.sheet_stocks.first.reload.width_mm).to eq(500)
+  end
+
+  it "[REQ-FIT-BILL-001] allows workshop mutations after workshop_lock_minutes elapse" do
+    payment = Payment.find_by!(onvo_payment_intent_id: "pi_workshop_lock")
+    payment.update!(created_at: 20.minutes.ago)
+
+    post workshop_nesting_runs_path
+
+    expect(flash[:alert]).not_to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+  end
+
+  it "[REQ-FIT-BILL-001] allows workshop mutations after POST liberar" do
+    payment = Payment.find_by!(onvo_payment_intent_id: "pi_workshop_lock")
+
+    post checkout_release_pending_lock_path(payment)
+
+    post workshop_nesting_runs_path
+
+    expect(flash[:alert]).not_to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
   end
 end
