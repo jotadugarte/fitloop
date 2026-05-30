@@ -51,7 +51,7 @@ module Billing
       end
 
       def workshop_lock_window
-        @workshop_lock_window ||= WorkshopLockWindow.new(minutes: workshop_lock_minutes)
+        @workshop_lock_window ||= WorkshopLockWindow.from_config
       end
     end
   end

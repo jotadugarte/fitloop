@@ -7,9 +7,13 @@ import {
   validateCardForm as validateCardCheckoutForm,
   validateSinpeForm as validateSinpeCheckoutForm
 } from "../checkout/onvo_checkout_validation"
-
-const CARD_DRAFT_PREFIX = "fitloop:checkout:card-draft:"
-const CARD_DRAFT_SAVE_MS = 300
+import {
+  cardDraftStorageKey,
+  clearCardDraft as removeStoredCardDraft,
+  createCardDraftScheduler,
+  restoreCardDraft as readStoredCardDraft,
+  saveCardDraft as writeStoredCardDraft
+} from "../checkout/onvo_checkout_card_draft"
 
 export default class extends Controller {
   static targets = [
@@ -63,7 +67,7 @@ export default class extends Controller {
   connect() {
     this.paymentId = null
     this.sinpeAwaitingTransfer = false
-    this.saveCardDraftTimer = null
+    this.cardDraftScheduler = createCardDraftScheduler(() => this.saveCardDraft())
     this.syncPanels()
     this.syncRequiredFields()
     this.bootstrapSinpeResume()
@@ -72,7 +76,7 @@ export default class extends Controller {
   }
 
   disconnect() {
-    if (this.saveCardDraftTimer) window.clearTimeout(this.saveCardDraftTimer)
+    this.cardDraftScheduler?.cancel()
   }
 
   bootstrapSinpeResume() {
@@ -116,11 +120,11 @@ export default class extends Controller {
     target.required = required
   }
 
-  cardDraftStorageKey() {
+  cardDraftKey() {
     const runId = this.hasNestingRunIdTarget && this.nestingRunIdTarget.value
       ? this.nestingRunIdTarget.value
-      : "default"
-    return `${CARD_DRAFT_PREFIX}${runId}`
+      : null
+    return cardDraftStorageKey(runId)
   }
 
   bindCardDraftPersistence() {
@@ -137,43 +141,34 @@ export default class extends Controller {
   }
 
   scheduleSaveCardDraft() {
-    if (this.saveCardDraftTimer) window.clearTimeout(this.saveCardDraftTimer)
-    this.saveCardDraftTimer = window.setTimeout(() => this.saveCardDraft(), CARD_DRAFT_SAVE_MS)
+    this.cardDraftScheduler.schedule()
   }
 
   saveCardDraft() {
     if (!this.hasCardHolderNameTarget || this.isSinpe()) return
 
-    sessionStorage.setItem(
-      this.cardDraftStorageKey(),
-      JSON.stringify({
-        holder_name: this.cardHolderNameTarget.value,
-        card_number: this.cardNumberTarget.value,
-        card_exp: this.cardExpTarget.value,
-        card_cvv: this.cardCvvTarget.value
-      })
-    )
+    writeStoredCardDraft(this.cardDraftKey(), {
+      holder_name: this.cardHolderNameTarget.value,
+      card_number: this.cardNumberTarget.value,
+      card_exp: this.cardExpTarget.value,
+      card_cvv: this.cardCvvTarget.value
+    })
   }
 
   restoreCardDraft() {
     if (!this.hasCardHolderNameTarget) return
 
-    const raw = sessionStorage.getItem(this.cardDraftStorageKey())
-    if (!raw) return
+    const draft = readStoredCardDraft(this.cardDraftKey())
+    if (!draft) return
 
-    try {
-      const draft = JSON.parse(raw)
-      if (draft.holder_name) this.cardHolderNameTarget.value = draft.holder_name
-      if (draft.card_number) this.cardNumberTarget.value = draft.card_number
-      if (draft.card_exp) this.cardExpTarget.value = draft.card_exp
-      if (draft.card_cvv) this.cardCvvTarget.value = draft.card_cvv
-    } catch (_error) {
-      sessionStorage.removeItem(this.cardDraftStorageKey())
-    }
+    if (draft.holder_name) this.cardHolderNameTarget.value = draft.holder_name
+    if (draft.card_number) this.cardNumberTarget.value = draft.card_number
+    if (draft.card_exp) this.cardExpTarget.value = draft.card_exp
+    if (draft.card_cvv) this.cardCvvTarget.value = draft.card_cvv
   }
 
   clearCardDraft() {
-    sessionStorage.removeItem(this.cardDraftStorageKey())
+    removeStoredCardDraft(this.cardDraftKey())
   }
 
   formatHolderName(event) {

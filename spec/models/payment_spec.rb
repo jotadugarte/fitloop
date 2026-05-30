@@ -244,6 +244,73 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "#awaiting_gateway_confirmation? [REQ-FIT-BILL-001]" do
+    let(:project) { Project.create!(ephemeral: true, title: "Awaiting gateway spec", status: :completed) }
+    let(:run) { project.nesting_runs.create!(status: "completed") }
+
+    def pending_payment!(payment_method:, **attrs)
+      described_class.create!(
+        {
+          user: user,
+          nesting_run: run,
+          status: "pending",
+          payment_method: payment_method,
+          currency: "crc",
+          amount: 1130,
+          total_amount: 1130,
+          purpose: "single_download",
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_awaiting_#{SecureRandom.hex(4)}",
+          onvo_mode: "test",
+          gateway_status: "processing"
+        }.merge(attrs)
+      )
+    end
+
+    it "[REQ-FIT-BILL-001] is true for pending SINPE without downloadable grant" do
+      payment = pending_payment!(payment_method: "sinpe_crc")
+
+      expect(payment.awaiting_gateway_confirmation?).to be(true)
+    end
+
+    it "[REQ-FIT-BILL-001] stays true for abandoned SINPE awaiting late webhook" do
+      payment = pending_payment!(
+        payment_method: "sinpe_crc",
+        checkout_abandoned_at: 1.minute.ago,
+        checkout_lock_released_at: 1.minute.ago
+      )
+
+      expect(payment.awaiting_gateway_confirmation?).to be(true)
+    end
+
+    it "[REQ-FIT-BILL-001] is false for abandoned card checkout after 3DS cancel" do
+      payment = pending_payment!(
+        payment_method: "card_crc",
+        gateway_status: "requires_payment_method",
+        checkout_abandoned_at: 1.minute.ago,
+        checkout_lock_reason: Billing::CheckoutLockReason::USER_CANCELED_3DS
+      )
+
+      expect(payment.awaiting_gateway_confirmation?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] is false when superseded or grant is downloadable" do
+      payment = pending_payment!(payment_method: "sinpe_crc", superseded_at: 1.minute.ago)
+
+      expect(payment.awaiting_gateway_confirmation?).to be(false)
+
+      active = pending_payment!(payment_method: "sinpe_crc")
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: 1.day.from_now
+      )
+
+      expect(active.awaiting_gateway_confirmation?).to be(false)
+    end
+  end
+
   describe "payment snapshot fields [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] persists purchaser and amount breakdown for succeeded and failed payments (D20, D24)" do
       payment = described_class.create!(

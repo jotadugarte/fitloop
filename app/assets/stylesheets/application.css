@@ -1129,7 +1129,7 @@ h3.fit-section__legend {
   }
 }
 
-@import url("billing.css");
+@import url("billing.css"); /* Propshaft resolves sibling stylesheet; smoke-test checkout + Mis pagos after deploy */
 
 /* ——— Preview placeholders & CAD ——— */
 

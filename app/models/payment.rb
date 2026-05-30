@@ -55,9 +55,12 @@ class Payment < ApplicationRecord
     checkout_abandoned_at.present?
   end
 
+  # SINPE manual abandon keeps polling/rows (transfer may still complete).
+  # Card 3DS cancel hides the attempt from Mis pagos rows and payment history.
   def awaiting_gateway_confirmation?
     return false unless pending? && single_download?
     return false if superseded?
+    return false if checkout_abandoned? && card_checkout?
 
     !downloadable_grant_for_run?
   end
@@ -84,7 +87,7 @@ class Payment < ApplicationRecord
   end
 
   def incomplete_card_checkout_attempt?
-    return false unless card_crc? || card_usd?
+    return false unless card_checkout?
     return false if succeeded?
     return true if superseded_by_later_successful_checkout?
     return false unless pending? || failed?
@@ -115,5 +118,9 @@ class Payment < ApplicationRecord
     self.purchase_reference = Billing::PurchaseReference.generate
   end
 
-  private :assign_purchase_reference_for_single_download
+  def card_checkout?
+    card_crc? || card_usd?
+  end
+
+  private :assign_purchase_reference_for_single_download, :card_checkout?
 end
