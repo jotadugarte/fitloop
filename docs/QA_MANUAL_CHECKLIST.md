@@ -78,12 +78,15 @@ Requires `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, and `onvo_test_*` keys. Check
 
 Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in `onvo/docs-completa-onvo.txt` (*Pruebas*).
 
-### Webhook (ngrok or staging)
+### Webhook (local dev or production)
 
-- [ ] Tunnel running (`ngrok http 3000` or fixed Northflank URL)
-- [ ] ONVO test dashboard webhook URL = `https://<host>/webhooks/onvo` with secret matching `ONVO_WEBHOOK_SECRET`
-- [ ] Rails restarted after ENV changes; ngrok inspector `http://127.0.0.1:4040` shows `payment-intent.succeeded` / `failed` deliveries
-- [ ] See [DEPLOY.md — ONVO webhooks in local development](DEPLOY.md#onvo-webhooks-in-local-development)
+**Local ONVO test:** ngrok → `POST /webhooks/onvo` (see [DEPLOY.md — ONVO webhooks](DEPLOY.md#onvo-webhooks)).  
+**Production:** stable HTTPS domain on the Linux VM ([ADR-0007](core/ADRs/0007-production-vm-deploy.md)).
+
+- [ ] Webhook reachable at `https://<host>/webhooks/onvo` (ngrok in dev; production domain when live)
+- [ ] ONVO dashboard webhook URL + secret matching `ONVO_WEBHOOK_SECRET`
+- [ ] Rails restarted after ENV changes; ngrok inspector `http://127.0.0.1:4040` shows `payment-intent.succeeded` / `failed` deliveries (dev)
+- [ ] See [DEPLOY.md — ONVO webhooks](DEPLOY.md#onvo-webhooks)
 
 ### Checkout — card (CRC / USD)
 
@@ -123,6 +126,19 @@ Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in
 
 - [ ] No PIN or admin-unlock UI in the app
 - [ ] No nesting math errors surfaced as 500 without flash/message
+
+## Production VM go-live [REQ-FIT-QA-001]
+
+Per [ADR-0007](core/ADRs/0007-production-vm-deploy.md) and [DEPLOY.md — Production VM go-live](DEPLOY.md#production-vm-go-live).
+
+- [ ] Linux VM: Ruby, PostgreSQL (4 DBs), repo-root `.venv` + `pynest2d` smoke OK on host
+- [ ] Puma + Solid Queue running (`SOLID_QUEUE_IN_PUMA` or separate `bin/jobs`)
+- [ ] Reverse proxy + HTTPS; Cloudflare proxied; `GET /up` OK
+- [ ] `config.hosts`, mailer URL, SSL configured for production domain
+- [ ] `storage/` on persistent disk; backups planned
+- [ ] `bin/rails billing:geo:check` passes; CR vs USD spot-check on paywall
+- [ ] ONVO live: webhook `https://<domain>/webhooks/onvo` registered; test payment fulfills grant
+- [ ] End-to-end on prod: DXF upload → nest → checkout → download nested DXF
 
 ## Sign-off
 

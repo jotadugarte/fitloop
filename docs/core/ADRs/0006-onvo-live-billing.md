@@ -47,7 +47,7 @@ ONVO documents two integration styles; Fitloop chooses **Payment Intents + embed
 | `ONVO_PUBLISHABLE_KEY` | Client SDK |
 | `ONVO_WEBHOOK_SECRET` | Verify inbound webhook (`X-Webhook-Secret` header) |
 
-Local: `.env` gitignored. Staging/production: host ENV (e.g. Northflank). Dev webhooks: HTTPS tunnel (ngrok) registering `…/webhooks/onvo`.
+Local: `.env` gitignored. Production: host ENV on the Linux VM ([ADR-0007](0007-production-vm-deploy.md), `docs/DEPLOY.md`). Dev ONVO test webhooks: HTTPS tunnel (ngrok) registering `…/webhooks/onvo`.
 
 ### Payment flow (normative)
 
@@ -73,7 +73,7 @@ Local: `.env` gitignored. Staging/production: host ENV (e.g. Northflank). Dev we
 
 ### Negative consequences
 
-- Requires public HTTPS for webhook testing (staging/ngrok).
+- Requires public HTTPS for webhook testing (local: ngrok; production: domain per ADR-0007).
 - SINPE UX complexity (identification fields, processing state).
 - No refunds in v1.
 
@@ -92,5 +92,6 @@ Local: `.env` gitignored. Staging/production: host ENV (e.g. Northflank). Dev we
 ## More information
 
 - Extends: `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md` (accounts, cart, grants — not superseded)
+- Production deploy: `docs/core/ADRs/0007-production-vm-deploy.md`
 - Requirements: `docs/core/SPEC.md` (`REQ-FIT-BILL-001`..`003`)
 - Session plan: `.agenticguild/active_sessions/task_onvo-payments.md`

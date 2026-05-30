@@ -53,7 +53,7 @@ AI agents **must not** introduce the following without an ADR:
 
 ## 4. Environment & Infrastructure
 
-* **Deployment target:** Single host (or container) with Rails + PostgreSQL + Python venv for `nesting_engine` on the same machine (v1).
+* **Deployment target (v1):** **Bare-metal Linux VM** — Rails + PostgreSQL + repo-root Python `.venv` on one host ([ADR-0007](ADRs/0007-production-vm-deploy.md), `docs/DEPLOY.md`). Docker/Kamal and Northflank are **not** the v1 production path.
 * **Secrets:** Rails encrypted credentials for deploy secrets (`RAILS_MASTER_KEY`); OmniAuth and **ONVO** keys via ENV (see `.env.example`, ADR-0006); **no access secrets on `Project`** (session bind only per ADR-0004).
 * **Storage:** Active Storage (disk or cloud per env) for DXF inputs and nested output.
 

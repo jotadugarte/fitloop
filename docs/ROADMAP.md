@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). P6/P7 on `main` (PR #11).
+**Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). P6/P7 on `main` (PR #11). **Pre-live backlog** prioritized (billing refactor → admin → go-live); **production VM** deferred until pre-live polish complete.
 
-**Next action:** **Admin ventas**; **user analytics & admin bitácora**.
+**Next action:** **Billing domain types (CbC refactor)** (Pending #0).
 
 ---
 
@@ -26,6 +26,8 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
+| Pre-live | Billing refactor + admin ops + deploy checklist | **Pending** (see Pending) |
+| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #5) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -33,7 +35,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** optional FastAPI wrapper; hard file/piece caps; production Docker deploy with full nesting E2E (follow-up).
+**Not implemented:** admin foundation + ventas + analytics; billing CbC refactor; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -119,7 +121,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 ### Post-P7c — ONVO live billing (merged `main`, PR #19)
 
 - [x] **ONVO payments (live gateway)** — `BILLING_GATEWAY=onvo`; Payment Intents + card form + SINPE cédula/móvil; `POST /webhooks/onvo`; `Billing::FulfillPayment` / `FailPayment`; processing poll + 3DS `/checkout/retorno`; MEIC `CheckoutBreakdown` SSOT; simulate fallback when `BILLING_GATEWAY=simulate` (REQ-FIT-BILL-001, ADR-0006) — 2026-05-30 — Session: `task_onvo-payments_2026-05-30.md`
-- [x] **ONVO QA docs** — `docs/QA_MANUAL_CHECKLIST.md` ONVO section; `docs/QA_ONVO_SINPE.md`; DEPLOY ngrok webhook notes — 2026-05-30
+- [x] **ONVO QA docs** — `docs/QA_MANUAL_CHECKLIST.md` ONVO section; `docs/QA_ONVO_SINPE.md`; DEPLOY ONVO webhook notes (ngrok dev + production VM) — 2026-05-30
 - [x] **SINPE pending checkout lock + pre-retention** — 15-min workshop lock (`sinpe_crc` only); manual abandon without `FailPayment`; pre-retain nested DXF at checkout; late webhook fulfill; Mis pagos pending/expired rows; `BlocksWorkshopDuringPendingPayment` (REQ-FIT-BILL-001, REQ-FIT-BILL-003) — 2026-05-30 — Session: `task_onvo-sinpe-pending-lock_2026-05-30.md`
 
 ---
@@ -132,13 +134,19 @@ _(none)_
 
 ## Pending (by priority)
 
-### Product / UX
+Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-_(none)_
+### Pre-live (0–4)
 
-### Nesting engine
+0. [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** (done, PR #19)
+1. [ ] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAIL`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton + shared layout for ventas and analytics — Depends on: **Billing domain types (CbC refactor)**
+2. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
+3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`
+4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **User analytics & admin bitácora (core + UI)**
 
-_(no pending engine items)_
+### Go-live (5 — when ready)
+
+5. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
 
 ---
 
@@ -146,12 +154,11 @@ _(no pending engine items)_
 
 ### Nesting engine (v1.1+)
 
-### Product & platform
+_(no pending engine items)_
 
-- [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Session: `task_user-analytics_2026-05-21.md`
-- [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart merged** (done, PR #18) — Session: `task_billing-cart_2026-05-28.md`
-- [ ] **Production Docker deploy — full nesting E2E** — image/worker with `nesting_engine` + Python venv; DXF upload → nest → pay → download on production host — Follow-up from ONVO epic (D-ONVO-13)
-- [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** (done, PR #19)
+### Product & platform (deferred)
+
+- [ ] **Analytics archive (cold storage)** — second PostgreSQL `analytics_archive`, 6-month hot retention job; follow-up after go-live when event volume warrants — Session: `task_user-analytics_2026-05-21.md`
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 

@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t fitloop .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name fitloop fitloop
+# Optional Rails-only image (Thruster). NOT the v1 production deploy path — see ADR-0007 and docs/DEPLOY.md
+# (production uses bare-metal Linux VM with Python .venv + nesting_engine on the same host).
+# Build example: docker build -t fitloop . && docker run -d -p 80:80 -e RAILS_MASTER_KEY=... fitloop
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 

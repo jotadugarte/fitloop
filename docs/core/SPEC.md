@@ -138,7 +138,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
 | **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
 | **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
-| **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
+| **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv on Linux VM) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 | **REQ-FIT-AUTH-002** | User accounts: Devise + OmniAuth, email verification, merge opt-in, account routes, delete account | P6 |
 | **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); ONVO payment intents + webhook fulfillment (`BILLING_GATEWAY`) | P7 |
@@ -158,6 +158,14 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
 - **Non-goals:** cross-session sharing, PIN recovery, admin override via app UI.
 - **Superseded session key:** migrate from `session[:workspace_project_id]` to `session[:workspaces]` per ADR-0005.
+
+### REQ-FIT-QA-001 (detail)
+
+- **Automated E2E:** `spec/system/golden_nesting_e2e_spec.rb` with golden DXF fixture.
+- **Production deploy:** bare-metal **Linux VM** — Rails + PostgreSQL + repo-root Python `.venv` on one host ([ADR-0007](ADRs/0007-production-vm-deploy.md), `docs/DEPLOY.md`).
+- **Not v1 path:** Northflank, stock `Dockerfile`/Kamal without Python nesting.
+- **ONVO webhooks:** local test via ngrok; production via `https://<domain>/webhooks/onvo` on the VM.
+- **Manual QA:** `docs/QA_MANUAL_CHECKLIST.md` (includes **Production VM go-live** section).
 
 ### REQ-FIT-AUTH-002 (detail)
 

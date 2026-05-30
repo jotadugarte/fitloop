@@ -9,7 +9,7 @@ Use with `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, and `onvo_test_*` API keys. T
 
 - [ ] `bin/rails db:migrate` applied; app + Solid Queue running
 - [ ] `.env`: `BILLING_GATEWAY=onvo`, `ONVO_MODE=test`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET`
-- [ ] Webhook reachable: ngrok → `POST /webhooks/onvo` registered in ONVO test dashboard (see [DEPLOY.md](DEPLOY.md#onvo-webhooks-in-local-development))
+- [ ] Webhook reachable: **local dev** — ngrok → `POST /webhooks/onvo`; **production** — `https://<domain>/webhooks/onvo` ([DEPLOY.md](DEPLOY.md#onvo-webhooks), [ADR-0007](core/ADRs/0007-production-vm-deploy.md))
 - [ ] Logged-in, **confirmed** user; completed nest with paywalled download (or plan cart)
 - [ ] Checkout country **CR** so SINPE (CRC) is offered
 

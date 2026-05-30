@@ -1,6 +1,7 @@
 # Fitloop — deployment notes (v1)
 
-**Requirement:** [REQ-FIT-QA-001](core/SPEC.md)
+**Requirement:** [REQ-FIT-QA-001](core/SPEC.md)  
+**Deploy strategy:** [ADR-0007](core/ADRs/0007-production-vm-deploy.md) — **bare-metal Linux VM** (Rails + PostgreSQL + Python `.venv` on one host). **Not** the v1 path: Northflank, stock `Dockerfile`/Kamal without Python nesting.
 
 ## Target topology
 
@@ -140,7 +141,7 @@ If `CF-IPCountry` is missing, Fitloop looks up `request.remote_ip` in a local **
 
 `[billing.geo] CF-IPCountry missing on <source>; resolved country=…`
 
-Monitor this in your log aggregator (Northflank, Fly, etc.). Persistent warnings mean Cloudflare is misconfigured or traffic is hitting the origin directly.
+Monitor this in your log aggregator on the production VM. Persistent warnings mean Cloudflare is misconfigured or traffic is hitting the origin directly.
 
 #### Local development
 
@@ -150,9 +151,11 @@ Monitor this in your log aggregator (Northflank, Fly, etc.). Persistent warnings
 
 GeoLite2 data © [MaxMind](https://www.maxmind.com).
 
-### ONVO webhooks in local development
+### ONVO webhooks
 
-ONVO sends webhooks from the public internet. `localhost` is not reachable unless you expose HTTPS.
+ONVO sends webhooks from the public internet. `localhost` is not reachable without HTTPS exposure.
+
+#### Local development (ONVO test mode)
 
 1. Start Rails: `bin/dev` (port 3000).
 2. Start a tunnel, e.g. [ngrok](https://ngrok.com/): `ngrok http 3000`.
@@ -164,7 +167,15 @@ ONVO sends webhooks from the public internet. `localhost` is not reachable unles
 
 - Free ngrok URLs **change** when you restart the tunnel unless you use a reserved domain — update the ONVO dashboard each time.
 - Use the ngrok **inspector** at `http://127.0.0.1:4040` to replay or debug webhook payloads during integration.
-- **Staging (Northflank):** prefer a fixed HTTPS URL for a stable webhook endpoint; see `task_onvo-payments.md` ops checklist.
+
+#### Production (ONVO live)
+
+Per [ADR-0007](core/ADRs/0007-production-vm-deploy.md), register a **stable production URL** on the VM’s public domain (behind Cloudflare):
+
+1. Deploy Fitloop on the Linux VM with HTTPS (reverse proxy → Puma/Thruster).
+2. In the ONVO **live** dashboard, set webhook URL to `https://<your-production-domain>/webhooks/onvo`.
+3. Set `ONVO_WEBHOOK_SECRET`, `ONVO_MODE=live`, and live API keys in host ENV (not committed).
+4. Verify delivery in ONVO dashboard and Rails logs after a test payment.
 
 ## First-time setup
 
@@ -205,26 +216,134 @@ If you see `relation "solid_queue_processes" does not exist`, run `bin/rails db:
 
 If `bin/dev` says a server is already running, stop the old process (`Ctrl+C` or remove `tmp/pids/server.pid` after stopping Puma) and start again.
 
-## Production checklist
+## Production VM go-live
+
+Normative checklist for a **bare-metal Linux VPS** ([ADR-0007](core/ADRs/0007-production-vm-deploy.md)). Adjust paths and service names for your provider.
+
+### 1. Server provisioning
+
+- Ubuntu 22.04+ or Debian 12+ on **x86_64**
+- Open ports: **80/443** (public); PostgreSQL **not** exposed publicly
+- Persistent volume for app root, especially `storage/` (Active Storage)
+
+### 2. Install stack on the VM
+
+```bash
+# System packages (see Native nesting dependencies)
+sudo apt-get update
+sudo apt-get install -y postgresql postgresql-contrib \
+  ruby-full build-essential libpq-dev libvips42 \
+  python3 python3-venv python3-pip git
+
+# App deploy (example: /var/www/fitloop)
+git clone <repo> /var/www/fitloop && cd /var/www/fitloop
+bundle install --deployment
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+```
+
+Create PostgreSQL role `fitloop` and databases: `fitloop_production`, `fitloop_production_cache`, `fitloop_production_queue`, `fitloop_production_cable`.
+
+### 3. Environment (host)
+
+| Variable | Notes |
+|----------|--------|
+| `RAILS_ENV=production` | |
+| `RAILS_MASTER_KEY` | From `config/master.key` |
+| `SECRET_KEY_BASE` | Generate: `bin/rails secret` |
+| `FITLOOP_DATABASE_PASSWORD` | PostgreSQL password for user `fitloop` |
+| `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` | Or per-DB URLs if using managed PG |
+| `SOLID_QUEUE_IN_PUMA=1` | Single-process deploy; or run `bin/jobs` separately |
+| `PORT=3000` | Behind reverse proxy |
+| `BILLING_GATEWAY=onvo` | Live billing |
+| `ONVO_MODE=live` | Production ONVO keys |
+| `ONVO_*` | See [Environment](#environment) |
+| `GEOLITE2_COUNTRY_MMDB_PATH` | Recommended fallback |
+| `REDIS_URL` | Optional; `config/cable.yml` uses Redis for Action Cable in production |
+
+**Do not set** `FITLOOP_BILLING_COUNTRY_OVERRIDE` in production.
+
+### 4. Rails production config (before first boot)
+
+Edit `config/environments/production.rb` for the live domain:
+
+- `config.action_mailer.default_url_options = { host: "your-domain.com", protocol: "https" }`
+- `config.hosts << "your-domain.com"` (and `www` if used)
+- `config.assume_ssl = true` and `config.force_ssl = true` when TLS terminates at Cloudflare/proxy
+
+Configure SMTP in credentials for Devise confirmation emails (required before checkout).
+
+### 5. Build and migrate
+
+```bash
+RAILS_ENV=production bin/rails assets:precompile
+RAILS_ENV=production bin/rails db:prepare
+RAILS_ENV=production bin/rails billing:geo:install_geolite2   # once, if using GeoLite2
+RAILS_ENV=production bin/rails billing:geo:check
+```
+
+### 6. Reverse proxy + Cloudflare
+
+1. Point DNS **A/AAAA** to the VM; enable Cloudflare **proxied** (orange cloud).
+2. Nginx/Caddy example: terminate TLS (or Flexible SSL via Cloudflare) and `proxy_pass` to `127.0.0.1:3000`.
+3. Health check: `GET /up` returns 200.
+
+### 7. Process manager (systemd example)
+
+**Web + Solid Queue in Puma** (`SOLID_QUEUE_IN_PUMA=1`):
+
+```ini
+# /etc/systemd/system/fitloop-web.service
+[Unit]
+Description=Fitloop Rails
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=fitloop
+WorkingDirectory=/var/www/fitloop
+EnvironmentFile=/var/www/fitloop/.env.production
+ExecStart=/bin/bash -lc 'bundle exec puma -C config/puma.rb'
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+If not using `SOLID_QUEUE_IN_PUMA`, add a second unit running `bin/jobs start`.
+
+### 8. ONVO production webhook
+
+Register `https://your-domain.com/webhooks/onvo` in ONVO live dashboard; match `ONVO_WEBHOOK_SECRET`.
+
+### 9. Smoke tests on the host
+
+```bash
+.venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; print(capabilities())"
+curl -sf https://your-domain.com/up
+```
+
+Manual: upload golden DXF → nest completes → checkout (test/live per policy) → webhook → download. See `docs/QA_MANUAL_CHECKLIST.md` (**Production VM go-live**).
+
+## Production checklist (summary)
 
 1. `RAILS_ENV=production` with `SECRET_KEY_BASE` and `RAILS_MASTER_KEY`.
 2. **Billing geo:** Cloudflare proxy enabled; `CF-IPCountry` on billing routes; `GEOLITE2_COUNTRY_MMDB_PATH` set; `bin/rails billing:geo:check` passes; **`FITLOOP_BILLING_COUNTRY_OVERRIDE` unset** (see [Billing geo](#billing-geo-cloudflare--geolite2)).
-3. `bin/rails assets:precompile` (if using the asset pipeline).
-4. `bin/rails db:migrate` on the production database.
-5. Run **Solid Queue** alongside the web process (`bin/jobs` or your process manager).
-6. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)):
-
-   ```bash
-   .venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; print(capabilities())"
-   .venv/bin/python nesting_engine/nest.py 2>&1 | head -1   # usage: nest.py CONFIG_JSON_PATH
-   ```
-
-7. Active Storage: configure `config/storage.yml` for disk or cloud per environment.
+3. `bin/rails assets:precompile`.
+4. `bin/rails db:prepare` (primary + Solid Queue/cache/cable schemas).
+5. Run **Solid Queue** (`SOLID_QUEUE_IN_PUMA=1` or `bin/jobs`).
+6. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)).
+7. Active Storage: `:local` with persistent `storage/` (or cloud per `config/storage.yml`).
+8. ONVO live webhook on production domain ([ONVO webhooks — Production](#production-onvo-live)).
+9. Mailer + `config.hosts` + SSL for public domain.
 
 ## Process layout (example)
 
-- **Web:** `bundle exec puma -C config/puma.rb`
-- **Jobs:** `bundle exec rake solid_queue:start` (or equivalent for your Rails 8 setup)
+- **Web:** `bundle exec puma -C config/puma.rb` (with `SOLID_QUEUE_IN_PUMA=1` optional)
+- **Jobs (if separate):** `bin/jobs start` or `bundle exec rake solid_queue:start`
+
+## Docker / Kamal (not v1 production path)
+
+The repo includes a `Dockerfile` (Rails + Thruster only, **no Python nesting**). It is **not** used for v1 go-live per [ADR-0007](core/ADRs/0007-production-vm-deploy.md). A future container deploy must add Python `.venv` + `nesting_engine` on a shared filesystem with Active Storage.
 
 ## Automated E2E
 

@@ -261,7 +261,9 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
 | 2026-05-28 | D-ONVO-14 | Webhook dev primero con **ngrok**; Northflank cuando haya URL fija |
 | 2026-05-28 | D-ONVO-13 | Northflank v1 scope: billing/webhooks only; nesting E2E container = follow-up deploy |
 
-### Northflank staging (ops checklist)
+> **Amendment (2026-05-30):** Superseded by **[ADR-0007](../../docs/core/ADRs/0007-production-vm-deploy.md)**. Team **does not use Northflank**; production = **bare-metal Linux VM** per `docs/DEPLOY.md`. ONVO test webhooks: **ngrok** locally; production webhooks: **HTTPS domain on VM**. D-ONVO-12/13/14 and Northflank checklist below are **historical only**.
+
+### Northflank staging (ops checklist) — superseded
 
 1. Servicio web desde `Dockerfile` (Rails 8 + Thruster puerto 80).
 2. Addon **PostgreSQL**; `DATABASE_URL` / vars `PG*`; `bin/rails db:prepare` en deploy.
