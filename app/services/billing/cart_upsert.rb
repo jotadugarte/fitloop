@@ -17,10 +17,10 @@ module Billing
     def initialize(user:, guest_token:, kind:, nesting_run_id:, tier_months:, currency_mode:)
       @user = user
       @guest_token = guest_token
-      @kind = kind.to_s
+      @kind = ProductKind.parse(kind)
       @nesting_run_id = nesting_run_id
-      @tier_months = tier_months
-      @currency_mode = currency_mode.to_s
+      @tier_months = tier_months.nil? ? nil : TierMonths.parse(tier_months)
+      @currency = Currency.parse(currency_mode)
     end
 
     def call
@@ -33,15 +33,7 @@ module Billing
     private
 
     def validate!
-      raise ArgumentError, "invalid kind" unless Cart.kinds.key?(@kind)
-      raise ArgumentError, "invalid currency_mode" unless Cart.currency_modes.key?(@currency_mode)
-
-      if @kind == Cart.kinds[:single_download]
-        raise ArgumentError, "nesting_run_id required" if @nesting_run_id.blank?
-      else
-        raise ArgumentError, "tier_months required" unless Subscription::ALLOWED_TIER_MONTHS.include?(@tier_months.to_i)
-      end
-
+      @kind.validate_pairing!(nesting_run: @nesting_run_id, tier_months: @tier_months)
       raise ArgumentError, "user or guest_token required" if @user.nil? && @guest_token.blank?
     end
 
@@ -56,14 +48,14 @@ module Billing
     def cart_attributes
       list_cents, sinpe_cents = price_cents_pair
       base = {
-        kind: @kind,
-        currency_mode: @currency_mode,
+        kind: @kind.to_s,
+        currency_mode: @currency.to_s,
         overage: false,
-        list_price_cents: list_cents,
-        sinpe_price_cents: sinpe_cents
+        list_price_cents: list_cents.to_i,
+        sinpe_price_cents: sinpe_cents.to_i
       }
 
-      if @kind == Cart.kinds[:plan]
+      if @kind.plan?
         base.merge(tier_months: @tier_months.to_i, user_id: @user&.id, guest_token: @user ? nil : @guest_token)
       else
         base.merge(nesting_run_id: @nesting_run_id, user_id: @user&.id, guest_token: @user ? nil : @guest_token)
@@ -71,21 +63,23 @@ module Billing
     end
 
     def price_cents_pair
-      currency = @currency_mode == "usd" ? :usd : :crc
-      if @kind == Cart.kinds[:plan]
+      if @kind.plan?
         card_usd, official_crc, sinpe_crc = Pricing.plan_price_triple(@tier_months)
-        list = currency == :usd ? card_usd : official_crc
-        sinpe = currency == :usd ? card_usd : sinpe_crc
+        list = @currency.usd? ? card_usd : official_crc
+        sinpe = @currency.usd? ? card_usd : sinpe_crc
       else
-        list = currency == :usd ? Pricing.single_download_official_usd : Pricing.single_download_official_crc
-        sinpe = currency == :usd ? Pricing.single_download_official_usd : Pricing.single_download_sinpe_crc
+        list = @currency.usd? ? Pricing.single_download_official_usd : Pricing.single_download_official_crc
+        sinpe = @currency.usd? ? Pricing.single_download_official_usd : Pricing.single_download_sinpe_crc
       end
 
-      [amount_to_cents(list, currency), amount_to_cents(sinpe, currency)]
+      [
+        CentsAmount.parse(amount_to_cents(list, @currency), currency: @currency),
+        CentsAmount.parse(amount_to_cents(sinpe, @currency), currency: @currency)
+      ]
     end
 
     def amount_to_cents(amount, currency)
-      currency == :usd ? (amount.to_f * 100).round : amount.to_i
+      currency.usd? ? (amount.to_f * 100).round : amount.to_i
     end
   end
 end

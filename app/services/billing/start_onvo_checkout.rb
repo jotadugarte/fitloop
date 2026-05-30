@@ -17,10 +17,10 @@ module Billing
 
     def initialize(user:, payment_method:, billing_context:, nesting_run: nil, tier_months: nil, cart: nil, client: nil)
       @user = user
-      @payment_method = payment_method
-      @billing_context = billing_context
+      @payment_method = PaymentMethod.parse(payment_method)
+      @billing_context = billing_context.is_a?(CheckoutContext) ? billing_context : CheckoutContext.from_session(billing_context)
       @nesting_run = nesting_run
-      @tier_months = tier_months
+      @tier_months = tier_months.nil? ? nil : TierMonths.parse(tier_months)
       @cart = cart
       @client = client
     end
@@ -78,7 +78,7 @@ module Billing
     end
 
     def card_single_download_checkout?
-      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.to_s.start_with?("card")
+      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.card?
     end
 
     def prior_incomplete_card_payments
@@ -91,7 +91,7 @@ module Billing
     end
 
     def sinpe_single_download_checkout?
-      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.to_s == "sinpe_crc"
+      @nesting_run.present? && @tier_months.nil? && @cart.nil? && @payment_method.sinpe?
     end
 
     def pre_retain_nested_dxf!
@@ -105,7 +105,7 @@ module Billing
         user: @user,
         nesting_run: @nesting_run,
         status: :pending,
-        payment_method: @payment_method,
+        payment_method: @payment_method.to_s,
         currency: breakdown.fetch(:currency).to_s,
         amount: breakdown.fetch(:total_amount),
         purpose: checkout_purpose,
@@ -119,7 +119,7 @@ module Billing
 
     def snapshot_fields(breakdown)
       description = if @tier_months
-                        "plan_#{@tier_months}_months"
+                        "plan_#{@tier_months.to_i}_months"
                       else
                         "single_download"
                       end

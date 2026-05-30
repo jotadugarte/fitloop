@@ -11,36 +11,47 @@ module Billing
 
     def initialize(attrs)
       data = attrs.stringify_keys
-      @kind = data.fetch("kind").to_s
-      @currency_mode = data.fetch("currency_mode").to_s
+      @kind = parse_kind(data.fetch("kind"))
+      @currency = Currency.parse(data.fetch("currency_mode"))
       @nesting_run_id = data["nesting_run_id"]
-      @tier_months = data["tier_months"]
+      @tier_months = data["tier_months"].present? ? TierMonths.parse(data["tier_months"]) : nil
       validate!
     end
 
-    attr_reader :kind, :currency_mode, :nesting_run_id, :tier_months
+    attr_reader :nesting_run_id, :tier_months
+
+    def kind
+      @kind.to_s
+    end
+
+    def currency_mode
+      @currency.to_s
+    end
 
     def to_h
       {
         "kind" => kind,
         "nesting_run_id" => nesting_run_id,
-        "tier_months" => tier_months,
+        "tier_months" => tier_months&.to_i,
         "currency_mode" => currency_mode
       }
     end
 
     def plan?
-      kind == Cart.kinds[:plan]
+      @kind.plan?
     end
 
     private
 
-    def validate!
-      raise ArgumentError, "invalid kind" unless Cart.kinds.key?(kind)
-      raise ArgumentError, "invalid currency_mode" unless Cart.currency_modes.key?(currency_mode)
+    def parse_kind(raw)
+      ProductKind.parse(raw)
+    rescue ArgumentError
+      raise ArgumentError, "invalid kind"
+    end
 
+    def validate!
       if plan?
-        raise ArgumentError, "tier_months required" unless Subscription::ALLOWED_TIER_MONTHS.include?(tier_months.to_i)
+        raise ArgumentError, "tier_months required" if @tier_months.nil?
       else
         raise ArgumentError, "nesting_run_id required" if nesting_run_id.blank?
       end
