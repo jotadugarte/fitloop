@@ -37,6 +37,8 @@ export default class extends Controller {
   static values = {
     payUrl: String,
     sinpeUrl: String,
+    restartSinpeUrl: String,
+    restartSinpeConfirm: String,
     cardUrl: String,
     processingUrl: String,
     paymentMethod: String,
@@ -382,11 +384,37 @@ export default class extends Controller {
     window.location.href = this.processingUrlValue.replace(":payment_id", this.paymentId)
   }
 
-  editSinpeTransferor(event) {
+  async editSinpeTransferor(event) {
     event.preventDefault()
-    this.sinpeAwaitingTransfer = false
+    if (!this.paymentId) return
+
+    const confirmMessage = this.hasRestartSinpeConfirmValue
+      ? this.restartSinpeConfirmValue
+      : "Start a new SINPE payment attempt?"
+    if (!window.confirm(confirmMessage)) return
+
+    this.processButtonTarget.disabled = true
     this.clearError()
 
+    try {
+      const url = this.restartSinpeUrlValue.replace(":payment_id", this.paymentId)
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { Accept: "application/json", "X-CSRF-Token": this.csrfToken }
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Could not restart SINPE checkout")
+
+      this.paymentId = null
+      this.sinpeAwaitingTransfer = false
+      this.showSinpeEditForm()
+    } catch (error) {
+      this.showError(error.message)
+      this.resetPrimaryButton()
+    }
+  }
+
+  showSinpeEditForm() {
     if (this.hasSinpeInstructionsTarget) this.sinpeInstructionsTarget.hidden = true
     if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = false
     if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = false

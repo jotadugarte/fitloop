@@ -47,6 +47,7 @@ Rails.application.routes.draw do
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
   post "checkout/pagar", to: "checkout#pay", as: :checkout_pay
   post "checkout/pagos/:payment_id/sinpe", to: "checkout#confirm_sinpe", as: :checkout_confirm_sinpe
+  post "checkout/pagos/:payment_id/reiniciar-sinpe", to: "checkout#restart_sinpe_transfer", as: :checkout_restart_sinpe_transfer
   post "checkout/pagos/:payment_id/tarjeta", to: "checkout#confirm_card", as: :checkout_confirm_card
   get "checkout/procesando/:payment_id", to: "checkout#processing", as: :checkout_processing
   get "checkout/pagos/:payment_id/estado", to: "checkout#payment_status", as: :checkout_payment_status

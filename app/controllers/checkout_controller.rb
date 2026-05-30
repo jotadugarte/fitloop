@@ -11,7 +11,7 @@ class CheckoutController < ApplicationController
   before_action :load_checkout_context, only: %i[show simulate pay]
   before_action :reject_checkout_when_plan_quota_available!, only: %i[show simulate pay], if: :single_download_checkout?
   before_action :require_onvo_gateway!, only: %i[
-    pay confirm_sinpe confirm_card three_ds_return payment_canceled_notice payment_failed_notice
+    pay confirm_sinpe confirm_card restart_sinpe_transfer three_ds_return payment_canceled_notice payment_failed_notice
   ]
 
   def show
@@ -66,6 +66,14 @@ class CheckoutController < ApplicationController
     }
   rescue Billing::Onvo::ApiError => error
     render json: { error: error.user_message }, status: :unprocessable_entity
+  end
+
+  def restart_sinpe_transfer
+    payment = current_user.payments.find(params[:payment_id])
+    Billing::RestartSinpeTransferCheckout.call(payment: payment, user: current_user)
+    render json: { ok: true }
+  rescue ArgumentError
+    render json: { error: t("billing.checkout.onvo.sinpe_restart_not_allowed") }, status: :unprocessable_entity
   end
 
   def confirm_sinpe

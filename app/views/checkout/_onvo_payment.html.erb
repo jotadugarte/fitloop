@@ -5,6 +5,8 @@
      data-onvo-checkout-payment-method-value="<%= selected_payment_method %>"
      data-onvo-checkout-processing-url-value="<%= checkout_processing_path(":payment_id") %>"
      data-onvo-checkout-sinpe-url-value="<%= checkout_confirm_sinpe_path(":payment_id") %>"
+     data-onvo-checkout-restart-sinpe-url-value="<%= checkout_restart_sinpe_transfer_path(":payment_id") %>"
+     data-onvo-checkout-restart-sinpe-confirm-value="<%= t("billing.checkout.onvo.sinpe_restart_confirm") %>"
      data-onvo-checkout-card-url-value="<%= checkout_confirm_card_path(":payment_id") %>"
      data-onvo-checkout-validation-messages-value="<%= {
        holder_name_invalid: t("billing.checkout.onvo.validation.holder_name_invalid"),
