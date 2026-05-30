@@ -56,6 +56,7 @@ Requires `BILLING_GATEWAY=simulate` (default dev). Demo **Pago exitoso** / **Pag
 - [ ] Preview (`placements.json`, SVG) remains free without payment
 - [ ] `GET /checkout?nesting_run_id=…` shows demo badge and **Pago exitoso** / **Pago fallido** for Tarjeta (USD) and SINPE (CRC)
 - [ ] Paywall hides SINPE option when `CF-IPCountry != CR` (only Card is offered)
+- [ ] Production: Cloudflare proxied; no recurring `[billing.geo] CF-IPCountry missing` in logs on paywall/checkout (`bin/rails billing:geo:check`)
 - [ ] Paywall with **no downloadable run** shows plans inline and does not show single-download CTAs
 - [ ] Paywall with **plan quota** shows “Descargar con tu plan” CTA and hides pay-this-download CTA
 - [ ] Checkout hides SINPE when `CF-IPCountry != CR`

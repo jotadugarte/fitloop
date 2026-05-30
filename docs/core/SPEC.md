@@ -205,7 +205,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Regional currency and tax (country resolution):**
 
-- Country from `CF-IPCountry` header, with GeoLite2 fallback and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (same stack as `Billing::GeoPaymentDefaults`).
+- Country from `CF-IPCountry` header (Cloudflare **required** in production), GeoLite2 Country MMDB fallback (`GEOLITE2_COUNTRY_MMDB_PATH`), and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (`Billing::GeoPaymentDefaults`). Missing `CF-IPCountry` on billing routes logs `[billing.geo] CF-IPCountry missing` in production (throttled). See `docs/DEPLOY.md` § Billing geo.
 - **Default:** `country_code == 'CR'` → CRC + SINPE/card methods; otherwise USD + card only.
 - **Manual override:** Paywall/workspace billing selector may set `session[:billing_currency]` and `session[:billing_payment_method]`; overrides IP default until changed.
 - **`country_code == 'CR'`:** Prices in CRC. **IVA 13%** on net subtotal (after SINPE discount when applicable), shown only at **checkout**, persisted on `Payment` snapshot fields (`tax_amount`, `total_amount`).

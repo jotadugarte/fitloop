@@ -13,6 +13,13 @@ fi
 
 export PORT
 
+if [[ -f "${ROOT}/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "${ROOT}/.env"
+  set +a
+fi
+
 # Local billing defaults to Costa Rica when IP/Cloudflare geo is unavailable (WSL/localhost).
 export FITLOOP_BILLING_COUNTRY_OVERRIDE="${FITLOOP_BILLING_COUNTRY_OVERRIDE:-CR}"
 

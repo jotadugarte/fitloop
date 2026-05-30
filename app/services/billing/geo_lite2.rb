@@ -1,18 +1,48 @@
 # frozen_string_literal: true
 
-module Billing
-  # Minimal GeoLite2 wrapper for billing defaults (D16).
-  # In v1 we keep this dependency-free and allow tests to stub it.
-  class GeoLite2
-    # Preconditions:
-    # - ip is a String or nil
-    # Postconditions:
-    # - returns a 2-letter country code String (e.g. "CR") or nil
-    def self.country_code_for_ip(ip)
-      return nil unless ip.is_a?(String) && !ip.strip.empty?
+require "ipaddr"
+require "maxminddb"
 
-      nil
+module Billing
+  # [REQ-FIT-BILL-001] GeoLite2 Country MMDB lookup (fallback when CF-IPCountry is absent).
+  class GeoLite2
+    class << self
+      # @return [String, nil] ISO 3166-1 alpha-2 country code (e.g. "CR", "US")
+      def country_code_for_ip(ip)
+        return nil unless ip.is_a?(String) && !ip.strip.empty?
+        return nil if private_or_loopback?(ip)
+
+        result = client&.lookup(ip.strip)
+        return nil unless result&.found?
+
+        result.country&.iso_code
+      rescue StandardError
+        nil
+      end
+
+      def available?
+        client.present?
+      end
+
+      def database_path
+        ENV["GEOLITE2_COUNTRY_MMDB_PATH"].to_s.strip.presence
+      end
+
+      private
+
+      def client
+        return @client if defined?(@client)
+
+        path = database_path
+        @client = (path && File.file?(path) ? MaxMindDB.new(path) : nil)
+      end
+
+      def private_or_loopback?(ip)
+        addr = IPAddr.new(ip.strip)
+        addr.loopback? || addr.private?
+      rescue IPAddr::InvalidAddressError
+        true
+      end
     end
   end
 end
-

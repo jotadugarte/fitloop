@@ -11,15 +11,10 @@ module Billing
     def self.from_request(request, session: nil, user: nil)
       raise ArgumentError, "request must respond to headers" unless request.respond_to?(:headers)
 
-      country_code = country_override
-      country_code ||= cloudflare_country_code(request)
-      if country_code.nil? || country_code.strip.empty?
-        remote_ip = request.respond_to?(:remote_ip) ? request.remote_ip : nil
-        country_code = Billing::GeoLite2.country_code_for_ip(remote_ip)
-      end
-      country_code ||= country_from_user(user)
-      country_code ||= session&.dig(:billing_country_code).presence
+      country_code, source = resolve_country_code(request: request, session: session, user: user)
       country_code = normalize_country(country_code)
+
+      GeoCountryAudit.record_resolution!(request: request, country_code: country_code, source: source)
 
       persist_country_code!(session, country_code) if session.respond_to?(:[]=) && country_code.present?
 
@@ -28,7 +23,8 @@ module Billing
         country_code: country_code,
         default_currency: defaults.fetch(:currency),
         default_payment_method: defaults.fetch(:payment_method),
-        available_payment_methods: defaults.fetch(:available_payment_methods)
+        available_payment_methods: defaults.fetch(:available_payment_methods),
+        resolution_source: source
       }
     end
 
@@ -51,6 +47,26 @@ module Billing
       return "CR" if zone == "America/Costa_Rica"
 
       nil
+    end
+
+    def self.resolve_country_code(request:, session:, user:)
+      country_code = country_override
+      return [ country_code, :override ] if country_code.present?
+
+      country_code = cloudflare_country_code(request)
+      return [ country_code, :cloudflare ] if country_code.present?
+
+      remote_ip = request.respond_to?(:remote_ip) ? request.remote_ip : nil
+      country_code = GeoLite2.country_code_for_ip(remote_ip)
+      return [ country_code, :geolite2 ] if country_code.present?
+
+      country_code = country_from_user(user)
+      return [ country_code, :user_time_zone ] if country_code.present?
+
+      country_code = session&.dig(:billing_country_code).presence
+      return [ country_code, :session ] if country_code.present?
+
+      [ nil, :default_international ]
     end
 
     def self.normalize_country(country_code)

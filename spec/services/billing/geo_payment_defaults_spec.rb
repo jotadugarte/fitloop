@@ -14,13 +14,14 @@ RSpec.describe Billing::GeoPaymentDefaults, "[REQ-FIT-BILL-001]" do
     end
 
     it "[REQ-FIT-BILL-001] falls back to GeoLite2 lookup when CF-IPCountry is missing (D16)" do
-      request = instance_double(ActionDispatch::Request, headers: {}, remote_ip: "1.2.3.4")
+      request = instance_double(ActionDispatch::Request, headers: {}, remote_ip: "1.2.3.4", path: "/")
       allow(request).to receive(:get_header).and_return(nil)
       allow(Billing::GeoLite2).to receive(:country_code_for_ip).with("1.2.3.4").and_return("US")
 
       defaults = described_class.from_request(request)
 
       expect(defaults.fetch(:country_code)).to eq("US")
+      expect(defaults.fetch(:resolution_source)).to eq(:geolite2)
     end
 
     it "[REQ-FIT-BILL-001] defaults to CRC+SINPE for CR and USD+card outside CR (D3, D16)" do
