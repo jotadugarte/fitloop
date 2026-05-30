@@ -2,37 +2,37 @@
 
 module Billing
   # [REQ-FIT-BILL-001] Simulated checkout payment methods (aligned with Payment enums).
+  # Facade delegating to Billing::PaymentMethod value object.
   module CheckoutPaymentMethod
     CARD_USD = Payment.payment_methods[:card_usd]
     CARD_CRC = Payment.payment_methods[:card_crc]
     SINPE_CRC = Payment.payment_methods[:sinpe_crc]
-    ALL = Payment.payment_methods.values.freeze
-
-    CONFIG = {
-      CARD_USD => { payment_method: CARD_USD, currency: :usd, card: true },
-      CARD_CRC => { payment_method: CARD_CRC, currency: :crc, card: true },
-      SINPE_CRC => { payment_method: SINPE_CRC, currency: :crc, card: false }
-    }.freeze
+    ALL = PaymentMethod::ALL.freeze
 
     class << self
       def config_for(method)
-        CONFIG.fetch(method.to_s) { raise ArgumentError, "unknown payment_method" }
+        vo = PaymentMethod.parse(method)
+        {
+          payment_method: vo.to_s,
+          currency: vo.currency.to_sym,
+          card: vo.card?
+        }
       end
 
       def currency_for(method)
-        config_for(method).fetch(:currency)
+        PaymentMethod.parse(method).currency.to_sym
       end
 
       def card?(method)
-        config_for(method).fetch(:card)
+        PaymentMethod.parse(method).card?
       end
 
       def sinpe?(method)
-        method.to_s == SINPE_CRC
+        PaymentMethod.parse(method).sinpe?
       end
 
       def billing_method_for(method)
-        card?(method) ? :card : :sinpe
+        PaymentMethod.parse(method).billing_method.to_sym
       end
     end
   end
