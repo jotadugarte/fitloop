@@ -184,4 +184,38 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
       expect(data).to have_key("products")
     end
   end
+
+  describe "typed domain arguments [REQ-FIT-BILL-002]" do
+    it "accepts TierMonths for plan_price_triple" do
+      tier = Billing::TierMonths.parse(2)
+      triple = described_class.plan_price_triple(tier)
+      expect(triple).to eq([11.5, 5300, 5000])
+    end
+
+    it "accepts BillingMethod and TierMonths for plan price" do
+      amount = described_class.price(
+        product: :plan,
+        currency: Billing::Currency.parse(:crc),
+        payment_method: Billing::BillingMethod.parse(:sinpe),
+        overage: false,
+        tier_months: Billing::TierMonths.parse(1)
+      )
+      expect(amount).to eq(3000)
+    end
+
+    it "rejects invalid tier_months at boundary" do
+      expect { described_class.plan_price_triple(3) }.to raise_error(ArgumentError)
+    end
+
+    it "rejects sinpe with USD currency" do
+      expect do
+        described_class.price(
+          product: :single_download,
+          currency: :usd,
+          payment_method: :sinpe,
+          overage: false
+        )
+      end.to raise_error(ArgumentError, /sinpe requires crc/)
+    end
+  end
 end
