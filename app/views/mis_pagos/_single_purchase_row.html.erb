@@ -59,6 +59,7 @@
                       class: "btn btn-primary btn--small",
                       data: { testid: sinpe_action.fetch(:testid), turbo: false } %>
         <% end %>
+        <% if row.pending_cancelable? %>
         <%= button_to t("billing.mis_pagos.cancel_attempt"),
                       checkout_release_pending_lock_path(row.pending_payment),
                       method: :post,
@@ -70,6 +71,7 @@
                         turbo_confirm_cancel: t("billing.checkout.pending_lock.abandon_confirm_dismiss"),
                         testid: "mis-pagos-cancel-attempt"
                       } %>
+        <% end %>
         <% if row.pending_lock_expired? && row.pending_payment.nesting_run_id.present? %>
           <%= link_to t("billing.mis_pagos.retry_checkout"),
                       checkout_path(nesting_run_id: row.pending_payment.nesting_run_id),

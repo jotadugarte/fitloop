@@ -70,7 +70,23 @@ RSpec.describe Billing::MisPagos::SinglePurchaseRows, "[REQ-FIT-BILL-001] [REQ-F
     expect(rows.first.pending_payment).to eq(payment)
     expect(rows.first.pending_lock_expired?).to be(true)
     expect(rows.first.pending_lock_active?).to be(false)
+    expect(rows.first.pending_cancelable?).to be(true)
     expect(rows.first.downloadable?).to be(false)
+  end
+
+  it "[REQ-FIT-BILL-001] marks abandoned pending row as not cancelable" do
+    payment = pending_payment!
+    payment.update!(
+      created_at: 20.minutes.ago,
+      checkout_abandoned_at: Time.current,
+      checkout_lock_released_at: Time.current,
+      checkout_lock_reason: "user_abandoned"
+    )
+
+    rows = described_class.build(user: user)
+
+    expect(rows.length).to eq(1)
+    expect(rows.first.pending_cancelable?).to be(false)
   end
 
   it "[REQ-FIT-BILL-001] shows grant row only when retention is active" do

@@ -43,6 +43,17 @@ RSpec.describe "Checkout release pending lock", "[REQ-FIT-BILL-001]", type: :req
       expect(ctx[:payment].checkout_lock_active?).to be(false)
     end
 
+    it "[REQ-FIT-BILL-001] hides Cancelar intento on Mis pagos after release" do
+      ctx = pending_sinpe_payment!
+
+      post checkout_release_pending_lock_path(ctx[:payment])
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include('data-testid="mis-pagos-cancel-attempt"')
+      expect(response.body).to include('data-testid="mis-pagos-retry-checkout"')
+    end
+
     it "[REQ-FIT-BILL-001] forbids releasing another user payment" do
       ctx = pending_sinpe_payment!
       other = create_billing_user!(email: "other-release@example.com")

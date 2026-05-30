@@ -43,6 +43,10 @@ class Payment < ApplicationRecord
     Time.current >= Billing::PendingCheckoutPolicy.lock_expires_at(self)
   end
 
+  def checkout_abandoned?
+    checkout_abandoned_at.present?
+  end
+
   def awaiting_gateway_confirmation?
     return false unless pending? && single_download?
     return false if superseded?

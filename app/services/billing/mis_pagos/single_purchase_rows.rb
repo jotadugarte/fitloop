@@ -17,6 +17,10 @@ module Billing
           pending? && !pending_lock_active? && pending_payment.awaiting_gateway_confirmation?
         end
 
+        def pending_cancelable?
+          pending? && !pending_payment.checkout_abandoned?
+        end
+
         def downloadable?
           grant.present? && grant.retention_active?
         end
