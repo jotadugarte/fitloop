@@ -82,7 +82,7 @@ RSpec.describe "ONVO 3DS return", "[REQ-FIT-BILL-001]", type: :request do
 
       follow_redirect!
 
-      expect(response).to redirect_to(checkout_path(nesting_run_id: run.id))
+      expect(response).to redirect_to(checkout_path(nesting_run_id: run.id, payment_method: "card_crc"))
       expect(flash[:alert]).to eq(I18n.t("billing.checkout.onvo.payment_canceled"))
     end
 

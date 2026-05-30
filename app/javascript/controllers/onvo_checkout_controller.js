@@ -6,6 +6,8 @@ const HOLDER_NAME_MAX = 100
 const SINPE_IDENTIFICATION_MIN = 9
 const SINPE_IDENTIFICATION_MAX = 12
 const SINPE_MOBILE_LEN = 8
+const CARD_DRAFT_PREFIX = "fitloop:checkout:card-draft:"
+const CARD_DRAFT_SAVE_MS = 300
 
 export default class extends Controller {
   static targets = [
@@ -56,9 +58,16 @@ export default class extends Controller {
   connect() {
     this.paymentId = null
     this.sinpeAwaitingTransfer = false
+    this.saveCardDraftTimer = null
     this.syncPanels()
     this.syncRequiredFields()
     this.bootstrapSinpeResume()
+    if (!this.isSinpe() && !this.sinpeAwaitingTransfer) this.restoreCardDraft()
+    this.bindCardDraftPersistence()
+  }
+
+  disconnect() {
+    if (this.saveCardDraftTimer) window.clearTimeout(this.saveCardDraftTimer)
   }
 
   bootstrapSinpeResume() {
@@ -102,18 +111,81 @@ export default class extends Controller {
     target.required = required
   }
 
+  cardDraftStorageKey() {
+    const runId = this.hasNestingRunIdTarget && this.nestingRunIdTarget.value
+      ? this.nestingRunIdTarget.value
+      : "default"
+    return `${CARD_DRAFT_PREFIX}${runId}`
+  }
+
+  bindCardDraftPersistence() {
+    if (!this.hasCardHolderNameTarget) return
+
+    ;[
+      this.cardHolderNameTarget,
+      this.cardNumberTarget,
+      this.cardExpTarget,
+      this.cardCvvTarget
+    ].forEach((field) => {
+      field.addEventListener("input", () => this.scheduleSaveCardDraft())
+    })
+  }
+
+  scheduleSaveCardDraft() {
+    if (this.saveCardDraftTimer) window.clearTimeout(this.saveCardDraftTimer)
+    this.saveCardDraftTimer = window.setTimeout(() => this.saveCardDraft(), CARD_DRAFT_SAVE_MS)
+  }
+
+  saveCardDraft() {
+    if (!this.hasCardHolderNameTarget || this.isSinpe()) return
+
+    sessionStorage.setItem(
+      this.cardDraftStorageKey(),
+      JSON.stringify({
+        holder_name: this.cardHolderNameTarget.value,
+        card_number: this.cardNumberTarget.value,
+        card_exp: this.cardExpTarget.value,
+        card_cvv: this.cardCvvTarget.value
+      })
+    )
+  }
+
+  restoreCardDraft() {
+    if (!this.hasCardHolderNameTarget) return
+
+    const raw = sessionStorage.getItem(this.cardDraftStorageKey())
+    if (!raw) return
+
+    try {
+      const draft = JSON.parse(raw)
+      if (draft.holder_name) this.cardHolderNameTarget.value = draft.holder_name
+      if (draft.card_number) this.cardNumberTarget.value = draft.card_number
+      if (draft.card_exp) this.cardExpTarget.value = draft.card_exp
+      if (draft.card_cvv) this.cardCvvTarget.value = draft.card_cvv
+    } catch (_error) {
+      sessionStorage.removeItem(this.cardDraftStorageKey())
+    }
+  }
+
+  clearCardDraft() {
+    sessionStorage.removeItem(this.cardDraftStorageKey())
+  }
+
   formatHolderName(event) {
     event.target.value = event.target.value
       .replace(/[^\p{L}\s'.-]/gu, "")
       .slice(0, HOLDER_NAME_MAX)
+    this.scheduleSaveCardDraft()
   }
 
   formatCardNumber(event) {
     event.target.value = event.target.value.replace(/\D/g, "").slice(0, CARD_NUMBER_MAX)
+    this.scheduleSaveCardDraft()
   }
 
   formatCardExp(event) {
     event.target.value = this.formatCardExpValue(event.target.value)
+    this.scheduleSaveCardDraft()
   }
 
   formatCardExpValue(raw) {
@@ -138,6 +210,7 @@ export default class extends Controller {
 
   formatCardCvv(event) {
     event.target.value = event.target.value.replace(/\D/g, "").slice(0, CARD_CVV_MAX)
+    this.scheduleSaveCardDraft()
   }
 
   formatSinpeIdentification(event) {
@@ -315,10 +388,12 @@ export default class extends Controller {
     if (!response.ok) throw new Error(data.error || "Card payment failed")
 
     if (data.redirect_url) {
+      this.clearCardDraft()
       window.location.href = data.redirect_url
       return
     }
 
+    this.clearCardDraft()
     window.location.href = this.processingUrlValue.replace(":payment_id", paymentId)
   }
 

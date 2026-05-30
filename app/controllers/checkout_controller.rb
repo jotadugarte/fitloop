@@ -143,6 +143,7 @@ class CheckoutController < ApplicationController
 
   def payment_canceled_notice
     payment = current_user.payments.find(params[:payment_id])
+    apply_card_checkout_return_selection!(payment)
     redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
                 alert: t("billing.checkout.onvo.payment_canceled")
   end
@@ -150,6 +151,7 @@ class CheckoutController < ApplicationController
   def payment_failed_notice
     payment = current_user.payments.find(params[:payment_id])
     Billing::FailPayment.call(payment: payment) unless payment.failed?
+    apply_card_checkout_return_selection!(payment)
     redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
                 alert: t("billing.checkout.onvo.payment_failed")
   end
@@ -396,7 +398,18 @@ class CheckoutController < ApplicationController
   def checkout_redirect_params_for_payment(payment)
     params = {}
     params[:nesting_run_id] = payment.nesting_run_id if payment.nesting_run_id.present?
+    params[:payment_method] = payment.payment_method if card_checkout_payment?(payment)
     params
+  end
+
+  def card_checkout_payment?(payment)
+    payment.card_crc? || payment.card_usd?
+  end
+
+  def apply_card_checkout_return_selection!(payment)
+    return unless card_checkout_payment?(payment)
+
+    session[:billing_payment_method] = "card"
   end
 
   def format_onvo_amount(amount, currency)
