@@ -59,11 +59,9 @@ module Billing
         return false unless @payment.sinpe_crc? && @payment.pending? && !@payment.superseded?
         return false if @payment.sinpe_transfer_identification.blank?
 
-        # Intent already submitted to ONVO (awaiting bank transfer).
-        return true if @payment.sinpe_awaiting_transfer?
-
-        # Same transferor after «Cambiar datos» — refresh instructions without a second ONVO confirm.
-        transferor_fields_unchanged?
+        # ONVO accepts one SINPE confirm per intent. Further «Procesar pago» / «Cambiar datos»
+        # only updates transferor reference fields and re-shows instructions.
+        true
       end
 
       def sync_transferor_fields_if_changed!
@@ -88,8 +86,8 @@ module Billing
           destination_holder_name: SinpeDestination.holder_name,
           amount: @payment.total_amount,
           currency: @payment.currency,
-          transfer_identification: @payment.sinpe_transfer_identification.presence || @identification,
-          transfer_mobile_number: @payment.sinpe_transfer_mobile_number.presence || @mobile_number
+          transfer_identification: @identification,
+          transfer_mobile_number: @mobile_number
         }
       end
 

@@ -111,4 +111,25 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
     payment.reload
     expect(payment.sinpe_transfer_identification).to eq("987654321")
   end
+
+  it "[REQ-FIT-BILL-001] does not re-call ONVO when reverting transferor data after a prior edit" do
+    payment.update!(
+      gateway_status: "requires_payment_method",
+      sinpe_transfer_identification: "134124141451",
+      sinpe_transfer_mobile_number: "88884444"
+    )
+
+    expect(client).not_to receive(:create_payment_method)
+
+    result = described_class.call(
+      payment: payment.reload,
+      identification: "134124141451",
+      mobile_number: "88888888",
+      client: client
+    )
+
+    payment.reload
+    expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
+    expect(result.fetch(:transfer_mobile_number)).to eq("88888888")
+  end
 end
