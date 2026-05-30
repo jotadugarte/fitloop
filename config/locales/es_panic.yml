@@ -264,6 +264,7 @@ es_panic:
       process_payment: Procesar pago
       savings_badge: "Ahorra %{amount}"
       card_usd: Tarjeta (USD)
+      card_crc: Tarjeta (CRC)
       sinpe_crc: SINPE Móvil (CRC)
       simulate_success: Pago exitoso
       simulate_failure: Pago fallido

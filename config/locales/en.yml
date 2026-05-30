@@ -256,6 +256,7 @@ en:
       process_payment: "Process payment"
       savings_badge: "Save %{amount}"
       card_usd: "Card (USD)"
+      card_crc: "Card (CRC)"
       sinpe_crc: "SINPE Mobile (CRC)"
       simulate_success: "Payment succeeded"
       simulate_failure: "Payment failed"

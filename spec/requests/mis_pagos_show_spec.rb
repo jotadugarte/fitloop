@@ -57,6 +57,29 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end
 
+    it "[REQ-FIT-BILL-001] shows localized card_crc payment method in payment history" do
+      Payment.create!(
+        user: user,
+        status: "succeeded",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1356,
+        total_amount: 1356,
+        purpose: "single_download",
+        paid_at: Time.current,
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_history_card_crc",
+        onvo_mode: "test",
+        gateway_status: "succeeded"
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(I18n.t("billing.checkout.card_crc", locale: :es))
+      expect(response.body).not_to include("Card Crc")
+    end
+
     it "[REQ-FIT-BILL-001] shows payment method in payment history rows" do
       Payment.create!(
         user: user,
