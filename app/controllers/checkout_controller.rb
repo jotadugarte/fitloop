@@ -415,7 +415,7 @@ class CheckoutController < ApplicationController
   end
 
   def card_checkout_payment?(payment)
-    payment.card_crc? || payment.card_usd?
+    payment.card_checkout?
   end
 
   def apply_card_checkout_return_selection!(payment)

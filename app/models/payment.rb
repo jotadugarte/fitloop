@@ -26,6 +26,9 @@ class Payment < ApplicationRecord
             format: { with: /\A\d{12}\z/ },
             allow_nil: true,
             uniqueness: true
+  validates :checkout_lock_reason,
+            inclusion: { in: Billing::CheckoutLockReason::ALL },
+            allow_nil: true
   validate :onvo_succeeded_requires_gateway_confirmation, if: :onvo_gateway?
 
   before_create :assign_purchase_reference_for_single_download
@@ -122,5 +125,5 @@ class Payment < ApplicationRecord
     card_crc? || card_usd?
   end
 
-  private :assign_purchase_reference_for_single_download, :card_checkout?
+  private :assign_purchase_reference_for_single_download
 end

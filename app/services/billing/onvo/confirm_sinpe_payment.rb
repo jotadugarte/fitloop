@@ -105,7 +105,6 @@ module Billing
         digits = "506#{digits}" if digits.length == 8
         "+#{digits}"
       end
-
     end
   end
 end

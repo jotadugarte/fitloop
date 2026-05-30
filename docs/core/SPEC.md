@@ -253,7 +253,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **pre-retention (SINPE only):** On SINPE checkout start, **`Billing::PreRetainNestedDxf`** copies `Project#nested_dxf` to `DownloadGrant#retained_nested_dxf` with **`retained_until` nil** until fulfill — staging only; **not** downloadable until `FulfillPayment` sets `retained_until = paid_at + 24.hours` (see REQ-FIT-BILL-003 D54).
 - **Failed webhook purge:** On `payment-intent.failed`, **`Billing::FailPayment`** **purge**s the pre-retained blob when the grant has `retained_nested_dxf` attached but `retention_active?` is false (staging never fulfilled). Fulfilled grants are not purged.
 - **Lazy lock release:** On first read after `workshop_lock_minutes` elapses, persist `checkout_lock_released_at` (no cron in v1).
-- **Status poll / Mis pagos:** Poll while `awaiting_gateway_confirmation?` (pending without terminal status), including after lock expired or abandoned, until `succeeded` or `failed`.
+- **Status poll / Mis pagos:** Poll while `Payment#awaiting_gateway_confirmation?` (pending single download without terminal status and without a downloadable grant). **SINPE:** includes lock expired and manual abandon (`checkout_abandoned_at`) — transfer may still complete. **Card:** excludes abandoned 3DS-cancel attempts (`checkout_abandoned_at` + card methods) from Mis pagos rows and payment history (`listed_in_payment_history`); poll stops for those attempts.
 
 **Checkout — simulated dev fallback (`BILLING_GATEWAY=simulate`):**
 

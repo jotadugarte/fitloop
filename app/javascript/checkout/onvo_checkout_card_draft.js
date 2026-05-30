@@ -1,6 +1,7 @@
 export const CARD_DRAFT_PREFIX = "fitloop:checkout:card-draft:"
 export const CARD_DRAFT_SAVE_MS = 300
 
+// Persist holder/number/expiry only — never store CVV (PCI hygiene).
 export function cardDraftStorageKey(runId) {
   return `${CARD_DRAFT_PREFIX}${runId || "default"}`
 }

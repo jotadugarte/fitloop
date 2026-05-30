@@ -311,6 +311,42 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "checkout_lock_reason [REQ-FIT-BILL-001]" do
+    let(:project) { Project.create!(ephemeral: true, title: "Lock reason spec", status: :completed) }
+    let(:run) { project.nesting_runs.create!(status: "completed") }
+
+    it "[REQ-FIT-BILL-001] accepts known checkout_lock_reason values" do
+      payment = described_class.new(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        checkout_lock_reason: Billing::CheckoutLockReason::USER_ABANDONED
+      )
+
+      expect(payment).to be_valid
+    end
+
+    it "[REQ-FIT-BILL-001] rejects unknown checkout_lock_reason values" do
+      payment = described_class.new(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        checkout_lock_reason: "bogus"
+      )
+
+      expect(payment).not_to be_valid
+      expect(payment.errors[:checkout_lock_reason]).to be_present
+    end
+  end
+
   describe "payment snapshot fields [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] persists purchaser and amount breakdown for succeeded and failed payments (D20, D24)" do
       payment = described_class.create!(

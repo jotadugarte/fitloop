@@ -150,8 +150,7 @@ export default class extends Controller {
     writeStoredCardDraft(this.cardDraftKey(), {
       holder_name: this.cardHolderNameTarget.value,
       card_number: this.cardNumberTarget.value,
-      card_exp: this.cardExpTarget.value,
-      card_cvv: this.cardCvvTarget.value
+      card_exp: this.cardExpTarget.value
     })
   }
 
@@ -164,7 +163,6 @@ export default class extends Controller {
     if (draft.holder_name) this.cardHolderNameTarget.value = draft.holder_name
     if (draft.card_number) this.cardNumberTarget.value = draft.card_number
     if (draft.card_exp) this.cardExpTarget.value = draft.card_exp
-    if (draft.card_cvv) this.cardCvvTarget.value = draft.card_cvv
   }
 
   clearCardDraft() {
