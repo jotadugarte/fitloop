@@ -179,8 +179,8 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
   </phase>
 
   <phase id="P2" name="Lock services">
-    <step id="2.1">Write failing `pending_checkout_lock_spec`: active &lt;15 min SINPE; inactive &gt;15 min; inactive after abandon; inactive card pending; inactive when superseded; late webhook grant does not re-lock.</step>
-    <step id="2.2">Refactor `Billing::PendingCheckoutLock#active?` to use `payment.checkout_lock_active?` (not raw pending); lazy-persist `checkout_lock_released_at` on timeout via `ReleasePendingCheckoutLock` or policy helper.</step>
+    <step id="2.1" status="complete">Write failing `pending_checkout_lock_spec`: active &lt;15 min SINPE; inactive &gt;15 min; inactive after abandon; inactive card pending; inactive when superseded; late webhook grant does not re-lock.</step>
+    <step id="2.2" status="complete">Refactor `Billing::PendingCheckoutLock#active?` to use `payment.checkout_lock_active?` (not raw pending); lazy-persist `checkout_lock_released_at` on timeout via `ReleasePendingCheckoutLock` or policy helper.</step>
     <step id="2.3">Write failing `release_pending_checkout_lock_spec`: manual abandon sets `checkout_abandoned_at` + `checkout_lock_released_at`; does not change `status`.</step>
     <step id="2.4">Implement `Billing::ReleasePendingCheckoutLock`.</step>
     <step id="2.5">Write failing `supersede_pending_checkout_spec`: marks older pending same run `superseded_at` + releases lock.</step>

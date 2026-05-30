@@ -60,7 +60,9 @@ class Payment < ApplicationRecord
     return false if nesting_run_id.blank?
 
     grant = DownloadGrant.find_by(user_id: user_id, nesting_run_id: nesting_run_id)
-    grant&.retention_active?
+    return false if grant.nil?
+
+    grant.retention_active? && grant.updated_at >= created_at
   end
 
   def onvo_succeeded_requires_gateway_confirmation

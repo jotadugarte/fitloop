@@ -105,6 +105,16 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
       expect(described_class.for(project: project, user: user)).to be_nil
     end
 
+    it "[REQ-FIT-BILL-001] lazily persists checkout_lock_released_at after timeout on first active? read" do
+      payment = pending_payment!(created_at: 16.minutes.ago)
+
+      described_class.new(payment: payment).active?
+
+      payment.reload
+      expect(payment.checkout_lock_released_at).to be_present
+      expect(payment.checkout_lock_reason).to eq("timeout")
+    end
+
     it "[REQ-FIT-BILL-001] is inactive after manual abandon" do
       payment = pending_payment!(
         created_at: 5.minutes.ago,

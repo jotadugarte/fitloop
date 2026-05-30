@@ -25,6 +25,20 @@ module Billing
         Time.current < lock_expires_at(payment)
       end
 
+      # [REQ-FIT-BILL-001] Lazy audit persist when workshop lock window elapses (no cron).
+      def release_expired_lock!(payment)
+        assert_payment!(payment)
+        return payment if lock_released?(payment)
+        return payment unless payment.sinpe_crc? && payment.pending?
+        return payment if Time.current < lock_expires_at(payment)
+
+        payment.update!(
+          checkout_lock_released_at: Time.current,
+          checkout_lock_reason: "timeout"
+        )
+        payment
+      end
+
       private
 
       def assert_payment!(payment)

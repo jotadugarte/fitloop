@@ -43,13 +43,8 @@ module Billing
       return false unless @payment.pending?
       return false if superseded_by_successful_checkout?
 
-      grant = DownloadGrant.single_purchase.find_by(
-        user_id: @payment.user_id,
-        nesting_run_id: @payment.nesting_run_id
-      )
-      return true if grant.nil?
-
-      !(grant.updated_at >= @payment.created_at && grant.retention_active?)
+      Billing::PendingCheckoutPolicy.release_expired_lock!(@payment)
+      @payment.checkout_lock_active?
     end
 
     def superseded_by_successful_checkout?
