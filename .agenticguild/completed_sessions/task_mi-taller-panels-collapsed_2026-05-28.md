@@ -1,7 +1,7 @@
 # Task: Mi taller always collapsed panels (sheet inventory + DXF detail)
 
 **Created:** 2026-05-28  
-**Status:** Planning  
+**Status:** Complete — merged to `main` via PR #18 (`add-cart`, 2026-05-28)  
 **Classification:** Bugfix  
 **Owner request:** En `Mi taller`, sin importar la ruta de entrada, los paneles **Inventario de láminas** y **Detalle DXF** deben mostrarse **siempre cerrados** (nunca desplegados por defecto).
 

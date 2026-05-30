@@ -1,7 +1,7 @@
 # Task: ONVO payments (live gateway)
 
-**Status:** Spec locked — handoff to `start-task`  
-**Roadmap:** `docs/ROADMAP.md` → Backlog → **ONVO payments (live gateway)**  
+**Status:** Complete — merged to `main` via PR #19 (2026-05-30)  
+**Roadmap:** `docs/ROADMAP.md` → Done → Post-P7c — ONVO live billing  
 **REQ (target):** REQ-FIT-BILL-001, REQ-FIT-BILL-002 (extend); new ADR required (replaces ADR-0005 simulated-only)  
 **Depends on:** Billing cart + MEIC UX merged to `main` (`add-cart` branch, 2026-05-28)  
 **External gates (roadmap):** OT + ONVO sandbox account/keys  
@@ -378,4 +378,4 @@ ONVO_WEBHOOK_SECRET=whsec_...     # verificar firma webhook
   </phase>
 </implementation_plan>
 
-**Status (2026-05-28):** Implementation plan P0–P10 complete on branch `feat/onvo-payments`. Merge after `add-cart`; run `finish-branch` skill for PR.
+**Status (2026-05-30):** Complete — merged to `main` via PR #19 (`onvo-integration`).
