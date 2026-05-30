@@ -103,14 +103,14 @@ RSpec.describe Billing::FulfillPayment, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]",
         grant = Billing::PreRetainNestedDxf.call(user: user, nesting_run: ctx[:run])
         expect(grant.retained_until).to be_nil
 
-        paid_at = Time.zone.parse("2026-05-28 14:00:00")
+        paid_at = Time.zone.parse("2026-06-15 14:00:00")
         travel_to(paid_at) do
           described_class.call(payment: ctx[:payment])
-        end
 
-        grant.reload
-        expect(grant.retention_active?).to be(true)
-        expect(grant.retained_until).to eq(paid_at + Billing::RetainNestedDxf::RETENTION_HOURS.hours)
+          grant.reload
+          expect(grant.retention_active?).to be(true)
+          expect(grant.retained_until).to eq(paid_at + Billing::RetainNestedDxf::RETENTION_HOURS.hours)
+        end
       end
 
       it "[REQ-FIT-BILL-001] keeps pre-retained blob when project nested_dxf changes before fulfill" do

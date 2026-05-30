@@ -39,7 +39,6 @@ module Billing
           nesting_run_id: nesting_run.id
         )
         grant.kind = :single_purchase
-        grant.retained_until = paid_at + RetainNestedDxf::RETENTION_HOURS.hours
         grant.save!
         RetainNestedDxf.call(grant: grant, nesting_run: nesting_run, paid_at: paid_at)
       end
