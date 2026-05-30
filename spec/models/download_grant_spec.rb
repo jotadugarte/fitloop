@@ -56,4 +56,56 @@ RSpec.describe DownloadGrant, "[REQ-FIT-BILL-003]" do
       expect(grant.retained_until).to be_nil
     end
   end
+
+  describe "single_purchase pre-retention staging [REQ-FIT-BILL-001] [REQ-FIT-BILL-003]" do
+    it "[REQ-FIT-BILL-001] allows single_purchase without retained_until while staging pre-retention" do
+      grant = described_class.new(
+        user: user,
+        nesting_run: nesting_run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
+
+      expect(grant).to be_valid
+      expect(grant.retention_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] persists staging grant without retained_until" do
+      grant = described_class.create!(
+        user: user,
+        nesting_run: nesting_run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
+
+      expect(grant).to be_persisted
+      expect(grant.retained_until).to be_nil
+      expect(grant.retention_active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-003] requires retained_until when retention is committed" do
+      grant = described_class.new(
+        user: user,
+        nesting_run: nesting_run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
+      grant.retention_committed = true
+
+      expect(grant).not_to be_valid
+      expect(grant.errors).to be_of_kind(:retained_until, :blank)
+    end
+
+    it "[REQ-FIT-BILL-003] keeps fulfilled single_purchase valid with retained_until in the future" do
+      grant = described_class.create!(
+        user: user,
+        nesting_run: nesting_run,
+        kind: "single_purchase",
+        retained_until: 1.day.from_now
+      )
+
+      expect(grant).to be_valid
+      expect(grant.retention_active?).to be(true)
+    end
+  end
 end
