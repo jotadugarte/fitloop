@@ -33,7 +33,9 @@
      <% end %>
      <% end %>
      data-onvo-checkout-process-payment-label-value="<%= t("billing.checkout.process_payment") %>"
+     data-onvo-checkout-process-payment-busy-label-value="<%= t("billing.checkout.process_payment_busy") %>"
      data-onvo-checkout-sinpe-continue-label-value="<%= t("billing.checkout.onvo.sinpe_continue") %>"
+     data-onvo-checkout-sinpe-continue-busy-label-value="<%= t("billing.checkout.onvo.sinpe_continue_busy") %>"
      data-testid="checkout-onvo-shell">
 
   <div data-onvo-checkout-target="cardPanel"
@@ -219,7 +221,9 @@
             data-testid="checkout-process-payment"
             data-action="click->onvo-checkout#processPayment"
             data-onvo-checkout-target="processButton">
-      <%= t("billing.checkout.process_payment") %>
+      <span class="btn__label" data-onvo-checkout-target="processButtonLabel">
+        <%= t("billing.checkout.process_payment") %>
+      </span>
     </button>
     <div class="checkout-onvo__secondary-actions"
          data-onvo-checkout-target="secondaryActions">

@@ -29,6 +29,7 @@ export default class extends Controller {
     "sinpeInstructionName",
     "errorMessage",
     "processButton",
+    "processButtonLabel",
     "secondaryActions",
     "nestingRunId",
     "tierMonths",
@@ -43,7 +44,9 @@ export default class extends Controller {
     paymentMethod: String,
     validationMessages: Object,
     processPaymentLabel: String,
+    processPaymentBusyLabel: String,
     sinpeContinueLabel: String,
+    sinpeContinueBusyLabel: String,
     testCards: { type: Array, default: [] },
     testSinpeMobileNumbers: { type: Array, default: [] },
     resumePaymentId: Number,
@@ -226,25 +229,30 @@ export default class extends Controller {
     this.clearError()
 
     if (this.sinpeAwaitingTransfer) {
+      this.setProcessButtonBusy(true)
       this.continueToProcessing(event)
       return
     }
 
+    this.setProcessButtonBusy(true)
+
     if (!this.isSinpe()) {
       const validationError = this.validateCardForm()
       if (validationError) {
+        this.setProcessButtonBusy(false)
         this.showError(validationError)
         return
       }
     } else {
       const validationError = this.validateSinpeForm()
       if (validationError) {
+        this.setProcessButtonBusy(false)
         this.showError(validationError)
         return
       }
     }
 
-    this.processButtonTarget.disabled = true
+    let keepBusy = false
 
     try {
       if (!this.paymentId) {
@@ -257,11 +265,13 @@ export default class extends Controller {
         await this.confirmSinpe(paymentId)
       } else {
         await this.confirmCard(paymentId)
+        keepBusy = true
       }
     } catch (error) {
       this.showError(error.message)
+      this.setProcessButtonBusy(false)
     } finally {
-      if (!this.sinpeAwaitingTransfer) this.resetPrimaryButton()
+      if (!keepBusy && !this.sinpeAwaitingTransfer) this.setProcessButtonBusy(false)
     }
   }
 
@@ -440,8 +450,8 @@ export default class extends Controller {
     if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = true
     if (this.hasSecondaryActionsTarget) this.secondaryActionsTarget.hidden = true
 
-    this.processButtonTarget.textContent = this.sinpeContinueLabelValue
-    this.processButtonTarget.disabled = false
+    this.setProcessButtonBusy(false)
+    this.setProcessButtonLabel(this.sinpeContinueLabelValue)
     this.processButtonTarget.dataset.testid = "checkout-sinpe-continue"
     this.sinpeAwaitingTransfer = true
     this.sinpeInstructionsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
@@ -451,14 +461,48 @@ export default class extends Controller {
     event.preventDefault()
     if (!this.paymentId) return
 
-    this.processButtonTarget.disabled = true
     window.location.href = this.processingUrlValue.replace(":payment_id", this.paymentId)
   }
 
-  resetPrimaryButton() {
-    this.processButtonTarget.disabled = false
+  setProcessButtonBusy(busy) {
+    if (!this.hasProcessButtonTarget) return
+
+    const button = this.processButtonTarget
+    if (busy) {
+      button.classList.add("btn--busy")
+      button.disabled = true
+      button.setAttribute("aria-busy", "true")
+      this.setProcessButtonLabel(this.processButtonBusyText())
+      return
+    }
+
+    button.classList.remove("btn--busy")
+    button.disabled = false
+    button.removeAttribute("aria-busy")
+    this.resetPrimaryButtonLabel()
+  }
+
+  processButtonBusyText() {
+    if (this.sinpeAwaitingTransfer && this.hasSinpeContinueBusyLabelValue) {
+      return this.sinpeContinueBusyLabelValue
+    }
+    if (this.hasProcessPaymentBusyLabelValue) return this.processPaymentBusyLabelValue
+    return "…"
+  }
+
+  setProcessButtonLabel(text) {
+    if (!this.hasProcessButtonLabelTarget) return
+
+    this.processButtonLabelTarget.textContent = text
+  }
+
+  resetPrimaryButtonLabel() {
+    if (this.sinpeAwaitingTransfer && this.hasSinpeContinueLabelValue) {
+      this.setProcessButtonLabel(this.sinpeContinueLabelValue)
+      return
+    }
     if (this.hasProcessPaymentLabelValue) {
-      this.processButtonTarget.textContent = this.processPaymentLabelValue
+      this.setProcessButtonLabel(this.processPaymentLabelValue)
     }
   }
 

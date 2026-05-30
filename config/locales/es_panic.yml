@@ -262,6 +262,7 @@ es_panic:
         processing_status_body: El cobro puede tardar minutos (SINPE es lento). Mirá Mis pagos — ahí aparece la descarga cuando ONVO apruebe. No pagues otra vez.
       demo_badge: DEMO — pagos simulados (QA)
       process_payment: Procesar pago
+      process_payment_busy: Procesando…
       savings_badge: "Ahorra %{amount}"
       card_usd: Tarjeta (USD)
       card_crc: Tarjeta (CRC)
@@ -312,6 +313,7 @@ es_panic:
         sinpe_destination_name: Nombre del beneficiario
         sinpe_instructions_note: Transferí desde la cuenta de esa cédula. Avisamos cuando ONVO confirme.
         sinpe_continue: Ya transferí, continuar
+        sinpe_continue_busy: Redirigiendo…
         processing_title: Procesando pago
         processing_body: ONVO está confirmando. Esta pantalla se actualiza sola cuando termine (segundos).
         processing_success_title: Pago confirmado

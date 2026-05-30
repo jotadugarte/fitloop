@@ -48,6 +48,22 @@ RSpec.describe "ONVO checkout UI", "[REQ-FIT-BILL-001]", type: :request do
       expect(response.body).to match(/data-testid="onvo-sinpe-panel"[^>]*\shidden/)
     end
 
+    it "[REQ-FIT-BILL-001] renders card USD checkout with process-payment busy label wiring" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("FITLOOP_BILLING_COUNTRY_OVERRIDE").and_return("US")
+
+      get checkout_path(nesting_run_id: run.id, payment_method: "card_usd", locale: "en"),
+          headers: { "CF-IPCountry" => "US" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-billing-currency="usd"')
+      expect(response.body).to include('data-onvo-checkout-payment-method-value="card_usd"')
+      expect(response.body).to include('data-onvo-checkout-target="processButtonLabel"')
+      expect(response.body).to include(
+        'data-onvo-checkout-process-payment-busy-label-value="Processing…"'
+      )
+    end
+
     it "[REQ-FIT-BILL-001] renders SINPE identification fields when sinpe_crc is selected" do
       get checkout_path(nesting_run_id: run.id, payment_method: "sinpe_crc", locale: "es"),
           headers: { "CF-IPCountry" => "CR" }
