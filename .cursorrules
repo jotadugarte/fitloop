@@ -109,6 +109,13 @@
       38. Checkout lock ≠ payment status: workshop lock timeout or manual abandon (`ReleasePendingCheckoutLock`) must not mark `Payment` `failed`; ONVO webhook remains authoritative for terminal state including late succeed after abandon.
       39. SINPE pre-retention: `PreRetainNestedDxf` at SINPE checkout start copies `nested_dxf` with `retained_until` nil; `FulfillPayment` sets 24h window; `FailPayment` purges staging blob when grant never had `retention_active?`.
       40. Mis pagos pending rows: poll while `Payment#awaiting_gateway_confirmation?` — includes abandoned SINPE (transfer may still complete); excludes abandoned card 3DS attempts from rows and `listed_in_payment_history`. Use `Billing::CheckoutLockReason` constants when writing `checkout_lock_reason`.
+      41. Card 3DS abandon: use `Billing::AbandonIncompleteCardCheckout` on 3DS cancel/return — sets `checkout_abandoned_at` + `CheckoutLockReason::USER_CANCELED_3DS`; never call `FailPayment` for user-initiated card cancel.
+      42. PCI card draft: `onvo_checkout_card_draft.js` may persist holder/number/expiry in `sessionStorage` until submit only; never store CVV/CVC in browser storage.
+      43. Workshop lock enforcement: backend workshop mutations must use `BlocksWorkshopDuringPendingPayment` (turbo-stream `:unprocessable_content`); UI disable alone is insufficient.
+      44. Mis pagos superseded split: payments with `superseded_at` appear in Historial de pagos only (label “Reemplazado”); exclude from actionable Descargas sueltas rows (`Billing::MisPagos::SinglePurchaseRows`).
+      45. Download entitlement gate: nested DXF authorization requires `DownloadGrant#retention_active?` — pre-retention staging blob without `retained_until` must not pass `Billing::Entitlement` / `RequiresNestedDownloadAuthorization`.
+      46. Billing validation HTTP status: use `:unprocessable_content` (not `:unprocessable_entity`) in billing controllers and matching request specs.
+      47. Billing geo (prod): country for CRC/USD/IVA from `CF-IPCountry` (Cloudflare required in production), GeoLite2 MMDB fallback (`GEOLITE2_COUNTRY_MMDB_PATH`), dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` — see `docs/DEPLOY.md`.
     </rules>
   </project_rules>
 </agentic_guild_os>
