@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-28 — **ONVO live billing** implemented on branch `feat/onvo-payments` (ADR-0006, webhooks, SDK checkout, SINPE, processing poll). **Billing cart + MEIC UX** on `add-cart` (pending merge). P6/P7 on `main` (PR #11).
+**Last audit:** 2026-05-30 — **ONVO live billing + SINPE pending lock** on branch `onvo-integration` (ADR-0006, webhooks, card/SINPE checkout, 15-min workshop lock, pre-retention). **Billing cart + MEIC UX** included. P6/P7 on `main` (PR #11).
 
-**Next action:** Merge `add-cart` then `feat/onvo-payments`; **Northflank** staging for ONVO webhooks (`BILLING_GATEWAY=onvo`); **Admin ventas**; **user analytics & admin bitácora**.
+**Next action:** Merge `onvo-integration` to `main`; **Northflank** staging for ONVO webhooks (`BILLING_GATEWAY=onvo`); **Admin ventas**; **user analytics & admin bitácora**.
 
 ---
 
@@ -24,16 +24,16 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | P6 | User accounts (auth) | **Complete** (PR #11) |
 | P7 | Simulated billing | **Complete** (PR #11) |
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
-| Post-P7b | Billing cart + MEIC UX | **Complete** on branch `add-cart` (pending merge) |
-| Post-P7c | ONVO live billing | **Complete** on branch `feat/onvo-payments` (pending merge) |
+| Post-P7b | Billing cart + MEIC UX | **Complete** on branch `onvo-integration` (pending merge) |
+| Post-P7c | ONVO live billing + SINPE pending lock | **Complete** on branch `onvo-integration` (pending merge) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
 **Auth + billing (REQ-FIT-AUTH-002, REQ-FIT-BILL-001..003):** merged to `main` via PR #11 (`auth-billing`, 2026-05-21).
 
-**Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + simulated billing; workshop at `/taller`; paywall + plans + Mis pagos; **ONVO** Payment Intents + webhooks on `feat/onvo-payments` (`BILLING_GATEWAY=onvo`, ADR-0006).
+**Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart + ONVO Payment Intents + webhooks on `onvo-integration` (`BILLING_GATEWAY=onvo`, ADR-0006); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** optional FastAPI wrapper; hard file/piece caps; **ONVO on `main`** until `feat/onvo-payments` merges; Northflank staging + full Docker nesting E2E (follow-up).
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps; **ONVO on `main`** until `onvo-integration` merges; Northflank staging + full Docker nesting E2E (follow-up).
 
 ---
 
@@ -116,10 +116,11 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 - [x] **Workshop: Mi taller panels collapsed by default** — sheet inventory + source DXF detail stay closed on `/taller` (REQ-FIT-UI-003) — 2026-05-28 — Branch: `add-cart` (mixed scope, D30)
 - [x] **Auth: sign-in failure UX** — inline alert in form (`auth_flash_alert`), `turbo: false`, password label `auth.session.password` (REQ-FIT-AUTH-002) — 2026-05-27
 
-### Post-P7c — ONVO live billing (branch `feat/onvo-payments`, pending merge)
+### Post-P7c — ONVO live billing (branch `onvo-integration`, pending merge)
 
-- [x] **ONVO payments (live gateway)** — `BILLING_GATEWAY=onvo`; Payment Intents + embedded SDK; SINPE cédula/móvil; `POST /webhooks/onvo`; `Billing::FulfillPayment` / `FailPayment`; processing poll + 3DS `/checkout/retorno`; MEIC `CheckoutBreakdown` SSOT; simulate fallback when `BILLING_GATEWAY=simulate` (REQ-FIT-BILL-001, ADR-0006) — 2026-05-28 — Branch: `feat/onvo-payments` — Session: `task_onvo-payments.md`
-- [x] **ONVO QA docs** — `docs/QA_MANUAL_CHECKLIST.md` ONVO section; `docs/QA_ONVO_SINPE.md`; DEPLOY ngrok webhook notes — 2026-05-28 — Branch: `feat/onvo-payments`
+- [x] **ONVO payments (live gateway)** — `BILLING_GATEWAY=onvo`; Payment Intents + card form + SINPE cédula/móvil; `POST /webhooks/onvo`; `Billing::FulfillPayment` / `FailPayment`; processing poll + 3DS `/checkout/retorno`; MEIC `CheckoutBreakdown` SSOT; simulate fallback when `BILLING_GATEWAY=simulate` (REQ-FIT-BILL-001, ADR-0006) — 2026-05-28 — Branch: `onvo-integration` — Session: `task_onvo-payments.md`
+- [x] **ONVO QA docs** — `docs/QA_MANUAL_CHECKLIST.md` ONVO section; `docs/QA_ONVO_SINPE.md`; DEPLOY ngrok webhook notes — 2026-05-28 — Branch: `onvo-integration`
+- [x] **SINPE pending checkout lock + pre-retention** — 15-min workshop lock (`sinpe_crc` only); manual abandon without `FailPayment`; pre-retain nested DXF at checkout; late webhook fulfill; Mis pagos pending/expired rows; `BlocksWorkshopDuringPendingPayment` (REQ-FIT-BILL-001, REQ-FIT-BILL-003) — 2026-05-30 — Branch: `onvo-integration` — Session: `task_onvo-sinpe-pending-lock.md`
 
 ---
 
@@ -149,7 +150,7 @@ _(no pending engine items)_
 
 - [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Depends on: P6/P7 merged — Session: `task_user-analytics_2026-05-21.md` (discovery archived in `.agenticguild/completed_sessions/`)
 - [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart merged** (snapshot columns shipped on `add-cart`) — Session: `task_billing-cart.md`
-- [ ] **Northflank staging — ONVO webhooks** — deploy Rails with fixed HTTPS URL; register `POST /webhooks/onvo` in ONVO test dashboard; `BILLING_GATEWAY=onvo`, `ONVO_*` ENV — Depends on: **`feat/onvo-payments` merged** — Scope v1: billing + webhooks + checkout only (no real nesting in container) — Session: `task_onvo-payments.md`
+- [ ] **Northflank staging — ONVO webhooks** — deploy Rails with fixed HTTPS URL; register `POST /webhooks/onvo` in ONVO test dashboard; `BILLING_GATEWAY=onvo`, `ONVO_*` ENV — Depends on: **`onvo-integration` merged** — Scope v1: billing + webhooks + checkout only (no real nesting in container) — Session: `task_onvo-payments.md`
 - [ ] **Northflank / Docker — full nesting E2E** — add `nesting_engine` + Python venv to image/worker; DXF upload → nest → pay → download on staging — Depends on: **Northflank staging (ONVO)** — Follow-up from ONVO epic (D-ONVO-13)
 - [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** — Also noted in `.agenticguild/pending_refactors.md`
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
