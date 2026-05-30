@@ -181,6 +181,10 @@ en:
       view_processing: "View payment status"
       payment_confirmed_download: "Payment confirmed — Download"
       download: "Download"
+      unnamed_project: "Workshop project"
+      row_nested_at: "Nested %{at}"
+      row_reference_payment: "Payment #%{id}"
+      row_reference_attempt: "Attempt #%{id}"
       retained_until: "Available until %{until}"
       download_status:
         pending: "Confirming payment"

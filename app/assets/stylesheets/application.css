@@ -1337,6 +1337,12 @@ h3.fit-section__legend {
 
 /* ——— Mis pagos ——— */
 
+.mis-pagos-page.paywall-layout {
+  max-width: min(72rem, 100%);
+  grid-template-columns: minmax(0, 1.65fr) minmax(17rem, 1fr);
+  gap: 1rem;
+}
+
 .mis-pagos-page .paywall-layout__main,
 .mis-pagos-page__main {
   display: flex;
@@ -1420,11 +1426,60 @@ h3.fit-section__legend {
 .mis-pagos-download-row {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--fit-border);
   border-left: 3px solid transparent;
   background: var(--fit-surface);
+}
+
+.mis-pagos-download-row__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem 0.75rem;
+  min-width: 0;
+}
+
+.mis-pagos-download-row__header > .status-badge {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.mis-pagos-download-row__summary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mis-pagos-download-row__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fit-navy);
+}
+
+.mis-pagos-download-row__facts {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--fit-text-muted);
+}
+
+.mis-pagos-download-row__fact-sep {
+  margin: 0 0.15rem;
+  opacity: 0.65;
+}
+
+.mis-pagos-download-row__cta {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.mis-pagos-download-row__cta--disabled {
+  opacity: 1;
 }
 
 .mis-pagos-payment-row {
@@ -1458,34 +1513,12 @@ h3.fit-section__legend {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  width: 100%;
+  padding-left: 0.15rem;
 }
 
 .mis-pagos-download-row__actions form {
   display: inline-flex;
   margin: 0;
-}
-
-@media (min-width: 769px) {
-  .mis-pagos-download-row--ready,
-  .mis-pagos-download-row--expired {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .mis-pagos-download-row--ready .mis-pagos-download-row__main,
-  .mis-pagos-download-row--expired .mis-pagos-download-row__main {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .mis-pagos-download-row--ready .mis-pagos-download-row__actions,
-  .mis-pagos-download-row--expired .mis-pagos-download-row__actions {
-    flex: 0 0 auto;
-    width: auto;
-    justify-content: flex-end;
-  }
 }
 
 .mis-pagos-download-row--ready {
@@ -1495,19 +1528,6 @@ h3.fit-section__legend {
 .mis-pagos-download-row--expired {
   border-left-color: var(--fit-border-strong);
   opacity: 0.88;
-}
-
-.mis-pagos-download-row__main {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.mis-pagos-download-row__date {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--fit-navy);
 }
 
 .mis-pagos-download-row__meta {
@@ -1672,8 +1692,25 @@ h3.fit-section__legend {
 }
 
 @media (max-width: 768px) {
+  .mis-pagos-page.paywall-layout {
+    grid-template-columns: 1fr;
+  }
+
   .mis-pagos-page .paywall-layout__aside {
     order: 0;
+  }
+
+  .mis-pagos-download-row__header {
+    flex-wrap: wrap;
+  }
+
+  .mis-pagos-download-row__cta {
+    width: 100%;
+  }
+
+  .mis-pagos-download-row__cta .btn {
+    width: 100%;
+    text-align: center;
   }
 
   .mis-pagos-payment-row {

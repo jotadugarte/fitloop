@@ -196,6 +196,10 @@ es:
       view_processing: "Ver estado del pago"
       payment_confirmed_download: "Pago confirmado — Descargar"
       download: "Descargar"
+      unnamed_project: "Proyecto del taller"
+      row_nested_at: "Anidado %{at}"
+      row_reference_payment: "Pago #%{id}"
+      row_reference_attempt: "Intento #%{id}"
       retained_until: "Disponible hasta %{until}"
       download_status:
         pending: "Confirmando pago"

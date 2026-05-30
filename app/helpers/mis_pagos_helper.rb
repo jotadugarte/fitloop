@@ -77,6 +77,40 @@ module MisPagosHelper
     end
   end
 
+  def mis_pagos_row_project_title(row)
+    title = row.nesting_run&.project&.title.to_s.strip
+    title.presence || t("billing.mis_pagos.unnamed_project")
+  end
+
+  def mis_pagos_row_nested_at(row)
+    l_in_user_zone(row.sort_at, format: :short, user: current_user)
+  end
+
+  def mis_pagos_row_reference(row)
+    payment = row.payment_for_display
+    return nil unless payment
+
+    if row.pending?
+      t("billing.mis_pagos.row_reference_attempt", id: payment.id)
+    else
+      t("billing.mis_pagos.row_reference_payment", id: payment.id)
+    end
+  end
+
+  def mis_pagos_row_payment_method(row)
+    payment = row.payment_for_display
+    return nil unless payment
+
+    t("billing.checkout.#{payment.payment_method}")
+  end
+
+  def mis_pagos_row_amount(row)
+    payment = row.payment_for_display
+    return nil unless payment
+
+    mis_pagos_payment_amount_label(payment)
+  end
+
   def mis_pagos_payment_amount_label(payment)
     amount = payment.total_amount || payment.amount
     formatted = number_with_precision(
