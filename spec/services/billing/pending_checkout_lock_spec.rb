@@ -90,6 +90,74 @@ RSpec.describe Billing::PendingCheckoutLock, "[REQ-FIT-BILL-001]", type: :servic
     expect(described_class.for_user(user: user)).to be_nil
   end
 
+  describe "SINPE checkout_lock_active? window [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] is active for sinpe_crc pending within workshop_lock_minutes" do
+      payment = pending_payment!(created_at: 5.minutes.ago)
+
+      expect(described_class.new(payment: payment).active?).to be(true)
+      expect(described_class.for(project: project, user: user)).to be_active
+    end
+
+    it "[REQ-FIT-BILL-001] is inactive after workshop_lock_minutes elapse" do
+      payment = pending_payment!(created_at: 16.minutes.ago)
+
+      expect(described_class.new(payment: payment).active?).to be(false)
+      expect(described_class.for(project: project, user: user)).to be_nil
+    end
+
+    it "[REQ-FIT-BILL-001] is inactive after manual abandon" do
+      payment = pending_payment!(
+        created_at: 5.minutes.ago,
+        checkout_abandoned_at: 1.minute.ago,
+        checkout_lock_released_at: 1.minute.ago
+      )
+
+      expect(described_class.new(payment: payment).active?).to be(false)
+      expect(described_class.for_user(user: user)).to be_nil
+    end
+
+    it "[REQ-FIT-BILL-001] is inactive for card pending within workshop lock window" do
+      payment = pending_payment!(payment_method: "card_crc", created_at: 5.minutes.ago)
+
+      expect(described_class.new(payment: payment).active?).to be(false)
+      expect(described_class.for(project: project, user: user)).to be_nil
+    end
+
+    it "[REQ-FIT-BILL-001] is inactive when superseded_at is set" do
+      payment = pending_payment!(
+        created_at: 5.minutes.ago,
+        superseded_at: 1.minute.ago,
+        checkout_lock_released_at: 1.minute.ago
+      )
+
+      expect(described_class.new(payment: payment).active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] does not re-lock after late fulfillment grants downloadable access" do
+      payment = pending_payment!(created_at: 16.minutes.ago)
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: 1.day.from_now
+      )
+
+      expect(described_class.new(payment: payment).active?).to be(false)
+    end
+
+    it "[REQ-FIT-BILL-001] stays active with pre-retained grant without retained_until" do
+      payment = pending_payment!(created_at: 5.minutes.ago)
+      DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: nil
+      )
+
+      expect(described_class.new(payment: payment).active?).to be(true)
+    end
+  end
+
   it "[REQ-FIT-BILL-001] is inactive when a newer succeeded payment exists for the same run" do
     pending_payment!(
       created_at: 2.hours.ago,
