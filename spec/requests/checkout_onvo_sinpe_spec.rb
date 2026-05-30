@@ -54,7 +54,12 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(body.fetch("status")).to eq("processing")
     expect(body.fetch("destination_number")).to be_present
     expect(body.fetch("destination_holder_name")).to eq(Billing::Onvo::SinpeDestination.holder_name)
-    expect(payment.reload.gateway_status).to eq("processing")
+    expect(body.fetch("transfer_identification")).to eq("123456789")
+    expect(body.fetch("transfer_mobile_number")).to eq("88888888")
+    payment.reload
+    expect(payment.gateway_status).to eq("processing")
+    expect(payment.sinpe_transfer_identification).to eq("123456789")
+    expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
   end
 
   it "[REQ-FIT-BILL-001] rejects invalid SINPE identification length" do

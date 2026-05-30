@@ -26,7 +26,7 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
     expect(client).to receive(:create_payment_method).with(
       hash_including(
         type: "mobile_number",
-        mobileNumber: hash_including(identification: "123456789", number: "+50688887777")
+        mobileNumber: hash_including(identification: "123456789", number: "+50688888888")
       )
     ).and_return(id: "pm_mobile")
 
@@ -37,13 +37,18 @@ RSpec.describe Billing::Onvo::ConfirmSinpePayment, "[REQ-FIT-BILL-001]", type: :
     result = described_class.call(
       payment: payment,
       identification: "123456789",
-      mobile_number: "88887777",
+      mobile_number: "88888888",
       client: client
     )
 
     expect(result.fetch(:status)).to eq("processing")
     expect(result.fetch(:destination_number)).to include("506")
     expect(result.fetch(:destination_holder_name)).to eq(Billing::Onvo::SinpeDestination.holder_name)
-    expect(payment.reload.gateway_status).to eq("processing")
+    expect(result.fetch(:transfer_identification)).to eq("123456789")
+    expect(result.fetch(:transfer_mobile_number)).to eq("88888888")
+    payment.reload
+    expect(payment.gateway_status).to eq("processing")
+    expect(payment.sinpe_transfer_identification).to eq("123456789")
+    expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
   end
 end

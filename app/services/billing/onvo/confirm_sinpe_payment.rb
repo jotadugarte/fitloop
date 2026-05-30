@@ -39,7 +39,11 @@ module Billing
           payment_method_id: method.fetch(:id)
         )
 
-        @payment.update!(gateway_status: intent.fetch(:status))
+        @payment.update!(
+          gateway_status: intent.fetch(:status),
+          sinpe_transfer_identification: @identification,
+          sinpe_transfer_mobile_number: @mobile_number
+        )
 
         {
           payment_id: @payment.id,
@@ -47,7 +51,9 @@ module Billing
           destination_number: SinpeDestination.number,
           destination_holder_name: SinpeDestination.holder_name,
           amount: @payment.total_amount,
-          currency: @payment.currency
+          currency: @payment.currency,
+          transfer_identification: @identification,
+          transfer_mobile_number: @mobile_number
         }
       end
 
@@ -64,6 +70,7 @@ module Billing
         digits = "506#{digits}" if digits.length == 8
         "+#{digits}"
       end
+
     end
   end
 end

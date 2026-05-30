@@ -20,6 +20,8 @@ export default class extends Controller {
     "sinpeFields",
     "sinpeHow",
     "sinpeInstructions",
+    "sinpeInstructionIdentification",
+    "sinpeInstructionMobileNumber",
     "sinpeInstructionAmount",
     "sinpeInstructionNumber",
     "sinpeInstructionName",
@@ -46,7 +48,9 @@ export default class extends Controller {
     resumeSinpeAwaitingTransfer: Boolean,
     resumeAmountLabel: String,
     resumeDestinationNumber: String,
-    resumeDestinationName: String
+    resumeDestinationName: String,
+    resumeTransferIdentification: String,
+    resumeTransferMobileNumber: String
   }
 
   connect() {
@@ -65,7 +69,9 @@ export default class extends Controller {
       this.showSinpeTransferStep({
         amount_label: this.resumeAmountLabelValue,
         destination_number: this.resumeDestinationNumberValue,
-        destination_holder_name: this.resumeDestinationNameValue
+        destination_holder_name: this.resumeDestinationNameValue,
+        transfer_identification: this.resumeTransferIdentificationValue,
+        transfer_mobile_number: this.resumeTransferMobileNumberValue
       })
     }
   }
@@ -334,6 +340,15 @@ export default class extends Controller {
   }
 
   showSinpeTransferStep(data) {
+    const identification = data.transfer_identification || this.sinpeIdentificationTarget?.value?.replace(/\D/g, "")
+    const mobileNumber = data.transfer_mobile_number || this.sinpeMobileNumberTarget?.value?.replace(/\D/g, "")
+
+    if (this.hasSinpeInstructionIdentificationTarget) {
+      this.sinpeInstructionIdentificationTarget.textContent = identification || "—"
+    }
+    if (this.hasSinpeInstructionMobileNumberTarget) {
+      this.sinpeInstructionMobileNumberTarget.textContent = this.formatSinpeMobileDisplay(mobileNumber)
+    }
     if (this.hasSinpeInstructionAmountTarget) {
       this.sinpeInstructionAmountTarget.textContent = data.amount_label || data.amount
     }
@@ -381,6 +396,15 @@ export default class extends Controller {
     }
     body.append("payment_method", this.paymentMethodValue)
     return body
+  }
+
+  formatSinpeMobileDisplay(number) {
+    const digits = (number || "").toString().replace(/\D/g, "")
+    if (digits.length === 8) return `+506 ${digits.slice(0, 4)} ${digits.slice(4)}`
+    if (digits.length === 11 && digits.startsWith("506")) {
+      return `+${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`
+    }
+    return digits || "—"
   }
 
   isSinpe() {

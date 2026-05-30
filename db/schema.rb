@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -131,6 +131,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_140000) do
     t.string "purchaser_email", default: "", null: false
     t.string "purchaser_name", default: "", null: false
     t.string "purpose", null: false
+    t.string "sinpe_transfer_identification"
+    t.string "sinpe_transfer_mobile_number"
     t.string "status", default: "pending", null: false
     t.bigint "subscription_id"
     t.decimal "subtotal", precision: 12, scale: 2, default: "0.0", null: false

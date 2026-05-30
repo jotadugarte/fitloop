@@ -28,6 +28,8 @@
      data-onvo-checkout-resume-amount-label-value="<%= format_onvo_amount(resume_sinpe_payment.total_amount, resume_sinpe_payment.currency) %>"
      data-onvo-checkout-resume-destination-number-value="<%= Billing::Onvo::SinpeDestination.number %>"
      data-onvo-checkout-resume-destination-name-value="<%= Billing::Onvo::SinpeDestination.holder_name %>"
+     data-onvo-checkout-resume-transfer-identification-value="<%= resume_sinpe_payment.sinpe_transfer_identification %>"
+     data-onvo-checkout-resume-transfer-mobile-number-value="<%= resume_sinpe_payment.sinpe_transfer_mobile_number %>"
      <% end %>
      <% end %>
      data-onvo-checkout-process-payment-label-value="<%= t("billing.checkout.process_payment") %>"
@@ -162,6 +164,23 @@
              data-testid="onvo-sinpe-instructions"
              hidden>
       <h3 class="checkout-section-title"><%= t("billing.checkout.onvo.sinpe_instructions_title") %></h3>
+
+      <div class="checkout-onvo__sinpe-reference panel panel--inset">
+        <p class="checkout-onvo__sinpe-reference-heading"><%= t("billing.checkout.onvo.sinpe_transferor_reference_heading") %></p>
+        <p class="checkout-onvo__sinpe-reference-hint"><%= t("billing.checkout.onvo.sinpe_transferor_reference_hint") %></p>
+        <dl class="checkout-onvo__sinpe-transfer-details checkout-onvo__sinpe-transfer-details--reference">
+          <div class="checkout-onvo__sinpe-transfer-row">
+            <dt><%= t("billing.checkout.onvo.sinpe_identification") %></dt>
+            <dd data-onvo-checkout-target="sinpeInstructionIdentification" data-testid="sinpe-instruction-identification"></dd>
+          </div>
+          <div class="checkout-onvo__sinpe-transfer-row">
+            <dt><%= t("billing.checkout.onvo.sinpe_mobile_number") %></dt>
+            <dd data-onvo-checkout-target="sinpeInstructionMobileNumber" data-testid="sinpe-instruction-mobile"></dd>
+          </div>
+        </dl>
+      </div>
+
+      <p class="checkout-onvo__sinpe-destination-heading"><%= t("billing.checkout.onvo.sinpe_destination_reference_heading") %></p>
       <dl class="checkout-onvo__sinpe-transfer-details">
         <div class="checkout-onvo__sinpe-transfer-row">
           <dt><%= t("billing.checkout.onvo.sinpe_destination_amount") %></dt>
