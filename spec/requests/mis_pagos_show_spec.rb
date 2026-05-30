@@ -57,6 +57,29 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end
 
+    it "[REQ-FIT-BILL-001] shows payment method in payment history rows" do
+      Payment.create!(
+        user: user,
+        status: "succeeded",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        paid_at: Time.current,
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_history_method",
+        onvo_mode: "test",
+        gateway_status: "succeeded"
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="mis-pagos-payment-method"')
+      expect(response.body).to include(I18n.t("billing.checkout.sinpe_crc", locale: :es))
+    end
+
     it "[REQ-FIT-BILL-001] hides pending banner when grant was refreshed for the pending checkout" do
       project = Project.create!(ephemeral: true, title: "Stale pending", status: :completed)
       run = project.nesting_runs.create!(status: "completed")

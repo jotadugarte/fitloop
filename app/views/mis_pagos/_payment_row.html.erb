@@ -5,6 +5,9 @@
       <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>
     </time>
     <span class="mis-pagos-payment-row__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
+    <span class="mis-pagos-payment-row__method" data-testid="mis-pagos-payment-method">
+      <%= mis_pagos_payment_method_label(payment) %>
+    </span>
     <% if (reference_label = mis_pagos_payment_reference_label(payment)).present? %>
       <span class="mis-pagos-payment-row__reference" data-testid="mis-pagos-payment-reference">
         <%= reference_label %>

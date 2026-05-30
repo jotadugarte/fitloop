@@ -113,11 +113,15 @@ module MisPagosHelper
     t("billing.mis_pagos.payment_reference", reference: payment.purchase_reference)
   end
 
+  def mis_pagos_payment_method_label(payment)
+    t("billing.checkout.#{payment.payment_method}")
+  end
+
   def mis_pagos_row_payment_method(row)
     payment = row.payment_for_display
     return nil unless payment
 
-    t("billing.checkout.#{payment.payment_method}")
+    mis_pagos_payment_method_label(payment)
   end
 
   def mis_pagos_row_amount(row)
