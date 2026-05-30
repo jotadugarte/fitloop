@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :request do
   include ActiveSupport::Testing::TimeHelpers
   let(:user) { create_billing_user! }
+  let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   before do
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
@@ -15,6 +16,10 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     @locked_project = Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID)
     @locked_project.update!(title: "Workshop lock", status: :completed, kerf_mm: 0, margin_mm: 5)
     @locked_project.sheet_stocks.create!(width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0)
+    post project_input_dxf_files_path(@locked_project, context: "setup"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
+    @locked_project.reload
+    ProjectLayer::SetPrimary.call(@locked_project.project_layers.find_by!(layer_name: "PIECES"))
     @locked_project.nested_dxf.attach(
       io: StringIO.new("NESTED"),
       filename: "nested.dxf",
@@ -50,6 +55,9 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     expect(response.body).to include("context=workshop")
     expect(response.body).to include('data-testid="renest-nesting"')
     expect(response.body).to include("disabled")
+    expect(response.body).to include("pending-payment-lock-fieldset")
+    expect(response.body).to include('data-testid="source-dxf-detail"')
+    expect(response.body).not_to include('data-testid="remove-dxf-file"')
   end
 
   it "[REQ-FIT-BILL-001] payment status link shows slow-path processing copy" do
@@ -111,6 +119,57 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
 
     expect(response).to have_http_status(:unprocessable_content).or have_http_status(:unprocessable_entity)
     expect(project.sheet_stocks.first.reload.width_mm).to eq(500)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks saving layer selection in Detalle DXF" do
+    attachment = project.input_dxf_attachments.first!
+    cut = project.project_layers.find_by!(
+      layer_name: "PIECES",
+      active_storage_attachment_id: attachment.id
+    )
+    gravado = project.project_layers.create!(
+      layer_name: "GRABADO",
+      active_storage_attachment_id: attachment.id,
+      included: false
+    )
+
+    patch workspace_workshop_path,
+          params: {
+            section: "layers",
+            project_layers: {
+              attachment.id.to_s => {
+                primary_layer_id: cut.id.to_s,
+                gravado.id.to_s => { auxiliary: "1" }
+              }
+            }
+          },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content).or have_http_status(:unprocessable_entity)
+    expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks uploading DXF files in workshop" do
+    count_before = project.input_dxf_attachments.count
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(project.reload.input_dxf_attachments.count).to eq(count_before)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks removing DXF files in workshop" do
+    attachment = project.input_dxf_attachments.first!
+
+    delete project_input_dxf_file_path(project, attachment, context: "show"),
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(project.reload.input_dxf_attachments).to include(attachment)
   end
 
   it "[REQ-FIT-BILL-001] allows workshop mutations after workshop_lock_minutes elapse" do

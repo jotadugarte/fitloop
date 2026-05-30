@@ -1,4 +1,5 @@
-<%# locals: (project:, attachment:, context: "setup", layers_form: false, expand_layers: false, expanded_attachment_ids: []) %>
+<%# locals: (project:, attachment:, context: "setup", layers_form: false, expand_layers: false, expanded_attachment_ids: [], lock_active: false) %>
+<% lock_active = local_assigns.fetch(:lock_active, false) %>
 <% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
 <% included_count = layers.count { |layer| layer.included? || layer.layer_role.present? } %>
 <% expand_layers = local_assigns.fetch(:expand_layers, false) %>
@@ -22,15 +23,17 @@
             data-testid="dxf-file-layers-meta"><%= t("projects.show.dxf_file_layers_meta",
               selected: included_count,
               total: layers.size) %></span>
-      <%= link_to t("projects.show.remove_dxf"),
-                  project_input_dxf_file_path(project, attachment, context: context),
-                  class: "btn btn-secondary btn--compact dxf-file-entry__remove",
-                  data: {
-                    turbo_method: :delete,
-                    turbo_stream: true,
-                    turbo_confirm: t("projects.show.remove_dxf_confirm", filename: attachment.filename),
-                    testid: "remove-dxf-file"
-                  } %>
+      <% unless lock_active %>
+        <%= link_to t("projects.show.remove_dxf"),
+                    project_input_dxf_file_path(project, attachment, context: context),
+                    class: "btn btn-secondary btn--compact dxf-file-entry__remove",
+                    data: {
+                      turbo_method: :delete,
+                      turbo_stream: true,
+                      turbo_confirm: t("projects.show.remove_dxf_confirm", filename: attachment.filename),
+                      testid: "remove-dxf-file"
+                    } %>
+      <% end %>
     </span>
   </summary>
 

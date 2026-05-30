@@ -141,6 +141,8 @@ class ProjectsController < ApplicationController
   end
 
   def update_workspace_layers!
+    return if reject_workshop_mutation_if_pending_payment!
+
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     render_workspace_turbo_stream(:layers)
   end

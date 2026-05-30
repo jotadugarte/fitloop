@@ -29,7 +29,8 @@ module BlocksWorkshopDuringPendingPayment
 
     if (request.format.turbo_stream? || params[:section].present?) && respond_to?(:render_workspace_turbo_stream, true)
       flash.now[:alert] = message
-      render_workspace_turbo_stream(:sheets, status: :unprocessable_entity)
+      section = params[:section].to_s == "layers" ? :layers : :sheets
+      render_workspace_turbo_stream(section, status: :unprocessable_entity)
       return
     end
 

@@ -1,13 +1,15 @@
-<%# locals: (project:, context:, input_id:, testid:, hint:, wrap_layers_in_form: false, layers_turbo_frame: nil, expand_layers: false, expanded_attachment_ids: []) %>
+<%# locals: (project:, context:, input_id:, testid:, hint:, wrap_layers_in_form: false, layers_turbo_frame: nil, expand_layers: false, expanded_attachment_ids: [], lock_active: false) %>
 <% wrap_layers_in_form = local_assigns.fetch(:wrap_layers_in_form, false) %>
 <% layers_turbo_frame = local_assigns[:layers_turbo_frame] %>
 <% expand_layers = local_assigns.fetch(:expand_layers, false) %>
 <% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+<% lock_active = local_assigns.fetch(:lock_active, false) %>
 <% checklist_locals = {
   project: project,
   context: context,
   expand_layers: expand_layers,
-  expanded_attachment_ids: expanded_attachment_ids
+  expanded_attachment_ids: expanded_attachment_ids,
+  lock_active: lock_active
 } %>
 
 <div class="project-dxf-upload-section">
@@ -15,10 +17,11 @@
     <p class="project-dxf-upload__hint"><%= hint %></p>
   </div>
 
-  <div class="panel panel--inset project-dxf-upload"
-       data-controller="dxf-upload"
-       data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: context) %>"
-       data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
+  <fieldset class="pending-payment-lock-fieldset panel panel--inset project-dxf-upload"
+            <%= "disabled" if lock_active %>
+            data-controller="dxf-upload"
+            data-dxf-upload-url-value="<%= project_input_dxf_files_path(project, context: context) %>"
+            data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
     <div class="field project-dxf-file-input"
          data-dxf-upload-empty-files-value="<%= t("projects.form.dxf_upload_no_files") %>"
          data-dxf-upload-files-selected-value="<%= t("projects.form.dxf_upload_files_selected") %>">
@@ -62,5 +65,5 @@
         <%= render "projects/dxf_files_layers", **checklist_locals %>
       <% end %>
     </div>
-  </div>
+  </fieldset>
 </div>
