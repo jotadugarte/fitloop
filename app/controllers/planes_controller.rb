@@ -31,6 +31,8 @@ class PlanesController < ApplicationController
     end
 
     redirect_after_plan_purchase!
+  rescue ArgumentError
+    redirect_to planes_path(project_id: @project&.id), alert: t("billing.checkout.failure")
   end
 
   private

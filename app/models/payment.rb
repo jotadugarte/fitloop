@@ -125,5 +125,9 @@ class Payment < ApplicationRecord
     card_crc? || card_usd?
   end
 
+  def payment_method_vo
+    Billing::PaymentMethod.parse(payment_method)
+  end
+
   private :assign_purchase_reference_for_single_download
 end
