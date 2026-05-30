@@ -98,8 +98,18 @@ Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in
 - [ ] After confirm: instructions show amount, destination **+506 70196686**, beneficiary name, and a single **Continue** button (no duplicate primary actions)
 - [ ] **Success (fast):** móvil `+50688888888` — no real transfer needed in test mode; ~15s to `succeeded`
 - [ ] **Delayed:** `+50688884444` — may exceed 60s processing UI; verify webhook still fulfills (reload Mis pagos)
-- [ ] **No transfer simulated:** `+50688889521` — stays pending after poll timeout
+- [ ] **No transfer simulated:** `+50688889521` — stays `pending` after poll timeout; workshop unlocks after **15 min** (not eternal lock)
 - [ ] Full SINPE scenario table: [QA_ONVO_SINPE.md](QA_ONVO_SINPE.md)
+
+### SINPE pending checkout lock (v1.2) [REQ-FIT-BILL-001]
+
+- [ ] During active lock (~15 min): workshop blocks nest, sheet save, and nested DXF download; banner visible
+- [ ] After **15 min** without webhook: workshop unblocks; payment still `pending`; Mis pagos row shows **Sin confirmar** with retry / view status CTAs
+- [ ] **Cancelar intento** (confirm dialog): releases lock; payment stays `pending`; copy warns if transfer already sent
+- [ ] Second SINPE checkout for same nest while lock active → blocked with message + link to Mis pagos
+- [ ] **Late webhook:** abandon lock or wait 15 min, then `payment-intent.succeeded` → grant + **Descargar** in Mis pagos (no re-lock workshop)
+- [ ] **Failed webhook** after SINPE start: `Payment` `failed`; pre-retained blob removed; no download button
+- [ ] Card pending checkout does **not** block workshop mutations
 
 ### Processing screen & failures
 

@@ -29,15 +29,32 @@ Enter the **Número** in Fitloop’s *teléfono móvil del transferente*. Use an
 | --- | --- | --- | --- |
 | Exitoso | `+50688888888` | Transferencia simulada correcta ~**15 s** después de confirmar la intención | Processing → éxito; `Payment` `succeeded`; `DownloadGrant` (single) o plan activo; flash / Mis pagos |
 | Exitoso con retraso | `+50688884444` | Transferencia correcta ~**6 min** después | Processing puede hacer **timeout 60 s** en UI; webhook tardío debe completar fulfillment; recargar Mis pagos si hace falta |
-| Fallido | `+50688889521` | **No** simula transferencia; la intención **no cambia de estado** | Tras timeout, copy “confirmando…”; `Payment` sigue `pending`; sin grant; reintentar con número exitoso |
+| Sin transferencia (pendiente) | `+50688889521` | **No** simula transferencia; la intención **no cambia de estado** | Tras timeout de poll (~60 s), copy “confirmando…”; `Payment` sigue `pending`; **sin grant descargable**; taller se desbloquea a los **15 min** (`workshop_lock_minutes` en `billing.yml`); reintentar checkout o usar número exitoso |
 | Parcial | `+50688883333` | Simula **50%** y luego el **50%** restante | Observar estados intermedios vía webhook/poll; no marcar éxito hasta `succeeded` total |
 
 **Formato en el formulario:** Fitloop normaliza a E.164 (`+506…`). Acepta `88888888` o `+50688888888` si el campo lo permite.
 
+## Workshop lock (SINPE pending, v1.2)
+
+Solo **SINPE Móvil** bloquea el taller mientras `checkout_lock_active?` (ventana **15 min** desde `created_at`, configurable en `onvo_pending_checkout.workshop_lock_minutes`). Tarjeta pending **no** bloquea re-anidar.
+
+| Escenario | Pasos | Esperado |
+| --- | --- | --- |
+| Lock activo | SINPE confirm → volver al taller antes de webhook | Banner “Pago en confirmación”; no anidar / no guardar láminas / no descargar DXF anidado |
+| Timeout 15 min | `+50688889521` o esperar 15 min sin abandonar | Taller desbloqueado; `Payment` sigue `pending`; fila Mis pagos “Sin confirmar” + CTAs |
+| Cancelar intento | Con lock activo → Mis pagos o checkout → **Cancelar intento** → confirmar diálogo | `checkout_abandoned_at` set; taller desbloqueado; **no** `Payment` `failed` |
+| Checkout duplicado | Con lock activo, intentar segundo SINPE mismo `nesting_run_id` | Bloqueado con aviso + enlace Mis pagos |
+| Webhook tardío tras abandon | Abandonar lock → simular `payment-intent.succeeded` (o número `+50688888888`) | `FulfillPayment` corre; grant con `retained_until`; Descargar en Mis pagos |
+| Webhook `failed` con pre-retención | Tras iniciar SINPE (blob staging) → `payment-intent.failed` | `Payment` `failed`; blob staging purgado; sin botón Descargar |
+
+**Pre-retención:** al iniciar checkout SINPE se copia el DXF al grant con `retained_until` nil — **no** mostrar Descargar hasta `succeeded`. Tras fulfill, ventana 24 h (REQ-FIT-BILL-003).
+
 ## Webhook & failure
 
 - [ ] `payment-intent.succeeded` → fulfillment idempotente (segunda entrega no duplica grant).
-- [ ] Forzar fallo vía tarjeta `4000000000000002` o webhook `payment-intent.failed` en sandbox — `Payment` `failed`, snapshot financiero intacto (ver spec `webhooks/onvo_spec`).
+- [ ] `payment-intent.succeeded` después de abandonar lock o tras 15 min → grant igualmente (late webhook).
+- [ ] `payment-intent.failed` con grant staging → blob purgado; `Payment` `failed`; snapshot financiero intacto.
+- [ ] Forzar fallo vía tarjeta `4000000000000002` o webhook `payment-intent.failed` en sandbox (ver spec `webhooks/onvo_spec`).
 
 ## Sign-off (SINPE slice)
 
