@@ -62,60 +62,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
   end
 
-  it "[REQ-FIT-BILL-001] restarts SINPE checkout so a new intent can be created" do
-    payment = Payment.create!(
-      user: user,
-      nesting_run: create_nesting_run!,
-      status: "pending",
-      payment_method: "sinpe_crc",
-      currency: "crc",
-      amount: 1130,
-      total_amount: 1130,
-      purpose: "single_download",
-      gateway_provider: "onvo",
-      onvo_payment_intent_id: "pi_sinpe_restart_req",
-      onvo_mode: "test",
-      gateway_status: "processing",
-      sinpe_transfer_identification: "123456789",
-      sinpe_transfer_mobile_number: "88888888"
-    )
-
-    post checkout_restart_sinpe_transfer_path(payment)
-
-    expect(response).to have_http_status(:ok)
-    payment.reload
-    expect(payment.superseded_at).to be_present
-  end
-
-  it "[REQ-FIT-BILL-001] re-confirms SINPE after Cambiar datos when transferor data changed then reverted" do
-    payment = Payment.create!(
-      user: user,
-      nesting_run: create_nesting_run!,
-      status: "pending",
-      payment_method: "sinpe_crc",
-      currency: "crc",
-      amount: 1130,
-      total_amount: 1130,
-      purpose: "single_download",
-      gateway_provider: "onvo",
-      onvo_payment_intent_id: "pi_sinpe_revert",
-      onvo_mode: "test",
-      gateway_status: "requires_payment_method",
-      sinpe_transfer_identification: "134124141451",
-      sinpe_transfer_mobile_number: "88884444"
-    )
-
-    expect(client).not_to receive(:create_payment_method)
-
-    post checkout_confirm_sinpe_path(payment),
-         params: { sinpe_identification: "134124141451", sinpe_mobile_number: "88888888" }
-
-    expect(response).to have_http_status(:ok)
-    payment.reload
-    expect(payment.sinpe_transfer_mobile_number).to eq("88888888")
-  end
-
-  it "[REQ-FIT-BILL-001] re-confirms SINPE idempotently after Cambiar datos with same transferor data" do
+  it "[REQ-FIT-BILL-001] re-confirms SINPE idempotently when transferor data unchanged" do
     payment = Payment.create!(
       user: user,
       nesting_run: create_nesting_run!,

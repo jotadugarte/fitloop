@@ -59,8 +59,7 @@ module Billing
         return false unless @payment.sinpe_crc? && @payment.pending? && !@payment.superseded?
         return false if @payment.sinpe_transfer_identification.blank?
 
-        # ONVO accepts one SINPE confirm per intent. Further «Procesar pago» / «Cambiar datos»
-        # only updates transferor reference fields and re-shows instructions.
+        # ONVO accepts one SINPE confirm per intent; further confirms only refresh instructions.
         true
       end
 

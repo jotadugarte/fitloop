@@ -300,10 +300,7 @@ es_panic:
         sinpe_mobile_number: Celular SINPE
         sinpe_instructions_title: Cómo transferir
         sinpe_transferor_reference_heading: Tus datos (solo referencia)
-        sinpe_transferor_reference_hint: Cédula/celular de la cuenta que transfiere. Ya fue a ONVO; transferí así o reiniciá abajo.
-        sinpe_edit_details: Cambiar datos
-        sinpe_restart_confirm: Se tira este intento SINPE y se arma uno nuevo en ONVO con los datos corregidos. ¿Seguís?
-        sinpe_restart_not_allowed: No se puede reiniciar este pago SINPE.
+        sinpe_transferor_reference_hint: Cédula/celular de la cuenta que transfiere. ¿Mal? Cancelá el intento en Mis pagos y pagá de nuevo.
         sinpe_destination_reference_heading: Destino ONVO
         sinpe_destination_amount: Monto exacto
         sinpe_destination_number: Número SINPE
