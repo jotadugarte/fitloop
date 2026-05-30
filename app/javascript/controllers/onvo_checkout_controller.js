@@ -1,11 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
+import {
+  CARD_CVV_MAX,
+  CARD_NUMBER_MAX,
+  HOLDER_NAME_MAX,
+  formatCardExpValue,
+  validateCardForm as validateCardCheckoutForm,
+  validateSinpeForm as validateSinpeCheckoutForm
+} from "../checkout/onvo_checkout_validation"
 
-const CARD_NUMBER_MAX = 19
-const CARD_CVV_MAX = 4
-const HOLDER_NAME_MAX = 100
-const SINPE_IDENTIFICATION_MIN = 9
-const SINPE_IDENTIFICATION_MAX = 12
-const SINPE_MOBILE_LEN = 8
 const CARD_DRAFT_PREFIX = "fitloop:checkout:card-draft:"
 const CARD_DRAFT_SAVE_MS = 300
 
@@ -187,28 +189,8 @@ export default class extends Controller {
   }
 
   formatCardExp(event) {
-    event.target.value = this.formatCardExpValue(event.target.value)
+    event.target.value = formatCardExpValue(event.target.value)
     this.scheduleSaveCardDraft()
-  }
-
-  formatCardExpValue(raw) {
-    let digits = raw.replace(/\D/g, "").slice(0, 4)
-    if (digits.length === 0) return ""
-
-    if (digits.length === 1 && Number.parseInt(digits, 10) > 1) {
-      digits = `0${digits}`
-    }
-
-    if (digits.length >= 2) {
-      let month = Number.parseInt(digits.slice(0, 2), 10)
-      if (month === 0) month = 1
-      if (month > 12) month = 12
-      digits = `${String(month).padStart(2, "0")}${digits.slice(2)}`
-    }
-
-    if (digits.length <= 2) return digits
-
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`
   }
 
   formatCardCvv(event) {
@@ -217,11 +199,11 @@ export default class extends Controller {
   }
 
   formatSinpeIdentification(event) {
-    event.target.value = event.target.value.replace(/\D/g, "").slice(0, SINPE_IDENTIFICATION_MAX)
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, 12)
   }
 
   formatSinpeMobileNumber(event) {
-    event.target.value = event.target.value.replace(/\D/g, "").slice(0, SINPE_MOBILE_LEN)
+    event.target.value = event.target.value.replace(/\D/g, "").slice(0, 8)
   }
 
   async processPayment(event) {
@@ -276,89 +258,23 @@ export default class extends Controller {
   }
 
   validateCardForm() {
-    const holderName = this.cardHolderNameTarget.value.trim()
-    const cardNumber = this.cardNumberTarget.value.replace(/\D/g, "")
-    const cardExp = this.cardExpTarget.value.trim()
-    const cvv = this.cardCvvTarget.value.replace(/\D/g, "")
-
-    if (holderName.length < 2 || holderName.length > HOLDER_NAME_MAX || !/^[\p{L}\s'.-]+$/u.test(holderName)) {
-      return this.validationMessage("holder_name_invalid")
-    }
-
-    if (this.hasTestCardsValue && this.testCardsValue.length > 0 && !this.testCardsValue.includes(cardNumber)) {
-      return this.validationMessage("card_number_test_only")
-    }
-
-    if (!this.isValidCardNumber(cardNumber)) {
-      return this.validationMessage("card_number_invalid")
-    }
-
-    const expirationError = this.expirationValidationError(cardExp)
-    if (expirationError) return expirationError
-
-    if (!/^\d{3,4}$/.test(cvv)) {
-      return this.validationMessage("card_cvv_invalid")
-    }
-
-    return null
+    return validateCardCheckoutForm({
+      holderName: this.cardHolderNameTarget.value.trim(),
+      cardNumber: this.cardNumberTarget.value.replace(/\D/g, ""),
+      cardExp: this.cardExpTarget.value.trim(),
+      cvv: this.cardCvvTarget.value.replace(/\D/g, ""),
+      testCards: this.hasTestCardsValue ? this.testCardsValue : [],
+      messageFor: (key) => this.validationMessage(key)
+    })
   }
 
   validateSinpeForm() {
-    const identification = this.sinpeIdentificationTarget.value.replace(/\D/g, "")
-    const mobileNumber = this.sinpeMobileNumberTarget.value.replace(/\D/g, "")
-
-    if (identification.length < SINPE_IDENTIFICATION_MIN || identification.length > SINPE_IDENTIFICATION_MAX) {
-      return this.validationMessage("sinpe_identification_invalid")
-    }
-
-    if (mobileNumber.length !== SINPE_MOBILE_LEN) {
-      return this.validationMessage("sinpe_mobile_number_invalid")
-    }
-
-    if (this.hasTestSinpeMobileNumbersValue && this.testSinpeMobileNumbersValue.length > 0) {
-      if (!this.testSinpeMobileNumbersValue.includes(mobileNumber)) {
-        return this.validationMessage("sinpe_mobile_number_test_only")
-      }
-    }
-
-    return null
-  }
-
-  isValidCardNumber(number) {
-    if (!/^\d{13,19}$/.test(number)) return false
-
-    if (this.hasTestCardsValue && this.testCardsValue.length > 0 && !this.testCardsValue.includes(number)) {
-      return false
-    }
-
-    let sum = 0
-    let alternate = false
-    for (let index = number.length - 1; index >= 0; index -= 1) {
-      let digit = Number.parseInt(number.charAt(index), 10)
-      if (alternate) {
-        digit *= 2
-        if (digit > 9) digit -= 9
-      }
-      sum += digit
-      alternate = !alternate
-    }
-    return sum % 10 === 0
-  }
-
-  expirationValidationError(value) {
-    const match = value.match(/^(\d{2})\/(\d{2})$/)
-    if (!match) return this.validationMessage("card_exp_invalid")
-
-    const month = Number.parseInt(match[1], 10)
-    const year = 2000 + Number.parseInt(match[2], 10)
-    if (month < 1 || month > 12) return this.validationMessage("card_exp_invalid")
-
-    const lastValidDay = new Date(year, month, 0)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    if (lastValidDay < today) return this.validationMessage("card_exp_expired")
-
-    return null
+    return validateSinpeCheckoutForm({
+      identification: this.sinpeIdentificationTarget.value.replace(/\D/g, ""),
+      mobileNumber: this.sinpeMobileNumberTarget.value.replace(/\D/g, ""),
+      testSinpeMobileNumbers: this.hasTestSinpeMobileNumbersValue ? this.testSinpeMobileNumbersValue : [],
+      messageFor: (key) => this.validationMessage(key)
+    })
   }
 
   validationMessage(key) {

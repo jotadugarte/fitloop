@@ -49,14 +49,12 @@ RSpec.describe "ONVO checkout pay", "[REQ-FIT-BILL-001]", type: :request do
   end
 
   describe "POST /checkout/pagar [REQ-FIT-BILL-001]" do
-    it "[REQ-FIT-BILL-001] creates pending Payment and returns ONVO intent id without DownloadGrant" do
+    it "creates pending Payment, pre-retains nested DXF, and returns ONVO intent id" do
       expect do
         post checkout_pay_path,
              params: { nesting_run_id: run.id, payment_method: "sinpe_crc" },
              headers: { "CF-IPCountry" => "CR" }
-      end.to change(Payment, :count).by(1)
-
-      expect(DownloadGrant.count).to eq(0)
+      end.to change(Payment, :count).by(1).and change(DownloadGrant, :count).by(1)
 
       expect(response).to have_http_status(:ok)
 
@@ -70,6 +68,12 @@ RSpec.describe "ONVO checkout pay", "[REQ-FIT-BILL-001]", type: :request do
       expect(payment.gateway_provider).to eq("onvo")
       expect(payment.onvo_payment_intent_id).to eq("pi_spec_checkout_intent")
       expect(payment.paid_at).to be_nil
+
+      grant = DownloadGrant.find_by(user_id: user.id, nesting_run_id: run.id)
+      expect(grant).to be_present
+      expect(grant.retained_until).to be_nil
+      expect(grant.retention_active?).to be(false)
+      expect(grant.retained_nested_dxf).to be_attached
     end
 
     it "[REQ-FIT-BILL-001] hides demo badge on checkout when BILLING_GATEWAY=onvo" do

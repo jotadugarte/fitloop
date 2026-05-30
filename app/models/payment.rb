@@ -58,7 +58,6 @@ class Payment < ApplicationRecord
   def awaiting_gateway_confirmation?
     return false unless pending? && single_download?
     return false if superseded?
-    return false if checkout_abandoned?
 
     !downloadable_grant_for_run?
   end

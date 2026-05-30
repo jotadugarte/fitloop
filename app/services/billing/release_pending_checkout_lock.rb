@@ -3,7 +3,7 @@
 module Billing
   # [REQ-FIT-BILL-001] Manual abandon of SINPE pending checkout — releases workshop lock locally (no FailPayment).
   class ReleasePendingCheckoutLock
-    REASON = "user_abandoned"
+    REASON = CheckoutLockReason::USER_ABANDONED
 
     def self.call(payment:, user:)
       new(payment: payment, user: user).call

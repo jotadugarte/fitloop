@@ -15,7 +15,7 @@ module Billing
       def lock_expires_at(payment)
         assert_payment!(payment)
 
-        payment.created_at + workshop_lock_minutes.minutes
+        workshop_lock_window.lock_expires_at(payment)
       end
 
       def lock_active?(payment)
@@ -34,7 +34,7 @@ module Billing
 
         payment.update!(
           checkout_lock_released_at: Time.current,
-          checkout_lock_reason: "timeout"
+          checkout_lock_reason: CheckoutLockReason::TIMEOUT
         )
         payment
       end
@@ -48,6 +48,10 @@ module Billing
 
       def lock_released?(payment)
         payment.respond_to?(:checkout_lock_released_at) && payment.checkout_lock_released_at.present?
+      end
+
+      def workshop_lock_window
+        @workshop_lock_window ||= WorkshopLockWindow.new(minutes: workshop_lock_minutes)
       end
     end
   end

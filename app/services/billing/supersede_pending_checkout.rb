@@ -3,7 +3,7 @@
 module Billing
   # [REQ-FIT-BILL-001] Marks prior pending SINPE single-download attempts superseded before a new checkout.
   class SupersedePendingCheckout
-    REASON = "superseded"
+    REASON = CheckoutLockReason::SUPERSEDED
     MAX_PENDING_PER_RUN = 8
 
     def self.call(user:, nesting_run:)

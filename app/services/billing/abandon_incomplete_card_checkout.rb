@@ -3,7 +3,7 @@
 module Billing
   # [REQ-FIT-BILL-001] User left card checkout before a charge (e.g. canceled 3DS) — not a failed payment.
   class AbandonIncompleteCardCheckout
-    REASON = "user_canceled_3ds"
+    REASON = CheckoutLockReason::USER_CANCELED_3DS
 
     def self.call(payment:)
       new(payment: payment).call
@@ -40,6 +40,5 @@ module Billing
     def card_payment?
       @payment.card_crc? || @payment.card_usd?
     end
-
   end
 end

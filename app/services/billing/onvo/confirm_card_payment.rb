@@ -20,7 +20,7 @@ module Billing
       def initialize(payment:, holder_name:, card_number:, exp_month:, exp_year:, cvv:, return_url:, client: nil)
         @payment = payment
         @holder_name = holder_name
-        @card_number = card_number
+        @card_number = card_number.to_s.gsub(/[\s-]/, "")
         @exp_month = exp_month
         @exp_year = exp_year
         @cvv = cvv
