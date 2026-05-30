@@ -79,7 +79,14 @@ module MisPagosHelper
 
   def mis_pagos_row_project_title(row)
     title = row.nesting_run&.project&.title.to_s.strip
-    title.presence || t("billing.mis_pagos.unnamed_project")
+    title.presence || t("workspace.default_title")
+  end
+
+  def mis_pagos_row_payment_details_line(row)
+    parts = [mis_pagos_row_reference(row), mis_pagos_row_payment_method(row)].compact
+    return nil if parts.empty?
+
+    safe_join(parts, tag.span(" · ", class: "mis-pagos-download-row__fact-sep", aria: { hidden: true }))
   end
 
   def mis_pagos_row_nested_at(row)

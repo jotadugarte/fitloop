@@ -168,16 +168,20 @@
       <div class="checkout-onvo__sinpe-reference panel panel--inset">
         <p class="checkout-onvo__sinpe-reference-heading"><%= t("billing.checkout.onvo.sinpe_transferor_reference_heading") %></p>
         <p class="checkout-onvo__sinpe-reference-hint"><%= t("billing.checkout.onvo.sinpe_transferor_reference_hint") %></p>
-        <dl class="checkout-onvo__sinpe-transfer-details checkout-onvo__sinpe-transfer-details--reference">
-          <div class="checkout-onvo__sinpe-transfer-row">
-            <dt><%= t("billing.checkout.onvo.sinpe_identification") %></dt>
-            <dd data-onvo-checkout-target="sinpeInstructionIdentification" data-testid="sinpe-instruction-identification"></dd>
+        <div class="checkout-onvo__sinpe-reference-grid">
+          <div class="checkout-onvo__sinpe-reference-item">
+            <span class="checkout-onvo__sinpe-reference-label"><%= t("billing.checkout.onvo.sinpe_identification") %></span>
+            <span class="checkout-onvo__sinpe-reference-value"
+                  data-onvo-checkout-target="sinpeInstructionIdentification"
+                  data-testid="sinpe-instruction-identification"></span>
           </div>
-          <div class="checkout-onvo__sinpe-transfer-row">
-            <dt><%= t("billing.checkout.onvo.sinpe_mobile_number") %></dt>
-            <dd data-onvo-checkout-target="sinpeInstructionMobileNumber" data-testid="sinpe-instruction-mobile"></dd>
+          <div class="checkout-onvo__sinpe-reference-item">
+            <span class="checkout-onvo__sinpe-reference-label"><%= t("billing.checkout.onvo.sinpe_mobile_number") %></span>
+            <span class="checkout-onvo__sinpe-reference-value"
+                  data-onvo-checkout-target="sinpeInstructionMobileNumber"
+                  data-testid="sinpe-instruction-mobile"></span>
           </div>
-        </dl>
+        </div>
       </div>
 
       <p class="checkout-onvo__sinpe-destination-heading"><%= t("billing.checkout.onvo.sinpe_destination_reference_heading") %></p>
@@ -196,6 +200,16 @@
         </div>
       </dl>
       <p class="checkout-onvo__lead"><%= t("billing.checkout.onvo.sinpe_instructions_note") %></p>
+      <p class="checkout-onvo__sinpe-edit-wrap">
+        <button type="button"
+                class="btn btn-secondary btn--compact checkout-onvo__sinpe-edit-details"
+                hidden
+                data-onvo-checkout-target="sinpeEditDetailsButton"
+                data-action="click->onvo-checkout#editSinpeTransferor"
+                data-testid="checkout-sinpe-edit-details">
+          <%= t("billing.checkout.onvo.sinpe_edit_details") %>
+        </button>
+      </p>
     </section>
   </div>
 

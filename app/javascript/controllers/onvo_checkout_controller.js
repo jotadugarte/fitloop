@@ -27,6 +27,7 @@ export default class extends Controller {
     "sinpeInstructionName",
     "errorMessage",
     "processButton",
+    "sinpeEditDetailsButton",
     "secondaryActions",
     "nestingRunId",
     "tierMonths",
@@ -363,6 +364,7 @@ export default class extends Controller {
     if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = true
     if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = true
     if (this.hasSecondaryActionsTarget) this.secondaryActionsTarget.hidden = true
+    if (this.hasSinpeEditDetailsButtonTarget) this.sinpeEditDetailsButtonTarget.hidden = false
 
     this.processButtonTarget.textContent = this.sinpeContinueLabelValue
     this.processButtonTarget.disabled = false
@@ -377,6 +379,27 @@ export default class extends Controller {
 
     this.processButtonTarget.disabled = true
     window.location.href = this.processingUrlValue.replace(":payment_id", this.paymentId)
+  }
+
+  editSinpeTransferor(event) {
+    event.preventDefault()
+    this.sinpeAwaitingTransfer = false
+    this.clearError()
+
+    if (this.hasSinpeInstructionsTarget) this.sinpeInstructionsTarget.hidden = true
+    if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = false
+    if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = false
+    if (this.hasSecondaryActionsTarget) this.secondaryActionsTarget.hidden = false
+    if (this.hasSinpeEditDetailsButtonTarget) this.sinpeEditDetailsButtonTarget.hidden = true
+
+    this.resetPrimaryButton()
+    this.processButtonTarget.dataset.testid = "checkout-process-payment"
+
+    if (this.hasSinpeFieldsTarget) {
+      this.sinpeFieldsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      const focusTarget = this.sinpeIdentificationTarget || this.sinpeMobileNumberTarget
+      focusTarget?.focus()
+    }
   }
 
   resetPrimaryButton() {

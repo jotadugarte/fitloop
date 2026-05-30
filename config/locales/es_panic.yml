@@ -299,7 +299,8 @@ es_panic:
         sinpe_mobile_number: Celular SINPE
         sinpe_instructions_title: Cómo transferir
         sinpe_transferor_reference_heading: Tus datos (solo referencia)
-        sinpe_transferor_reference_hint: No se editan acá. Tenés que transferir desde esa cédula/celular.
+        sinpe_transferor_reference_hint: Tiene que ser la cédula/celular de la cuenta que transferís. ¿Mal? «Cambiar datos» antes de mandar la plata.
+        sinpe_edit_details: Cambiar datos
         sinpe_destination_reference_heading: Destino ONVO
         sinpe_destination_amount: Monto exacto
         sinpe_destination_number: Número SINPE

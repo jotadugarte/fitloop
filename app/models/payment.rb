@@ -62,8 +62,6 @@ class Payment < ApplicationRecord
     sinpe_crc? && pending? && !superseded?
   end
 
-  private
-
   def downloadable_grant_for_run?
     return false if nesting_run_id.blank?
 
