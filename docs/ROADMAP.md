@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). P6/P7 on `main` (PR #11).
 
-**Next action:** **Northflank** staging for ONVO webhooks (`BILLING_GATEWAY=onvo`); **Admin ventas**; **user analytics & admin bitácora**.
+**Next action:** **Admin ventas**; **user analytics & admin bitácora**.
 
 ---
 
@@ -33,7 +33,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** optional FastAPI wrapper; hard file/piece caps; Northflank staging + full Docker nesting E2E (follow-up).
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps; production Docker deploy with full nesting E2E (follow-up).
 
 ---
 
@@ -150,8 +150,7 @@ _(no pending engine items)_
 
 - [ ] **User analytics & admin bitácora** — `admin` role, `/admin/analytics`, event timeline, KPIs (downloads, plans, orphans, funnel); no DXF/geometry persistence; 6-month retention — Session: `task_user-analytics_2026-05-21.md`
 - [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Billing cart merged** (done, PR #18) — Session: `task_billing-cart_2026-05-28.md`
-- [ ] **Northflank staging — ONVO webhooks** — deploy Rails with fixed HTTPS URL; register `POST /webhooks/onvo` in ONVO test dashboard; `BILLING_GATEWAY=onvo`, `ONVO_*` ENV — Depends on: **ONVO merged to `main`** (done, PR #19) — Scope v1: billing + webhooks + checkout only (no real nesting in container) — Session: `task_onvo-payments_2026-05-30.md`
-- [ ] **Northflank / Docker — full nesting E2E** — add `nesting_engine` + Python venv to image/worker; DXF upload → nest → pay → download on staging — Depends on: **Northflank staging (ONVO)** — Follow-up from ONVO epic (D-ONVO-13)
+- [ ] **Production Docker deploy — full nesting E2E** — image/worker with `nesting_engine` + Python venv; DXF upload → nest → pay → download on production host — Follow-up from ONVO epic (D-ONVO-13)
 - [ ] **Billing domain types (CbC refactor)** — replace raw `Integer`/`String` + loose enums in `app/services/billing/` with value objects (`TierMonths`, `PaymentMethod`, `Money`, etc.) per `deterministic_coding_standards.md`; update ADR-0005 + SPEC if public shapes change — Depends on: **ONVO merged to `main`** (done, PR #19)
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
