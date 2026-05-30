@@ -36,6 +36,19 @@ RSpec.describe Billing::Onvo::ApiError, "[REQ-FIT-BILL-001]" do
     )
   end
 
+  it "[REQ-FIT-BILL-001] maps testing payment methods to SINPE copy when context is sinpe" do
+    error = described_class.new(
+      "ONVO error",
+      status: 422,
+      body: { message: "Only testing payment methods are allowed in test mode" },
+      context: :sinpe
+    )
+
+    expect(error.user_message).to eq(
+      I18n.t("billing.checkout.onvo.api_errors.test_payment_method_sinpe")
+    )
+  end
+
   it "[REQ-FIT-BILL-001] maps card information message without code to Spanish copy" do
     error = build_error(
       body: {

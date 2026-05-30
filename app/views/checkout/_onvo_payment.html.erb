@@ -1,4 +1,4 @@
-<%# locals: (selected_payment_method:, nesting_run:, tier_months:, plan_checkout:) %>
+<%# locals: (selected_payment_method:, nesting_run:, tier_months:, plan_checkout:, resume_sinpe_payment: nil) %>
 <div class="checkout-onvo panel panel--inset"
      data-controller="onvo-checkout"
      data-onvo-checkout-pay-url-value="<%= checkout_pay_path %>"
@@ -14,10 +14,21 @@
        card_cvv_invalid: t("billing.checkout.onvo.validation.card_cvv_invalid"),
        card_number_test_only: t("billing.checkout.onvo.validation.card_number_test_only"),
        sinpe_identification_invalid: t("billing.checkout.onvo.validation.sinpe_identification_invalid"),
-       sinpe_mobile_number_invalid: t("billing.checkout.onvo.validation.sinpe_mobile_number_invalid")
+       sinpe_mobile_number_invalid: t("billing.checkout.onvo.validation.sinpe_mobile_number_invalid"),
+       sinpe_mobile_number_test_only: t("billing.checkout.onvo.validation.sinpe_mobile_number_test_only")
      }.to_json %>"
      <% if ENV.fetch("ONVO_MODE", "test") == "test" %>
      data-onvo-checkout-test-cards-value="<%= Billing::Onvo::TestCardNumbers::NUMBERS.to_json %>"
+     data-onvo-checkout-test-sinpe-mobile-numbers-value="<%= Billing::Onvo::TestSinpeMobileNumbers::LOCAL_NUMBERS.to_json %>"
+     <% end %>
+     <% if resume_sinpe_payment %>
+     data-onvo-checkout-resume-payment-id-value="<%= resume_sinpe_payment.id %>"
+     <% if resume_sinpe_payment.sinpe_awaiting_transfer? %>
+     data-onvo-checkout-resume-sinpe-awaiting-transfer-value="true"
+     data-onvo-checkout-resume-amount-label-value="<%= format_onvo_amount(resume_sinpe_payment.total_amount, resume_sinpe_payment.currency) %>"
+     data-onvo-checkout-resume-destination-number-value="<%= Billing::Onvo::SinpeDestination.number %>"
+     data-onvo-checkout-resume-destination-name-value="<%= Billing::Onvo::SinpeDestination.holder_name %>"
+     <% end %>
      <% end %>
      data-onvo-checkout-process-payment-label-value="<%= t("billing.checkout.process_payment") %>"
      data-onvo-checkout-sinpe-continue-label-value="<%= t("billing.checkout.onvo.sinpe_continue") %>"

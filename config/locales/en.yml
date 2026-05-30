@@ -177,6 +177,7 @@ en:
       superseded_attempt: "Replaced attempt"
       cancel_attempt: "Cancel attempt"
       retry_checkout: "Pay again"
+      sinpe_resume: "Continue SINPE payment"
       view_processing: "View payment status"
       payment_confirmed_download: "Payment confirmed — Download"
       download: "Download"
@@ -268,8 +269,10 @@ en:
           card_number_test_only: "ONVO test mode only accepts documented test cards (e.g. Visa 4242 4242 4242 4242, 16 digits)."
           sinpe_identification_invalid: "ID number must be 9 to 12 numeric digits."
           sinpe_mobile_number_invalid: "SINPE mobile number must be exactly 8 numeric digits."
+          sinpe_mobile_number_test_only: "ONVO test mode only accepts documented SINPE test numbers (e.g. 88888888). See docs/QA_ONVO_SINPE.md."
         api_errors:
           test_payment_method: "That card is not valid in ONVO test mode. Use a documented test card (e.g. 4242 4242 4242 4242)."
+          test_payment_method_sinpe: "That SINPE number is not valid in ONVO test mode. Use a test number (e.g. 88888888)."
           invalid_card_info: "There was an error with the card information provided. Please review card number, expiration date and CVV."
           generic: "The card payment could not be processed. Please try again."
         payment_canceled: "You canceled card verification. The payment was not completed; enter your card details again and try once more."

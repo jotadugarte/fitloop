@@ -47,7 +47,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     expect(client).to receive(:confirm_payment_intent).and_return(id: "pi_sinpe_req", status: "processing")
 
     post checkout_confirm_sinpe_path(payment),
-         params: { sinpe_identification: "123456789", sinpe_mobile_number: "88887777" }
+         params: { sinpe_identification: "123456789", sinpe_mobile_number: "88888888" }
 
     expect(response).to have_http_status(:ok)
     body = JSON.parse(response.body)
@@ -74,7 +74,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     )
 
     post checkout_confirm_sinpe_path(payment),
-         params: { sinpe_identification: "12345678", sinpe_mobile_number: "88887777" }
+         params: { sinpe_identification: "12345678", sinpe_mobile_number: "88888888" }
 
     expect(response).to have_http_status(:unprocessable_entity)
     body = JSON.parse(response.body)

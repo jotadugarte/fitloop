@@ -40,7 +40,13 @@ export default class extends Controller {
     validationMessages: Object,
     processPaymentLabel: String,
     sinpeContinueLabel: String,
-    testCards: { type: Array, default: [] }
+    testCards: { type: Array, default: [] },
+    testSinpeMobileNumbers: { type: Array, default: [] },
+    resumePaymentId: Number,
+    resumeSinpeAwaitingTransfer: Boolean,
+    resumeAmountLabel: String,
+    resumeDestinationNumber: String,
+    resumeDestinationName: String
   }
 
   connect() {
@@ -48,6 +54,20 @@ export default class extends Controller {
     this.sinpeAwaitingTransfer = false
     this.syncPanels()
     this.syncRequiredFields()
+    this.bootstrapSinpeResume()
+  }
+
+  bootstrapSinpeResume() {
+    if (!this.hasResumePaymentIdValue) return
+
+    this.paymentId = this.resumePaymentIdValue
+    if (this.resumeSinpeAwaitingTransferValue) {
+      this.showSinpeTransferStep({
+        amount_label: this.resumeAmountLabelValue,
+        destination_number: this.resumeDestinationNumberValue,
+        destination_holder_name: this.resumeDestinationNameValue
+      })
+    }
   }
 
   paymentMethodValueChanged() {
@@ -148,8 +168,10 @@ export default class extends Controller {
     this.processButtonTarget.disabled = true
 
     try {
-      const data = await this.startPayment()
-      this.paymentId = data.payment_id
+      if (!this.paymentId) {
+        const data = await this.startPayment()
+        this.paymentId = data.payment_id
+      }
 
       if (this.isSinpe()) {
         await this.confirmSinpe(data.payment_id)
@@ -200,6 +222,12 @@ export default class extends Controller {
 
     if (mobileNumber.length !== SINPE_MOBILE_LEN) {
       return this.validationMessage("sinpe_mobile_number_invalid")
+    }
+
+    if (this.hasTestSinpeMobileNumbersValue && this.testSinpeMobileNumbersValue.length > 0) {
+      if (!this.testSinpeMobileNumbersValue.includes(mobileNumber)) {
+        return this.validationMessage("sinpe_mobile_number_test_only")
+      }
     }
 
     return null

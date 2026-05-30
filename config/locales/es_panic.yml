@@ -187,6 +187,7 @@ es_panic:
       superseded_attempt: Intento reemplazado
       cancel_attempt: Cancelar intento
       retry_checkout: Volver a pagar
+      sinpe_resume: Continuar pago SINPE
       view_processing: Ver estado del pago
       payment_confirmed_download: Pago confirmado — Descargar
       download: Descargar
@@ -276,8 +277,10 @@ es_panic:
           card_number_test_only: Modo prueba ONVO — solo tarjetas de test (ej. 4242 4242 4242 4242, 16 dígitos).
           sinpe_identification_invalid: Cédula entre 9 y 12 dígitos numéricos.
           sinpe_mobile_number_invalid: Celular SINPE exactamente 8 dígitos numéricos.
+          sinpe_mobile_number_test_only: Modo prueba ONVO — solo números SINPE de test (ej. 88888888). Ver docs/QA_ONVO_SINPE.md.
         api_errors:
           test_payment_method: Tarjeta no válida en prueba ONVO. Usá 4242 4242 4242 4242.
+          test_payment_method_sinpe: Número SINPE no válido en prueba ONVO. Usá 88888888 (ver QA_ONVO_SINPE).
           invalid_card_info: Datos de tarjeta inválidos. Revisá número, vencimiento y CVV.
           generic: No se pudo procesar el pago con tarjeta. Probá de nuevo.
         payment_canceled: Cancelaste la verificación. El pago no pasó — reingresá la tarjeta y probá otra vez.

@@ -37,9 +37,15 @@ module Billing
       end
 
       def validate_mobile_number!
-        return if @mobile_number.length == MOBILE_NUMBER_LEN
+        raise ArgumentError, "sinpe_mobile_number_invalid" unless @mobile_number.length == MOBILE_NUMBER_LEN
+        return unless onvo_test_mode?
+        return if TestSinpeMobileNumbers.include?(@mobile_number)
 
-        raise ArgumentError, "sinpe_mobile_number_invalid"
+        raise ArgumentError, "sinpe_mobile_number_test_only"
+      end
+
+      def onvo_test_mode?
+        ENV.fetch("ONVO_MODE", "test").to_s == "test" && Billing::Gateway.onvo?
       end
 
       def digits_only(value)

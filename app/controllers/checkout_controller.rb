@@ -24,6 +24,7 @@ class CheckoutController < ApplicationController
     @plan_quota_exhausted =
       Billing::PlanDownloadAvailability.plan_quota_exhausted?(user: current_user)
     @onvo_checkout = Billing::Gateway.onvo?
+    @resume_sinpe_payment = load_resume_sinpe_payment
     render :show
   end
 
@@ -85,7 +86,7 @@ class CheckoutController < ApplicationController
   rescue ArgumentError => error
     render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_entity
   rescue Billing::Onvo::ApiError => error
-    render json: { error: error.user_message }, status: :unprocessable_entity
+    render json: { error: onvo_api_error_message(error, context: :sinpe) }, status: :unprocessable_entity
   end
 
   def confirm_card
@@ -362,6 +363,21 @@ class CheckoutController < ApplicationController
   end
 
   alias onvo_card_validation_message onvo_validation_message
+
+  def onvo_api_error_message(error, context: nil)
+    return error.user_message if context.nil?
+
+    Billing::Onvo::ApiError.new(error.message, status: error.status, body: error.body, context: context).user_message
+  end
+
+  def load_resume_sinpe_payment
+    return nil if params[:payment_id].blank?
+
+    payment = current_user.payments.find_by(id: params[:payment_id])
+    return nil unless payment&.sinpe_crc? && payment.pending? && !payment.superseded?
+
+    payment
+  end
 
   def redirect_after_onvo_three_ds_return!(payment:, intent_status:)
     if %w[succeeded processing].include?(intent_status)

@@ -8,12 +8,13 @@ module Billing
         "cards.invalid_card_info" => :invalid_card_info
       }.freeze
 
-      attr_reader :status, :body
+      attr_reader :status, :body, :context
 
-      def initialize(message, status:, body:)
+      def initialize(message, status:, body:, context: nil)
         super(message)
         @status = status
         @body = body
+        @context = context
       end
 
       def user_message
@@ -25,6 +26,7 @@ module Billing
       def i18n_key
         code = error_code
         return I18N_KEYS_BY_CODE[code] if code && I18N_KEYS_BY_CODE.key?(code)
+        return :test_payment_method_sinpe if @context == :sinpe && test_payment_method_error?(extract_detail)
         return :test_payment_method if test_payment_method_error?(extract_detail)
         return :invalid_card_info if invalid_card_info_error?(extract_detail)
 

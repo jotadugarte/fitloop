@@ -192,6 +192,7 @@ es:
       superseded_attempt: "Intento reemplazado"
       cancel_attempt: "Cancelar intento"
       retry_checkout: "Volver a pagar"
+      sinpe_resume: "Continuar pago SINPE"
       view_processing: "Ver estado del pago"
       payment_confirmed_download: "Pago confirmado — Descargar"
       download: "Descargar"
@@ -283,8 +284,10 @@ es:
           card_number_test_only: "En modo prueba ONVO solo acepta tarjetas de test documentadas (por ejemplo Visa 4242 4242 4242 4242, 16 dígitos)."
           sinpe_identification_invalid: "La cédula debe tener entre 9 y 12 dígitos numéricos."
           sinpe_mobile_number_invalid: "El teléfono móvil SINPE debe tener exactamente 8 dígitos numéricos."
+          sinpe_mobile_number_test_only: "En modo prueba ONVO solo acepta números SINPE de test (por ejemplo 88888888). Ver docs/QA_ONVO_SINPE.md."
         api_errors:
           test_payment_method: "Esa tarjeta no es válida en modo prueba de ONVO. Usá una tarjeta de test (por ejemplo 4242 4242 4242 4242)."
+          test_payment_method_sinpe: "Ese número SINPE no es válido en modo prueba de ONVO. Usá un número de test (por ejemplo 88888888)."
           invalid_card_info: "Hubo un error con los datos de la tarjeta. Revisá el número, la fecha de expiración y el CVV."
           generic: "No se pudo procesar el pago con tarjeta. Intentalo de nuevo."
         payment_canceled: "Cancelaste la verificación de la tarjeta. El pago no se completó; volvé a ingresar los datos de la tarjeta e intentá de nuevo."
