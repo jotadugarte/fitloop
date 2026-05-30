@@ -48,7 +48,7 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
       expect(DownloadGrant.count).to eq(0)
     end
 
-    it "[REQ-FIT-BILL-001] returns checkout_return_url when gateway declined card" do
+    it "[REQ-FIT-BILL-001] returns checkout_return_url to canceled when card checkout was abandoned at gateway" do
       run = create_nesting_run!
       payment = Payment.create!(
         user: user,
@@ -67,7 +67,7 @@ RSpec.describe "ONVO checkout payment status", "[REQ-FIT-BILL-001]", type: :requ
       get checkout_payment_status_path(payment)
 
       body = JSON.parse(response.body)
-      expect(body.fetch("checkout_return_url")).to eq(checkout_payment_failed_path(payment))
+      expect(body.fetch("checkout_return_url")).to eq(checkout_payment_canceled_path(payment))
     end
 
     it "[REQ-FIT-BILL-001] returns checkout_return_url when gateway abandoned 3DS" do

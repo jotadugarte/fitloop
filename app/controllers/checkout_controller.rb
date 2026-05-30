@@ -143,6 +143,7 @@ class CheckoutController < ApplicationController
 
   def payment_canceled_notice
     payment = current_user.payments.find(params[:payment_id])
+    Billing::AbandonIncompleteCardCheckout.call(payment: payment)
     apply_card_checkout_return_selection!(payment)
     redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
                 alert: t("billing.checkout.onvo.payment_canceled")
@@ -150,7 +151,13 @@ class CheckoutController < ApplicationController
 
   def payment_failed_notice
     payment = current_user.payments.find(params[:payment_id])
-    Billing::FailPayment.call(payment: payment) unless payment.failed?
+    unless payment.failed?
+      if incomplete_card_checkout_abandonment?(payment)
+        Billing::AbandonIncompleteCardCheckout.call(payment: payment)
+      else
+        Billing::FailPayment.call(payment: payment)
+      end
+    end
     apply_card_checkout_return_selection!(payment)
     redirect_to checkout_path(checkout_redirect_params_for_payment(payment)),
                 alert: t("billing.checkout.onvo.payment_failed")
@@ -410,6 +417,12 @@ class CheckoutController < ApplicationController
     return unless card_checkout_payment?(payment)
 
     session[:billing_payment_method] = "card"
+  end
+
+  def incomplete_card_checkout_abandonment?(payment)
+    card_checkout_payment?(payment) &&
+      payment.pending? &&
+      payment.gateway_status.to_s == "requires_payment_method"
   end
 
   def format_onvo_amount(amount, currency)

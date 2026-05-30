@@ -15,6 +15,12 @@ class Payment < ApplicationRecord
 
   ONVO_GATEWAY_SUCCEEDED = "succeeded"
 
+  scope :listed_in_payment_history, lambda {
+    where(
+      "(payments.status != 'pending') OR (payments.checkout_abandoned_at IS NULL)"
+    )
+  }
+
   validates :amount, numericality: { greater_than: 0 }
   validates :paid_at, presence: true, if: :succeeded?
   validates :onvo_payment_intent_id, presence: true, if: :onvo_gateway?
@@ -56,6 +62,7 @@ class Payment < ApplicationRecord
   def awaiting_gateway_confirmation?
     return false unless pending? && single_download?
     return false if superseded?
+    return false if checkout_abandoned?
 
     !downloadable_grant_for_run?
   end

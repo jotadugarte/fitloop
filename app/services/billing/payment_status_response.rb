@@ -51,7 +51,11 @@ module Billing
 
     def checkout_return_url_if_abandoned
       return nil if @payment.succeeded? || @payment.failed?
-      return @routes.checkout_payment_failed_path(@payment) if declined_gateway_status?
+      if declined_gateway_status?
+        return @routes.checkout_payment_canceled_path(@payment) if incomplete_card_checkout?
+
+        return @routes.checkout_payment_failed_path(@payment)
+      end
 
       return nil unless ABANDONED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
 
@@ -60,6 +64,10 @@ module Billing
 
     def declined_gateway_status?
       DECLINED_GATEWAY_STATUSES.include?(@payment.gateway_status.to_s)
+    end
+
+    def incomplete_card_checkout?
+      (@payment.card_crc? || @payment.card_usd?) && @payment.pending?
     end
 
     def checkout_failed_url_if_failed

@@ -57,6 +57,32 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).not_to include('data-testid="mis-pagos-download"')
     end
 
+    it "[REQ-FIT-BILL-001] omits abandoned card checkout from payment history" do
+      payment = Payment.create!(
+        user: user,
+        nesting_run: create_nesting_run!,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1356,
+        total_amount: 1356,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_history_abandoned_card",
+        onvo_mode: "test",
+        gateway_status: "requires_payment_method",
+        purchase_reference: "754237766283",
+        checkout_abandoned_at: Time.current,
+        checkout_lock_reason: "user_canceled_3ds"
+      )
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include(I18n.t("billing.mis_pagos.status.failed", locale: :es))
+      expect(response.body).not_to include(payment.purchase_reference)
+    end
+
     it "[REQ-FIT-BILL-001] shows localized card_crc payment method in payment history" do
       Payment.create!(
         user: user,

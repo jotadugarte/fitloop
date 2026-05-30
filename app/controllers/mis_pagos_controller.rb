@@ -9,7 +9,7 @@ class MisPagosController < ApplicationController
 
     @subscription = Subscription.active_at.find_by(user_id: current_user.id)
     @quota_counter = Billing::QuotaCounter.for(@subscription) if @subscription
-    @payments = current_user.payments.order(created_at: :desc).limit(100)
+    @payments = current_user.payments.listed_in_payment_history.order(created_at: :desc).limit(100)
     @pending_checkout_lock = Billing::PendingCheckoutLock.for_user(user: current_user)
     @single_purchase_rows = Billing::MisPagos::SinglePurchaseRows.build(user: current_user)
     @downloads_ready_count = @single_purchase_rows.count(&:downloadable?)
