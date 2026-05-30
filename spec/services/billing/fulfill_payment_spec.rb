@@ -55,6 +55,83 @@ RSpec.describe Billing::FulfillPayment, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]",
       end.not_to change(DownloadGrant, :count)
     end
 
+    def pending_sinpe_payment!
+      project = Project.create!(ephemeral: true, title: "Fulfill SINPE", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED-SINPE"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_fulfill_#{SecureRandom.hex(4)}",
+        onvo_mode: "test",
+        gateway_status: "processing",
+        total_amount: 1130
+      )
+      { payment: payment, run: run, project: project }
+    end
+
+    describe "SINPE pre-retention and late webhook [REQ-FIT-BILL-001]" do
+      it "[REQ-FIT-BILL-001] fulfills pending payment after checkout was abandoned and activates retention" do
+        ctx = pending_sinpe_payment!
+        ctx[:payment].update!(
+          checkout_abandoned_at: 2.minutes.ago,
+          checkout_lock_released_at: 2.minutes.ago,
+          checkout_lock_reason: "user_abandoned"
+        )
+
+        described_class.call(payment: ctx[:payment])
+
+        ctx[:payment].reload
+        expect(ctx[:payment]).to be_succeeded
+        grant = DownloadGrant.find_by!(user_id: user.id, nesting_run_id: ctx[:run].id)
+        expect(grant.retention_active?).to be(true)
+        expect(grant.retained_nested_dxf).to be_attached
+      end
+
+      it "[REQ-FIT-BILL-001] sets retained_until on pre-retained staging grant" do
+        ctx = pending_sinpe_payment!
+        grant = Billing::PreRetainNestedDxf.call(user: user, nesting_run: ctx[:run])
+        expect(grant.retained_until).to be_nil
+
+        paid_at = Time.zone.parse("2026-05-28 14:00:00")
+        travel_to(paid_at) do
+          described_class.call(payment: ctx[:payment])
+        end
+
+        grant.reload
+        expect(grant.retention_active?).to be(true)
+        expect(grant.retained_until).to eq(paid_at + Billing::RetainNestedDxf::RETENTION_HOURS.hours)
+      end
+
+      it "[REQ-FIT-BILL-001] keeps pre-retained blob when project nested_dxf changes before fulfill" do
+        ctx = pending_sinpe_payment!
+        Billing::PreRetainNestedDxf.call(user: user, nesting_run: ctx[:run])
+
+        ctx[:project].nested_dxf.purge
+        ctx[:project].nested_dxf.attach(
+          io: StringIO.new("RE-NESTED-DXF"),
+          filename: "nested.dxf",
+          content_type: "application/dxf"
+        )
+
+        described_class.call(payment: ctx[:payment])
+
+        grant = DownloadGrant.find_by!(user_id: user.id, nesting_run_id: ctx[:run].id)
+        expect(grant.retained_nested_dxf.download).to include("NESTED-SINPE")
+        expect(grant.retained_nested_dxf.download).not_to include("RE-NESTED-DXF")
+      end
+    end
+
     it "[REQ-FIT-BILL-001] refreshes retention when grant already active for the nesting run" do
       ctx = pending_single_payment!
       grant = DownloadGrant.create!(
