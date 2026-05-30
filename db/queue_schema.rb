@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_28_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -111,6 +111,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_120000) do
 
   create_table "payments", force: :cascade do |t|
     t.decimal "amount", precision: 12, scale: 2, null: false
+    t.datetime "checkout_abandoned_at"
+    t.string "checkout_lock_reason"
+    t.datetime "checkout_lock_released_at"
     t.datetime "created_at", null: false
     t.string "currency", null: false
     t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0", null: false
@@ -131,6 +134,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_120000) do
     t.string "status", default: "pending", null: false
     t.bigint "subscription_id"
     t.decimal "subtotal", precision: 12, scale: 2, default: "0.0", null: false
+    t.datetime "superseded_at"
     t.decimal "tax_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "total_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false

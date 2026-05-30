@@ -26,7 +26,42 @@ class Payment < ApplicationRecord
     gateway_provider == "onvo"
   end
 
+  # [REQ-FIT-BILL-001] SINPE pending checkout workshop lock (see PendingCheckoutPolicy).
+  def checkout_lock_active?
+    return false unless sinpe_crc? && pending?
+    return false if superseded?
+    return false if checkout_lock_released_at.present?
+    return false if checkout_abandoned_at.present?
+    return false if downloadable_grant_for_run?
+
+    Billing::PendingCheckoutPolicy.lock_active?(self)
+  end
+
+  def checkout_lock_expired?
+    return false unless sinpe_crc? && pending?
+
+    Time.current >= Billing::PendingCheckoutPolicy.lock_expires_at(self)
+  end
+
+  def awaiting_gateway_confirmation?
+    return false unless pending? && single_download?
+    return false if superseded?
+
+    !downloadable_grant_for_run?
+  end
+
+  def superseded?
+    superseded_at.present?
+  end
+
   private
+
+  def downloadable_grant_for_run?
+    return false if nesting_run_id.blank?
+
+    grant = DownloadGrant.find_by(user_id: user_id, nesting_run_id: nesting_run_id)
+    grant&.retention_active?
+  end
 
   def onvo_succeeded_requires_gateway_confirmation
     return unless succeeded?
