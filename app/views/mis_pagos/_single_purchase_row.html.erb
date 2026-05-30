@@ -60,11 +60,13 @@
   <% if row.pending? %>
     <div class="mis-pagos-download-row__actions">
       <% if row.pending_payment.sinpe_crc? %>
-        <% sinpe_action = mis_pagos_sinpe_primary_action(row.pending_payment) %>
-        <%= link_to sinpe_action.fetch(:label),
-                    sinpe_action.fetch(:url),
-                    class: "btn btn-primary btn--small",
-                    data: { testid: sinpe_action.fetch(:testid), turbo: false } %>
+        <% unless row.pending_payment.sinpe_awaiting_transfer? %>
+          <% sinpe_action = mis_pagos_sinpe_primary_action(row.pending_payment) %>
+          <%= link_to sinpe_action.fetch(:label),
+                      sinpe_action.fetch(:url),
+                      class: "btn btn-primary btn--small",
+                      data: { testid: sinpe_action.fetch(:testid), turbo: false } %>
+        <% end %>
         <%= button_to t("billing.mis_pagos.cancel_attempt"),
                       checkout_release_pending_lock_path(row.pending_payment),
                       method: :post,
