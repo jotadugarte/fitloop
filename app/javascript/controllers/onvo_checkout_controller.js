@@ -6,19 +6,19 @@ import {
   formatCardExpValue,
   validateCardForm as validateCardCheckoutForm,
   validateSinpeForm as validateSinpeCheckoutForm
-} from "../checkout/onvo_checkout_validation"
+} from "checkout/onvo_checkout_validation"
 import {
   cardDraftStorageKey,
   clearCardDraft as removeStoredCardDraft,
   createCardDraftScheduler,
   restoreCardDraft as readStoredCardDraft,
   saveCardDraft as writeStoredCardDraft
-} from "../checkout/onvo_checkout_card_draft"
+} from "checkout/onvo_checkout_card_draft"
 
 import {
   populateSinpeTransferInstructions,
   revealSinpeTransferPanel
-} from "../checkout/onvo_checkout_sinpe_transfer"
+} from "checkout/onvo_checkout_sinpe_transfer"
 
 export default class extends Controller {
   static targets = [
