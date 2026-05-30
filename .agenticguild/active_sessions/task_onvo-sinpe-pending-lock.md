@@ -188,8 +188,8 @@ Con pre-retención copiamos el DXF **antes** de que ONVO confirme el pago. Eso *
   </phase>
 
   <phase id="P3" name="Pre-retention &amp; fulfillment">
-    <step id="3.1">Write failing `pre_retain_nested_dxf_spec`: SINPE start copies blob; `retained_until` nil; raises if nested_dxf missing.</step>
-    <step id="3.2">Implement `Billing::PreRetainNestedDxf`; call from `StartOnvoCheckout` when `payment_method == sinpe_crc` after pending payment created.</step>
+    <step id="3.1" status="complete">Write failing `pre_retain_nested_dxf_spec`: SINPE start copies blob; `retained_until` nil; raises if nested_dxf missing.</step>
+    <step id="3.2" status="complete">Implement `Billing::PreRetainNestedDxf`; call from `StartOnvoCheckout` when `payment_method == sinpe_crc` after pending payment created.</step>
     <step id="3.3">Write failing `fulfill_payment_spec`: late succeed after abandon still grants; sets `retained_until`; skips re-copy if blob present.</step>
     <step id="3.4">Adjust `FulfillPayment` / `RetainNestedDxf` for staging grant (set `retained_until` on fulfill; copy only if blob missing).</step>
     <step id="3.5">Write failing `fail_payment_spec`: failed webhook purges pre-retained blob (no `retention_active?`); does not purge fulfilled grant.</step>
