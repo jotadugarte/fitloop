@@ -111,7 +111,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     post checkout_confirm_sinpe_path(payment),
          params: { sinpe_identification: "12345678", sinpe_mobile_number: "88888888" }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     body = JSON.parse(response.body)
     expect(body.fetch("error")).to eq(
       I18n.t("billing.checkout.onvo.validation.sinpe_identification_invalid")
@@ -137,7 +137,7 @@ RSpec.describe "ONVO SINPE checkout confirm", "[REQ-FIT-BILL-001]", type: :reque
     post checkout_confirm_sinpe_path(payment),
          params: { sinpe_identification: "123456789", sinpe_mobile_number: "8888777" }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     body = JSON.parse(response.body)
     expect(body.fetch("error")).to eq(
       I18n.t("billing.checkout.onvo.validation.sinpe_mobile_number_invalid")

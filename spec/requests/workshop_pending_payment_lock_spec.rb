@@ -117,7 +117,7 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:unprocessable_content).or have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(project.sheet_stocks.first.reload.width_mm).to eq(500)
   end
 
@@ -145,7 +145,7 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:unprocessable_content).or have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
   end
 

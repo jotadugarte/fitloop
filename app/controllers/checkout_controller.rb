@@ -65,7 +65,7 @@ class CheckoutController < ApplicationController
       onvo_publishable_key: ENV.fetch("ONVO_PUBLISHABLE_KEY", nil)
     }
   rescue Billing::Onvo::ApiError => error
-    render json: { error: error.user_message }, status: :unprocessable_entity
+    render json: { error: error.user_message }, status: :unprocessable_content
   end
 
   def confirm_sinpe
@@ -84,9 +84,9 @@ class CheckoutController < ApplicationController
       amount_label: format_onvo_amount(result.fetch(:amount), result.fetch(:currency))
     )
   rescue ArgumentError => error
-    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_entity
+    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_content
   rescue Billing::Onvo::ApiError => error
-    render json: { error: onvo_api_error_message(error, context: :sinpe) }, status: :unprocessable_entity
+    render json: { error: onvo_api_error_message(error, context: :sinpe) }, status: :unprocessable_content
   end
 
   def confirm_card
@@ -109,9 +109,9 @@ class CheckoutController < ApplicationController
 
     render_confirm_card_result!(payment, result)
   rescue ArgumentError => error
-    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_entity
+    render json: { error: onvo_validation_message(error.message) }, status: :unprocessable_content
   rescue Billing::Onvo::ApiError => error
-    render json: { error: error.user_message }, status: :unprocessable_entity
+    render json: { error: error.user_message }, status: :unprocessable_content
   end
 
   def processing
@@ -355,12 +355,12 @@ class CheckoutController < ApplicationController
     status = result.fetch(:status).to_s
     if status == "failed"
       Billing::FailPayment.call(payment: payment)
-      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_entity
+      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_content
       return
     end
 
     if status == "requires_payment_method"
-      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_entity
+      render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_content
       return
     end
 
@@ -394,7 +394,7 @@ class CheckoutController < ApplicationController
       return
     end
 
-    if card_checkout_payment?(payment)
+    if payment.card_checkout?
       redirect_to checkout_payment_canceled_path(payment)
       return
     end
@@ -410,16 +410,12 @@ class CheckoutController < ApplicationController
   def checkout_redirect_params_for_payment(payment)
     params = {}
     params[:nesting_run_id] = payment.nesting_run_id if payment.nesting_run_id.present?
-    params[:payment_method] = payment.payment_method if card_checkout_payment?(payment)
+    params[:payment_method] = payment.payment_method if payment.card_checkout?
     params
   end
 
-  def card_checkout_payment?(payment)
-    payment.card_checkout?
-  end
-
   def apply_card_checkout_return_selection!(payment)
-    return unless card_checkout_payment?(payment)
+    return unless payment.card_checkout?
 
     session[:billing_payment_method] = "card"
   end

@@ -43,6 +43,7 @@ Solo **SINPE Móvil** bloquea el taller mientras `checkout_lock_active?` (ventan
 | Lock activo | SINPE confirm → volver al taller antes de webhook | Banner “Pago en confirmación”; no anidar / no guardar láminas / no descargar DXF anidado |
 | Timeout 15 min | `+50688889521` o esperar 15 min sin abandonar | Taller desbloqueado; `Payment` sigue `pending`; fila Mis pagos “Sin confirmar” + CTAs |
 | Cancelar intento | Con lock activo → Mis pagos o checkout → **Cancelar intento** → confirmar diálogo | `checkout_abandoned_at` set; taller desbloqueado; **no** `Payment` `failed` |
+| Mis pagos tras abandon | Tras **Cancelar intento**, abrir `/mis-pagos` | Fila en **Descargas sueltas** (“Sin confirmar” + reintentar); **no** aparece en **Historial de pagos** (`listed_in_payment_history` omite `checkout_abandoned_at`); poll sigue hasta `succeeded`/`failed` |
 | Checkout duplicado | Con lock activo, intentar segundo SINPE mismo `nesting_run_id` | Bloqueado con aviso + enlace Mis pagos |
 | Webhook tardío tras abandon | Abandonar lock → simular `payment-intent.succeeded` (o número `+50688888888`) | `FulfillPayment` corre; grant con `retained_until`; Descargar en Mis pagos |
 | Webhook `failed` con pre-retención | Tras iniciar SINPE (blob staging) → `payment-intent.failed` | `Payment` `failed`; blob staging purgado; sin botón Descargar |

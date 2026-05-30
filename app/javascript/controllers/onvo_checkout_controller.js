@@ -15,6 +15,11 @@ import {
   saveCardDraft as writeStoredCardDraft
 } from "../checkout/onvo_checkout_card_draft"
 
+import {
+  populateSinpeTransferInstructions,
+  revealSinpeTransferPanel
+} from "../checkout/onvo_checkout_sinpe_transfer"
+
 export default class extends Controller {
   static targets = [
     "cardPanel",
@@ -335,35 +340,41 @@ export default class extends Controller {
   }
 
   showSinpeTransferStep(data) {
-    const identification = data.transfer_identification || this.sinpeIdentificationTarget?.value?.replace(/\D/g, "")
-    const mobileNumber = data.transfer_mobile_number || this.sinpeMobileNumberTarget?.value?.replace(/\D/g, "")
+    populateSinpeTransferInstructions(
+      {
+        identification: this.hasSinpeInstructionIdentificationTarget
+          ? this.sinpeInstructionIdentificationTarget
+          : null,
+        mobileNumber: this.hasSinpeInstructionMobileNumberTarget
+          ? this.sinpeInstructionMobileNumberTarget
+          : null,
+        amount: this.hasSinpeInstructionAmountTarget ? this.sinpeInstructionAmountTarget : null,
+        destinationNumber: this.hasSinpeInstructionNumberTarget
+          ? this.sinpeInstructionNumberTarget
+          : null,
+        destinationName: this.hasSinpeInstructionNameTarget ? this.sinpeInstructionNameTarget : null
+      },
+      data,
+      {
+        identification: this.sinpeIdentificationTarget?.value?.replace(/\D/g, ""),
+        mobileNumber: this.sinpeMobileNumberTarget?.value?.replace(/\D/g, "")
+      }
+    )
 
-    if (this.hasSinpeInstructionIdentificationTarget) {
-      this.sinpeInstructionIdentificationTarget.textContent = identification || "—"
-    }
-    if (this.hasSinpeInstructionMobileNumberTarget) {
-      this.sinpeInstructionMobileNumberTarget.textContent = this.formatSinpeMobileDisplay(mobileNumber)
-    }
-    if (this.hasSinpeInstructionAmountTarget) {
-      this.sinpeInstructionAmountTarget.textContent = data.amount_label || data.amount
-    }
-    if (this.hasSinpeInstructionNumberTarget) {
-      this.sinpeInstructionNumberTarget.textContent = data.destination_number
-    }
-    if (this.hasSinpeInstructionNameTarget) {
-      this.sinpeInstructionNameTarget.textContent = data.destination_holder_name
-    }
-
-    this.sinpeInstructionsTarget.hidden = false
-    if (this.hasSinpeFieldsTarget) this.sinpeFieldsTarget.hidden = true
-    if (this.hasSinpeHowTarget) this.sinpeHowTarget.hidden = true
-    if (this.hasSecondaryActionsTarget) this.secondaryActionsTarget.hidden = true
+    revealSinpeTransferPanel({
+      instructions: this.hasSinpeInstructionsTarget ? this.sinpeInstructionsTarget : null,
+      fields: this.hasSinpeFieldsTarget ? this.sinpeFieldsTarget : null,
+      how: this.hasSinpeHowTarget ? this.sinpeHowTarget : null,
+      secondaryActions: this.hasSecondaryActionsTarget ? this.secondaryActionsTarget : null
+    })
 
     this.setProcessButtonBusy(false)
     this.setProcessButtonLabel(this.sinpeContinueLabelValue)
     this.processButtonTarget.dataset.testid = "checkout-sinpe-continue"
     this.sinpeAwaitingTransfer = true
-    this.sinpeInstructionsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    if (this.hasSinpeInstructionsTarget) {
+      this.sinpeInstructionsTarget.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }
   }
 
   continueToProcessing(event) {
@@ -425,15 +436,6 @@ export default class extends Controller {
     }
     body.append("payment_method", this.paymentMethodValue)
     return body
-  }
-
-  formatSinpeMobileDisplay(number) {
-    const digits = (number || "").toString().replace(/\D/g, "")
-    if (digits.length === 8) return `+506 ${digits.slice(0, 4)} ${digits.slice(4)}`
-    if (digits.length === 11 && digits.startsWith("506")) {
-      return `+${digits.slice(0, 3)} ${digits.slice(3, 7)} ${digits.slice(7)}`
-    }
-    return digits || "—"
   }
 
   isSinpe() {
