@@ -6,7 +6,12 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Added
 
-- **Billing cart (single-item):** add plans or single downloads from the paywall catalog (`POST /carrito`); replace existing line with confirmation; guest carts merge on login (user cart wins) (`REQ-FIT-BILL-001`).
+- **ONVO live billing:** card (CRC/USD) and SINPE Móvil checkout when `BILLING_GATEWAY=onvo`; Payment Intents, embedded card form with 3DS return, SINPE transfer instructions, processing poll, and authoritative webhook fulfillment (`REQ-FIT-BILL-001`, ADR-0006).
+- **SINPE pending checkout lock:** 15-minute workshop lock while SINPE payment is pending; manual “Cancelar intento” releases lock without marking payment failed; late webhook still grants download (`REQ-FIT-BILL-001`).
+- **SINPE pre-retention:** nested DXF copied at SINPE checkout start (not downloadable until payment succeeds); staging blob purged on failed webhook (`REQ-FIT-BILL-003`).
+- **Purchase reference:** 12-digit display reference on single-download payments (Mis pagos, checkout processing, download rows).
+- **Mis pagos ONVO UX:** pending SINPE rows with cancel/retry; payment method in history; superseded attempts in historial only; compact download rows with richer metadata.
+- **Billing production geo:** Cloudflare `CF-IPCountry` required in production; GeoLite2 Country MMDB fallback; throttled audit logs (`REQ-FIT-BILL-001`).
 - **MEIC pricing UX:** paywall shows SINPE price prominently with card reference in Costa Rica; checkout breakdown shows list subtotal, optional SINPE discount, and IVA 13% (CR only) (`REQ-FIT-BILL-001`).
 - **Method-first checkout:** choose payment method first, then see a dynamic receipt and a single “Procesar pago” action (`REQ-FIT-BILL-001`).
 - **Geo-aware billing defaults:** country from `CF-IPCountry` / GeoLite2 with manual CRC/USD override on the paywall (`REQ-FIT-BILL-001`).
@@ -21,6 +26,8 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Changed
 
+- **Checkout:** method-first ONVO checkout replaces simulated buttons when gateway is live; card 3DS cancel restores checkout with saved card draft (CVV not persisted); SINPE instructions step is transfer-only (correct data via Mis pagos cancel + new checkout).
+- **Workshop during SINPE pending:** DXF upload, layer changes, and sheet inventory blocked server-side for active SINPE lock (`BlocksWorkshopDuringPendingPayment`).
 - Paywall catalog at `/taller/descarga-pago` with inline plans and “Añadir al carrito”; checkout reads from the signed-in user’s cart.
 - `/planes` redirects to checkout when the user already has a cart line.
 - Overage prices use explicit amounts from `config/billing.yml` (not runtime percentage).

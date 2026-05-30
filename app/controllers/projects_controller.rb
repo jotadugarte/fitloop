@@ -4,12 +4,14 @@
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
   include RequiresNestedDownloadAuthorization
+  include BlocksWorkshopDuringPendingPayment
 
   layout "application"
 
   before_action :set_workspace_project, only: %i[
     show edit update nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :reject_workshop_mutation_if_pending_payment!, only: :nested_dxf
   before_action :authorize_nested_download!, only: :nested_dxf
 
   def index
@@ -122,6 +124,8 @@ class ProjectsController < ApplicationController
   private
 
   def update_workspace_sheets!
+    return if reject_workshop_mutation_if_pending_payment!
+
     attributes = workspace_sheet_params
     sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
     @project.assign_attributes(attributes)
@@ -137,6 +141,8 @@ class ProjectsController < ApplicationController
   end
 
   def update_workspace_layers!
+    return if reject_workshop_mutation_if_pending_payment!
+
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     render_workspace_turbo_stream(:layers)
   end

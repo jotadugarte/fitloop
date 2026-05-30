@@ -5,6 +5,8 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  post "webhooks/onvo", to: "webhooks/onvo#create"
+
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
@@ -43,6 +45,15 @@ Rails.application.routes.draw do
   post "planes/simular", to: "planes#simulate", as: :planes_simulate
   get "checkout", to: "checkout#show"
   post "checkout/simular", to: "checkout#simulate", as: :checkout_simulate
+  post "checkout/pagar", to: "checkout#pay", as: :checkout_pay
+  post "checkout/pagos/:payment_id/sinpe", to: "checkout#confirm_sinpe", as: :checkout_confirm_sinpe
+  post "checkout/pagos/:payment_id/tarjeta", to: "checkout#confirm_card", as: :checkout_confirm_card
+  get "checkout/procesando/:payment_id", to: "checkout#processing", as: :checkout_processing
+  get "checkout/pagos/:payment_id/estado", to: "checkout#payment_status", as: :checkout_payment_status
+  post "checkout/pagos/:payment_id/liberar", to: "checkout#release_pending_lock", as: :checkout_release_pending_lock
+  get "checkout/pagos/:payment_id/cancelado", to: "checkout#payment_canceled_notice", as: :checkout_payment_canceled
+  get "checkout/pagos/:payment_id/rechazado", to: "checkout#payment_failed_notice", as: :checkout_payment_failed
+  get "checkout/retorno", to: "checkout#three_ds_return", as: :checkout_return
 
   get "carrito", to: "cart#show", as: :cart
   post "carrito", to: "cart#create"

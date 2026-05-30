@@ -4,10 +4,13 @@
 class NestingRunsController < ApplicationController
   include StartsNesting
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
 
   def create
+    return if reject_workshop_mutation_if_pending_payment!
+
     @project.reload
     SheetStocks::NormalizeConsumptionOrder.call(@project)
     SheetStocks::NormalizeConsumptionOrder.persist!(@project)

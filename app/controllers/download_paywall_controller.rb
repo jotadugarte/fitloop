@@ -3,8 +3,10 @@
 # [REQ-FIT-BILL-001] Paywall before nested DXF download (D42).
 class DownloadPaywallController < ApplicationController
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
+  before_action :reject_workshop_mutation_if_pending_payment!
   before_action :store_guest_paywall_return_to!, only: :show
 
   def show

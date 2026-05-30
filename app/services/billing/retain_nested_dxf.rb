@@ -16,6 +16,21 @@ module Billing
     end
 
     def call
+      commit_retention_window!
+      attach_from_project! unless @grant.retained_nested_dxf.attached?
+      @grant
+    end
+
+    private
+
+    def commit_retention_window!
+      window_end = @paid_at + RETENTION_HOURS.hours
+      return if @grant.retained_until.present? && @grant.retained_until >= window_end
+
+      @grant.update!(retained_until: window_end)
+    end
+
+    def attach_from_project!
       source = @nesting_run.project.nested_dxf
       raise ArgumentError, "nested_dxf missing" unless source.attached?
 
@@ -24,8 +39,6 @@ module Billing
         filename: source.filename.to_s,
         content_type: source.content_type
       )
-      @grant.update!(retained_until: @paid_at + RETENTION_HOURS.hours) if @grant.retained_until.blank?
-      @grant
     end
   end
 end

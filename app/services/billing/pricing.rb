@@ -73,6 +73,11 @@ module Billing
         fetch("single_download_overage_official_crc")
       end
 
+      def config_section(key)
+        section = current_data[key.to_s]
+        section.is_a?(Hash) ? section : {}
+      end
+
       private
 
       def validate_price_args!(product:, currency:, payment_method:, overage:, tier_months:)

@@ -20,7 +20,10 @@ module Billing
     end
 
     def single_purchase_grant?
-      DownloadGrant.single_purchase.exists?(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      DownloadGrant.retained_active(@at).exists?(
+        user_id: @user.id,
+        nesting_run_id: @nesting_run.id
+      )
     end
 
     def plan_quota?

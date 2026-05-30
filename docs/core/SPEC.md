@@ -141,7 +141,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
 | **REQ-FIT-AUTH-002** | User accounts: Devise + OmniAuth, email verification, merge opt-in, account routes, delete account | P6 |
-| **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); simulated checkout | P7 |
+| **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); ONVO payment intents + webhook fulfillment (`BILLING_GATEWAY`) | P7 |
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 
@@ -199,13 +199,13 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### REQ-FIT-BILL-001 (detail)
 
-**Scope:** Paywall and simulated payments for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button.
+**Scope:** Paywall and **ONVO live payments** (or **simulated** checkout when `BILLING_GATEWAY=simulate`) for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button. See **ADR-0006** for gateway contract.
 
 **Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time).
 
 **Regional currency and tax (country resolution):**
 
-- Country from `CF-IPCountry` header, with GeoLite2 fallback and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (same stack as `Billing::GeoPaymentDefaults`).
+- Country from `CF-IPCountry` header (Cloudflare **required** in production), GeoLite2 Country MMDB fallback (`GEOLITE2_COUNTRY_MMDB_PATH`), and dev override `FITLOOP_BILLING_COUNTRY_OVERRIDE` (`Billing::GeoPaymentDefaults`). Missing `CF-IPCountry` on billing routes logs `[billing.geo] CF-IPCountry missing` in production (throttled). See `docs/DEPLOY.md` § Billing geo.
 - **Default:** `country_code == 'CR'` → CRC + SINPE/card methods; otherwise USD + card only.
 - **Manual override:** Paywall/workspace billing selector may set `session[:billing_currency]` and `session[:billing_payment_method]`; overrides IP default until changed.
 - **`country_code == 'CR'`:** Prices in CRC. **IVA 13%** on net subtotal (after SINPE discount when applicable), shown only at **checkout**, persisted on `Payment` snapshot fields (`tax_amount`, `total_amount`).
@@ -225,15 +225,44 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - Paywall catalog (`/taller/descarga-pago`): hero **SINPE** price in CR; struck/reference **card official** price. Abroad (USD): card price only, no SINPE copy.
 - Checkout: dynamic breakdown — list subtotal, optional SINPE discount line, IVA (CR only), total. Method selector precedes breakdown (method-first flow).
 
-**Checkout (simulated, D37):**
+**Checkout — amounts (all modes, D37):**
 
+- Display and charge amounts come from **`Billing::CheckoutBreakdown`** only (list, SINPE discount, IVA CR, total). ONVO **payment intent** `amount` = breakdown **total in minor units** (CRC/USD). No ad-hoc cent math in controllers.
 - Methods: **Tarjeta (CRC or USD per selection/region)** and **SINPE Móvil (CRC, CR only)**.
-- Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator.
-- **Payment snapshot (D20, D24):** On simulate (success or failure), persist immutable purchaser + financial breakdown on `Payment` (`purchaser_name`, `purchaser_email`, `product_description`, `list_price`, `discount_amount`, `subtotal`, `tax_amount`, `total_amount`, `payment_method`, `currency`). Simulation prefers cart snapshot cents when cart currency matches checkout method.
+- **Payment snapshot (D20, D24):** On terminal success or failure, persist immutable purchaser + financial breakdown on `Payment` (`purchaser_name`, `purchaser_email`, `product_description`, `list_price`, `discount_amount`, `subtotal`, `tax_amount`, `total_amount`, `payment_method`, `currency`). Cart snapshot cents preferred when currency matches checkout method.
+
+**Checkout — ONVO live (`BILLING_GATEWAY=onvo`, ADR-0006):**
+
+- **Provider:** ONVO Payment Intents + embedded SDK (`sdk.onvopay.com`); no hosted Checkout redirect; no ONVO Subscriptions API (plans = one-time intents).
+- **Start pay:** Server creates `Payment` `pending`, calls ONVO to create **payment intent** (`metadata` includes internal `payment_id`), stores `onvo_payment_intent_id`.
+- **Card:** SDK `onvo.pay` with `ONVO_PUBLISHABLE_KEY`; 3DS return **`/checkout/retorno`**.
+- **SINPE:** Collect transferente **cédula** + **teléfono móvil**; create `mobile_number` payment method; show destination number and exact amount from intent.
+- **Webhook (authoritative):** `POST /webhooks/onvo` — verify `X-Webhook-Secret` against `ONVO_WEBHOOK_SECRET`; handle `payment-intent.succeeded` \| `payment-intent.failed`. Delegate to **`Billing::FulfillPayment`** / **`Billing::FailPayment`** (idempotent; no double `DownloadGrant`).
+- **Client UX:** `onSuccess` → processing screen (poll `GET /checkout/pagos/:payment_id/estado` every 2–3s, max ~60s); do **not** grant on client callback alone.
+- **ENV:** `ONVO_MODE`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET`.
+
+**SINPE pending checkout — workshop lock & pre-retention (v1.2):**
+
+- **Config:** `config/billing.yml` → `onvo_pending_checkout.workshop_lock_minutes` (default **15**). `Billing::PendingCheckoutPolicy` computes `lock_expires_at` from `Payment#created_at` + window.
+- **Workshop lock:** `Payment#checkout_lock_active?` is true only when `payment_method` is **`sinpe_crc`**, `status` is `pending`, the payment is within `workshop_lock_minutes`, `checkout_lock_released_at` is blank, `superseded_at` is blank, and there is no **downloadable** grant (`DownloadGrant#retention_active?`). **`Billing::PendingCheckoutLock`** delegates to `checkout_lock_active?` (not raw pending).
+- **Card pending:** Tarjeta pending payments never set `checkout_lock_active?` — the workshop is not blocked while card checkout awaits ONVO.
+- **Lock ≠ payment status:** Workshop lock timeout or user abandon **does not mark payment failed**; `status` stays `pending` until the ONVO webhook (or simulate terminal path) updates it.
+- **Manual abandon:** `POST /checkout/pagos/:id/liberar` → **`Billing::ReleasePendingCheckoutLock`** sets `checkout_abandoned_at` and `checkout_lock_released_at` (v1 local only; no ONVO cancel API). Copy warns: if the user already transferred, do not abandon expecting cancellation.
+- **Supersede:** Starting a new SINPE checkout for the same `nesting_run_id` while another is pending → **`Billing::SupersedePendingCheckout`** marks the older row `superseded_at` and releases its lock before creating the new pending payment. Block duplicate checkout while `checkout_lock_active?` on the prior attempt.
+- **Late webhook:** `payment-intent.succeeded` after `checkout_abandoned_at` or after lock timeout still runs **`Billing::FulfillPayment`** — ONVO is authoritative; user may download once grant is fulfilled.
+- **pre-retention (SINPE only):** On SINPE checkout start, **`Billing::PreRetainNestedDxf`** copies `Project#nested_dxf` to `DownloadGrant#retained_nested_dxf` with **`retained_until` nil** until fulfill — staging only; **not** downloadable until `FulfillPayment` sets `retained_until = paid_at + 24.hours` (see REQ-FIT-BILL-003 D54).
+- **Failed webhook purge:** On `payment-intent.failed`, **`Billing::FailPayment`** **purge**s the pre-retained blob when the grant has `retained_nested_dxf` attached but `retention_active?` is false (staging never fulfilled). Fulfilled grants are not purged.
+- **Lazy lock release:** On first read after `workshop_lock_minutes` elapses, persist `checkout_lock_released_at` (no cron in v1).
+- **Status poll / Mis pagos:** Poll while `Payment#awaiting_gateway_confirmation?` (pending single download without terminal status and without a downloadable grant). **SINPE:** includes lock expired and manual abandon (`checkout_abandoned_at`) — transfer may still complete. **Card:** excludes abandoned 3DS-cancel attempts (`checkout_abandoned_at` + card methods) from Mis pagos rows and payment history (`listed_in_payment_history`); poll stops for those attempts.
+
+**Checkout — simulated dev fallback (`BILLING_GATEWAY=simulate`):**
+
+- Demo UI: **Pago exitoso** / **Pago fallido** + environment indicator (hidden when `onvo`).
+- `Billing::SimulateSingleDownload` / `Billing::SimulatePlanPurchase` call the same **`Billing::FulfillPayment`** / **`Billing::FailPayment`** services on success/failure.
 
 **Paywall UX (D42):** Catalog at `/taller/descarga-pago` with inline plans + “Añadir al carrito”; paths to checkout (after login), `/iniciar-sesion`.
 
-**Tests:** billing doc verifier; cart, checkout, and paywall request specs.
+**Tests:** billing doc verifier (`AuthBillingSpecDocVerifier` + ADR-0006); cart, checkout, webhook, and paywall request specs.
 
 ### REQ-FIT-BILL-002 (detail)
 
@@ -463,4 +492,4 @@ Full JSON schema to be maintained in `nesting_engine/README.md` when the package
 - FastAPI microservice wrapper
 - Hard caps on file size / piece count
 - Cross-session **project** resume (projects stay ephemeral; accounts enable billing and 24h single-download retention only)
-- Real payment provider integration (Stripe, etc.) — simulated buttons only in v1 billing phase
+- Payment providers other than ONVO (e.g. Stripe) — ONVO is the v1 live gateway per ADR-0006

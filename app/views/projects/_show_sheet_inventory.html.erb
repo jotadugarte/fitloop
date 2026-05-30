@@ -1,3 +1,4 @@
+<% lock_active = workshop_mutations_locked?(project) %>
 <%= turbo_frame_tag dom_id(project, :sheet_inventory) do %>
   <% sheet_count = project.sheet_stocks.count %>
   <details class="collapsible-panel panel panel--chrome fit-section"
@@ -8,6 +9,7 @@
                meta: t("projects.show.sheet_inventory_meta", count: sheet_count) %>
 
     <div class="collapsible-panel__body fit-section__content">
+      <fieldset class="pending-payment-lock-fieldset" <%= "disabled" if lock_active %>>
       <%= form_with model: project,
                     url: workspace_project_path(project),
                     method: :patch,
@@ -39,9 +41,10 @@
         <%= render "sheet_inventory", form: f, project: project, composer_draft: {} %>
 
         <p class="form-actions form-actions--inline">
-          <%= f.submit t("projects.show.save_sheets"), class: "btn btn-secondary btn--compact" %>
+          <%= f.submit t("projects.show.save_sheets"), class: "btn btn-secondary btn--compact", disabled: lock_active %>
         </p>
       <% end %>
+      </fieldset>
     </div>
   </details>
 <% end %>

@@ -1,0 +1,23 @@
+<%# locals: (payment:) %>
+<li class="mis-pagos-payment-row<%= " mis-pagos-payment-row--succeeded" if payment.succeeded? %>" data-testid="mis-pagos-payment-row">
+  <div class="mis-pagos-payment-row__main">
+    <time class="mis-pagos-payment-row__date" datetime="<%= payment.created_at.iso8601 %>">
+      <%= l_in_user_zone(payment.created_at, format: :short, user: current_user) %>
+    </time>
+    <span class="mis-pagos-payment-row__purpose"><%= t("billing.mis_pagos.purpose.#{payment.purpose}") %></span>
+    <span class="mis-pagos-payment-row__method" data-testid="mis-pagos-payment-method">
+      <%= mis_pagos_payment_method_label(payment) %>
+    </span>
+    <% if (reference_label = mis_pagos_payment_reference_label(payment)).present? %>
+      <span class="mis-pagos-payment-row__reference" data-testid="mis-pagos-payment-reference">
+        <%= reference_label %>
+      </span>
+    <% end %>
+  </div>
+  <div class="mis-pagos-payment-row__meta">
+    <span class="status-badge <%= mis_pagos_payment_status_badge_class(payment) %>">
+      <%= mis_pagos_payment_status_label(payment) %>
+    </span>
+    <span class="mis-pagos-payment-row__amount"><%= mis_pagos_payment_amount_label(payment) %></span>
+  </div>
+</li>

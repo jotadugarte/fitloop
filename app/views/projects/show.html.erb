@@ -7,7 +7,9 @@
   data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
   data-project-status="<%= @project.status %>"
 >
-  <div class="project-show__hero">
+  <%= render "pending_payment_lock_banner", project: @project %>
+
+  <div class="project-show__hero <%= "project-show__hero--payment-lock" if pending_checkout_lock(@project)&.active? %>">
     <h1 class="visually-hidden">
       <%= @project.ephemeral? ? t("projects.show.session_title") : @project.title %>
     </h1>

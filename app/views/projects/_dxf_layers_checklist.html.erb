@@ -9,7 +9,8 @@
                    attachment: attachment,
                    context: context,
                    expand_layers: local_assigns.fetch(:expand_layers, false),
-                   expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+                   expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])),
+                   lock_active: local_assigns.fetch(:lock_active, false) %>
       </div>
     <% end %>
     <%= render "projects/dxf_layers_section_notes" %>

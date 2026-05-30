@@ -6,16 +6,25 @@
       <div class="panel panel--inset nesting-preview-panel">
         <%= render "projects/nesting_preview", project: project, preview: preview, heading_level: 3 %>
         <% if project.nested_dxf.attached? %>
-          <% if local_assigns[:plan_download_included] %>
+          <% lock_active = workshop_mutations_locked?(project) %>
+          <% if local_assigns[:plan_download_included] && !lock_active %>
             <p class="preview-zone__plan-hint" data-testid="plan-included-download-hint">
               <%= t("billing.download.plan_included") %>
             </p>
           <% end %>
           <p class="preview-zone__download form-actions form-actions--inline">
-            <%= link_to t("projects.show.download_nested_dxf"),
-                        nested_dxf_project_path(project),
-                        class: "btn btn-primary",
-                        data: { turbo: false, turbo_frame: "_top", testid: "download-nested-dxf" } %>
+            <% if lock_active %>
+              <span class="btn btn-primary mis-pagos-list__action--pending"
+                    aria-disabled="true"
+                    data-testid="download-nested-dxf-pending">
+                <%= t("projects.show.download_nested_dxf") %>
+              </span>
+            <% else %>
+              <%= link_to t("projects.show.download_nested_dxf"),
+                          nested_dxf_project_path(project),
+                          class: "btn btn-primary",
+                          data: { turbo: false, turbo_frame: "_top", testid: "download-nested-dxf" } %>
+            <% end %>
           </p>
         <% end %>
       </div>

@@ -3,8 +3,10 @@
 # [REQ-FIT-DXF-001] Multi-DXF upload during workspace setup and show.
 class ProjectInputDxfFilesController < ApplicationController
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
+  before_action :reject_workshop_mutation_if_pending_payment!, only: %i[create destroy]
 
   def create
     files = dxf_files_param

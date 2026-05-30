@@ -64,6 +64,28 @@ RSpec.describe "Nested DXF download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-
         expect(response.body).to include("NESTED DXF CONTENT")
       end
 
+      it "[REQ-FIT-BILL-001] redirects to paywall when grant is pre-retention only (SINPE staging)" do
+        user = create_billing_user!
+        project = begin_workspace_session!
+        run = attach_nested_output!(project)
+        grant = DownloadGrant.create!(
+          user: user,
+          nesting_run: run,
+          kind: "single_purchase",
+          retained_until: nil
+        )
+        grant.retained_nested_dxf.attach(
+          io: StringIO.new("PRE-RETAINED STAGING"),
+          filename: "nested.dxf",
+          content_type: "application/dxf"
+        )
+        sign_in_user! user
+
+        get nested_dxf_project_path(project)
+
+        expect(response).to redirect_to(paywall_path_for(project))
+      end
+
       it "[REQ-FIT-BILL-002] serves nested DXF and consumes plan quota when user has active plan" do
         user = create_billing_user!
         create_active_subscription!(user: user)

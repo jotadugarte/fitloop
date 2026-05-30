@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -111,25 +111,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_032214) do
 
   create_table "payments", force: :cascade do |t|
     t.decimal "amount", precision: 12, scale: 2, null: false
+    t.datetime "checkout_abandoned_at"
+    t.string "checkout_lock_reason"
+    t.datetime "checkout_lock_released_at"
     t.datetime "created_at", null: false
     t.string "currency", null: false
     t.decimal "discount_amount", precision: 12, scale: 2, default: "0.0", null: false
+    t.string "failure_code"
+    t.string "failure_message"
+    t.string "gateway_provider"
+    t.string "gateway_status"
     t.decimal "list_price", precision: 12, scale: 2, default: "0.0", null: false
     t.bigint "nesting_run_id"
+    t.string "onvo_mode"
+    t.string "onvo_payment_intent_id"
     t.datetime "paid_at"
     t.string "payment_method", null: false
     t.string "product_description", default: "", null: false
+    t.string "purchase_reference", limit: 12
     t.string "purchaser_email", default: "", null: false
     t.string "purchaser_name", default: "", null: false
     t.string "purpose", null: false
+    t.string "sinpe_transfer_identification"
+    t.string "sinpe_transfer_mobile_number"
     t.string "status", default: "pending", null: false
     t.bigint "subscription_id"
     t.decimal "subtotal", precision: 12, scale: 2, default: "0.0", null: false
+    t.datetime "superseded_at"
     t.decimal "tax_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.decimal "total_amount", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["nesting_run_id"], name: "index_payments_on_nesting_run_id"
+    t.index ["onvo_payment_intent_id"], name: "index_payments_on_onvo_payment_intent_id"
+    t.index ["purchase_reference"], name: "index_payments_on_purchase_reference_unique", unique: true, where: "(purchase_reference IS NOT NULL)"
     t.index ["subscription_id"], name: "index_payments_on_subscription_id"
     t.index ["user_id"], name: "index_payments_on_user_id"
   end

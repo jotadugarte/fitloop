@@ -1,0 +1,55 @@
+<div class="paywall-layout checkout-page checkout-processing"
+     data-controller="onvo-payment-processing"
+     data-onvo-payment-processing-status-url-value="<%= @status_url %>"
+     data-onvo-payment-processing-checkout-url-value="<%= checkout_path %>"
+     data-onvo-payment-processing-success-title-value="<%= t("billing.checkout.onvo.processing_success_title") %>"
+     data-onvo-payment-processing-success-body-value="<%= t("billing.checkout.onvo.processing_success_body") %>"
+     data-onvo-payment-processing-timeout-title-value="<%= t("billing.checkout.onvo.processing_timeout_title") %>"
+     data-onvo-payment-processing-revisit-value="<%= @processing_from_workshop %>"
+     data-onvo-payment-processing-revisit-title-value="<%= t("billing.checkout.pending_workshop_lock.processing_status_title") %>"
+     data-onvo-payment-processing-revisit-body-value="<%= t("billing.checkout.pending_workshop_lock.processing_status_body") %>"
+     data-onvo-payment-processing-redirect-delay-ms-value="4000"
+     data-testid="checkout-processing"
+     <% if @processing_from_workshop %>data-processing-context="workshop"<% end %>>
+
+  <article class="panel panel--chrome">
+    <h1 class="billing-page__title"
+        data-onvo-payment-processing-target="title">
+      <% if @processing_from_workshop %>
+        <%= t("billing.checkout.pending_workshop_lock.processing_status_title") %>
+      <% else %>
+        <%= t("billing.checkout.onvo.processing_title") %>
+      <% end %>
+    </h1>
+
+    <p data-onvo-payment-processing-target="message">
+      <% if @processing_from_workshop %>
+        <%= t("billing.checkout.pending_workshop_lock.processing_status_body") %>
+      <% else %>
+        <%= t("billing.checkout.onvo.processing_body") %>
+      <% end %>
+    </p>
+
+    <p class="checkout-processing__success-lead"
+       data-onvo-payment-processing-target="successLead"
+       data-testid="checkout-processing-success"
+       hidden
+       role="status"></p>
+
+    <section class="checkout-processing__timeout panel panel--inset"
+             data-onvo-payment-processing-target="timeoutPanel"
+             data-testid="checkout-processing-timeout"
+             hidden
+             role="status">
+      <p class="checkout-processing__timeout-lead"><%= t("billing.checkout.onvo.processing_timeout") %></p>
+      <p class="checkout-processing__timeout-next"><%= t("billing.checkout.onvo.processing_timeout_next") %></p>
+    </section>
+
+    <p class="checkout-processing__payment-id">
+      <%= t("billing.checkout.onvo.processing_payment_ref",
+            reference: @payment.purchase_reference.presence || @payment.id) %>
+    </p>
+
+    <%= link_to t("billing.checkout.onvo.processing_view_payments"), mis_pagos_path, class: "btn btn-secondary" %>
+  </article>
+</div>

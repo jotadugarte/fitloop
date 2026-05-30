@@ -75,8 +75,96 @@ Copy `.env.example` to `.env` and set:
 |----------|---------|
 | `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection (see `config/database.yml`) |
 | `RAILS_MASTER_KEY` | Decrypt `config/credentials.yml.enc` (Rails secrets) |
+| `BILLING_GATEWAY` | `simulate` (default dev) or `onvo` for live ONVO checkout |
+| `ONVO_MODE`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET` | ONVO API + webhook verification ([ADR-0006](core/ADRs/0006-onvo-live-billing.md)) |
+| `GEOLITE2_COUNTRY_MMDB_PATH` | Optional fallback when `CF-IPCountry` is absent (see [Billing geo](#billing-geo-cloudflare--geolite2)) |
+| `MAXMIND_LICENSE_KEY` | One-time download of GeoLite2-Country (build/ops host only; not required at Rails runtime) |
+
+**Do not set** `FITLOOP_BILLING_COUNTRY_OVERRIDE` in production unless you intentionally force a single country for all users (QA only).
 
 `Dxf::Python.executable` prefers `Rails.root.join(".venv/bin/python")`; falls back to `python3` on `PATH`.
+
+### Billing geo (Cloudflare + GeoLite2)
+
+Paywall and checkout choose **CRC + SINPE** only when the visitor’s country is **CR**; everyone else sees **USD + card only** ([REQ-FIT-BILL-001](core/SPEC.md)).
+
+| Priority | Source | Production |
+|----------|--------|------------|
+| 1 | `FITLOOP_BILLING_COUNTRY_OVERRIDE` | **Must be unset** in production |
+| 2 | **`CF-IPCountry`** (Cloudflare) | **Required** — primary signal |
+| 3 | GeoLite2 Country MMDB | **Recommended fallback** if any request might bypass Cloudflare |
+| 4 | User `time_zone == America/Costa_Rica` | Last resort (logged if used without CF) |
+| 5 | `session[:billing_country_code]` | Sticky from a prior resolved visit |
+
+#### Cloudflare (mandatory in production)
+
+1. DNS for the Fitloop hostname must be **proxied** (orange cloud) through Cloudflare.
+2. Traffic must reach Rails through Cloudflare so each request includes **`CF-IPCountry`** (ISO country code, e.g. `CR`, `US`).
+3. Do not strip that header at your load balancer or PaaS unless you replace it with an equivalent country code.
+
+**Verify after deploy:**
+
+- From Costa Rica (or VPN CR): paywall shows **₡**, SINPE options, `data-billing-currency="crc"` in HTML.
+- From outside CR: paywall shows **USD**, no SINPE, `data-billing-currency="usd"`.
+- Rails log should **not** repeat `[billing.geo] CF-IPCountry missing` on `/taller/descarga-pago` or `/checkout` (warning is throttled to once per 5 minutes per cache).
+
+#### GeoLite2 fallback (recommended)
+
+If `CF-IPCountry` is missing, Fitloop looks up `request.remote_ip` in a local **GeoLite2-Country** database before falling back to user time zone or USD.
+
+1. Create a free [MaxMind GeoLite2](https://www.maxmind.com/en/geolite2/signup) account and a license key.
+2. On the build or release host (or locally once, then ship the file):
+
+   ```bash
+   export MAXMIND_LICENSE_KEY='your_license_key'
+   bin/rails billing:geo:install_geolite2
+   ```
+
+   Default output: `storage/geoip/GeoLite2-Country.mmdb` (gitignored).
+
+3. In production ENV:
+
+   ```bash
+   GEOLITE2_COUNTRY_MMDB_PATH=/app/storage/geoip/GeoLite2-Country.mmdb
+   ```
+
+4. Refresh the MMDB monthly (MaxMind license). Re-run the install task or automate with `geoipupdate`.
+
+5. Run the checklist task after deploy:
+
+   ```bash
+   bin/rails billing:geo:check
+   ```
+
+**Production alerts:** when a billing page is hit without `CF-IPCountry` (and no dev override), Rails logs:
+
+`[billing.geo] CF-IPCountry missing on <source>; resolved country=…`
+
+Monitor this in your log aggregator (Northflank, Fly, etc.). Persistent warnings mean Cloudflare is misconfigured or traffic is hitting the origin directly.
+
+#### Local development
+
+- `bin/dev` defaults to **CR** when geo is unavailable (WSL/localhost).
+- To simulate abroad, set in `.env`: `FITLOOP_BILLING_COUNTRY_OVERRIDE=US` and **restart** the server.
+- `bin/dev` loads `.env` before applying the CR default so `.env` wins over the script default.
+
+GeoLite2 data © [MaxMind](https://www.maxmind.com).
+
+### ONVO webhooks in local development
+
+ONVO sends webhooks from the public internet. `localhost` is not reachable unless you expose HTTPS.
+
+1. Start Rails: `bin/dev` (port 3000).
+2. Start a tunnel, e.g. [ngrok](https://ngrok.com/): `ngrok http 3000`.
+3. Register the webhook URL in the ONVO **test** dashboard: `https://<your-subdomain>.ngrok-free.app/webhooks/onvo` (path must match `POST /webhooks/onvo`).
+4. Set `ONVO_WEBHOOK_SECRET` in `.env` to the secret shown in ONVO; restart Rails after changing ENV.
+5. Allow the ngrok host in Rails if needed (`config.hosts` — Fitloop already permits common `*.ngrok-free.dev` patterns in development).
+
+**Caveats:**
+
+- Free ngrok URLs **change** when you restart the tunnel unless you use a reserved domain — update the ONVO dashboard each time.
+- Use the ngrok **inspector** at `http://127.0.0.1:4040` to replay or debug webhook payloads during integration.
+- **Staging (Northflank):** prefer a fixed HTTPS URL for a stable webhook endpoint; see `task_onvo-payments.md` ops checklist.
 
 ## First-time setup
 
@@ -120,17 +208,18 @@ If `bin/dev` says a server is already running, stop the old process (`Ctrl+C` or
 ## Production checklist
 
 1. `RAILS_ENV=production` with `SECRET_KEY_BASE` and `RAILS_MASTER_KEY`.
-2. `bin/rails assets:precompile` (if using the asset pipeline).
-3. `bin/rails db:migrate` on the production database.
-4. Run **Solid Queue** alongside the web process (`bin/jobs` or your process manager).
-5. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)):
+2. **Billing geo:** Cloudflare proxy enabled; `CF-IPCountry` on billing routes; `GEOLITE2_COUNTRY_MMDB_PATH` set; `bin/rails billing:geo:check` passes; **`FITLOOP_BILLING_COUNTRY_OVERRIDE` unset** (see [Billing geo](#billing-geo-cloudflare--geolite2)).
+3. `bin/rails assets:precompile` (if using the asset pipeline).
+4. `bin/rails db:migrate` on the production database.
+5. Run **Solid Queue** alongside the web process (`bin/jobs` or your process manager).
+6. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)):
 
    ```bash
    .venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; print(capabilities())"
    .venv/bin/python nesting_engine/nest.py 2>&1 | head -1   # usage: nest.py CONFIG_JSON_PATH
    ```
 
-6. Active Storage: configure `config/storage.yml` for disk or cloud per environment.
+7. Active Storage: configure `config/storage.yml` for disk or cloud per environment.
 
 ## Process layout (example)
 

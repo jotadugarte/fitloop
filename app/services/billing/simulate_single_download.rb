@@ -71,17 +71,17 @@ module Billing
     end
 
     def record_failure!
-      snapshot = snapshot_fields
-      Payment.create!(
+      payment = Payment.create!(
         user: @user,
         nesting_run: @nesting_run,
-        status: "failed",
+        status: "pending",
         payment_method: config[:payment_method],
         currency: config[:currency].to_s,
         amount: unit_amount,
         purpose: "single_download",
-        **snapshot
+        **snapshot_fields
       )
+      FailPayment.call(payment: payment)
       :failed
     end
 
@@ -93,31 +93,19 @@ module Billing
         return { payment: payment, grant: existing, project: @nesting_run.project }
       end
 
-      paid_at = Time.current
-      result = nil
-      ActiveRecord::Base.transaction do
-        snapshot = snapshot_fields
-        payment = Payment.create!(
-          user: @user,
-          nesting_run: @nesting_run,
-          status: "succeeded",
-          payment_method: config[:payment_method],
-          currency: config[:currency].to_s,
-          amount: unit_amount,
-          purpose: "single_download",
-          paid_at: paid_at,
-          **snapshot
-        )
-        grant = DownloadGrant.create!(
-          user: @user,
-          nesting_run: @nesting_run,
-          kind: "single_purchase",
-          retained_until: paid_at + RetainNestedDxf::RETENTION_HOURS.hours
-        )
-        RetainNestedDxf.call(grant: grant, nesting_run: @nesting_run, paid_at: paid_at)
-        result = { payment: payment, grant: grant, project: @nesting_run.project }
-      end
-      result
+      payment = Payment.create!(
+        user: @user,
+        nesting_run: @nesting_run,
+        status: "pending",
+        payment_method: config[:payment_method],
+        currency: config[:currency].to_s,
+        amount: unit_amount,
+        purpose: "single_download",
+        **snapshot_fields
+      )
+      FulfillPayment.call(payment: payment)
+      grant = DownloadGrant.find_by!(user_id: @user.id, nesting_run_id: @nesting_run.id)
+      { payment: payment.reload, grant: grant, project: @nesting_run.project }
     end
 
     def snapshot_fields
