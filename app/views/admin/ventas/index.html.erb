@@ -1,3 +1,22 @@
+<%
+  status_labels = {
+    "succeeded" => "Exitoso",
+    "pending" => "Pendiente",
+    "failed" => "Fallido"
+  }
+
+  payment_method_labels = {
+    "card_usd" => "Tarjeta USD",
+    "card_crc" => "Tarjeta CRC",
+    "sinpe_crc" => "SINPE CRC"
+  }
+
+  purpose_labels = {
+    "single_download" => "Descarga suelta",
+    "plan_subscription" => "Plan"
+  }
+%>
+
 <div class="admin-dashboard">
   <header class="admin-dashboard__header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
     <div>
@@ -26,13 +45,13 @@
         <span class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Estado</span>
         <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.15rem;">
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "status[]", "succeeded", Array(params[:status]).include?("succeeded") %> SUCCEEDED
+            <%= check_box_tag "status[]", "succeeded", Array(params[:status]).include?("succeeded") %> <%= status_labels["succeeded"].upcase %>
           </label>
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "status[]", "pending", Array(params[:status]).include?("pending") %> PENDING
+            <%= check_box_tag "status[]", "pending", Array(params[:status]).include?("pending") %> <%= status_labels["pending"].upcase %>
           </label>
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "status[]", "failed", Array(params[:status]).include?("failed") %> FAILED
+            <%= check_box_tag "status[]", "failed", Array(params[:status]).include?("failed") %> <%= status_labels["failed"].upcase %>
           </label>
         </div>
       </div>
@@ -41,13 +60,13 @@
         <span class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Método de Pago</span>
         <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.15rem;">
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "payment_method[]", "card_usd", Array(params[:payment_method]).include?("card_usd") %> Card USD
+            <%= check_box_tag "payment_method[]", "card_usd", Array(params[:payment_method]).include?("card_usd") %> <%= payment_method_labels["card_usd"] %>
           </label>
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "payment_method[]", "card_crc", Array(params[:payment_method]).include?("card_crc") %> Card CRC
+            <%= check_box_tag "payment_method[]", "card_crc", Array(params[:payment_method]).include?("card_crc") %> <%= payment_method_labels["card_crc"] %>
           </label>
           <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
-            <%= check_box_tag "payment_method[]", "sinpe_crc", Array(params[:payment_method]).include?("sinpe_crc") %> SINPE CRC
+            <%= check_box_tag "payment_method[]", "sinpe_crc", Array(params[:payment_method]).include?("sinpe_crc") %> <%= payment_method_labels["sinpe_crc"] %>
           </label>
         </div>
       </div>
@@ -72,33 +91,33 @@
   <!-- Summary Cards -->
   <div class="admin-summary-grid">
     <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Succeeded (CRC)</div>
+      <div class="admin-stat-card__label">Ingresos Exitosos (CRC)</div>
       <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_crc, :crc) %></div>
       <div class="admin-stat-card__meta">Filtro actual colones</div>
     </div>
 
     <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Succeeded (USD)</div>
+      <div class="admin-stat-card__label">Ingresos Exitosos (USD)</div>
       <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_usd, :usd) %></div>
       <div class="admin-stat-card__meta">Filtro actual dólares</div>
     </div>
 
     <div class="admin-stat-card">
-      <div class="admin-stat-card__label">Transacciones Succeeded</div>
+      <div class="admin-stat-card__label">Transacciones Exitosas</div>
       <div class="admin-stat-card__value"><%= @succeeded_count %></div>
-      <div class="admin-stat-card__meta">Con éxito (succeeded)</div>
+      <div class="admin-stat-card__meta">Con éxito</div>
     </div>
 
     <div class="admin-stat-card">
       <div class="admin-stat-card__label">Transacciones Fallidas</div>
       <div class="admin-stat-card__value"><%= @failed_count %></div>
-      <div class="admin-stat-card__meta">Con error (failed)</div>
+      <div class="admin-stat-card__meta">Con error</div>
     </div>
 
     <div class="admin-stat-card">
       <div class="admin-stat-card__label">Transacciones Pendientes</div>
       <div class="admin-stat-card__value"><%= @pending_count %></div>
-      <div class="admin-stat-card__meta">En espera (pending)</div>
+      <div class="admin-stat-card__meta">En espera</div>
     </div>
   </div>
 
@@ -138,12 +157,12 @@
                 </td>
                 <td>
                   <span style="font-size: 0.8rem; font-weight: 500;">
-                    <%= payment.purpose == "plan_subscription" ? "Plan" : "Descarga suelta" %>
+                    <%= purpose_labels[payment.purpose] || payment.purpose.to_s.humanize %>
                   </span>
                 </td>
                 <td>
                   <span class="font-mono" style="font-size: 0.8rem;">
-                    <%= payment.payment_method.to_s.upcase.gsub('_', ' ') %>
+                    <%= payment_method_labels[payment.payment_method]&.upcase || payment.payment_method.to_s.upcase.gsub('_', ' ') %>
                   </span>
                 </td>
                 <td class="font-mono" style="font-size: 0.85rem;">
@@ -157,7 +176,7 @@
                 </td>
                 <td class="text-center">
                   <span class="badge badge--<%= payment.status %>">
-                    <%= payment.status.upcase %>
+                    <%= status_labels[payment.status]&.upcase || payment.status.upcase %>
                   </span>
                 </td>
                 <td style="font-size: 0.8rem; white-space: nowrap;">
@@ -229,12 +248,12 @@
         </div>
         <div class="detail-item">
           <div class="detail-item__label">Método de Pago</div>
-          <div class="detail-item__value"><%= payment.payment_method.to_s.upcase.gsub('_', ' ') %></div>
+          <div class="detail-item__value"><%= payment_method_labels[payment.payment_method] || payment.payment_method.to_s.upcase.gsub('_', ' ') %></div>
         </div>
         <div class="detail-item">
           <div class="detail-item__label">Estado</div>
           <div class="detail-item__value">
-            <span class="badge badge--<%= payment.status %>"><%= payment.status %></span>
+            <span class="badge badge--<%= payment.status %>"><%= status_labels[payment.status] || payment.status.upcase %></span>
           </div>
         </div>
         <div class="detail-item">
