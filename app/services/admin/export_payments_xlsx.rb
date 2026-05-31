@@ -211,6 +211,65 @@ module Admin
           )
         end
 
+        # ── Fila de TOTALES ────────────────────────────────────────────────
+        total_count        = sorted_keys.sum { |k| grouped[k].size }
+        grand_list         = sorted_keys.sum { |k| grouped[k].sum { |p| p.list_price.to_f } }.round(2)
+        grand_discount     = sorted_keys.sum { |k| grouped[k].sum { |p| p.discount_amount.to_f } }.round(2)
+        grand_subtotal     = sorted_keys.sum { |k| grouped[k].sum { |p| p.subtotal.to_f } }.round(2)
+        grand_tax          = sorted_keys.sum { |k| grouped[k].sum { |p| p.tax_amount.to_f } }.round(2)
+        grand_total        = sorted_keys.sum { |k| grouped[k].sum { |p|
+          p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f
+        } }.round(2)
+
+        totals_style = wb.styles.add_style(
+          bg_color: "1E3A5F",
+          fg_color: "FFFFFF",
+          b: true,
+          sz: 10,
+          alignment: { horizontal: :right, vertical: :center },
+          border: { style: :thin, color: "FFFFFF" }
+        )
+        totals_label_style = wb.styles.add_style(
+          bg_color: "1E3A5F",
+          fg_color: "FFFFFF",
+          b: true,
+          sz: 10,
+          alignment: { horizontal: :center, vertical: :center },
+          border: { style: :thin, color: "FFFFFF" }
+        )
+        totals_money_style = wb.styles.add_style(
+          bg_color: "1E3A5F",
+          fg_color: "FFFFFF",
+          b: true,
+          sz: 10,
+          format_code: "#,##0.00",
+          alignment: { horizontal: :right, vertical: :center },
+          border: { style: :thin, color: "FFFFFF" }
+        )
+
+        sheet.add_row(
+          [
+            "TOTAL",
+            "—",
+            "—",
+            total_count,
+            grand_list,
+            grand_discount,
+            grand_subtotal,
+            grand_tax,
+            grand_total
+          ],
+          types: [ :string, :string, :string, :integer,
+                   :float,  :float,  :float,  :float,  :float ],
+          style: [
+            totals_label_style, totals_label_style, totals_label_style,
+            totals_style,
+            totals_money_style, totals_money_style, totals_money_style,
+            totals_money_style, totals_money_style
+          ],
+          height: 24
+        )
+
         sheet.column_widths 14, 9, 16, 14, 18, 16, 24, 16, 18
         sheet.sheet_view.show_grid_lines = true
       end
