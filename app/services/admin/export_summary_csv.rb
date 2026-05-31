@@ -4,59 +4,77 @@ require "csv"
 
 module Admin
   class ExportSummaryCsv
+    SUMMARY_HEADERS = [
+      "Fecha (Día)",
+      "Moneda",
+      "Método de Pago",
+      "Cantidad de Ventas",
+      "Total Precio Lista",
+      "Total Descuento",
+      "Total Subtotal (Base)",
+      "Total Impuesto (IVA 13%)",
+      "Total Neto Cobrado"
+    ].freeze
+
     def self.call(payments, direction: "desc")
-      # Filter for succeeded payments since only succeeded payments are relevant to tax declaration
-      succeeded_payments = payments.where(status: "succeeded")
-
-      # Group by date (in America/Costa_Rica timezone), currency, and payment method
-      grouped = succeeded_payments.group_by do |p|
-        date_str = p.created_at.in_time_zone("America/Costa_Rica").to_date.to_s
-        [date_str, p.currency, p.payment_method]
-      end
-
-      csv_string = CSV.generate(headers: true) do |csv|
-        csv << [
-          "Fecha (Día)",
-          "Moneda",
-          "Método de Pago",
-          "Cantidad de Ventas",
-          "Total Precio Lista",
-          "Total Descuento",
-          "Total Subtotal (Base)",
-          "Total Impuesto (IVA 13%)",
-          "Total Neto Cobrado"
-        ]
-
-        # Sort chronologically by date, then currency, then payment method
-        sorted_keys = grouped.keys.sort_by { |k| [k[0], k[1], k[2]] }
-        sorted_keys = sorted_keys.reverse if direction == "desc"
-
-        sorted_keys.each do |key|
-          date_str, currency, payment_method = key
-          group_payments = grouped[key]
-
-          count = group_payments.size
-          sum_list = group_payments.sum { |p| p.list_price.to_f }
-          sum_discount = group_payments.sum { |p| p.discount_amount.to_f }
-          sum_subtotal = group_payments.sum { |p| p.subtotal.to_f }
-          sum_tax = group_payments.sum { |p| p.tax_amount.to_f }
-          sum_total = group_payments.sum { |p| p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f }
-
-          csv << [
-            date_str,
-            currency.to_s.upcase,
-            payment_method.to_s.upcase.gsub('_', ' '),
-            count,
-            sum_list.round(2),
-            sum_discount.round(2),
-            sum_subtotal.round(2),
-            sum_tax.round(2),
-            sum_total.round(2)
-          ]
-        end
+      csv_string = CSV.generate do |csv|
+        append_currency_section(csv, payments, currency: "crc", title: "DECLARACIÓN CRC — VENTAS LOCALES (IVA 13%)", direction:)
+        csv << []
+        append_currency_section(csv, payments, currency: "usd", title: "DECLARACIÓN USD — FACTURA DE EXPORTACIÓN", direction:)
       end
 
       "\uFEFF" + csv_string
     end
+
+    def self.append_currency_section(csv, payments, currency:, title:, direction:)
+      csv << [ title ]
+      csv << SUMMARY_HEADERS
+
+      succeeded = payments.where(status: "succeeded", currency: currency)
+      grouped = succeeded.group_by do |p|
+        date_str = p.created_at.in_time_zone("America/Costa_Rica").to_date.to_s
+        [ date_str, p.payment_method ]
+      end
+
+      sorted_keys = grouped.keys.sort_by { |k| [ k[0], k[1] ] }
+      sorted_keys = sorted_keys.reverse if direction == "desc"
+
+      sorted_keys.each do |key|
+        date_str, payment_method = key
+        group_payments = grouped.fetch(key)
+
+        csv << [
+          date_str,
+          currency.to_s.upcase,
+          payment_method.to_s.upcase.tr("_", " "),
+          group_payments.size,
+          group_payments.sum { |p| p.list_price.to_f }.round(2),
+          group_payments.sum { |p| p.discount_amount.to_f }.round(2),
+          group_payments.sum { |p| p.subtotal.to_f }.round(2),
+          group_payments.sum { |p| p.tax_amount.to_f }.round(2),
+          group_payments.sum { |p| p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f }.round(2)
+        ]
+      end
+
+      csv << totals_row(sorted_keys, grouped, currency)
+    end
+    private_class_method :append_currency_section
+
+    def self.totals_row(sorted_keys, grouped, currency)
+      [
+        "TOTAL #{currency.to_s.upcase}",
+        currency.to_s.upcase,
+        "—",
+        sorted_keys.sum { |k| grouped.fetch(k).size },
+        sorted_keys.sum { |k| grouped.fetch(k).sum { |p| p.list_price.to_f } }.round(2),
+        sorted_keys.sum { |k| grouped.fetch(k).sum { |p| p.discount_amount.to_f } }.round(2),
+        sorted_keys.sum { |k| grouped.fetch(k).sum { |p| p.subtotal.to_f } }.round(2),
+        sorted_keys.sum { |k| grouped.fetch(k).sum { |p| p.tax_amount.to_f } }.round(2),
+        sorted_keys.sum { |k| grouped.fetch(k).sum { |p|
+          p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f
+        } }.round(2)
+      ]
+    end
+    private_class_method :totals_row
   end
 end

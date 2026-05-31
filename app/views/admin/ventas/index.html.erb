@@ -85,24 +85,30 @@
     </div>
   <% end %>
 
-  <!-- Summary Cards -->
-  <div class="admin-summary-grid">
-    <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Exitosos (CRC)</div>
-      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_crc, :crc) %></div>
-      <div class="admin-stat-card__meta">Filtro actual colones</div>
-    </div>
+  <!-- Declaration summaries (CRC vs USD export) -->
+  <% crc_totals = @declaration_totals.fetch(:crc) %>
+  <% usd_totals = @declaration_totals.fetch(:usd) %>
 
-    <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Exitosos (USD)</div>
-      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_usd, :usd) %></div>
-      <div class="admin-stat-card__meta">Filtro actual dólares</div>
-    </div>
+  <%= render "declaration_panel",
+        title: "Declaración CRC — ventas locales (IVA 13%)",
+        subtitle: "Transacciones en colones para factura/tiquete electrónico nacional.",
+        totals: crc_totals,
+        currency: :crc,
+        show_iva: true %>
 
+  <%= render "declaration_panel",
+        title: "Declaración USD — factura de exportación",
+        subtitle: "Transacciones en dólares (sin IVA). Usar fecha del pago para tipo de cambio BCCR.",
+        totals: usd_totals,
+        currency: :usd,
+        show_iva: false %>
+
+  <!-- Activity counters -->
+  <div class="admin-summary-grid" style="margin-bottom: 2rem;">
     <div class="admin-stat-card">
       <div class="admin-stat-card__label">Transacciones Exitosas</div>
       <div class="admin-stat-card__value"><%= @succeeded_count %></div>
-      <div class="admin-stat-card__meta">Con éxito</div>
+      <div class="admin-stat-card__meta">CRC <%= crc_totals.count %> · USD <%= usd_totals.count %></div>
     </div>
 
     <div class="admin-stat-card">
@@ -118,102 +124,19 @@
     </div>
   </div>
 
-  <!-- Payments Table Panel -->
-  <section class="admin-panel">
-    <div class="admin-panel__header">
-      <h2 class="admin-panel__title">Transacciones encontradas (<%= @total_count %>)</h2>
-    </div>
+  <%= render "transactions_table",
+        title: "Transacciones en colones (CRC)",
+        subtitle: "Ventas locales sujetas a IVA — #{@crc_listing.total_count} encontrada(s).",
+        listing: @crc_listing,
+        direction: @direction,
+        currency_label: "colones" %>
 
-    <div class="table-container">
-      <% if @payments.any? %>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Ref / ID</th>
-              <th>Comprador</th>
-              <th>Concepto</th>
-              <th>Método</th>
-              <th>Subtotal</th>
-              <th>Impuesto</th>
-              <th class="text-right">Total</th>
-              <th class="text-center">Estado</th>
-              <th>
-                <% next_direction = @direction == "desc" ? "asc" : "desc" %>
-                <%= link_to admin_ventas_path(request.query_parameters.merge(direction: next_direction)), style: "color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;" do %>
-                  <span>Fecha</span>
-                  <span><%= @direction == "desc" ? "↓" : "↑" %></span>
-                <% end %>
-              </th>
-              <th class="text-center">Detalle</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @payments.each do |payment| %>
-              <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
-              <tr>
-                <td class="font-mono text-sm">
-                  <%= payment.purchase_reference.presence || "# #{payment.id}" %>
-                </td>
-                <td>
-                  <div style="font-weight: 500;"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
-                  <div class="text-muted font-mono" style="font-size: 0.75rem;"><%= payment.purchaser_email.presence || payment.user&.email %></div>
-                </td>
-                <td>
-                  <span style="font-size: 0.8rem; font-weight: 500;">
-                    <%= purpose_labels[payment.purpose] || payment.purpose.to_s.humanize %>
-                  </span>
-                </td>
-                <td>
-                  <span class="font-mono" style="font-size: 0.8rem;">
-                    <%= payment_method_labels[payment.payment_method]&.upcase || payment.payment_method.to_s.upcase.gsub('_', ' ') %>
-                  </span>
-                </td>
-                <td class="font-mono" style="font-size: 0.85rem;">
-                  <%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %>
-                </td>
-                <td class="font-mono" style="font-size: 0.85rem;">
-                  <%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %>
-                </td>
-                <td class="text-right font-mono font-bold">
-                  <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
-                </td>
-                <td class="text-center">
-                  <span class="badge badge--<%= payment.status %>">
-                    <%= status_labels[payment.status]&.upcase || payment.status.upcase %>
-                  </span>
-                </td>
-                <td style="font-size: 0.8rem; white-space: nowrap;">
-                  <%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y %H:%M") %>
-                </td>
-                <td class="text-center">
-                  <button type="button" class="btn btn-secondary btn--compact" onclick="document.getElementById('modal-<%= payment.id %>').showModal()">
-                    Ver
-                  </button>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% else %>
-        <div class="admin-empty-state">No se encontraron pagos con los filtros actuales.</div>
-      <% end %>
-    </div>
-
-    <!-- Pagination -->
-    <% if @total_pages > 1 %>
-      <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
-        <% if @page > 1 %>
-          <%= link_to "« Ant", admin_ventas_path(request.query_parameters.merge(page: @page - 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
-        <% end %>
-        <span style="align-self: center; font-size: 0.9rem; font-weight: 500; color: var(--fit-navy-dark, #1e3a5f);">
-          Pág. <%= @page %> de <%= @total_pages %>
-        </span>
-        <% if @page < @total_pages %>
-          <%= link_to "Sig »", admin_ventas_path(request.query_parameters.merge(page: @page + 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
-        <% end %>
-      </div>
-    <% end %>
-  </section>
+  <%= render "transactions_table",
+        title: "Transacciones en dólares (USD)",
+        subtitle: "Factura de exportación — #{@usd_listing.total_count} encontrada(s).",
+        listing: @usd_listing,
+        direction: @direction,
+        currency_label: "dólares" %>
 </div>
 
 <!-- Modals Detail Container -->

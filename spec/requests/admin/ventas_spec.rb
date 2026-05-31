@@ -98,6 +98,10 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body).to include("Jader Dugarte")
         expect(response.body).to include("John Doe")
         expect(response.body).to include("Pending Client")
+        expect(response.body).to include("Declaración CRC — ventas locales (IVA 13%)")
+        expect(response.body).to include("Declaración USD — factura de exportación")
+        expect(response.body).to include("Transacciones en colones (CRC)")
+        expect(response.body).to include("Transacciones en dólares (USD)")
       end
 
       it "filters by multiple statuses" do
@@ -272,7 +276,9 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         # Verify BOM prefix (\uFEFF)
         expect(response.body.start_with?("\uFEFF")).to be(true)
 
-        # Verify headers
+        # Verify headers and separated declaration sections
+        expect(response.body).to include("DECLARACIÓN CRC — VENTAS LOCALES (IVA 13%)")
+        expect(response.body).to include("DECLARACIÓN USD — FACTURA DE EXPORTACIÓN")
         expect(response.body).to include("Fecha (Día),Moneda,Método de Pago,Cantidad de Ventas,Total Precio Lista,Total Descuento,Total Subtotal (Base),Total Impuesto (IVA 13%),Total Neto Cobrado")
 
         # Verify aggregation results (2 succeeded, total: 3390, subtotal: 3000, tax: 390)

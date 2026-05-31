@@ -5,35 +5,30 @@ module Admin
     def index
       base_scope = build_filtered_scope
       @direction = params[:direction] == "asc" ? "asc" : "desc"
+      @page = [ params[:page].to_i, 1 ].max
 
-      # Compute metrics on the filtered base scope (excluding status filter)
-      @total_revenue_crc = base_scope.where(status: "succeeded", currency: "crc").sum("COALESCE(NULLIF(total_amount, 0), amount)")
-      @total_revenue_usd = base_scope.where(status: "succeeded", currency: "usd").sum("COALESCE(NULLIF(total_amount, 0), amount)")
+      @declaration_totals = DeclarationTotals.for_scope(base_scope)
       @succeeded_count = base_scope.where(status: "succeeded").count
       @failed_count = base_scope.where(status: "failed").count
       @pending_count = base_scope.where(status: "pending").count
 
-      # Apply status filter for listing
-      @payments_scope = base_scope
-      statuses = Array(params[:status]).reject(&:blank?)
-      if statuses.any?
-        @payments_scope = @payments_scope.where(status: statuses)
-      end
-
-      # Pagination
-      @page = [params[:page].to_i, 1].max
-      per_page = 20
-      @total_count = @payments_scope.count
-      @total_pages = (@total_count.to_f / per_page).ceil
-      @payments = @payments_scope.order(created_at: @direction.to_sym).limit(per_page).offset((@page - 1) * per_page)
+      @payments_scope = apply_status_filter(base_scope)
+      @crc_listing = VentasListing.call(
+        @payments_scope.where(currency: "crc"),
+        direction: @direction,
+        page: @page
+      )
+      @usd_listing = VentasListing.call(
+        @payments_scope.where(currency: "usd"),
+        direction: @direction,
+        page: @page
+      )
+      @payments = @crc_listing.payments + @usd_listing.payments
+      @total_count = @crc_listing.total_count + @usd_listing.total_count
     end
 
     def export
-      base_scope = build_filtered_scope
-      statuses = Array(params[:status]).reject(&:blank?)
-      if statuses.any?
-        base_scope = base_scope.where(status: statuses)
-      end
+      base_scope = apply_status_filter(build_filtered_scope)
 
       direction = params[:direction] == "asc" ? "asc" : "desc"
       payments = base_scope.order(created_at: direction.to_sym)
@@ -45,11 +40,7 @@ module Admin
     end
 
     def export_xlsx
-      base_scope = build_filtered_scope
-      statuses = Array(params[:status]).reject(&:blank?)
-      if statuses.any?
-        base_scope = base_scope.where(status: statuses)
-      end
+      base_scope = apply_status_filter(build_filtered_scope)
 
       direction = params[:direction] == "asc" ? "asc" : "desc"
       xlsx_data = ExportPaymentsXlsx.call(base_scope, direction: direction)
@@ -61,11 +52,7 @@ module Admin
     end
 
     def export_summary
-      base_scope = build_filtered_scope
-      statuses = Array(params[:status]).reject(&:blank?)
-      if statuses.any?
-        base_scope = base_scope.where(status: statuses)
-      end
+      base_scope = apply_status_filter(build_filtered_scope)
 
       direction = params[:direction] == "asc" ? "asc" : "desc"
       csv_data = ExportSummaryCsv.call(base_scope, direction: direction)
@@ -118,6 +105,13 @@ module Admin
       end
 
       scope
+    end
+
+    def apply_status_filter(scope)
+      statuses = Array(params[:status]).reject(&:blank?)
+      return scope if statuses.empty?
+
+      scope.where(status: statuses)
     end
   end
 end
