@@ -111,7 +111,7 @@ Paywall and checkout choose **CRC + SINPE** only when the visitor’s country is
 
 #### GeoLite2 fallback (recommended)
 
-If `CF-IPCountry` is missing, Fitloop looks up `request.remote_ip` in a local **GeoLite2-Country** database before falling back to user time zone or USD.
+If `CF-IPCountry` is missing, Fitloop looks up `request.remote_ip` in a local **GeoLite2-Country** database before falling back to user time zone or USD for billing, and to resolve the country code for internal user event analytics telemetry (`Analytics::ResolveCountry`).
 
 1. Create a free [MaxMind GeoLite2](https://www.maxmind.com/en/geolite2/signup) account and a license key.
 2. On the build or release host (or locally once, then ship the file):
