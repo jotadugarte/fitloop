@@ -115,14 +115,14 @@ RSpec.describe "Billing telemetry", "[REQ-FIT-ANALYTICS-001]", type: :request do
 
       it "tracks download_completed synchronously on download" do
         expect {
-          get "/mis-pagos/downloads/#{grant.id}"
+          get mis_pagos_download_path(grant)
         }.to change(UserEvent.where(event_type: "download_completed"), :count).by(1)
       end
 
       it "is idempotent on quick double requests" do
         expect {
-          get "/mis-pagos/downloads/#{grant.id}"
-          get "/mis-pagos/downloads/#{grant.id}"
+          get mis_pagos_download_path(grant)
+          get mis_pagos_download_path(grant)
         }.to change(UserEvent.where(event_type: "download_completed"), :count).by(1)
       end
     end
