@@ -19,7 +19,7 @@ module Nesting
       raise ArgumentError, "piece key is required" if value.blank?
 
       normalized = value.to_s
-      unless normalized.match?(LEGACY_FORMAT) || normalized.match?(STABLE_FORMAT)
+      unless normalized.match?(FORMAT)
         raise ArgumentError, "invalid piece key format"
       end
 
