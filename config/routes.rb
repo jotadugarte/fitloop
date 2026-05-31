@@ -127,6 +127,7 @@ Rails.application.routes.draw do
       query.present? ? "/admin/ventas/exportar?#{query}" : "/admin/ventas/exportar"
     }
     get "analytics", to: "analytics#index"
+    get "analytics/export", to: "analytics#export_csv", as: :export_analytics
     resources :usuarios, only: %i[index show], controller: "users"
   end
 

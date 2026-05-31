@@ -1,25 +1,16 @@
 # frozen_string_literal: true
 
+require "csv"
+
 module Admin
   class AnalyticsController < Admin::BaseController
+    before_action :set_filters_and_events, only: [:index, :export_csv]
+
     def index
-      # Retrieve filters
-      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : 30.days.ago.to_date
-      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
-      @locale = params[:locale]
-      @payment_method = params[:payment_method]
-      @currency = params[:currency]
-
-      # Load events
-      events = UserEvent.where(occurred_at: @start_date.beginning_of_day..@end_date.end_of_day)
-      events = events.where(locale: @locale) if @locale.present?
-      events = events.where("properties ->> 'payment_method' = ?", @payment_method) if @payment_method.present?
-      events = events.where("properties ->> 'currency' = ?", @currency) if @currency.present?
-
       # Calculate funnel metrics
       @funnel_counts = {}
       Analytics::FunnelStages::ORDERED.each do |stage|
-        @funnel_counts[stage] = events.where(event_type: stage).count
+        @funnel_counts[stage] = @events.where(event_type: stage).count
       end
 
       # Conversion calculation
@@ -55,6 +46,66 @@ module Admin
       @available_locales = UserEvent.where.not(locale: nil).distinct.pluck(:locale)
       @available_payment_methods = UserEvent.where("properties ->> 'payment_method' IS NOT NULL").distinct.pluck(Arel.sql("properties ->> 'payment_method'"))
       @available_currencies = UserEvent.where("properties ->> 'currency' IS NOT NULL").distinct.pluck(Arel.sql("properties ->> 'currency'"))
+    end
+
+    def export_csv
+      csv_data = CSV.generate(headers: true) do |csv|
+        csv << [
+          "ID",
+          "Event Type",
+          "Priority",
+          "Occurred At",
+          "User ID",
+          "Anonymous Session Key",
+          "Tab ID",
+          "Project ID",
+          "Nesting Run ID",
+          "IP",
+          "User Agent",
+          "Country Code",
+          "Locale",
+          "Properties"
+        ]
+
+        @events.find_each do |event|
+          csv << [
+            event.id,
+            event.event_type,
+            event.priority,
+            event.occurred_at.iso8601,
+            event.user_id,
+            event.anonymous_session_key,
+            event.tab_id,
+            event.project_id,
+            event.nesting_run_id,
+            event.ip,
+            event.user_agent,
+            event.country_code,
+            event.locale,
+            event.properties.to_json
+          ]
+        end
+      end
+
+      send_data csv_data,
+                filename: "user_events_export_#{Date.current.to_s}.csv",
+                type: "text/csv; charset=utf-8",
+                disposition: "attachment"
+    end
+
+    private
+
+    def set_filters_and_events
+      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : 30.days.ago.to_date
+      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+      @locale = params[:locale]
+      @payment_method = params[:payment_method]
+      @currency = params[:currency]
+
+      @events = UserEvent.where(occurred_at: @start_date.beginning_of_day..@end_date.end_of_day).order(occurred_at: :desc)
+      @events = @events.where(locale: @locale) if @locale.present?
+      @events = @events.where("properties ->> 'payment_method' = ?", @payment_method) if @payment_method.present?
+      @events = @events.where("properties ->> 'currency' = ?", @currency) if @currency.present?
     end
   end
 end
