@@ -6,12 +6,13 @@ module Billing
     class HandleWebhookEvent
       class PaymentNotFound < StandardError; end
 
-      def self.call(payload:)
-        new(payload: payload).call
+      def self.call(payload:, request: nil)
+        new(payload: payload, request: request).call
       end
 
-      def initialize(payload:)
+      def initialize(payload:, request: nil)
         @event = WebhookEvent.new(payload)
+        @request = request
       end
 
       def call
@@ -40,11 +41,11 @@ module Billing
       def dispatch_for(payment)
         case @event.type
         when "payment-intent.succeeded"
-          Billing::FulfillPayment.call(payment: payment)
+          Billing::FulfillPayment.call(payment: payment, request: @request)
         when "payment-intent.failed"
           return abandon_incomplete_card_instead!(payment) if abandon_incomplete_card_webhook?(payment)
 
-          Billing::FailPayment.call(payment: payment)
+          Billing::FailPayment.call(payment: payment, request: @request)
         else
           :ignored
         end

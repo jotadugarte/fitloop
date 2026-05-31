@@ -3,26 +3,42 @@
 module Billing
   # [REQ-FIT-BILL-001] [REQ-FIT-BILL-002] [REQ-FIT-BILL-003] Grant entitlements after confirmed payment.
   class FulfillPayment
-    def self.call(payment:)
-      new(payment: payment).call
+    def self.call(payment:, request: nil, session: nil)
+      new(payment: payment, request: request, session: session).call
     end
 
-    def initialize(payment:)
+    def initialize(payment:, request: nil, session: nil)
       @payment = payment
+      @request = request
+      @session = session
     end
 
     def call
       raise ArgumentError, "payment required" if @payment.nil?
       return :already_fulfilled if @payment.succeeded?
 
-      case @payment.purpose
-      when "single_download"
-        fulfill_single_download!
-      when "plan_subscription"
-        fulfill_plan_subscription!
-      else
-        raise ArgumentError, "unsupported payment purpose: #{@payment.purpose}"
-      end
+      res = case @payment.purpose
+            when "single_download"
+              fulfill_single_download!
+            when "plan_subscription"
+              fulfill_plan_subscription!
+            else
+              raise ArgumentError, "unsupported payment purpose: #{@payment.purpose}"
+            end
+
+      Analytics::TrackEvent.call(
+        "payment_succeeded",
+        user_id: @payment.user_id,
+        anonymous_session_key: @session&.[](:anonymous_session_key),
+        project_id: @payment.nesting_run&.project_id,
+        nesting_run_id: @payment.nesting_run_id,
+        ip: @request&.remote_ip,
+        user_agent: @request&.user_agent,
+        country_code: @request ? Analytics::ResolveCountry.call(@request) : nil,
+        locale: @request ? I18n.locale.to_s : nil
+      )
+
+      res
     end
 
     private

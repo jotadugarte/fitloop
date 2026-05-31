@@ -10,6 +10,20 @@ module MisPagos
 
     def show
       payload = Billing::RetainedDownload.serve!(grant: @grant)
+
+      Analytics::TrackEvent.call(
+        "download_completed",
+        user_id: current_user&.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        project_id: @grant.nesting_run&.project_id,
+        nesting_run_id: @grant.nesting_run_id,
+        idempotency_key: "download_completed_grant_#{@grant.id}_#{Time.current.to_i / 10}",
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
       send_data(
         payload[:data],
         filename: payload[:filename],

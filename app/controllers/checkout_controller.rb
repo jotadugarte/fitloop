@@ -155,7 +155,7 @@ class CheckoutController < ApplicationController
       if incomplete_card_checkout_abandonment?(payment)
         Billing::AbandonIncompleteCardCheckout.call(payment: payment)
       else
-        Billing::FailPayment.call(payment: payment)
+        Billing::FailPayment.call(payment: payment, request: request, session: session)
       end
     end
     apply_card_checkout_return_selection!(payment)
@@ -179,7 +179,9 @@ class CheckoutController < ApplicationController
         tier_months: @tier_months,
         payment_method: params[:payment_method],
         outcome: params[:outcome],
-        project: @project
+        project: @project,
+        request: request,
+        session: session
       )
       if result == :failed
         redirect_to checkout_path, alert: t("billing.checkout.failure")
@@ -195,7 +197,9 @@ class CheckoutController < ApplicationController
       nesting_run: @nesting_run,
       payment_method: params[:payment_method],
       outcome: params[:outcome],
-      iva_applicable: billing_context.fetch(:iva_applicable)
+      iva_applicable: billing_context.fetch(:iva_applicable),
+      request: request,
+      session: session
     )
     if result == :failed
       redirect_to checkout_path(nesting_run_id: @nesting_run.id), alert: t("billing.checkout.failure")
@@ -354,7 +358,7 @@ class CheckoutController < ApplicationController
   def render_confirm_card_result!(payment, result)
     status = result.fetch(:status).to_s
     if status == "failed"
-      Billing::FailPayment.call(payment: payment)
+      Billing::FailPayment.call(payment: payment, request: request, session: session)
       render json: { error: t("billing.checkout.onvo.payment_failed") }, status: :unprocessable_content
       return
     end
