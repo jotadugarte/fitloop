@@ -301,9 +301,31 @@ Admin user (users.admin)
 
 ---
 
+## 12. Admin User Analytics & Event Ingest
+
+**REQ:** `REQ-FIT-ANALYTICS-001`.
+
+```
+Browser / Server side actions
+  → Analytics::TrackEvent.call(event_type, properties, ...)
+  → If critical (e.g. nest_completed, payment_succeeded, account_deleted):
+       → sync database write to `user_events`
+  → If low_priority (e.g. workspace_started, first_dxf_uploaded, paywall_viewed):
+       → check rate limit (max 300/hour per session/user)
+       → enqueue TrackEventJob -> async database write to `user_events`
+```
+
+**Anonymization & Merge:**
+* On sign-in / registration, anonymous session events are mapped to the signed-in user (`Analytics::MergeAnonymousSession`).
+* Account deletion anonymizes the user record but preserves user event history. email is stored in `account_deleted` properties JSONB for admin audit.
+
+---
+
 ## 7. Forbidden Shortcuts
 
 - Do not write to `nested.dxf` from Rails — CLI only.
 - Do not skip `ProjectReadinessValidator` before enqueueing `NestingJob`.
 - Do not bypass `Workspace.resolve!` for user-facing project routes that use `SetsWorkspaceProject`.
 - Do not assume `NestingRun` holds the downloadable DXF — it lives on `Project#nested_dxf`.
+- Do not bypass `Analytics::TrackEvent` by writing directly to `UserEvent` model from controller logic.
+

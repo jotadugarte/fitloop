@@ -147,6 +147,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 | **REQ-FIT-ADMIN-001** | Admin foundation + `/admin/ventas` sales report (filters, CRC/USD tables, Hacienda totals, XLSX export, `cabys_code` on `payments`); stealth 404 gate on `/admin/*` | Pre-live |
+| **REQ-FIT-ANALYTICS-001** | Admin analytics & user event bitácora (dashboard, funnel stages, event catalog, analytics.yml thresholds, geo-IP, user timeline, A41 drift contract verifier) | Pre-live |
 
 ### REQ-FIT-AUTH-001 (detail)
 
@@ -220,6 +221,18 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Admin ventas (`/admin/ventas`):** Read-only reporting on `Payment` rows via `Admin::ReportingScope` (excludes `superseded_at` set). Filters by date (default: current month in `America/Costa_Rica`), status, payment method, and search; separate CRC/USD tables with independent pagination (`crc_page` / `usd_page`). Spanish product labels via `Admin::PaymentDisplayLabels` (e.g. `single_download` → “Procesamiento de anidado DXF”; `plan_N_months` from `product_description`). **Export (XLSX only):** `GET /admin/ventas/exportar` — workbook with per-currency detail + Hacienda summary sheets. Legacy `/admin/ventas/exportar-xlsx` redirects preserving query string. No CSV export.
 - **CAByS (Hacienda CR):** `payments.cabys_code` required, default `Payment::DEFAULT_CABYS_CODE` (`8314200000100`), assigned on create; backfill migration for legacy NULL rows.
 - **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under `app/assets/stylesheets/admin.css`.
+
+### REQ-FIT-ANALYTICS-001 (detail)
+
+**Scope:** Internal user analytics dashboard and per-user historical event timeline log (bitácora).
+
+- **Data Model:** Flat `user_events` table with standard columns and `properties` JSONB for metadata. Append-only.
+- **Pipeline:** `Analytics::TrackEvent` service records events. Critical events are recorded synchronously in the request path; low-priority events are enqueued asynchronously to `TrackEventJob` with a 300/hour rate limit.
+- **Funnel Stages:** Sequential conversion stages matching `Analytics::FunnelStages::ORDERED`.
+- **Drift Governance (A41):** 6-layer contract check enforcing consistency between `ANALYTICS_AND_REPORTING_CONTRACT.md`, `analytics_event_catalog.yml`, code constants, and the `SpecDocVerifier` test suite.
+- **Geolocation:** Country code resolved via local GeoLite2 database or Cloudflare header fallback.
+- **Anonymization:** Deleting accounts anonymizes user record, but keeps historical timelines by storing email snapshots inside `account_deleted` event properties.
+- **Dashboard UI:** Graced with custom Chart.js v4 graphs in internal `/admin/analytics` and `/admin/usuarios` routes.
 
 ### REQ-FIT-BILL-001 (detail)
 
