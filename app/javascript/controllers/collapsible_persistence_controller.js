@@ -33,6 +33,7 @@ function pagePath() {
 
 function lockedClosedOnPath(path, key) {
   if (path !== "/taller") return false
+  if (document.querySelector("[data-workshop-setup-mode='true']")) return false
   return key === "workshop-sheet-inventory" || key === "workshop-source-dxf-detail"
 }
 
