@@ -781,3 +781,19 @@ en:
     mailer:
       confirmation_instructions:
         subject: "Confirmation instructions"
+
+  admin:
+    events:
+      workspace_started: "Workspace started"
+      first_dxf_uploaded: "First DXF file uploaded"
+      project_discarded: "Project discarded"
+      nest_completed: "Nesting completed"
+      account_registered: "Account registered"
+      user_logged_in: "User logged in"
+      user_logged_out: "User logged out"
+      email_confirmed: "Email confirmed"
+      account_deleted: "Account deleted"
+      paywall_viewed: "Paywall viewed"
+      payment_succeeded: "Payment succeeded"
+      payment_failed: "Payment failed"
+      download_completed: "Download completed"

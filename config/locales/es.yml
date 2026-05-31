@@ -796,3 +796,19 @@ es:
     mailer:
       confirmation_instructions:
         subject: "Instrucciones de confirmación"
+
+  admin:
+    events:
+      workspace_started: "Espacio de trabajo iniciado"
+      first_dxf_uploaded: "Primer archivo DXF cargado"
+      project_discarded: "Proyecto descartado"
+      nest_completed: "Anidado finalizado"
+      account_registered: "Cuenta registrada"
+      user_logged_in: "Sesión iniciada"
+      user_logged_out: "Sesión cerrada"
+      email_confirmed: "Correo verificado"
+      account_deleted: "Cuenta eliminada"
+      paywall_viewed: "Paywall visualizado"
+      payment_succeeded: "Pago exitoso"
+      payment_failed: "Pago fallido"
+      download_completed: "Descarga completada"

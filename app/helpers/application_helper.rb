@@ -138,21 +138,6 @@ module ApplicationHelper
   end
 
   def event_label(event_type)
-    translations = {
-      "workspace_started" => "Espacio de trabajo iniciado",
-      "first_dxf_uploaded" => "Primer archivo DXF cargado",
-      "project_discarded" => "Proyecto descartado",
-      "nest_completed" => "Anidado finalizado",
-      "account_registered" => "Cuenta registrada",
-      "user_logged_in" => "Sesión iniciada",
-      "user_logged_out" => "Sesión cerrada",
-      "email_confirmed" => "Correo verificado",
-      "account_deleted" => "Cuenta eliminada",
-      "paywall_viewed" => "Paywall visualizado",
-      "payment_succeeded" => "Pago exitoso",
-      "payment_failed" => "Pago fallido",
-      "download_completed" => "Descarga completada"
-    }
-    translations[event_type.to_s] || event_type.to_s.humanize
+    t("admin.events.#{event_type}", default: event_type.to_s.humanize)
   end
 end
