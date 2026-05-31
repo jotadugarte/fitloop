@@ -1,0 +1,253 @@
+<div class="admin-dashboard">
+  <header class="admin-dashboard__header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+    <div>
+      <h1 class="admin-dashboard__title">Ventas y Reporte de Pagos</h1>
+      <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
+    </div>
+    <div>
+      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;" do %>
+        <span>Exportar CSV (Filtrado)</span>
+      <% end %>
+    </div>
+  </header>
+
+  <!-- Filters Section -->
+  <%= form_with url: admin_ventas_path, method: :get, local: true, class: "admin-panel", style: "margin-bottom: 2rem;" do |f| %>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; align-items: end;">
+      <div>
+        <label for="search" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Buscar</label>
+        <%= f.text_field :search, value: params[:search], placeholder: "Nombre, email, ref...", id: "search", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+      </div>
+      <div>
+        <label for="status" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Estado</label>
+        <%= f.select :status, [["Todos", ""], ["SUCCEEDED", "succeeded"], ["PENDING", "pending"], ["FAILED", "failed"]], { selected: params[:status] }, { id: "status", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" } %>
+      </div>
+      <div>
+        <label for="payment_method" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Método</label>
+        <%= f.select :payment_method, [["Todos", ""], ["Card USD", "card_usd"], ["Card CRC", "card_crc"], ["SINPE CRC", "sinpe_crc"]], { selected: params[:payment_method] }, { id: "payment_method", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" } %>
+      </div>
+      <div>
+        <label for="start_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Desde</label>
+        <%= f.date_field :start_date, value: params[:start_date], id: "start_date", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+      </div>
+      <div>
+        <label for="end_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Hasta</label>
+        <%= f.date_field :end_date, value: params[:end_date], id: "end_date", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <%= f.submit "Filtrar", class: "btn btn-secondary", style: "flex: 1; padding: 0.45rem; font-size: 0.85rem; font-weight: 500;" %>
+        <%= link_to "Limpiar", admin_ventas_path, class: "btn btn-secondary", style: "flex: 1; text-align: center; padding: 0.45rem; text-decoration: none; font-size: 0.85rem; font-weight: 500; display: inline-block; line-height: 1.5;" %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Summary Cards -->
+  <div class="admin-summary-grid">
+    <div class="admin-stat-card admin-stat-card--revenue">
+      <div class="admin-stat-card__label">Ingresos Succeeded (CRC)</div>
+      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_crc, :crc) %></div>
+      <div class="admin-stat-card__meta">Filtro actual colones</div>
+    </div>
+
+    <div class="admin-stat-card admin-stat-card--revenue">
+      <div class="admin-stat-card__label">Ingresos Succeeded (USD)</div>
+      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_usd, :usd) %></div>
+      <div class="admin-stat-card__meta">Filtro actual dólares</div>
+    </div>
+
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Succeeded</div>
+      <div class="admin-stat-card__value"><%= @succeeded_count %></div>
+      <div class="admin-stat-card__meta">Con éxito (succeeded)</div>
+    </div>
+
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Fallidas</div>
+      <div class="admin-stat-card__value"><%= @failed_count %></div>
+      <div class="admin-stat-card__meta">Con error (failed)</div>
+    </div>
+
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Pendientes</div>
+      <div class="admin-stat-card__value"><%= @pending_count %></div>
+      <div class="admin-stat-card__meta">En espera (pending)</div>
+    </div>
+  </div>
+
+  <!-- Payments Table Panel -->
+  <section class="admin-panel">
+    <div class="admin-panel__header">
+      <h2 class="admin-panel__title">Transacciones encontradas (<%= @total_count %>)</h2>
+    </div>
+
+    <div class="table-container">
+      <% if @payments.any? %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Ref / ID</th>
+              <th>Comprador</th>
+              <th>Concepto</th>
+              <th>Método</th>
+              <th>Subtotal</th>
+              <th>Impuesto</th>
+              <th class="text-right">Total</th>
+              <th class="text-center">Estado</th>
+              <th>Fecha</th>
+              <th class="text-center">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @payments.each do |payment| %>
+              <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
+              <tr>
+                <td class="font-mono text-sm">
+                  <%= payment.purchase_reference.presence || "# #{payment.id}" %>
+                </td>
+                <td>
+                  <div style="font-weight: 500;"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
+                  <div class="text-muted font-mono" style="font-size: 0.75rem;"><%= payment.purchaser_email.presence || payment.user&.email %></div>
+                </td>
+                <td>
+                  <span style="font-size: 0.8rem; font-weight: 500;">
+                    <%= payment.purpose == "plan_subscription" ? "Plan" : "Descarga suelta" %>
+                  </span>
+                </td>
+                <td>
+                  <span class="font-mono" style="font-size: 0.8rem;">
+                    <%= payment.payment_method.to_s.upcase.gsub('_', ' ') %>
+                  </span>
+                </td>
+                <td class="font-mono" style="font-size: 0.85rem;">
+                  <%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %>
+                </td>
+                <td class="font-mono" style="font-size: 0.85rem;">
+                  <%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %>
+                </td>
+                <td class="text-right font-mono font-bold">
+                  <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
+                </td>
+                <td class="text-center">
+                  <span class="badge badge--<%= payment.status %>">
+                    <%= payment.status.upcase %>
+                  </span>
+                </td>
+                <td style="font-size: 0.8rem; white-space: nowrap;">
+                  <%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y %H:%M") %>
+                </td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-secondary btn--compact" onclick="document.getElementById('modal-<%= payment.id %>').showModal()">
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="admin-empty-state">No se encontraron pagos con los filtros actuales.</div>
+      <% end %>
+    </div>
+
+    <!-- Pagination -->
+    <% if @total_pages > 1 %>
+      <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+        <% if @page > 1 %>
+          <%= link_to "« Ant", admin_ventas_path(request.query_parameters.merge(page: @page - 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
+        <% end %>
+        <span style="align-self: center; font-size: 0.9rem; font-weight: 500; color: var(--fit-navy-dark, #1e3a5f);">
+          Pág. <%= @page %> de <%= @total_pages %>
+        </span>
+        <% if @page < @total_pages %>
+          <%= link_to "Sig »", admin_ventas_path(request.query_parameters.merge(page: @page + 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+</div>
+
+<!-- Modals Detail Container -->
+<% @payments.each do |payment| %>
+  <dialog id="modal-<%= payment.id %>" class="admin-modal">
+    <div class="admin-modal__header">
+      <h3 class="admin-modal__title">Detalle de Pago: <%= payment.purchase_reference.presence || "##{payment.id}" %></h3>
+      <button type="button" class="admin-modal__close" onclick="document.getElementById('modal-<%= payment.id %>').close()">&times;</button>
+    </div>
+    <div class="admin-modal__body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item__label">Nombre del Comprador</div>
+          <div class="detail-item__value"><%= payment.purchaser_name.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Email del Comprador</div>
+          <div class="detail-item__value" style="word-break: break-all;"><%= payment.purchaser_email.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">ID de Usuario</div>
+          <div class="detail-item__value"><%= payment.user_id %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Identificación SINPE</div>
+          <div class="detail-item__value"><%= payment.sinpe_transfer_identification.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Móvil SINPE</div>
+          <div class="detail-item__value"><%= payment.sinpe_transfer_mobile_number.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">ID Intento de Pago (Gateway)</div>
+          <div class="detail-item__value" style="word-break: break-all;"><%= payment.onvo_payment_intent_id.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Método de Pago</div>
+          <div class="detail-item__value"><%= payment.payment_method.to_s.upcase.gsub('_', ' ') %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Estado</div>
+          <div class="detail-item__value">
+            <span class="badge badge--<%= payment.status %>"><%= payment.status %></span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Código CAByS</div>
+          <div class="detail-item__value font-mono"><%= payment.cabys_code.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Fecha</div>
+          <div class="detail-item__value"><%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%Y %H:%M:%S CR") %></div>
+        </div>
+      </div>
+
+      <h4 style="margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 1px solid var(--fit-border, #c5d0dc); padding-bottom: 0.25rem; color: var(--fit-navy-dark, #1e3a5f); font-size: 0.95rem;">Desglose Financiero</h4>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item__label">Precio de Lista</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.list_price, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Descuento</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.discount_amount, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Subtotal</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Impuesto (IVA 13%)</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item" style="grid-column: 1 / -1; background: var(--fit-bg, #f0f3f7); padding: 0.5rem; border-radius: 4px;">
+          <div class="detail-item__label">Total Transado</div>
+          <div class="detail-item__value font-mono" style="font-size: 1.2rem; font-weight: 700;">
+            <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
+            <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-modal__footer">
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-<%= payment.id %>').close()">Cerrar</button>
+    </div>
+  </dialog>
+<% end %>

@@ -72,16 +72,16 @@
     <step id="4" status="complete">
       <description>Add routes for `/admin/ventas` and `/admin/ventas/exportar` under the `:admin` namespace in config/routes.rb.</description>
     </step>
-    <step id="5" status="pending">
+    <step id="5" status="complete">
       <description>Implement Admin::VentasController with index and export actions, supporting status filtering, search/date filters, and paginated payments query.</description>
     </step>
-    <step id="6" status="pending">
+    <step id="6" status="complete">
       <description>Update the Admin dashboard skeleton layout to link to the new Ventas page and remove "Próximamente" from the Ventas link.</description>
     </step>
-    <step id="7" status="pending">
+    <step id="7" status="complete">
       <description>Create views for Admin::Ventas index page, including filters, payment table, total metrics summary cards, and detail modal/drawers.</description>
     </step>
-    <step id="8" status="pending">
+    <step id="8" status="complete">
       <description>Implement CSV generation in a helper or service class, exporting all fields necessary for Costa Rica invoicing including `cabys_code`.</description>
     </step>
     <step id="9" status="pending">

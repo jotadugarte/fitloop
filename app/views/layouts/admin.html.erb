@@ -14,8 +14,13 @@
   </head>
   <body class="layout-admin">
     <header class="admin-header">
-      <div class="admin-header__brand">
+      <div class="admin-header__brand" style="display: flex; align-items: center; gap: 2rem;">
         <%= link_to "Fitloop Admin", admin_root_path %>
+        <nav class="admin-header__nav" style="display: flex; gap: 1.25rem;">
+          <%= link_to "Inicio", admin_root_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500; opacity: 0.85;" %>
+          <%= link_to "Ventas", admin_ventas_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500;" %>
+          <span style="color: rgba(255,255,255,0.4); font-size: 0.9rem; font-weight: 500; cursor: not-allowed;">Analytics (Próximamente)</span>
+        </nav>
       </div>
       <div class="admin-header__user">
         <% if user_signed_in? %>
