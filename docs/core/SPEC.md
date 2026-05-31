@@ -146,7 +146,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); ONVO payment intents + webhook fulfillment (`BILLING_GATEWAY`) | P7 |
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
-| **REQ-FIT-ADMIN-001** | Admin foundation: `users.admin` flag, CSV promotion on boot, secure 404 gate on `/admin/*`, skeleton dashboard and layout | Pre-live |
+| **REQ-FIT-ADMIN-001** | Admin foundation + `/admin/ventas` sales report (filters, CRC/USD tables, Hacienda totals, XLSX export, `cabys_code` on `payments`); stealth 404 gate on `/admin/*` | Pre-live |
 
 ### REQ-FIT-AUTH-001 (detail)
 
@@ -217,8 +217,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Admin routes:** Under the `/admin` namespace (linked to `/admin` root index).
 - **Stealth access gate:** `Admin::BaseController` enforces authorization via `require_admin!`. Unauthorized requests (both unauthenticated guest requests and authenticated non-admin users) raise `ActionController::RoutingError` which returns a standard **404 Not Found** response to the client. This avoids leaking the existence of the administrative endpoints.
 - **Admin dashboard skeleton:** Landing at `/admin` with links to **Ventas** (active: `/admin/ventas`, payment history, Hacienda declaration panels, XLSX export) and **Analytics** (pending).
-- **Admin ventas (`/admin/ventas`):** Filters by date (default: current month in `America/Costa_Rica`), status, payment method, and search; separate CRC/USD tables with pagination; excludes superseded payments (`superseded_at` present). Export: `GET /admin/ventas/exportar` (XLSX workbook: detail + Hacienda summary per currency). Legacy path `/admin/ventas/exportar-xlsx` redirects to `/admin/ventas/exportar`.
-- **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under [admin.css](file:///home/jader/proyectos/fitloop/app/assets/stylesheets/admin.css).
+- **Admin ventas (`/admin/ventas`):** Read-only reporting on `Payment` rows via `Admin::ReportingScope` (excludes `superseded_at` set). Filters by date (default: current month in `America/Costa_Rica`), status, payment method, and search; separate CRC/USD tables with independent pagination (`crc_page` / `usd_page`). Spanish product labels via `Admin::PaymentDisplayLabels` (e.g. `single_download` → “Procesamiento de anidado DXF”; `plan_N_months` from `product_description`). **Export (XLSX only):** `GET /admin/ventas/exportar` — workbook with per-currency detail + Hacienda summary sheets. Legacy `/admin/ventas/exportar-xlsx` redirects preserving query string. No CSV export.
+- **CAByS (Hacienda CR):** `payments.cabys_code` required, default `Payment::DEFAULT_CABYS_CODE` (`8314200000100`), assigned on create; backfill migration for legacy NULL rows.
+- **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under `app/assets/stylesheets/admin.css`.
 
 ### REQ-FIT-BILL-001 (detail)
 

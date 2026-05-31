@@ -275,6 +275,32 @@ SINPE pending checkout (v1.2)
 
 ---
 
+## 11. Admin ventas reporting (read-only)
+
+**REQ:** `REQ-FIT-ADMIN-001`.
+
+```
+Admin user (users.admin)
+  → GET /admin/ventas
+  → Admin::VentasController#index
+       → Admin::ReportingScope (Payment.where(superseded_at: nil))
+       → Admin::VentasFilter (dates, status, method, search — no params mutation)
+       → DeclarationTotals (succeeded aggregates by CRC/USD)
+       → VentasListing (paginated CRC + USD tables)
+  → GET /admin/ventas/exportar?…filters…
+  → Admin::VentasController#export_xlsx
+       → ExportPaymentsXlsx (detail + Hacienda summary sheets per currency)
+```
+
+| Stage | Component | Side effects |
+|-------|-----------|--------------|
+| Index | `VentasController`, filters, listings | **None** on `payments` — read-only |
+| Export | `ExportPaymentsXlsx` | **None** — streams XLSX in memory |
+
+**Forbidden:** include `superseded_at` payments in admin ventas scope or Hacienda totals; CSV export endpoints; redirect non-admin users to login (use 404); mutate payments from admin UI.
+
+---
+
 ## 7. Forbidden Shortcuts
 
 - Do not write to `nested.dxf` from Rails — CLI only.
