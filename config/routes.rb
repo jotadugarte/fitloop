@@ -120,6 +120,11 @@ Rails.application.routes.draw do
 
   namespace :admin do
     root to: "dashboard#index"
+    get "exportar-ventas", to: "dashboard#export_payments", as: :export_payments
   end
+
+  # Fallback redirects for relative admin path resolution
+  get "taller/admin", to: redirect("/admin")
+  get "mi-cuenta/admin", to: redirect("/admin")
 end
 

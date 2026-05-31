@@ -2,6 +2,9 @@
   <% if user_signed_in? %>
     <%= link_to t("auth.nav.account"), edit_user_registration_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
     <%= link_to t("auth.nav.payments"), mis_pagos_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
+    <% if current_user.admin? %>
+      <%= link_to "Admin", admin_root_path, class: "btn btn-secondary btn--compact", data: { turbo_frame: "_top" } %>
+    <% end %>
     <%= button_to t("auth.nav.sign_out"),
           destroy_user_session_path,
           method: :delete,

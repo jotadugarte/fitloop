@@ -70,3 +70,4 @@ group :development do
 end
 
 gem "maxminddb", "~> 0.1.22"
+gem "csv"
