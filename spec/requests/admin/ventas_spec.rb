@@ -225,7 +225,7 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body).to include('"=""123456789012"""')
         expect(response.body).to include('"=""555555555555"""')
         expect(response.body).to include('"=""pi_export_ventas"""')
-        expect(response.body).to include('"=""8314200000100"""') # cabys_code
+        expect(response.body).to include(%("=""#{Payment::DEFAULT_CABYS_CODE}"""))
       end
     end
   end

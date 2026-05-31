@@ -1,26 +1,11 @@
 <%
-  status_labels = {
-    "succeeded" => "Exitoso",
-    "pending" => "Pendiente",
-    "failed" => "Fallido"
-  }
-
-  payment_method_labels = {
-    "card_usd" => "Tarjeta USD",
-    "card_crc" => "Tarjeta CRC",
-    "sinpe_crc" => "SINPE CRC"
-  }
-
-  purpose_labels = {
-    "single_download" => "Descarga suelta",
-    "plan_subscription" => "Plan"
-  }
+  page_param = local_assigns.fetch(:page_param, :page)
 %>
 
-<section class="admin-panel" style="margin-bottom: 2rem;">
+<section class="admin-panel admin-panel--spaced">
   <div class="admin-panel__header">
     <h2 class="admin-panel__title"><%= title %></h2>
-    <p style="margin: 0.35rem 0 0; color: var(--fit-text-muted, #5c6d82); font-size: 0.85rem;"><%= subtitle %></p>
+    <p class="admin-panel__subtitle"><%= subtitle %></p>
   </div>
 
   <div class="table-container">
@@ -38,7 +23,7 @@
             <th class="text-center">Estado</th>
             <th>
               <% next_direction = direction == "desc" ? "asc" : "desc" %>
-              <%= link_to admin_ventas_path(request.query_parameters.merge(direction: next_direction)), style: "color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;" do %>
+              <%= link_to admin_ventas_path(request.query_parameters.merge(direction: next_direction)), class: "admin-table__sort-link" do %>
                 <span>Fecha</span>
                 <span><%= direction == "desc" ? "↓" : "↑" %></span>
               <% end %>
@@ -54,23 +39,23 @@
                 <%= payment.purchase_reference.presence || "# #{payment.id}" %>
               </td>
               <td>
-                <div style="font-weight: 500;"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
-                <div class="text-muted font-mono" style="font-size: 0.75rem;"><%= payment.purchaser_email.presence || payment.user&.email %></div>
+                <div class="admin-table__purchaser-name"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
+                <div class="text-muted font-mono admin-table__purchaser-email"><%= payment.purchaser_email.presence || payment.user&.email %></div>
               </td>
               <td>
-                <span style="font-size: 0.8rem; font-weight: 500;">
-                  <%= purpose_labels[payment.purpose] || payment.purpose.to_s.humanize %>
+                <span class="admin-table__meta">
+                  <%= admin_payment_purpose_label(payment.purpose) %>
                 </span>
               </td>
               <td>
-                <span class="font-mono" style="font-size: 0.8rem;">
-                  <%= payment_method_labels[payment.payment_method]&.upcase || payment.payment_method.to_s.upcase.gsub("_", " ") %>
+                <span class="font-mono admin-table__meta">
+                  <%= admin_payment_method_label(payment.payment_method).upcase %>
                 </span>
               </td>
-              <td class="font-mono" style="font-size: 0.85rem;">
+              <td class="font-mono admin-table__meta">
                 <%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %>
               </td>
-              <td class="font-mono" style="font-size: 0.85rem;">
+              <td class="font-mono admin-table__meta">
                 <%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %>
               </td>
               <td class="text-right font-mono font-bold">
@@ -78,10 +63,10 @@
               </td>
               <td class="text-center">
                 <span class="badge badge--<%= payment.status %>">
-                  <%= status_labels[payment.status]&.upcase || payment.status.upcase %>
+                  <%= admin_payment_status_label(payment.status).upcase %>
                 </span>
               </td>
-              <td style="font-size: 0.8rem; white-space: nowrap;">
+              <td class="admin-table__date">
                 <%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y %H:%M") %>
               </td>
               <td class="text-center">
@@ -99,15 +84,15 @@
   </div>
 
   <% if listing.total_pages > 1 %>
-    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem;">
+    <div class="admin-ventas-pagination">
       <% if listing.page > 1 %>
-        <%= link_to "« Ant", admin_ventas_path(request.query_parameters.merge(page: listing.page - 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
+        <%= link_to "« Ant", admin_ventas_path(request.query_parameters.merge(page_param => listing.page - 1)), class: "btn btn-secondary btn--compact" %>
       <% end %>
-      <span style="align-self: center; font-size: 0.9rem; font-weight: 500; color: var(--fit-navy-dark, #1e3a5f);">
+      <span class="admin-ventas-pagination__label">
         Pág. <%= listing.page %> de <%= listing.total_pages %> (<%= listing.total_count %>)
       </span>
       <% if listing.page < listing.total_pages %>
-        <%= link_to "Sig »", admin_ventas_path(request.query_parameters.merge(page: listing.page + 1)), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
+        <%= link_to "Sig »", admin_ventas_path(request.query_parameters.merge(page_param => listing.page + 1)), class: "btn btn-secondary btn--compact" %>
       <% end %>
     </div>
   <% end %>

@@ -24,15 +24,15 @@ module Admin
             format_excel_text(p.sinpe_transfer_mobile_number),
             format_excel_text(p.purchase_reference),
             format_excel_text(p.onvo_payment_intent_id),
-            p.payment_method,
-            p.status,
+            PaymentDisplayLabels.payment_method_label(p.payment_method),
+            PaymentDisplayLabels.status_label(p.status),
             p.list_price.to_f,
             p.discount_amount.to_f,
             p.subtotal.to_f,
             p.tax_amount.to_f,
             p.total_amount.to_f,
             p.currency,
-            format_excel_text(p.cabys_code)
+            format_excel_text(p.cabys_code.presence || Payment::DEFAULT_CABYS_CODE)
           ]
         end
       end

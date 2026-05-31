@@ -383,10 +383,10 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
         amount: 2.5,
         purpose: "single_download"
       )
-      expect(payment.cabys_code).to eq("8314200000100")
+      expect(payment.cabys_code).to eq(Payment::DEFAULT_CABYS_CODE)
     end
 
-    it "validates that cabys_code is exactly 8314200000100" do
+    it "validates that cabys_code matches DEFAULT_CABYS_CODE" do
       payment = described_class.new(
         user: user,
         status: "pending",

@@ -3,45 +3,43 @@
 module Admin
   class VentasController < Admin::BaseController
     def index
-      base_scope = build_filtered_scope
+      filter = VentasFilter.new(params)
+      @start_date = filter.start_date_value
+      @end_date = filter.end_date_value
       @direction = params[:direction] == "asc" ? "asc" : "desc"
-      @page = [ params[:page].to_i, 1 ].max
 
+      base_scope = filter.apply(Payment.all)
       @declaration_totals = DeclarationTotals.for_scope(base_scope)
       @succeeded_count = base_scope.where(status: "succeeded").count
       @failed_count = base_scope.where(status: "failed").count
       @pending_count = base_scope.where(status: "pending").count
 
-      @payments_scope = apply_status_filter(base_scope)
+      payments_scope = filter.apply_status(base_scope)
+      crc_page = page_param(:crc_page)
+      usd_page = page_param(:usd_page)
+
       @crc_listing = VentasListing.call(
-        @payments_scope.where(currency: "crc"),
+        payments_scope.where(currency: "crc"),
         direction: @direction,
-        page: @page
+        page: crc_page
       )
       @usd_listing = VentasListing.call(
-        @payments_scope.where(currency: "usd"),
+        payments_scope.where(currency: "usd"),
         direction: @direction,
-        page: @page
+        page: usd_page
       )
+      # Modals render only for rows visible on the current CRC/USD pages (see "Ver" in each table).
       @payments = @crc_listing.payments + @usd_listing.payments
       @total_count = @crc_listing.total_count + @usd_listing.total_count
     end
 
     def export
-      base_scope = apply_status_filter(build_filtered_scope)
-
-      direction = params[:direction] == "asc" ? "asc" : "desc"
-      payments = base_scope.order(created_at: direction.to_sym)
-      csv_data = ExportPaymentsCsv.call(payments)
-
-      send_data csv_data,
-                filename: "ventas-export-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.csv",
-                type: "text/csv"
+      send_filtered_csv(ExportPaymentsCsv)
     end
 
     def export_xlsx
-      base_scope = apply_status_filter(build_filtered_scope)
-
+      filter = VentasFilter.new(params)
+      base_scope = filter.apply_status(filter.apply(Payment.all))
       direction = params[:direction] == "asc" ? "asc" : "desc"
       xlsx_data = ExportPaymentsXlsx.call(base_scope, direction: direction)
 
@@ -52,8 +50,8 @@ module Admin
     end
 
     def export_summary
-      base_scope = apply_status_filter(build_filtered_scope)
-
+      filter = VentasFilter.new(params)
+      base_scope = filter.apply_status(filter.apply(Payment.all))
       direction = params[:direction] == "asc" ? "asc" : "desc"
       csv_data = ExportSummaryCsv.call(base_scope, direction: direction)
 
@@ -64,54 +62,21 @@ module Admin
 
     private
 
-    def build_filtered_scope
-      scope = Payment.all
+    def send_filtered_csv(exporter)
+      filter = VentasFilter.new(params)
+      base_scope = filter.apply_status(filter.apply(Payment.all))
+      direction = params[:direction] == "asc" ? "asc" : "desc"
+      payments = base_scope.order(created_at: direction.to_sym)
+      csv_data = exporter.call(payments)
 
-      # Default dates to the first and last day of the current month in America/Costa_Rica
-      cr_time = Time.find_zone("America/Costa_Rica").now
-      params[:start_date] = cr_time.beginning_of_month.to_date.to_s if params[:start_date].nil?
-      params[:end_date] = cr_time.end_of_month.to_date.to_s if params[:end_date].nil?
-
-      # Apply date filters
-      if params[:start_date].present?
-        begin
-          start_time = Time.zone.parse(params[:start_date]).beginning_of_day
-          scope = scope.where("created_at >= ?", start_time)
-        rescue ArgumentError
-        end
-      end
-
-      if params[:end_date].present?
-        begin
-          end_time = Time.zone.parse(params[:end_date]).end_of_day
-          scope = scope.where("created_at <= ?", end_time)
-        rescue ArgumentError
-        end
-      end
-
-      # Apply payment method filter (handles single value or array)
-      methods = Array(params[:payment_method]).reject(&:blank?)
-      if methods.any?
-        scope = scope.where(payment_method: methods)
-      end
-
-      # Apply search
-      if params[:search].present?
-        q = "%#{params[:search]}%"
-        scope = scope.where(
-          "purchaser_name ILIKE :q OR purchaser_email ILIKE :q OR purchase_reference ILIKE :q OR sinpe_transfer_identification ILIKE :q",
-          q: q
-        )
-      end
-
-      scope
+      send_data csv_data,
+                filename: "ventas-export-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.csv",
+                type: "text/csv"
     end
 
-    def apply_status_filter(scope)
-      statuses = Array(params[:status]).reject(&:blank?)
-      return scope if statuses.empty?
-
-      scope.where(status: statuses)
+    def page_param(name)
+      raw = params[name].presence || params[:page]
+      [ raw.to_i, 1 ].max
     end
   end
 end

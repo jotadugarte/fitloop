@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Admin ventas / reporte de pagos** (Pending #2).
+**Next action:** **User analytics & admin bitácora** (Pending #3).
 
 ---
 
@@ -26,8 +26,8 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
-| Pre-live | Billing refactor + admin ops + deploy checklist | **In Progress** (Branch: admin-foundation) |
-| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #5) |
+| Pre-live | Billing refactor + admin ops + deploy checklist | **In Progress** (Branch: `admin-dashboard-pay`) |
+| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #6) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -35,7 +35,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** admin foundation + ventas + analytics; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** admin analytics/bitácora; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -133,6 +133,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 ### Pre-live polish (branch admin-foundation)
 
 - [x] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAILS`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton dashboard + shared layout for ventas and analytics (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-foundation.md`
+- [x] **Admin ventas / reporte de pagos** — `/admin/ventas` con filtros, tablas CRC/USD, declaración Hacienda, export CSV/resumen/XLSX, `cabys_code` en `payments` (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-sales-report.md` — Branch: `admin-dashboard-pay`
 
 ---
 
@@ -146,9 +147,8 @@ _(none)_
 
 Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-### Pre-live (2–5)
+### Pre-live (3–5)
 
-2. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
 3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`
 4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **User analytics & admin bitácora (core + UI)**
 5. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
