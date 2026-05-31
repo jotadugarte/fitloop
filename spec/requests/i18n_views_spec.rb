@@ -10,9 +10,12 @@ RSpec.describe "I18n view copy", type: :request do
     I18n.with_locale(locale) { yield }
   end
 
-  describe "GET /projects/new [REQ-FIT-UI-005]" do
+  describe "GET /taller setup mode [REQ-FIT-UI-001] [REQ-FIT-UI-005]" do
     it "renders English form labels" do
-      with_locale(:en) { get new_project_path }
+      get start_project_path
+      follow_redirect!
+
+      with_locale(:en) { get workshop_path }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.width_mm", locale: :en))
@@ -23,12 +26,15 @@ RSpec.describe "I18n view copy", type: :request do
     end
 
     it "renders Spanish form labels" do
-      with_locale(:es) { get new_project_path }
+      get start_project_path
+      follow_redirect!
+
+      with_locale(:es) { get workshop_path }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("activerecord.attributes.sheet_stock.width_mm", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.quantity_hint", locale: :es))
-      expect(response.body).to include(I18n.t("projects.form.dxf_upload_legend", locale: :es))
+      expect(response.body).to include(I18n.t("projects.show.source_dxf_detail_summary", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.consumption_order_legend", locale: :es))
       expect(response.body).to include(I18n.t("projects.form.kerf_mm", locale: :es))
@@ -48,13 +54,12 @@ RSpec.describe "I18n view copy", type: :request do
     end
   end
 
-  describe "GET /projects/:id/edit sheet inventory [REQ-FIT-UI-001] [REQ-FIT-UI-005]" do
+  describe "GET /taller sheet inventory [REQ-FIT-UI-001] [REQ-FIT-UI-005]" do
     it "renders Spanish sheet consumption priority copy for the workspace project" do
       get start_project_path
       follow_redirect!
-      project = Project.find(session[:workspace_project_id])
 
-      with_locale(:es) { get edit_project_path(project) }
+      with_locale(:es) { get workshop_path }
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("projects.form.consumption_priority", locale: :es))

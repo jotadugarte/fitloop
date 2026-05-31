@@ -4,14 +4,14 @@ require "rails_helper"
 
 RSpec.describe "App toolbar", "[REQ-FIT-UI-004] [REQ-FIT-AUTH-001]", type: :request do
   describe "GET / [REQ-FIT-UI-004]" do
-    it "[REQ-FIT-UI-004] places locale switcher before account actions and links Mi taller to empezar without workshop" do
+    it "[REQ-FIT-UI-004] places locale switcher before account actions and links Mi taller to /taller" do
       get root_path
 
       expect(response).to have_http_status(:ok)
       body = response.body
       expect(body).to include('data-testid="toolbar-workshop"')
       expect(body).to include(I18n.t("auth.nav.workshop"))
-      expect(body).to include(start_project_path)
+      expect(body).to include(workshop_path)
       expect(body.index("locale-switcher")).to be < body.index("account-nav")
     end
   end

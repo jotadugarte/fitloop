@@ -16,7 +16,6 @@ RSpec.describe "Project DXF upload", type: :request do
     tab_headers = { "X-Workspace-Tab-Id" => tab_id }
     get start_project_path, headers: tab_headers
     follow_redirect!(headers: tab_headers)
-    get new_project_path, headers: tab_headers
     project = Workspace.find(session, tab_id: tab_id)
     expect(session[Workspace::WORKSPACES_KEY].keys).to eq([tab_id])
 

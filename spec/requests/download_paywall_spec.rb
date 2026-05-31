@@ -21,8 +21,7 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
   def start_workspace_for_tab!(tab_id)
     headers = { "X-Workspace-Tab-Id" => tab_id }
     get start_project_path, headers: headers
-    follow_redirect!
-    get new_project_path, headers: headers
+    follow_redirect!(headers: headers)
     Workspace.find(session, tab_id: tab_id)
   end
 
