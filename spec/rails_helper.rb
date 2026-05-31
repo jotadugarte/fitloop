@@ -8,8 +8,9 @@ require "dotenv/load"
 
 require_relative "../config/environment"
 
-# Isolate test billing from developer .env (ONVO keys). ONVO request specs override per example.
+# Isolate test billing from developer .env (ONVO keys, geo override). Specs use CF-IPCountry / ENV stubs.
 ENV["BILLING_GATEWAY"] = Billing::Gateway::SIMULATE
+ENV.delete("FITLOOP_BILLING_COUNTRY_OVERRIDE")
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
