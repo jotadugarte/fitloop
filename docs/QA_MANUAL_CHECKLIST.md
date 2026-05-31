@@ -14,8 +14,8 @@ Use after automated specs are green. Record date, tester, and environment.
 
 - [ ] `GET /` shows Fitloop home and logo
 - [ ] `GET /projects` redirects to workspace start (`/empezar`) — no saved-project list
-- [ ] `GET /empezar` creates an ephemeral workspace and shows setup (no PIN field)
-- [ ] Complete setup (title, sheet stock, DXF, layers) → project show page loads
+- [ ] `GET /empezar` creates an ephemeral workspace and opens Mi taller in setup mode (no PIN field; no `/projects/new`)
+- [ ] Configure láminas, nesting parameters, DXF, and layers on `/taller`, then start nesting
 - [ ] Opening another project URL without session bind redirects to start with expired message
 - [ ] Returning home discards the workspace project (session cleared)
 
