@@ -35,7 +35,7 @@ class DownloadPaywallController < ApplicationController
       return
     end
 
-    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
 
     nil if performed?
   end

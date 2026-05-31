@@ -21,6 +21,27 @@ class ProjectInputDxfFilesController < ApplicationController
     @project.reload
     assign_layer_expand_state!(attachment_ids_before)
 
+    if attachment_ids_before.empty? && @project.input_dxf_attachments.any?
+      first_attachment = @project.input_dxf_attachments.first
+      layers = @project.project_layers.where(active_storage_attachment_id: first_attachment.id).pluck(:layer_name)
+      Analytics::TrackEvent.call(
+        "first_dxf_uploaded",
+        user_id: current_user&.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        tab_id: workspace_tab_id,
+        project_id: @project.id,
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s,
+        properties: {
+          filename: first_attachment.filename.to_s,
+          byte_size: first_attachment.byte_size.to_i,
+          layers: layers
+        }
+      )
+    end
+
     respond_to do |format|
       format.turbo_stream { render_dxf_stream }
       format.html { redirect_to workshop_path, notice: t("project_layers.upload.created") }

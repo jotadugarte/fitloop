@@ -7,16 +7,28 @@ class Workspace
     TAB_LEAVE_TTL = 120.seconds
     TAB_LEFT_COOKIE = "fitloop_workspace_tab_left_at"
 
-    def expire_tab_after_closure!(session, tab_id:)
+    def expire_tab_after_closure!(session, tab_id:, request: nil)
       tid = normalize_tab_id(tab_id)
       project = find(session, tab_id: tid)
       return unless project
 
-      expire_project!(session, project, tab_id: tid)
+      expire_project!(session, project, tab_id: tid, request: request)
     end
 
-    def expire_project_everywhere!(session, project)
+    def expire_project_everywhere!(session, project, request: nil)
       cancel_active_nesting!(project)
+      Analytics::TrackEvent.call(
+        "project_discarded",
+        user_id: request&.env&.[]("warden")&.user&.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        tab_id: DEFAULT_TAB_ID, # since it is everywhere
+        project_id: project.id,
+        ip: request&.remote_ip,
+        user_agent: request&.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s,
+        properties: project.metadata_snapshot
+      )
       project.destroy!
       workspaces_hash(session).delete_if { |_tab, pid| pid.to_i == project.id }
       session[WORKSPACES_KEY] = workspaces_hash(session)

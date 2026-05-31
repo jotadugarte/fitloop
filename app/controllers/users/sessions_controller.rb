@@ -9,7 +9,7 @@ module Users
         return
       end
 
-      Workspace.discard!(session) if Workspace.active_project?(session)
+      Workspace.discard!(session, request: request) if Workspace.active_project?(session)
       super
     end
 

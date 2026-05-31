@@ -41,7 +41,7 @@ module Accounts
         return render :confirm, status: :unprocessable_entity
       end
 
-      Workspace.discard!(session)
+      Workspace.discard!(session, request: request)
       user = current_user
       sign_out(:user)
       user.destroy!

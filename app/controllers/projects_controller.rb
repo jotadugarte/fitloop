@@ -58,8 +58,8 @@ class ProjectsController < ApplicationController
   end
 
   def start
-    Workspace.discard!(session, tab_id: workspace_tab_id)
-    Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    Workspace.discard!(session, tab_id: workspace_tab_id, request: request)
+    Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
     redirect_to workshop_path
   end
 
