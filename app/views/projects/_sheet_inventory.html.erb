@@ -1,8 +1,7 @@
 <%# [REQ-FIT-UI-001] Sheet inventory: composer (left), priority table (right). %>
 <% composer_draft = local_assigns.fetch(:composer_draft, {}) %>
-<% show_welcome = local_assigns.fetch(:show_welcome, false) %>
 
-<fieldset class="sheet-inventory-fieldset<%= " sheet-inventory-fieldset--setup" if show_welcome %>">
+<fieldset class="sheet-inventory-fieldset">
   <legend><%= t("projects.form.sheet_stocks_legend") %></legend>
 
   <% composer_panel = capture do %>
@@ -105,14 +104,7 @@
     </div>
   <% end %>
 
-  <% if show_welcome %>
-    <div class="sheet-inventory__layout sheet-inventory__layout--setup">
-      <%= workspace %>
-      <%= render "projects/setup_welcome" %>
-    </div>
-  <% else %>
-    <%= workspace %>
-  <% end %>
+  <%= workspace %>
 
   <template data-sheet-inventory-target="template">
     <tr data-sheet-inventory-row data-testid="sheet-stock-row">

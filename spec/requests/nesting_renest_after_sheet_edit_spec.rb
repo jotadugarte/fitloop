@@ -35,6 +35,8 @@ RSpec.describe "Re-nesting after sheet inventory edit", type: :request do
     expect(response).to redirect_to(workshop_path)
 
     project.reload
+    project.nesting_runs.last.update!(status: "completed")
+    project.update!(status: :completed)
     first_stock = project.sheet_stocks.first
 
     patch workspace_project_path(project),
