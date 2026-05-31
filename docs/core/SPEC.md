@@ -228,7 +228,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 - **Data Model:** Flat `user_events` table with standard columns and `properties` JSONB for metadata. Append-only.
 - **Pipeline:** `Analytics::TrackEvent` service records events. Critical events are recorded synchronously in the request path; low-priority events are enqueued asynchronously to `TrackEventJob` with a 300/hour rate limit.
+- **Queue isolation:** `TrackEventJob` runs on the dedicated `:analytics` Solid Queue queue to prevent high-volume low-priority writes from competing with time-sensitive nesting jobs on the `:default` queue.
 - **Funnel Stages:** Sequential conversion stages matching `Analytics::FunnelStages::ORDERED`.
+- **Thread-safe config:** `Analytics::EventCatalog` and `Analytics::Thresholds` use a class-level `Mutex` to guard memoized class variables. `Thresholds` hot-reloads on file mtime change; `EventCatalog` memoizes once per boot.
+- **Session merge:** `Analytics::MergeAnonymousSession` reassigns anonymous session events to `user_id` on login/register. Uses `in_batches(of: 500)` to prevent long-lock `UPDATE` statements.
 - **Drift Governance (A41):** 6-layer contract check enforcing consistency between `ANALYTICS_AND_REPORTING_CONTRACT.md`, `analytics_event_catalog.yml`, code constants, and the `SpecDocVerifier` test suite.
 - **Geolocation:** Country code resolved via local GeoLite2 database or Cloudflare header fallback.
 - **Anonymization:** Deleting accounts anonymizes user record, but keeps historical timelines by storing email snapshots inside `account_deleted` event properties.

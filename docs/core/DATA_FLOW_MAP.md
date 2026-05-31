@@ -312,12 +312,18 @@ Browser / Server side actions
        → sync database write to `user_events`
   → If low_priority (e.g. workspace_started, first_dxf_uploaded, paywall_viewed):
        → check rate limit (max 300/hour per session/user)
-       → enqueue TrackEventJob -> async database write to `user_events`
+       → enqueue TrackEventJob (:analytics queue) → async database write to `user_events`
 ```
 
+**Queue isolation:** `TrackEventJob` runs on the dedicated `:analytics` Solid Queue queue — separate from the `:default` queue used by `NestingJob`. This prevents high-volume low-priority event writes from competing for workers with time-sensitive nesting operations.
+
 **Anonymization & Merge:**
-* On sign-in / registration, anonymous session events are mapped to the signed-in user (`Analytics::MergeAnonymousSession`).
+* On sign-in / registration, anonymous session events are mapped to the signed-in user (`Analytics::MergeAnonymousSession`). The merge runs `in_batches(of: 500)` to avoid long-lock `UPDATE` statements on sessions with large event histories.
 * Account deletion anonymizes the user record but preserves user event history. email is stored in `account_deleted` properties JSONB for admin audit.
+
+**NestingJob telemetry:** Telemetry emitted at nesting terminal state is handled by private methods (`emit_nest_telemetry`, `nest_telemetry_properties`, `compute_duration_ms`, `parse_placements`, `parse_sheets_used`, `parse_pieces_count`, `parse_orphans_by_reason`) to keep `NestingJob#perform` under 60 lines (deterministic coding standards).
+
+**Config hot-reload (thread safety):** `Analytics::Thresholds` and `Analytics::EventCatalog` use a class-level `Mutex` + memoized `@config` / `@catalog` to prevent race conditions in Puma multi-threaded environments. `Thresholds` re-reads `analytics.yml` on file mtime change; `EventCatalog` memoizes once per boot (catalog is stable at runtime).
 
 ---
 
@@ -328,4 +334,7 @@ Browser / Server side actions
 - Do not bypass `Workspace.resolve!` for user-facing project routes that use `SetsWorkspaceProject`.
 - Do not assume `NestingRun` holds the downloadable DXF — it lives on `Project#nested_dxf`.
 - Do not bypass `Analytics::TrackEvent` by writing directly to `UserEvent` model from controller logic.
+- Do not enqueue analytics jobs on the `:default` queue — use `:analytics` to isolate telemetry from nesting workloads.
+- Do not call `update_all` on unbatched `UserEvent` scopes — use `in_batches(of: 500)` for bulk updates.
+
 
