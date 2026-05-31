@@ -373,6 +373,34 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "cabys_code validation and assignment [REQ-FIT-ADMIN-001]" do
+    it "[REQ-FIT-ADMIN-001] automatically assigns the default CAByS code to a new payment on creation" do
+      payment = described_class.create!(
+        user: user,
+        status: "pending",
+        payment_method: "card_usd",
+        currency: "usd",
+        amount: 2.5,
+        purpose: "single_download"
+      )
+      expect(payment.cabys_code).to eq(Payment::DEFAULT_CABYS_CODE)
+    end
+
+    it "[REQ-FIT-ADMIN-001] validates that cabys_code matches DEFAULT_CABYS_CODE" do
+      payment = described_class.new(
+        user: user,
+        status: "pending",
+        payment_method: "card_usd",
+        currency: "usd",
+        amount: 2.5,
+        purpose: "single_download",
+        cabys_code: "invalid_code"
+      )
+      expect(payment).not_to be_valid
+      expect(payment.errors[:cabys_code]).to be_present
+    end
+  end
+
   describe "#incomplete_card_checkout_attempt? [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] is true for failed card attempt superseded by a later success on the same run" do
       run = create_nesting_run!

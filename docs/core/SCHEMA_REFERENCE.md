@@ -232,6 +232,7 @@ Checkout records (simulated dev or ONVO live); immutable financial snapshot colu
 | `payment_method` | string | `card_usd`, `card_crc`, `sinpe_crc` |
 | `currency` | string | `usd` \| `crc` |
 | `amount` | decimal | Charged unit amount (method-specific base) |
+| `cabys_code` | string | Costa Rica CAByS catalog code for electronic invoicing; default `8314200000100` (`Payment::DEFAULT_CABYS_CODE`); required on new rows |
 | `purpose` | string | `single_download` \| `plan_subscription` |
 | `nesting_run_id` | bigint | Optional; single-download payments |
 | `subscription_id` | bigint | Optional; plan payments |
@@ -260,7 +261,7 @@ Checkout records (simulated dev or ONVO live); immutable financial snapshot colu
 
 **Indexes:** `onvo_payment_intent_id`; partial unique `purchase_reference` where not null.
 
-**Business rules:** Snapshot populated at checkout attempt (simulate or ONVO). Terminal `status` for ONVO comes from webhook or verified intent — not client SDK alone. SINPE workshop lock (`checkout_lock_active?`) is independent of `status`: timeout/abandon does **not** mark `failed`. `listed_in_payment_history` scope excludes rows with `checkout_abandoned_at` set.
+**Business rules:** Snapshot populated at checkout attempt (simulate or ONVO). Terminal `status` for ONVO comes from webhook or verified intent — not client SDK alone. SINPE workshop lock (`checkout_lock_active?`) is independent of `status`: timeout/abandon does **not** mark `failed`. `listed_in_payment_history` scope excludes rows with `checkout_abandoned_at` set. `cabys_code` validated to `Payment::DEFAULT_CABYS_CODE` only; assigned in `before_validation` on create. Admin ventas (`Admin::ReportingScope`) reads payments with `superseded_at` NULL for Hacienda reporting — superseded pending attempts are not sales.
 
 ### `subscriptions`
 

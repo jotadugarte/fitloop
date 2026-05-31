@@ -1,0 +1,37 @@
+<section class="admin-panel admin-panel--declaration">
+  <div class="admin-panel__header">
+    <h2 class="admin-panel__title"><%= title %></h2>
+    <p class="admin-panel__subtitle"><%= subtitle %></p>
+  </div>
+
+  <div class="admin-summary-grid admin-summary-grid--flush">
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Ventas exitosas</div>
+      <div class="admin-stat-card__value"><%= totals.count %></div>
+      <div class="admin-stat-card__meta">Transacciones</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Subtotal (base)</div>
+      <div class="admin-stat-card__value"><%= format_billing_amount(totals.subtotal, currency) %></div>
+      <div class="admin-stat-card__meta">Antes de impuesto</div>
+    </div>
+    <% if show_iva %>
+      <div class="admin-stat-card">
+        <div class="admin-stat-card__label">IVA 13%</div>
+        <div class="admin-stat-card__value"><%= format_billing_amount(totals.tax_amount, currency) %></div>
+        <div class="admin-stat-card__meta">Impuesto</div>
+      </div>
+    <% else %>
+      <div class="admin-stat-card">
+        <div class="admin-stat-card__label">IVA</div>
+        <div class="admin-stat-card__value">—</div>
+        <div class="admin-stat-card__meta">Exportación (sin IVA)</div>
+      </div>
+    <% end %>
+    <div class="admin-stat-card admin-stat-card--revenue">
+      <div class="admin-stat-card__label">Total cobrado</div>
+      <div class="admin-stat-card__value"><%= format_billing_amount(totals.total, currency) %></div>
+      <div class="admin-stat-card__meta">Para declaración</div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,214 @@
+<div class="admin-dashboard">
+  <header class="admin-dashboard__header admin-dashboard__header--split">
+    <div>
+      <h1 class="admin-dashboard__title">Ventas y Reporte de Pagos</h1>
+      <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
+    </div>
+    <div class="admin-ventas-actions">
+      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
+        <span>⬇ Exportar Reporte (.xlsx)</span>
+      <% end %>
+    </div>
+  </header>
+
+  <%= form_with url: admin_ventas_path, method: :get, local: true, class: "admin-panel admin-ventas-filters" do |f| %>
+    <div class="admin-ventas-filters__grid">
+      <div>
+        <label for="search" class="admin-stat-card__label admin-ventas-field__label">Buscar</label>
+        <%= f.text_field :search, value: params[:search], placeholder: "Nombre, email, ref...", id: "search", class: "admin-ventas-field__input" %>
+      </div>
+
+      <div>
+        <span class="admin-stat-card__label admin-ventas-field__label">Estado</span>
+        <div class="admin-ventas-checkbox-group">
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "status[]", "succeeded", Array(params[:status]).include?("succeeded") %>
+            <%= admin_payment_status_label("succeeded").upcase %>
+          </label>
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "status[]", "pending", Array(params[:status]).include?("pending") %>
+            <%= admin_payment_status_label("pending").upcase %>
+          </label>
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "status[]", "failed", Array(params[:status]).include?("failed") %>
+            <%= admin_payment_status_label("failed").upcase %>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <span class="admin-stat-card__label admin-ventas-field__label">Método de Pago</span>
+        <div class="admin-ventas-checkbox-group">
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "payment_method[]", "card_usd", Array(params[:payment_method]).include?("card_usd") %>
+            <%= admin_payment_method_label("card_usd") %>
+          </label>
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "payment_method[]", "card_crc", Array(params[:payment_method]).include?("card_crc") %>
+            <%= admin_payment_method_label("card_crc") %>
+          </label>
+          <label class="admin-ventas-checkbox">
+            <%= check_box_tag "payment_method[]", "sinpe_crc", Array(params[:payment_method]).include?("sinpe_crc") %>
+            <%= admin_payment_method_label("sinpe_crc") %>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label for="start_date" class="admin-stat-card__label admin-ventas-field__label">Desde</label>
+        <%= f.date_field :start_date, value: @start_date, id: "start_date", class: "admin-ventas-field__input" %>
+      </div>
+
+      <div>
+        <label for="end_date" class="admin-stat-card__label admin-ventas-field__label">Hasta</label>
+        <%= f.date_field :end_date, value: @end_date, id: "end_date", class: "admin-ventas-field__input" %>
+      </div>
+
+      <div class="admin-ventas-filters__actions">
+        <%= f.submit "Filtrar", class: "btn btn-secondary" %>
+        <%= link_to "Limpiar", admin_ventas_path, class: "btn btn-secondary btn--link" %>
+      </div>
+    </div>
+  <% end %>
+
+  <% crc_totals = @declaration_totals.fetch(:crc) %>
+  <% usd_totals = @declaration_totals.fetch(:usd) %>
+
+  <%= render "declaration_panel",
+        title: "Declaración CRC — ventas locales (IVA 13%)",
+        subtitle: "Transacciones en colones para factura/tiquete electrónico nacional.",
+        totals: crc_totals,
+        currency: :crc,
+        show_iva: true %>
+
+  <%= render "declaration_panel",
+        title: "Declaración USD — factura de exportación",
+        subtitle: "Transacciones en dólares (sin IVA). Usar fecha del pago para tipo de cambio BCCR.",
+        totals: usd_totals,
+        currency: :usd,
+        show_iva: false %>
+
+  <div class="admin-summary-grid">
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Exitosas</div>
+      <div class="admin-stat-card__value"><%= @succeeded_count %></div>
+      <div class="admin-stat-card__meta">CRC <%= crc_totals.count %> · USD <%= usd_totals.count %></div>
+    </div>
+
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Fallidas</div>
+      <div class="admin-stat-card__value"><%= @failed_count %></div>
+      <div class="admin-stat-card__meta">Con error</div>
+    </div>
+
+    <div class="admin-stat-card">
+      <div class="admin-stat-card__label">Transacciones Pendientes</div>
+      <div class="admin-stat-card__value"><%= @pending_count %></div>
+      <div class="admin-stat-card__meta">En espera</div>
+    </div>
+  </div>
+
+  <%= render "transactions_table",
+        title: "Transacciones en colones (CRC)",
+        subtitle: "Ventas locales sujetas a IVA — #{@crc_listing.total_count} encontrada(s).",
+        listing: @crc_listing,
+        direction: @direction,
+        currency_label: "colones",
+        page_param: :crc_page %>
+
+  <%= render "transactions_table",
+        title: "Transacciones en dólares (USD)",
+        subtitle: "Factura de exportación — #{@usd_listing.total_count} encontrada(s).",
+        listing: @usd_listing,
+        direction: @direction,
+        currency_label: "dólares",
+        page_param: :usd_page %>
+</div>
+
+<% @payments.each do |payment| %>
+  <dialog id="modal-<%= payment.id %>" class="admin-modal">
+    <div class="admin-modal__header">
+      <h3 class="admin-modal__title">Detalle de Pago: <%= payment.purchase_reference.presence || "##{payment.id}" %></h3>
+      <button type="button" class="admin-modal__close" onclick="document.getElementById('modal-<%= payment.id %>').close()">&times;</button>
+    </div>
+    <div class="admin-modal__body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item__label">Nombre del Comprador</div>
+          <div class="detail-item__value"><%= payment.purchaser_name.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Email del Comprador</div>
+          <div class="detail-item__value detail-item__value--break"><%= payment.purchaser_email.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">ID de Usuario</div>
+          <div class="detail-item__value"><%= payment.user_id %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Identificación SINPE</div>
+          <div class="detail-item__value"><%= payment.sinpe_transfer_identification.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Móvil SINPE</div>
+          <div class="detail-item__value"><%= payment.sinpe_transfer_mobile_number.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">ID Intento de Pago (Gateway)</div>
+          <div class="detail-item__value detail-item__value--break"><%= payment.onvo_payment_intent_id.presence || "—" %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Concepto</div>
+          <div class="detail-item__value"><%= admin_payment_product_label(payment) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Método de Pago</div>
+          <div class="detail-item__value"><%= admin_payment_method_label(payment.payment_method) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Estado</div>
+          <div class="detail-item__value">
+            <span class="badge badge--<%= payment.status %>"><%= admin_payment_status_label(payment.status).upcase %></span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Código CAByS</div>
+          <div class="detail-item__value font-mono"><%= payment.cabys_code.presence || Payment::DEFAULT_CABYS_CODE %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Fecha</div>
+          <div class="detail-item__value"><%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%Y %H:%M:%S CR") %></div>
+        </div>
+      </div>
+
+      <h4 class="detail-section-title">Desglose Financiero</h4>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item__label">Precio de Lista</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.list_price, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Descuento</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.discount_amount, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Subtotal</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item__label">Impuesto (IVA 13%)</div>
+          <div class="detail-item__value font-mono"><%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %></div>
+        </div>
+        <div class="detail-item detail-item--total">
+          <div class="detail-item__label">Total Transado</div>
+          <div class="detail-item__value font-mono detail-item__value--emphasis">
+            <%= format_billing_amount(admin_payment_net_collected(payment), payment.currency.to_sym) %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-modal__footer">
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-<%= payment.id %>').close()">Cerrar</button>
+    </div>
+  </dialog>
+<% end %>

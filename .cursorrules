@@ -127,6 +127,14 @@
       56. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
       57. Admin stealth gate: all routes under the `/admin` namespace must raise `ActionController::RoutingError` (standard 404) for unauthenticated or non-admin requests, to avoid leaking the admin endpoint's existence. Do not redirect to login.
       58. Admin promotion on boot: promote users to admin via `FITLOOP_ADMIN_EMAILS` env var in a boot initializer (`config/initializers/promote_admins.rb`). The promotion logic must check for the presence of the environment variable and ensure the `users` table exists before querying, to prevent log clutter during setup/migrations. Never commit real admin email strings to source control.
+      59. Admin ventas scope: UI and XLSX export use `Admin::ReportingScope` (`Payment.where(superseded_at: nil)`) — do not include superseded checkout attempts in Hacienda declaration totals or export rows.
+      60. Admin ventas export: **XLSX only** via `GET /admin/ventas/exportar` (`Admin::ExportPaymentsXlsx`). Do not reintroduce CSV export routes. Legacy `/admin/ventas/exportar-xlsx` may redirect to `/admin/ventas/exportar` with query string preserved.
+      61. Admin ventas labels: Spanish payment method, status, and product labels live in `Admin::PaymentDisplayLabels` (shared by views and XLSX). Product copy uses `product_description` when present (`single_download`, `plan_N_months`), with `purpose` fallback.
+      62. Payment CAByS: `Payment::DEFAULT_CABYS_CODE` (`8314200000100`) is the only valid `cabys_code`; assign on create; admin export shows default when column blank pre-backfill.
+      63. Admin ventas filters: `Admin::VentasFilter` must not mutate `params`. Default month bounds apply only when `params` lacks `:start_date` / `:end_date`; explicit empty date params mean no bound on that side.
+      64. Admin ventas search: `ILIKE` filters must escape `%`, `_`, and `\` in user input and use SQL `ESCAPE '\'` (see `VentasFilter#escape_ilike`).
+      65. Admin ventas collected totals: UI, XLSX detail, and Hacienda summary rows use `Admin::HaciendaSummaryRows.net_collected` — not isolated `total_amount.to_f` without `amount` fallback.
+      66. Admin service specs: `spec/services/admin/*_spec.rb` use `RSpec.describe ClassName, "[REQ-FIT-ADMIN-001]"` on the outer describe (in addition to admin request spec tags in rule 26).
     </rules>
   </project_rules>
 </agentic_guild_os>

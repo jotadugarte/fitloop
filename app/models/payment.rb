@@ -2,6 +2,8 @@
 
 # [REQ-FIT-BILL-001] Payment record (simulate or ONVO gateway).
 class Payment < ApplicationRecord
+  DEFAULT_CABYS_CODE = "8314200000100"
+
   belongs_to :user
   belongs_to :nesting_run, optional: true
   belongs_to :subscription, optional: true
@@ -29,8 +31,10 @@ class Payment < ApplicationRecord
   validates :checkout_lock_reason,
             inclusion: { in: Billing::CheckoutLockReason::ALL },
             allow_nil: true
+  validates :cabys_code, presence: true, inclusion: { in: [ DEFAULT_CABYS_CODE ] }
   validate :onvo_succeeded_requires_gateway_confirmation, if: :onvo_gateway?
 
+  before_validation :assign_cabys_code, on: :create
   before_create :assign_purchase_reference_for_single_download
 
   def onvo_gateway?
@@ -129,5 +133,9 @@ class Payment < ApplicationRecord
     Billing::PaymentMethod.parse(payment_method)
   end
 
-  private :assign_purchase_reference_for_single_download
+  def assign_cabys_code
+    self.cabys_code ||= DEFAULT_CABYS_CODE
+  end
+
+  private :assign_purchase_reference_for_single_download, :assign_cabys_code
 end

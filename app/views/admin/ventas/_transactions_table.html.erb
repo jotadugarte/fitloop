@@ -1,0 +1,99 @@
+<%
+  page_param = local_assigns.fetch(:page_param, :page)
+%>
+
+<section class="admin-panel admin-panel--spaced">
+  <div class="admin-panel__header">
+    <h2 class="admin-panel__title"><%= title %></h2>
+    <p class="admin-panel__subtitle"><%= subtitle %></p>
+  </div>
+
+  <div class="table-container">
+    <% if listing.payments.any? %>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Ref / ID</th>
+            <th>Comprador</th>
+            <th>Concepto</th>
+            <th>Método</th>
+            <th>Subtotal</th>
+            <th>Impuesto</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Estado</th>
+            <th>
+              <% next_direction = direction == "desc" ? "asc" : "desc" %>
+              <%= link_to admin_ventas_path(request.query_parameters.merge(direction: next_direction)), class: "admin-table__sort-link" do %>
+                <span>Fecha</span>
+                <span><%= direction == "desc" ? "↓" : "↑" %></span>
+              <% end %>
+            </th>
+            <th class="text-center">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% listing.payments.each do |payment| %>
+            <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
+            <tr>
+              <td class="font-mono text-sm">
+                <%= payment.purchase_reference.presence || "# #{payment.id}" %>
+              </td>
+              <td>
+                <div class="admin-table__purchaser-name"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
+                <div class="text-muted font-mono admin-table__purchaser-email"><%= payment.purchaser_email.presence || payment.user&.email %></div>
+              </td>
+              <td>
+                <span class="admin-table__meta">
+                  <%= admin_payment_product_label(payment) %>
+                </span>
+              </td>
+              <td>
+                <span class="font-mono admin-table__meta">
+                  <%= admin_payment_method_label(payment.payment_method).upcase %>
+                </span>
+              </td>
+              <td class="font-mono admin-table__meta">
+                <%= format_billing_amount(payment.subtotal, payment.currency.to_sym) %>
+              </td>
+              <td class="font-mono admin-table__meta">
+                <%= format_billing_amount(payment.tax_amount, payment.currency.to_sym) %>
+              </td>
+              <td class="text-right font-mono font-bold">
+                <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
+              </td>
+              <td class="text-center">
+                <span class="badge badge--<%= payment.status %>">
+                  <%= admin_payment_status_label(payment.status).upcase %>
+                </span>
+              </td>
+              <td class="admin-table__date">
+                <%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y %H:%M") %>
+              </td>
+              <td class="text-center">
+                <button type="button" class="btn btn-secondary btn--compact" onclick="document.getElementById('modal-<%= payment.id %>').showModal()">
+                  Ver
+                </button>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="admin-empty-state">No hay transacciones en <%= currency_label %> con los filtros actuales.</div>
+    <% end %>
+  </div>
+
+  <% if listing.total_pages > 1 %>
+    <div class="admin-ventas-pagination">
+      <% if listing.page > 1 %>
+        <%= link_to "« Ant", admin_ventas_path(request.query_parameters.merge(page_param => listing.page - 1)), class: "btn btn-secondary btn--compact" %>
+      <% end %>
+      <span class="admin-ventas-pagination__label">
+        Pág. <%= listing.page %> de <%= listing.total_pages %> (<%= listing.total_count %>)
+      </span>
+      <% if listing.page < listing.total_pages %>
+        <%= link_to "Sig »", admin_ventas_path(request.query_parameters.merge(page_param => listing.page + 1)), class: "btn btn-secondary btn--compact" %>
+      <% end %>
+    </div>
+  <% end %>
+</section>

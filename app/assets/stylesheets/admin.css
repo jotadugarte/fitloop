@@ -119,6 +119,18 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+.admin-panel--spaced {
+  margin-bottom: 2rem;
+}
+
+.admin-panel--declaration {
+  margin-bottom: 1.25rem;
+}
+
+.admin-summary-grid--flush {
+  margin-bottom: 0;
+}
+
 .admin-panel__header {
   display: flex;
   justify-content: space-between;
@@ -245,3 +257,241 @@
 .text-muted { color: var(--fit-text-muted, #5c6d82); }
 .font-mono { font-family: monospace; }
 .font-bold { font-weight: 600; }
+
+/* Modal/Drawer Dialog */
+.admin-modal {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+  background: #ffffff;
+}
+
+.admin-modal::backdrop {
+  background: rgba(30, 58, 95, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+.admin-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--fit-bg, #f0f3f7);
+  border-bottom: 1px solid var(--fit-border, #c5d0dc);
+}
+
+.admin-modal__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--fit-navy-dark, #1e3a5f);
+}
+
+.admin-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--fit-text-muted, #5c6d82);
+  line-height: 1;
+}
+
+.admin-modal__body {
+  padding: 1.5rem;
+}
+
+.admin-modal__footer {
+  padding: 1rem 1.5rem;
+  background: var(--fit-bg, #f0f3f7);
+  border-top: 1px solid var(--fit-border, #c5d0dc);
+  text-align: right;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 576px) {
+  .detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.detail-item {
+  border-bottom: 1px solid var(--fit-bg, #f0f3f7);
+  padding-bottom: 0.5rem;
+}
+
+.detail-item__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fit-text-muted, #5c6d82);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.detail-item__value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--fit-navy-dark, #1e3a5f);
+}
+
+.admin-dashboard__header--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-ventas-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-ventas-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+}
+
+.admin-ventas-filters {
+  margin-bottom: 2rem;
+}
+
+.admin-ventas-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.admin-ventas-field__label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.admin-ventas-field__input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--fit-border, #c5d0dc);
+  font-size: 0.85rem;
+}
+
+.admin-ventas-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.15rem;
+}
+
+.admin-ventas-checkbox {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  color: var(--fit-navy-dark, #1e3a5f);
+  font-weight: 500;
+}
+
+.admin-ventas-filters__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-self: end;
+  width: 100%;
+}
+
+.admin-ventas-filters__actions .btn {
+  flex: 1;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.admin-ventas-filters__actions .btn--link {
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1.5;
+}
+
+.admin-panel__subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--fit-text-muted, #5c6d82);
+  font-size: 0.85rem;
+}
+
+.admin-ventas-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.admin-ventas-pagination__label {
+  align-self: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--fit-navy-dark, #1e3a5f);
+}
+
+.admin-table__purchaser-name {
+  font-weight: 500;
+}
+
+.admin-table__purchaser-email {
+  font-size: 0.75rem;
+}
+
+.admin-table__meta {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.admin-table__date {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.admin-table__sort-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.detail-item__value--break {
+  word-break: break-all;
+}
+
+.detail-section-title {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--fit-border, #c5d0dc);
+  padding-bottom: 0.25rem;
+  color: var(--fit-navy-dark, #1e3a5f);
+  font-size: 0.95rem;
+}
+
+.detail-item--total {
+  grid-column: 1 / -1;
+  background: var(--fit-bg, #f0f3f7);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.detail-item__value--emphasis {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
