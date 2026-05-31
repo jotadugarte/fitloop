@@ -216,7 +216,8 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Promotion:** On application boot, the initializer `config/initializers/promote_admins.rb` checks the `FITLOOP_ADMIN_EMAILS` environment variable. If present, it maps the comma-separated emails and updates the matched users setting `admin: true`. Promotion logic checks for the presence of the environment variable and database table before execution, preventing early setup or migration failures and warning log clutter.
 - **Admin routes:** Under the `/admin` namespace (linked to `/admin` root index).
 - **Stealth access gate:** `Admin::BaseController` enforces authorization via `require_admin!`. Unauthorized requests (both unauthenticated guest requests and authenticated non-admin users) raise `ActionController::RoutingError` which returns a standard **404 Not Found** response to the client. This avoids leaking the existence of the administrative endpoints.
-- **Admin dashboard skeleton:** Displays links to `Ventas` and `Analytics` sections (marked as "Próximamente" in the foundation release).
+- **Admin dashboard skeleton:** Landing at `/admin` with links to **Ventas** (active: `/admin/ventas`, payment history, Hacienda declaration panels, XLSX export) and **Analytics** (pending).
+- **Admin ventas (`/admin/ventas`):** Filters by date (default: current month in `America/Costa_Rica`), status, payment method, and search; separate CRC/USD tables with pagination; excludes superseded payments (`superseded_at` present). Export: `GET /admin/ventas/exportar` (XLSX workbook: detail + Hacienda summary per currency). Legacy path `/admin/ventas/exportar-xlsx` redirects to `/admin/ventas/exportar`.
 - **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under [admin.css](file:///home/jader/proyectos/fitloop/app/assets/stylesheets/admin.css).
 
 ### REQ-FIT-BILL-001 (detail)

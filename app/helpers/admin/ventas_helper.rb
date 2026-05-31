@@ -17,5 +17,9 @@ module Admin
     def admin_payment_product_label(payment)
       Admin::PaymentDisplayLabels.product_label(payment)
     end
+
+    def admin_payment_net_collected(payment)
+      Admin::HaciendaSummaryRows.net_collected(payment)
+    end
   end
 end

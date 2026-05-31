@@ -5,7 +5,7 @@
       <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
     </div>
     <div class="admin-ventas-actions">
-      <%= link_to admin_export_ventas_xlsx_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
+      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
         <span>⬇ Exportar Reporte (.xlsx)</span>
       <% end %>
     </div>
@@ -158,6 +158,10 @@
           <div class="detail-item__value detail-item__value--break"><%= payment.onvo_payment_intent_id.presence || "—" %></div>
         </div>
         <div class="detail-item">
+          <div class="detail-item__label">Concepto</div>
+          <div class="detail-item__value"><%= admin_payment_product_label(payment) %></div>
+        </div>
+        <div class="detail-item">
           <div class="detail-item__label">Método de Pago</div>
           <div class="detail-item__value"><%= admin_payment_method_label(payment.payment_method) %></div>
         </div>
@@ -198,8 +202,7 @@
         <div class="detail-item detail-item--total">
           <div class="detail-item__label">Total Transado</div>
           <div class="detail-item__value font-mono detail-item__value--emphasis">
-            <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
-            <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
+            <%= format_billing_amount(admin_payment_net_collected(payment), payment.currency.to_sym) %>
           </div>
         </div>
       </div>

@@ -123,6 +123,14 @@
   margin-bottom: 2rem;
 }
 
+.admin-panel--declaration {
+  margin-bottom: 1.25rem;
+}
+
+.admin-summary-grid--flush {
+  margin-bottom: 0;
+}
+
 .admin-panel__header {
   display: flex;
   justify-content: space-between;

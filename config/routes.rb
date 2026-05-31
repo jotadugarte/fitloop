@@ -121,7 +121,11 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "dashboard#index"
     get "ventas", to: "ventas#index"
-    get "ventas/exportar-xlsx", to: "ventas#export_xlsx", as: :export_ventas_xlsx
+    get "ventas/exportar", to: "ventas#export_xlsx", as: :export_ventas
+    get "ventas/exportar-xlsx", to: redirect { |_params, request|
+      query = request.query_string
+      query.present? ? "/admin/ventas/exportar?#{query}" : "/admin/ventas/exportar"
+    }
   end
 
   # Fallback redirects for relative admin path resolution

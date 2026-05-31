@@ -153,6 +153,30 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(pending_index).to be < jader_index
       end
 
+      it "does not list superseded payments" do
+        Payment.create!(
+          user: @user,
+          status: "pending",
+          payment_method: "sinpe_crc",
+          currency: "crc",
+          amount: 900,
+          total_amount: 900,
+          purchaser_name: "Ghost Superseded",
+          purchaser_email: "ghost@example.com",
+          purpose: "single_download",
+          product_description: "single_download",
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_ghost",
+          onvo_mode: "test",
+          gateway_status: "processing",
+          superseded_at: Time.current,
+          checkout_lock_reason: Billing::CheckoutLockReason::SUPERSEDED
+        )
+
+        get "/admin/ventas"
+        expect(response.body).not_to include("Ghost Superseded")
+      end
+
       it "filters by date range" do
         @payment_old = Payment.create!(
           user: @user,
@@ -184,14 +208,6 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
     end
   end
 
-  describe "GET /admin/ventas/exportar [REQ-FIT-ADMIN-001]" do
-    it "returns 404 for removed CSV export route" do
-      sign_in_user! admin_user
-      get "/admin/ventas/exportar"
-      expect(response).to have_http_status(:not_found)
-    end
-  end
-
   describe "GET /admin/ventas/exportar-resumen [REQ-FIT-ADMIN-001]" do
     it "returns 404 for removed CSV summary export route" do
       sign_in_user! admin_user
@@ -200,10 +216,10 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
     end
   end
 
-  describe "GET /admin/ventas/exportar-xlsx [REQ-FIT-ADMIN-001]" do
+  describe "GET /admin/ventas/exportar [REQ-FIT-ADMIN-001]" do
     context "when unauthenticated" do
       it "returns 404 Not Found" do
-        get "/admin/ventas/exportar-xlsx"
+        get "/admin/ventas/exportar"
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -211,7 +227,7 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
     context "when authenticated as admin" do
       before do
         @user = create_billing_user!(email: "client@example.com")
-        Payment.create!(
+        @succeeded_payment = Payment.create!(
           user: @user,
           status: "succeeded",
           payment_method: "sinpe_crc",
@@ -231,11 +247,27 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
           gateway_status: "succeeded",
           purchase_reference: "777777777777"
         )
+        Payment.create!(
+          user: @user,
+          status: "failed",
+          payment_method: "card_crc",
+          currency: "crc",
+          amount: 100,
+          total_amount: 100,
+          purchaser_name: "Failed Export",
+          purchaser_email: "fail@example.com",
+          purpose: "single_download",
+          product_description: "single_download",
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_fail_export",
+          onvo_mode: "test",
+          gateway_status: "failed"
+        )
         sign_in_user! admin_user
-        get "/admin/ventas/exportar-xlsx"
       end
 
       it "returns 200 OK with xlsx Content-Type and attachment disposition" do
+        get "/admin/ventas/exportar"
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to include("spreadsheetml.sheet")
         expect(response.headers["Content-Disposition"]).to include("attachment")
@@ -243,8 +275,28 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "returns a valid xlsx binary (PK ZIP header)" do
+        get "/admin/ventas/exportar"
         expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
       end
+
+      it "honors status filters in the export scope" do
+        filter = Admin::VentasFilter.new(status: [ "succeeded" ])
+        base = filter.apply(Admin::ReportingScope.call)
+
+        expect(filter.apply_status(base).count).to eq(1)
+        expect(base.count).to eq(2)
+
+        get "/admin/ventas/exportar", params: { status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
+  describe "GET /admin/ventas/exportar-xlsx [REQ-FIT-ADMIN-001]" do
+    it "redirects to /admin/ventas/exportar preserving query params" do
+      sign_in_user! admin_user
+      get "/admin/ventas/exportar-xlsx", params: { status: [ "succeeded" ] }
+      expect(response).to redirect_to(%r{/admin/ventas/exportar\?})
     end
   end
 end

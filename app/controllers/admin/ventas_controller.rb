@@ -8,11 +8,12 @@ module Admin
       @end_date = @filter.end_date_value
       @direction = params[:direction] == "asc" ? "asc" : "desc"
 
-      base_scope = @filter.apply(Payment.all)
+      base_scope = @filter.apply(ReportingScope.call)
       @declaration_totals = DeclarationTotals.for_scope(base_scope)
-      @succeeded_count = base_scope.where(status: "succeeded").count
-      @failed_count = base_scope.where(status: "failed").count
-      @pending_count = base_scope.where(status: "pending").count
+      status_counts = base_scope.group(:status).count
+      @succeeded_count = status_counts.fetch("succeeded", 0)
+      @failed_count = status_counts.fetch("failed", 0)
+      @pending_count = status_counts.fetch("pending", 0)
 
       payments_scope = @filter.apply_status(base_scope)
       crc_page = page_param(:crc_page)
@@ -46,7 +47,7 @@ module Admin
 
     def filtered_payments_scope
       filter = VentasFilter.new(params)
-      filter.apply_status(filter.apply(Payment.all))
+      filter.apply_status(filter.apply(ReportingScope.call))
     end
 
     def page_param(name)

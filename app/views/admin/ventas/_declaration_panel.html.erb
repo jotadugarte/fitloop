@@ -1,10 +1,10 @@
-<section class="admin-panel" style="margin-bottom: 1.25rem;">
+<section class="admin-panel admin-panel--declaration">
   <div class="admin-panel__header">
     <h2 class="admin-panel__title"><%= title %></h2>
-    <p style="margin: 0.35rem 0 0; color: var(--fit-text-muted, #5c6d82); font-size: 0.85rem;"><%= subtitle %></p>
+    <p class="admin-panel__subtitle"><%= subtitle %></p>
   </div>
 
-  <div class="admin-summary-grid" style="margin-bottom: 0;">
+  <div class="admin-summary-grid admin-summary-grid--flush">
     <div class="admin-stat-card">
       <div class="admin-stat-card__label">Ventas exitosas</div>
       <div class="admin-stat-card__value"><%= totals.count %></div>

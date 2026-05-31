@@ -166,7 +166,7 @@ module Admin
         payment.tax_amount.to_f,
         actual_total,
         payment.currency.to_s.upcase,
-        payment.cabys_code.to_s
+        payment.cabys_code.presence || Payment::DEFAULT_CABYS_CODE
       ]
     end
     private_class_method :detail_row_values
