@@ -91,12 +91,12 @@ class SpecDocVerifier
       yaml_data = YAML.load_file(EVENT_CATALOG_PATH)
       if yaml_data.is_a?(Hash)
         yaml_events = yaml_data.keys
-        if defined?(Analytics::EventCatalog)
+        begin
           catalog_events = Analytics::EventCatalog.all_event_types
           yaml_events.each do |event|
             errors << "event type #{event} from catalog YAML not registered in Analytics::EventCatalog" unless catalog_events.include?(event)
           end
-        else
+        rescue NameError
           errors << "Analytics::EventCatalog is not defined"
         end
       else
@@ -107,23 +107,23 @@ class SpecDocVerifier
     end
 
     # Funnel stages match
-    if defined?(Analytics::FunnelStages::ORDERED)
+    begin
       Analytics::FunnelStages::ORDERED.each do |stage|
         errors << "funnel stage #{stage} not found in contract" unless contract_content.include?(stage)
       end
-    else
+    rescue NameError
       errors << "Analytics::FunnelStages::ORDERED is not defined"
     end
 
     # Admin::ExportPaymentsXlsx detail and summary headers listed in contract
-    if defined?(Admin::ExportPaymentsXlsx)
+    begin
       Admin::ExportPaymentsXlsx::DETAIL_HEADERS.each do |header|
         errors << "XLSX detail header '#{header}' not listed in contract" unless contract_content.include?(header)
       end
       Admin::ExportPaymentsXlsx::SUMMARY_HEADERS.each do |header|
         errors << "XLSX summary header '#{header}' not listed in contract" unless contract_content.include?(header)
       end
-    else
+    rescue NameError
       errors << "Admin::ExportPaymentsXlsx is not defined"
     end
 

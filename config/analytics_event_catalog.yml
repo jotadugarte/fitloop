@@ -1,0 +1,54 @@
+# Catálogo de eventos de analíticas.
+# SSOT legible por máquina para verificar tipos y prioridades de eventos.
+
+workspace_started:
+  priority: low
+  required_properties: []
+
+first_dxf_uploaded:
+  priority: low
+  required_properties: [filename, byte_size]
+
+project_discarded:
+  priority: critical
+  required_properties: []
+
+nest_completed:
+  priority: critical
+  required_properties: [duration_ms, pieces_count, sheets_used]
+
+account_registered:
+  priority: critical
+  required_properties: []
+
+user_logged_in:
+  priority: low
+  required_properties: []
+
+user_logged_out:
+  priority: low
+  required_properties: []
+
+email_confirmed:
+  priority: low
+  required_properties: []
+
+account_deleted:
+  priority: critical
+  required_properties: [historical_email, historical_name]
+
+paywall_viewed:
+  priority: low
+  required_properties: []
+
+payment_succeeded:
+  priority: critical
+  required_properties: []
+
+payment_failed:
+  priority: critical
+  required_properties: []
+
+download_completed:
+  priority: critical
+  required_properties: []

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "minitest/autorun"
+require_relative "../../config/environment"
 require_relative "../../lib/spec_doc_verifier"
 
 # [REQ-FIT-SPEC-001] SPEC.md defines Fitloop domain, workflows, and REQ-FIT-* traceability.
