@@ -79,6 +79,8 @@ This ADR **supersedes** the access model described for **REQ-FIT-AUTH-001** in p
 - **`GET /empezar`** discards the tab workspace, creates/binds a new ephemeral `Project`, redirects **`GET /taller`**.
 - **Setup configuration** (láminas, inline nesting parameters, DXF, layers) occurs on `/taller` in **setup mode** (`Project#workshop_setup_mode?`).
 - **Remove** routes and views for `/projects/new`, `projects#create`, `projects#edit`, and the monolithic «Continuar» setup submit — no 301 redirect.
+- **`resource :workshop`** (`/taller`) exposes only **`show`** plus member/collection routes (nesting, workspace, DXF upload, etc.); no `edit`/`update` actions on `/taller`.
+- Legacy **`GET /taller/edit`** redirects to **`GET /taller`** (same as `/projects/:id/edit`).
 - **Toolbar** «Mi taller» always targets `/taller`; unbound sessions use `Workspace.find_or_create!` on show.
 
 **Validation:** `spec/requests/ephemeral_workspace_spec.rb`; task `task_merge-setup-into-workshop.md`.

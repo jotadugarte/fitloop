@@ -70,7 +70,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 ### W1 — Create project and sheet inventory
 
 1. User starts workspace (`GET /empezar`) → `Workspace.discard!` for the tab → `Workspace.create!` / bind → redirect **`GET /taller`** (Mi taller). No separate «Parámetros iniciales» route (`/projects/new` removed).
-2. **Workshop setup mode** (`Project#workshop_setup_mode?` — `draft` and zero `NestingRun` rows): Mi taller shows setup welcome, **Inventario de láminas** and **Detalle DXF** collapsibles **open**, **Parámetros de anidado** inline (not collapsible) between them, preview/progress hidden; primary CTA **«Iniciar anidado»** (errors via flash if láminas/DXF/capas missing — `ProjectReadinessValidator` + sheet-stock check).
+2. **Workshop setup mode** (`Project#workshop_setup_mode?` — `draft` and zero `NestingRun` rows): Mi taller shows setup welcome, **Inventario de láminas** and **Detalle DXF** collapsibles **open**, **Parámetros de anidado** inline (not collapsible) between them, preview/progress hidden; primary CTA **«Iniciar anidado»** (errors via flash if láminas/DXF/capas missing — `ProjectReadinessValidator`, including **zero sheet stocks**). **Autosave:** láminas (add/reorder/delete → `PATCH /taller/workspace` `section=sheets`); kerf/margin (debounced `PATCH /taller/nesting_parameters`); DXF layer roles (immediate `PATCH /taller/workspace` `section=layers`, `204 No Content` — no «Aplicar capas»). No separate «Guardar láminas» / «Aplicar» buttons.
 3. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
 4. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
 5. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
@@ -81,9 +81,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W2 — Upload DXFs and select layers
 
-1. User attaches multiple DXF files (Active Storage).
+1. User attaches multiple DXF files (Active Storage) on `/taller`; turbo-stream replaces **`show_source_dxf_detail`** (new uploads expand only the new file's layer checklist).
 2. System computes union of layer names → **layer checklist** UI.
-3. User checks layers to include (`ProjectLayer.included`).
+3. User selects primary/auxiliary layers per file; selection **autosaves** via `PATCH /taller/workspace` (`section=layers`).
 
 ### W3 — Pre-flight and start nesting
 
@@ -129,7 +129,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-001** | Ephemeral workshop UI (`/taller`); ordered sheet inventory (finite + ∞); contextual setup vs taller modes | P1 |
 | **REQ-FIT-DXF-001** | Multi-DXF upload; union layers; **layer checklist** (i18n) | P2 |
 | **REQ-FIT-DXF-002** | **Primary layer per file** + **auxiliary** layers clipped to primary polygons; composite nest + output | v1.2 |
-| **REQ-FIT-VAL-001** | Pre-flight: reject zero layers / zero pieces | P2 |
+| **REQ-FIT-VAL-001** | Pre-flight: reject zero sheet stocks / zero layers / zero pieces | P2 |
 | **REQ-FIT-EXT-002** | Extractor: INSERT on layer, nested blocks depth ≤8, warnings in report | P2 |
 | **REQ-FIT-CLI-001** | CLI contract documented; `NestingJob` + `Nesting::CliRunner` | P3 |
 | **REQ-FIT-NEST-002** | Multi-bin nest; outputs nested DXF + `placements.json` + `report.json` | P3 |
@@ -427,7 +427,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Collapsible persistence:** On `/taller` in taller mode, `workshop-sheet-inventory` and `workshop-source-dxf-detail` default closed (Stimulus `collapsible_persistence_controller`); setup mode skips forced closed.
 
-**Tests:** `spec/models/project_spec.rb` (`workshop_setup_mode?`), `spec/presenters/workshop/ux_mode_spec.rb`, `spec/requests/ephemeral_workspace_spec.rb`.
+**Autosave (setup and taller):** Sheet inventory, nesting parameters, and DXF layer selection persist without explicit save buttons — see W1 step 2 and W2. Layer autosave responds `204 No Content` to avoid turbo-stream races on rapid radio/check changes.
+
+**Tests:** `spec/models/project_spec.rb` (`workshop_setup_mode?`), `spec/presenters/workshop/ux_mode_spec.rb`, `spec/requests/ephemeral_workspace_spec.rb`, `spec/requests/project_nesting_parameters_spec.rb`, `spec/requests/project_dxf_upload_spec.rb`.
 
 ### REQ-FIT-UI-005 (detail)
 

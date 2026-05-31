@@ -6,6 +6,8 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Added
 
+- **Unified Mi taller funnel:** EMPEZAR lands on `/taller` with contextual **setup mode** (láminas → nesting params → DXF; preview hidden until first nest) vs **taller mode** after first successful nest (`REQ-FIT-UI-001`, `REQ-FIT-UI-003`).
+- **Workshop autosave:** sheet inventory, debounced nesting parameters, and DXF layer selection persist without explicit Save/Apply buttons in setup mode.
 - **ONVO live billing:** card (CRC/USD) and SINPE Móvil checkout when `BILLING_GATEWAY=onvo`; Payment Intents, embedded card form with 3DS return, SINPE transfer instructions, processing poll, and authoritative webhook fulfillment (`REQ-FIT-BILL-001`, ADR-0006).
 - **SINPE pending checkout lock:** 15-minute workshop lock while SINPE payment is pending; manual “Cancelar intento” releases lock without marking payment failed; late webhook still grants download (`REQ-FIT-BILL-001`).
 - **SINPE pre-retention:** nested DXF copied at SINPE checkout start (not downloadable until payment succeeds); staging blob purged on failed webhook (`REQ-FIT-BILL-003`).
@@ -26,6 +28,10 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Changed
 
+- **Parámetros iniciales removed:** `/projects/new` and monolithic «Continuar» step eliminated; ephemeral funnel is Inicio → EMPEZAR → `/taller`.
+- **Mi taller panels:** setup mode opens sheet inventory and DXF detail; taller mode keeps panels collapsed by default; uploading DXF after a nest preserves the detail panel open.
+- **Billing internals:** services use typed value objects at boundaries (no checkout API or JSON shape change).
+- **Mis pagos:** late SINPE fulfillments after manual abandon appear in payment history again.
 - **Checkout:** method-first ONVO checkout replaces simulated buttons when gateway is live; card 3DS cancel restores checkout with saved card draft (CVV not persisted); SINPE instructions step is transfer-only (correct data via Mis pagos cancel + new checkout).
 - **Workshop during SINPE pending:** DXF upload, layer changes, and sheet inventory blocked server-side for active SINPE lock (`BlocksWorkshopDuringPendingPayment`).
 - Paywall catalog at `/taller/descarga-pago` with inline plans and “Añadir al carrito”; checkout reads from the signed-in user’s cart.
@@ -38,4 +44,5 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Removed
 
+- `/projects/new` setup page, `finish_ephemeral_setup`, and dead `/taller/edit` routes.
 - Project PIN gate and related UI.
