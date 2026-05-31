@@ -391,9 +391,9 @@ es:
         steps_title: "En esta pantalla"
         steps:
           - "Añade tus láminas: ancho, alto y cuántas tienes de cada tamaño. Si dejas la cantidad en blanco, ese tipo de lámina será ilimitado."
-          - "Opcional: abre «Parámetros de anidado» para ajustar la separación entre piezas y el margen del borde."
+          - "Ajusta la separación entre piezas y el margen del borde en «Parámetros de anidado»."
           - "Sube tus DXF y elige la capa de corte (principal) y las auxiliares (grabado, marcas…)."
-          - "Pulsa «Continuar» para pasar al anidado y ver el resultado."
+          - "Pulsa «Iniciar anidado» para ver el resultado."
     new:
       title: "Nuevo proyecto"
       setup_title: "Parámetros iniciales"
@@ -582,6 +582,7 @@ es:
 
   project_readiness:
     heading: "Aún no se puede iniciar el anidado"
+    no_sheet_stocks: "Añade al menos un tipo de lámina al inventario."
     no_layers_selected: "Selecciona al menos una capa para incluir en el anidado."
     no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
     primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
