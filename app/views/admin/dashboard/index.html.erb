@@ -1,171 +1,36 @@
 <div class="admin-dashboard">
   <header class="admin-dashboard__header">
     <h1 class="admin-dashboard__title">Panel de administración</h1>
-    <p class="admin-dashboard__tagline">Monitoreo de ingresos, usuarios y uso del optimizador en tiempo real.</p>
+    <p class="admin-dashboard__tagline">Bienvenido/a. Selecciona una sección para ver los reportes correspondientes:</p>
   </header>
 
-  <!-- Summary Cards -->
-  <div class="admin-summary-grid">
-    <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Totales (CRC)</div>
-      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_crc, :crc) %></div>
-      <div class="admin-stat-card__meta">Moneda local colones</div>
-    </div>
-
-    <div class="admin-stat-card admin-stat-card--revenue">
-      <div class="admin-stat-card__label">Ingresos Totales (USD)</div>
-      <div class="admin-stat-card__value"><%= format_billing_amount(@total_revenue_usd, :usd) %></div>
-      <div class="admin-stat-card__meta">Pagos internacionales dólares</div>
-    </div>
-
-    <div class="admin-stat-card">
-      <div class="admin-stat-card__label">Transacciones</div>
-      <div class="admin-stat-card__value"><%= @succeeded_count %></div>
-      <div class="admin-stat-card__meta">
-        <span class="text-success"><%= @succeeded_count %> OK</span> · 
-        <span class="text-danger"><%= @failed_count %> Fallidas</span> · 
-        <span class="text-warning"><%= @pending_count %> Pendientes</span>
+  <div class="admin-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <!-- Ventas Card (Active) -->
+    <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
+      <div>
+        <h2 class="admin-panel__title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span>Ventas y Reportes</span>
+          <span class="badge badge--succeeded">Activo</span>
+        </h2>
+        <p style="color: var(--fit-text-muted, #5c6d82); font-size: 0.9rem; line-height: 1.5; margin: 0;">
+          Monitoreo de ingresos, facturación, reporte de IVA para Hacienda Costa Rica, y exportación detallada de transacciones.
+        </p>
       </div>
+      <%= link_to "Ir a Ventas", admin_ventas_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
     </div>
 
-    <div class="admin-stat-card">
-      <div class="admin-stat-card__label">Usuarios Registrados</div>
-      <div class="admin-stat-card__value"><%= @total_users %></div>
-      <div class="admin-stat-card__meta">Cuentas activas en Fitloop</div>
-    </div>
-
-    <div class="admin-stat-card">
-      <div class="admin-stat-card__label">Trabajos de Anidado</div>
-      <div class="admin-stat-card__value"><%= @total_nesting_runs %></div>
-      <div class="admin-stat-card__meta">Ejecuciones totales del motor</div>
-    </div>
-  </div>
-
-  <!-- Main Grid (Ventas & Analytics Side-by-side) -->
-  <div class="admin-main-grid">
-    <!-- Ventas Section -->
-    <section class="admin-panel admin-panel--ventas">
-      <div class="admin-panel__header">
-        <h2 class="admin-panel__title">Registro de pagos recientes</h2>
-        <%= link_to admin_export_payments_path, class: "btn btn-secondary btn--compact", style: "display: inline-flex; align-items: center; gap: 0.25rem;" do %>
-          <span>Descargar CSV</span>
-        <% end %>
+    <!-- Analytics Card (Disabled) -->
+    <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; opacity: 0.75;">
+      <div>
+        <h2 class="admin-panel__title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <span>Estadísticas y Uso</span>
+          <span class="badge badge--pending">Próximamente</span>
+        </h2>
+        <p style="color: var(--fit-text-muted, #5c6d82); font-size: 0.9rem; line-height: 1.5; margin: 0;">
+          Métricas de uso del optimizador, volumen de DXFs procesados y analíticas de retención y actividad de usuarios.
+        </p>
       </div>
-
-      <div class="table-container">
-        <% if @payments.any? %>
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Ref / ID</th>
-                <th>Comprador</th>
-                <th>Concepto</th>
-                <th>Método</th>
-                <th class="text-right">Total</th>
-                <th class="text-center">Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @payments.each do |payment| %>
-                <tr>
-                  <td class="font-mono text-sm">
-                    <%= payment.purchase_reference.presence || "# #{payment.id}" %>
-                  </td>
-                  <td>
-                    <div style="font-weight: 500;"><%= payment.purchaser_name.presence || "Usuario ##{payment.user_id}" %></div>
-                    <div class="text-muted font-mono" style="font-size: 0.75rem;"><%= payment.purchaser_email.presence || payment.user&.email %></div>
-                  </td>
-                  <td>
-                    <span style="font-size: 0.8rem; font-weight: 500;">
-                      <%= payment.purpose == "plan_subscription" ? "Plan" : "Descarga suelta" %>
-                    </span>
-                  </td>
-                  <td>
-                    <span class="font-mono" style="font-size: 0.8rem;">
-                      <%= payment.payment_method.to_s.upcase.gsub('_', ' ') %>
-                    </span>
-                  </td>
-                  <td class="text-right font-mono font-bold">
-                    <% actual_total = payment.total_amount.to_f > 0 ? payment.total_amount : payment.amount %>
-                    <%= format_billing_amount(actual_total, payment.currency.to_sym) %>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge badge--<%= payment.status %>">
-                      <%= payment.status.upcase %>
-                    </span>
-                  </td>
-                  <td style="font-size: 0.8rem; white-space: nowrap;">
-                    <%= payment.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y %H:%M") %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        <% else %>
-          <div class="admin-empty-state">No hay transacciones registradas en el sistema.</div>
-        <% end %>
-      </div>
-    </section>
-
-    <!-- Sidebar Section (Analytics) -->
-    <div class="admin-sidebar-panels">
-      <!-- Users Telemetry -->
-      <section class="admin-panel">
-        <h2 class="admin-panel__title" style="margin-bottom: 1rem;">Usuarios Recientes</h2>
-        <% if @recent_users.any? %>
-          <ul class="admin-list">
-            <% @recent_users.each do |user| %>
-              <li class="admin-list__item">
-                <div>
-                  <div style="font-weight: 500;"><%= user.name %></div>
-                  <div class="text-muted font-mono" style="font-size: 0.75rem;"><%= user.email %></div>
-                </div>
-                <div class="text-right">
-                  <span class="badge badge--<%= user.confirmed_at.present? ? 'succeeded' : 'pending' %>">
-                    <%= user.confirmed_at.present? ? 'Confirmado' : 'Pendiente' %>
-                  </span>
-                  <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;">
-                    <%= user.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m/%y") %>
-                  </div>
-                </div>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <div class="admin-empty-state">No hay usuarios registrados.</div>
-        <% end %>
-      </section>
-
-      <!-- Nesting Runs Telemetry -->
-      <section class="admin-panel">
-        <h2 class="admin-panel__title" style="margin-bottom: 1rem;">Anidados Recientes</h2>
-        <% if @recent_runs.any? %>
-          <ul class="admin-list">
-            <% @recent_runs.each do |run| %>
-              <li class="admin-list__item">
-                <div>
-                  <div style="font-weight: 500;">Corrida #<%= run.id %></div>
-                  <div class="text-muted" style="font-size: 0.75rem;">
-                    Proyecto #<%= run.project_id %>: <span class="font-mono"><%= run.project&.title %></span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="badge badge--<%= run.status %>">
-                    <%= run.status.upcase %>
-                  </span>
-                  <div class="text-muted" style="font-size: 0.7rem; margin-top: 0.2rem;">
-                    <%= run.created_at.in_time_zone("America/Costa_Rica").strftime("%d/%m %H:%M") %>
-                  </div>
-                </div>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <div class="admin-empty-state">No hay corridas de anidado registradas.</div>
-        <% end %>
-      </section>
+      <span class="btn btn-secondary btn--compact" style="text-align: center; cursor: not-allowed; opacity: 0.65; display: block; width: 100%; padding: 0.5rem; font-weight: 500;">Ir a Analytics</span>
     </div>
   </div>
 </div>
-
