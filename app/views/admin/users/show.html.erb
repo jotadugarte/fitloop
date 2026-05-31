@@ -1,31 +1,36 @@
 <div class="admin-dashboard">
-  <header class="admin-dashboard__header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+  <header class="admin-dashboard__header admin-dashboard__header--split">
     <div>
       <h1 class="admin-dashboard__title">Bitácora de <%= @user.name.presence || @user.email %></h1>
       <p class="admin-dashboard__tagline">Historial de eventos y acciones registradas para este usuario</p>
     </div>
-    <%= link_to "← Volver a Usuarios", admin_usuarios_path, class: "btn btn-secondary", style: "text-decoration: none;" %>
+    <div>
+      <%= link_to "← Volver a Usuarios", admin_usuarios_path, class: "btn btn-secondary", style: "text-decoration: none;" %>
+    </div>
   </header>
 
   <!-- User Details Card -->
-  <div class="panel panel--solid" style="margin-bottom: 2rem; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-    <div>
-      <h3 style="font-size: 0.8rem; text-transform: uppercase; color: var(--fit-text-muted); margin: 0 0 0.25rem;">ID de Usuario</h3>
-      <div style="font-size: 1.1rem; font-weight: 600;"><%= @user.id %></div>
+  <section class="fit-section">
+    <h2 class="fit-section__legend">Información del Usuario</h2>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-item__label">ID de Usuario</div>
+        <div class="detail-item__value font-mono"><%= @user.id %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label">Nombre</div>
+        <div class="detail-item__value"><%= @user.name.presence || "—" %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label">Correo Electrónico</div>
+        <div class="detail-item__value"><%= @user.email %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label">Fecha de Registro</div>
+        <div class="detail-item__value"><%= @user.created_at.strftime("%Y-%m-%d %H:%M") %></div>
+      </div>
     </div>
-    <div>
-      <h3 style="font-size: 0.8rem; text-transform: uppercase; color: var(--fit-text-muted); margin: 0 0 0.25rem;">Nombre</h3>
-      <div style="font-size: 1.1rem; font-weight: 600;"><%= @user.name.presence || "—" %></div>
-    </div>
-    <div>
-      <h3 style="font-size: 0.8rem; text-transform: uppercase; color: var(--fit-text-muted); margin: 0 0 0.25rem;">Correo Electrónico</h3>
-      <div style="font-size: 1.1rem; font-weight: 600;"><%= @user.email %></div>
-    </div>
-    <div>
-      <h3 style="font-size: 0.8rem; text-transform: uppercase; color: var(--fit-text-muted); margin: 0 0 0.25rem;">Fecha de Registro</h3>
-      <div style="font-size: 1.1rem; font-weight: 600;"><%= @user.created_at.strftime("%Y-%m-%d %H:%M") %></div>
-    </div>
-  </div>
+  </section>
 
   <!-- Timeline section -->
   <div class="fit-section">
@@ -33,27 +38,27 @@
     
     <div class="fit-section__content" style="padding-top: 1.5rem;">
       <% if @events.any? %>
-        <div class="timeline" style="border-left: 2px solid var(--fit-border); padding-left: 1.5rem; margin-left: 0.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+        <div class="admin-timeline">
           <% @events.each do |event| %>
-            <div class="timeline-item" style="position: relative;">
-              <div class="timeline-dot" style="position: absolute; left: -2.05rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background: <%= event.priority == 'critical' ? 'var(--fit-alert-border, #c45c5c)' : 'var(--fit-navy)' %>;"></div>
+            <div class="admin-timeline__item">
+              <div class="admin-timeline__dot <%= 'admin-timeline__dot--critical' if event.priority == 'critical' %>"></div>
               
-              <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem; margin-bottom: 0.25rem;">
-                <span style="font-weight: 600; font-size: 1rem; color: var(--fit-navy-dark);"><%= event_label(event.event_type) %></span>
-                <span style="font-size: 0.85rem; color: var(--fit-text-muted);"><%= event.occurred_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
+              <div class="admin-timeline__header">
+                <span class="admin-timeline__event-type"><%= event_label(event.event_type) %></span>
+                <span class="admin-timeline__time"><%= event.occurred_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
               </div>
               
-              <div style="font-size: 0.9rem; color: var(--fit-text); background: var(--fit-bg); padding: 0.75rem 1rem; border-radius: 4px; border: 1px solid var(--fit-border);">
+              <div class="admin-timeline__body">
                 <div><strong>Tipo:</strong> <code><%= event.event_type %></code></div>
                 <% if event.ip.present? || event.country_code.present? %>
-                  <div style="margin-top: 0.25rem; font-size: 0.85rem; color: var(--fit-text-muted);">
+                  <div class="admin-timeline__meta">
                     IP: <%= event.ip || "—" %> (<%= event.country_code || "—" %>) | Locale: <%= event.locale || "—" %>
                   </div>
                 <% end %>
                 <% if event.properties.present? %>
-                  <div style="margin-top: 0.5rem;">
-                    <strong>Propiedades:</strong>
-                    <pre style="margin: 0.25rem 0 0 0; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.03); padding: 0.5rem; border-radius: 3px; overflow-x: auto;"><%= JSON.pretty_generate(event.properties) %></pre>
+                  <div class="admin-timeline__properties">
+                    <span class="admin-timeline__properties-label">Propiedades:</span>
+                    <pre class="admin-timeline__properties-pre"><%= JSON.pretty_generate(event.properties) %></pre>
                   </div>
                 <% end %>
               </div>
@@ -61,7 +66,7 @@
           <% end %>
         </div>
       <% else %>
-        <p style="color: var(--fit-text-muted); text-align: center; padding: 2rem;">
+        <p class="admin-empty-state">
           No hay eventos registrados para este usuario en la bitácora.
         </p>
       <% end %>
