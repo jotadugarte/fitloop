@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 # [REQ-FIT-AUTH-002] Persistent user identity; projects remain ephemeral (ADR-0005).
+# [REQ-FIT-ADMIN-001] admin: boolean column — promoted via FITLOOP_ADMIN_EMAILS initializer.
+# ActiveRecord generates admin? automatically. Never set via user registration flow.
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :validatable, :confirmable,

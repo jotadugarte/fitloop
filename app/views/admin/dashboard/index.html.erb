@@ -1,0 +1,32 @@
+<div class="admin-dashboard">
+  <header style="margin-bottom: 2rem;">
+    <h1 style="font-size: 2.25rem; font-weight: 700; color: var(--text-color, #fff); margin-bottom: 0.5rem;">Panel de administración</h1>
+    <p style="font-size: 1.1rem; opacity: 0.75; color: var(--text-color, #fff);">Bienvenido/a. Selecciona una sección:</p>
+  </header>
+
+  <div class="admin-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    <!-- Ventas Card (Visually Disabled) -->
+    <div class="admin-card disabled" style="background: var(--bg-surface, #1e1e1e); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; opacity: 0.6; cursor: not-allowed; position: relative;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: var(--text-color, #fff); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Ventas</span>
+          <span style="font-size: 0.75rem; background: var(--bg-neutral-dark, #333); color: var(--text-color, #fff); padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 500;">Próximamente</span>
+        </h2>
+        <p style="font-size: 0.95rem; opacity: 0.7; color: var(--text-color, #fff); margin-bottom: 1.5rem;">Monitoreo de ingresos, facturación y reportes de ventas integrados con la pasarela de pagos.</p>
+      </div>
+      <span class="btn btn-secondary btn--compact" style="align-self: flex-start; pointer-events: none;">Ir a Ventas</span>
+    </div>
+
+    <!-- Analytics Card (Visually Disabled) -->
+    <div class="admin-card disabled" style="background: var(--bg-surface, #1e1e1e); border: 1px solid var(--border-color, #333); border-radius: 8px; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 200px; opacity: 0.6; cursor: not-allowed; position: relative;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: var(--text-color, #fff); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Analytics</span>
+          <span style="font-size: 0.75rem; background: var(--bg-neutral-dark, #333); color: var(--text-color, #fff); padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 500;">Próximamente</span>
+        </h2>
+        <p style="font-size: 0.95rem; opacity: 0.7; color: var(--text-color, #fff); margin-bottom: 1.5rem;">Estadísticas de uso del optimizador, volumen de DXFs procesados y métricas de retención de usuarios.</p>
+      </div>
+      <span class="btn btn-secondary btn--compact" style="align-self: flex-start; pointer-events: none;">Ir a Analytics</span>
+    </div>
+  </div>
+</div>

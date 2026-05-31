@@ -117,4 +117,9 @@ Rails.application.routes.draw do
   get "projects/:id/edit", to: redirect("/taller")
   get "projects/:id/descarga-pago", to: redirect("/taller/descarga-pago")
   get "projects/:id/*path", to: redirect("/taller/%{path}")
+
+  namespace :admin do
+    root to: "dashboard#index"
+  end
 end
+
