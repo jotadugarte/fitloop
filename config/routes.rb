@@ -72,7 +72,7 @@ Rails.application.routes.draw do
   resolve("Project") { [:workshop] }
 
   # Ephemeral workshop (session-bound); no project id in the browser URL.
-  resource :workshop, path: "taller", controller: "projects", only: %i[show edit update] do
+  resource :workshop, path: "taller", controller: "projects", only: %i[show] do
     member do
       patch :nesting_parameters
       patch :workspace
@@ -107,6 +107,8 @@ Rails.application.routes.draw do
          to: "split_proposals#regenerate",
          as: :regenerate_orphan_split_proposal
   end
+
+  get "taller/edit", to: redirect("/taller")
 
   resources :projects, only: %i[index]
 

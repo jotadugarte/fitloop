@@ -19,13 +19,13 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     project = Workspace.find(session, tab_id: tab_id)
     expect(session[Workspace::WORKSPACES_KEY].keys).to eq([tab_id])
 
-    post project_input_dxf_files_path(project, context: "setup"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     expect(response).to redirect_to(start_project_path)
 
-    post project_input_dxf_files_path(project, context: "setup"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
          headers: {
            "Accept" => "text/vnd.turbo-stream.html",
@@ -36,24 +36,24 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     expect(project.reload.input_dxf).to be_attached
   end
 
-  it "accepts turbo-stream upload with files[] param from setup" do
+  it "accepts turbo-stream upload with files[] param on Mi taller" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "setup"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     expect(response).to have_http_status(:ok)
     expect(response.media_type).to eq("text/vnd.turbo-stream.html")
     expect(project.reload.input_dxf).to be_attached
-    expect(response.body).to include("dxf_files_layers_project_#{project.id}")
-    expect(response.body).not_to include("show_dxf_upload")
+    expect(response.body).to include("source_dxf_detail_project_#{project.id}")
+    expect(response.body).to include('data-testid="source-dxf-detail"')
   end
 
   it "accepts turbo-stream upload with files param" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "setup"),
+    post project_input_dxf_files_path(project),
          params: { files: [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -64,7 +64,7 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
   it "expands layer checklists for newly uploaded files on Mi taller" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -76,11 +76,11 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
   it "keeps existing file entries collapsed when uploading another DXF" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -92,14 +92,14 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
   it "opens source DXF detail and expands new file layers after nesting on Mi taller" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     project.nesting_runs.create!(status: "completed")
     project.update!(status: :completed)
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -114,24 +114,20 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
   end
 
-  it "updates source DXF detail on show via turbo-stream" do
+  it "updates source DXF detail via turbo-stream on subsequent uploads" do
     project = start_setup_session!
 
-    post project_input_dxf_files_path(project, context: "setup"),
-         params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
+    post project_input_dxf_files_path(project),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    project.project_layers.find_by!(layer_name: "PIECES").update!(included: true)
-    project.update!(status: :ready)
-    Workspace.bind!(session, project)
-
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include("source_dxf_detail_project_#{project.id}")
     expect(response.body).to include('data-testid="dxf-upload-show-hint"')
-    expect(response.body).not_to include("dxf_files_layers_project_#{project.id}")
     expect(project.reload.input_dxf_attachments.count).to eq(2)
   end
 end

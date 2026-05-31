@@ -262,7 +262,7 @@ class ProjectsController < ApplicationController
         partial: "projects/show_actions",
         locals: { project: @project }
       )
-      if @workshop_ux.show_preview_zone?
+      if workshop_ux.show_preview_zone?
         streams << turbo_stream.replace(
           project_dom_id(:preview_zone),
           partial: "projects/show_preview_zone",

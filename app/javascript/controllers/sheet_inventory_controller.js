@@ -20,6 +20,7 @@ export default class extends Controller {
 
   connect() {
     this.persistPending = false
+    this.persistDirty = false
     this.listTarget.dataset.sortable = "true"
     this.sortable = Sortable.create(this.listTarget, {
       handle: "[data-testid='sheet-stock-drag-handle']",
@@ -330,13 +331,24 @@ export default class extends Controller {
 
   persistInventory() {
     const form = this.element.closest("form")
-    if (!form || this.persistPending) return
+    if (!form) return
+
+    if (this.persistPending) {
+      this.persistDirty = true
+      return
+    }
 
     this.persistPending = true
+    this.persistDirty = false
     form.requestSubmit()
   }
 
   clearPersistPending() {
     this.persistPending = false
+
+    if (!this.persistDirty) return
+
+    this.persistDirty = false
+    this.persistInventory()
   }
 }

@@ -23,7 +23,7 @@ class ProjectInputDxfFilesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render_dxf_stream }
-      format.html { redirect_to redirect_after_upload, notice: t("project_layers.upload.created") }
+      format.html { redirect_to workshop_path, notice: t("project_layers.upload.created") }
     end
   end
 
@@ -38,7 +38,7 @@ class ProjectInputDxfFilesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render_dxf_stream }
-      format.html { redirect_to redirect_after_upload, notice: t("project_layers.upload.removed") }
+      format.html { redirect_to workshop_path, notice: t("project_layers.upload.removed") }
     end
   end
 
@@ -50,18 +50,10 @@ class ProjectInputDxfFilesController < ApplicationController
     Array(list).compact
   end
 
-  def setup_context?
-    params[:context].to_s == "setup"
-  end
-
-  def redirect_after_upload
-    setup_context? ? edit_workshop_path : workshop_path
-  end
-
   def respond_to_missing_files
     respond_to do |format|
       format.turbo_stream { head :unprocessable_content }
-      format.html { redirect_to redirect_after_upload, alert: t("project_layers.upload.missing") }
+      format.html { redirect_to workshop_path, alert: t("project_layers.upload.missing") }
     end
   end
 
@@ -82,25 +74,14 @@ class ProjectInputDxfFilesController < ApplicationController
 
   def render_dxf_stream
     @project.reload
-    streams = if setup_context?
-      [
-        turbo_stream.replace(
-          dom_id(@project, :dxf_files_layers),
-          partial: "projects/dxf_files_layers",
-          locals: { project: @project, context: "setup" }.merge(layer_expand_locals)
-        )
-      ]
-    else
-      [
-        turbo_stream.replace(
-          dom_id(@project, :source_dxf_detail),
-          partial: "projects/show_source_dxf_detail",
-          locals: { project: @project }.merge(layer_expand_locals)
-        )
-      ]
-    end
-
-    render turbo_stream: streams
+    render turbo_stream: turbo_stream.replace(
+      dom_id(@project, :source_dxf_detail),
+      partial: "projects/show_source_dxf_detail",
+      locals: {
+        project: @project,
+        workshop_ux: Workshop::UxMode.new(@project)
+      }.merge(layer_expand_locals)
+    )
   end
 
   def dom_id(record, prefix = nil)

@@ -7,7 +7,7 @@ module WorkshopUrlHelper
   end
 
   def edit_project_path(*_args, **kwargs)
-    edit_workshop_path(**kwargs)
+    workshop_path(**kwargs)
   end
 
   def nesting_parameters_project_path(*_args, **kwargs)
