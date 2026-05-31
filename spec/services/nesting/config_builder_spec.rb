@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ConfigBuilder do
+RSpec.describe Nesting::ConfigBuilder, "[REQ-FIT-CLI-001]" do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
   let(:work_dir) { Rails.root.join("tmp/test_config_builder_composite") }
 
@@ -121,6 +121,26 @@ RSpec.describe Nesting::ConfigBuilder do
       expect(file_entry).not_to have_key(:primary_layer)
       expect(file_entry).not_to have_key(:auxiliary_layers)
     end
+  end
+
+  it "[REQ-FIT-CLI-001] merges JobParameters numerics into the CLI payload" do
+    project = create_project_for_spec!(
+      title: "Config builder numerics",
+      bind_workspace: false,
+      kerf_mm: 1.5,
+      margin_mm: 6,
+      curve_tolerance_mm: 0.2,
+      sheet_gap_mm: 12,
+      nesting_time_limit_sec: 450
+    )
+
+    payload = described_class.build(
+      project: project,
+      work_dir: Rails.root.join("tmp/test_config_builder_numerics"),
+      input_paths: []
+    )
+
+    expect(payload).to include(Nesting::JobParameters.from_project(project).to_config_hash)
   end
 
   it "[REQ-FIT-NEST-002] passes all persisted sheet stocks to the CLI in consumption order" do

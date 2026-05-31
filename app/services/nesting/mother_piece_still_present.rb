@@ -36,7 +36,7 @@ module Nesting
         attachment: attachment,
         layer_name: @layer_name,
         rings: rings
-      ).value
+      )
     end
 
     def with_downloaded_dxf_paths

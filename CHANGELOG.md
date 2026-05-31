@@ -31,6 +31,7 @@ All notable user-facing changes to Fitloop are documented here.
 - **Parámetros iniciales removed:** `/projects/new` and monolithic «Continuar» step eliminated; ephemeral funnel is Inicio → EMPEZAR → `/taller`.
 - **Mi taller panels:** setup mode opens sheet inventory and DXF detail; taller mode keeps panels collapsed by default; uploading DXF after a nest preserves the detail panel open.
 - **Billing internals:** services use typed value objects at boundaries (no checkout API or JSON shape change).
+- **Nesting internals:** workshop/nesting services use `Nesting::*` value objects at boundaries (`KerfMm`, `MarginMm`, `JobParameters`, `PieceKey`, etc.); `config.json` keys and HTTP shapes unchanged; invalid kerf/margin rejected before save (`REQ-FIT-NEST-002`, `REQ-FIT-DOM-001`).
 - **Mis pagos:** late SINPE fulfillments after manual abandon appear in payment history again.
 - **Checkout:** method-first ONVO checkout replaces simulated buttons when gateway is live; card 3DS cancel restores checkout with saved card draft (CVV not persisted); SINPE instructions step is transfer-only (correct data via Mis pagos cancel + new checkout).
 - **Workshop during SINPE pending:** DXF upload, layer changes, and sheet inventory blocked server-side for active SINPE lock (`BlocksWorkshopDuringPendingPayment`).

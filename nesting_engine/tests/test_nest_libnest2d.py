@@ -324,7 +324,7 @@ def test_run_from_config_honors_time_limit_sec_with_partial_and_warning(
         "kerf_mm": 0.0,
         "margin_mm": 0.0,
         "sheet_gap_mm": 0.0,
-        "time_limit_sec": 0.1,
+        "time_limit_sec": 1,
     }
 
     run_from_config(config)

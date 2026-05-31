@@ -127,6 +127,20 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 
 **Requirement detail:** `REQ-FIT-JOB-001`, `REQ-FIT-SPLIT-001`, `REQ-FIT-DXF-002` in `docs/core/SPEC.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` §§ Nesting job, Auto-split, Composite layers.
 
+### 9.1 Nesting / workshop domain types (CbC, normative)
+
+| Layer | Location | Responsibility |
+|-------|----------|----------------|
+| **Rails VOs** | `app/models/nesting/` | Pure Ruby types (`KerfMm`, `MarginMm`, `CurveToleranceMm`, `SheetGapMm`, `NestingTimeLimitSec`, `JobParameters`, `SheetStockRow`, `PieceKey`) — parse/validate at service and controller boundaries; **not** ActiveRecord models |
+| **CLI numerics SSOT** | `Nesting::JobParameters.from_project` → `Nesting::ConfigBuilder` | Emits legacy `config.json` keys (`kerf_mm`, `margin_mm`, `curve_tolerance_mm`, `sheet_gap_mm`, `time_limit_sec`) unchanged |
+| **Workshop kerf/margin** | `Nesting::AssignNestingParameters` | Parses `PATCH` nesting parameters before AR assign; invalid values → `422` |
+| **Python validation** | `nesting_engine/nesting_config.py` | `parse_job_parameters_from_config` fail-fast before `nest.py` / `plan_splits` |
+| **Persistence edge** | `Project`, `SheetStock`, `OrphanResolution` | DB columns remain `float` / `string`; `.to_f` / `.to_s` only when saving or building JSON |
+
+**Invariants:** `KerfMm` and `MarginMm` are **separate types** (never conflated). Do **not** use `Billing::*` types in nesting or workshop code paths.
+
+**Requirement detail:** `REQ-FIT-NEST-002`, `REQ-FIT-DOM-001`, `REQ-FIT-CLI-001`, `REQ-FIT-SPLIT-001` in `docs/core/SPEC.md`. **ADR:** `docs/core/ADRs/0001-nesting-library.md` (Rails CbC addendum).
+
 ---
 
 ## 10. User accounts and billing (normative)

@@ -13,6 +13,7 @@ module StartsNesting
       SheetStocks::InvalidateNestingOutputs.call(project)
     end
 
+    time_limit = Nesting::NestingTimeLimitSec.from_project(project)
     snapshot = {}
     snapshot["nest_updated_pieces"] = true if nest_updated_pieces
     nesting_run = project.nesting_runs.create!(status: "processing", params_snapshot: snapshot)
@@ -20,7 +21,7 @@ module StartsNesting
       status: :processing,
       progress_percent: 3,
       progress_message: "nesting.phase.queued",
-      estimated_finished_at: Time.current + project.nesting_time_limit_sec.seconds
+      estimated_finished_at: Time.current + time_limit.to_i.seconds
     )
     Nesting::ProgressBroadcaster.call(project: project.reload, eta_overrun: false, time_limit_notice: false)
     NestingJob.perform_later(nesting_run.id)
