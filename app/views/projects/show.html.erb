@@ -1,8 +1,11 @@
 <%= turbo_stream_from @project %>
 
+<% ux = @workshop_ux %>
+
 <main
-  class="page page--wide project-show"
+  class="page page--wide project-show<%= " project-show--setup" if ux.setup? %>"
   data-testid="project-show"
+  data-workshop-setup-mode="<%= ux.setup? %>"
   data-controller="nesting-progress-sync"
   data-nesting-progress-sync-url-value="<%= nesting_sync_project_path(@project) %>"
   data-project-status="<%= @project.status %>"
@@ -16,24 +19,34 @@
     <div class="project-show__hero-status">
       <%= render "status_badge", project: @project %>
     </div>
-    <%= render "show_welcome" %>
+    <%= render "show_welcome", project: @project, workshop_ux: ux %>
   </div>
 
-  <%= render "show_sheet_inventory", project: @project %>
+  <%= render "show_sheet_inventory", project: @project, workshop_ux: ux %>
 
-  <%= render "show_source_dxf_detail", project: @project %>
+  <% if ux.show_inline_nesting_settings? %>
+    <%= render "show_setup_nesting_settings", project: @project %>
+  <% end %>
 
-  <%= render "show_preview_zone",
-             project: @project,
-             preview: @nesting_preview,
-             orphans: @nesting_orphans,
-             plan_download_included: @plan_download_included %>
+  <%= render "show_source_dxf_detail", project: @project, workshop_ux: ux %>
 
   <%= render "show_actions", project: @project %>
 
-  <section class="project-show__progress">
-    <%= render "nesting_progress", **Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice) %>
-  </section>
+  <% if ux.show_preview_zone? %>
+    <%= render "show_preview_zone",
+               project: @project,
+               preview: @nesting_preview,
+               orphans: @nesting_orphans,
+               plan_download_included: @plan_download_included %>
+  <% end %>
 
-  <%= render "nesting_parameters", project: @project %>
+  <% if ux.show_nesting_progress? %>
+    <section class="project-show__progress">
+      <%= render "nesting_progress", **Nesting::ProgressLocals.for(@project, time_limit_notice: @time_limit_notice) %>
+    </section>
+  <% end %>
+
+  <% if ux.show_collapsed_nesting_parameters? %>
+    <%= render "nesting_parameters", project: @project, workshop_ux: ux %>
+  <% end %>
 </main>

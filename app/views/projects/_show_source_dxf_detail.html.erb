@@ -1,13 +1,14 @@
 <%= turbo_frame_tag dom_id(project, :source_dxf_detail) do %>
   <% lock_active = workshop_mutations_locked?(project) %>
+  <% ux = local_assigns.fetch(:workshop_ux) { workshop_ux_mode(project) } %>
   <% selected_layers = project.project_layers.where(included: true) %>
   <% file_count = project.input_dxf_attachments.size %>
-  <% expand_layers = local_assigns.fetch(:expand_layers, false) %>
+  <% expand_layers = local_assigns.fetch(:expand_layers, ux.open_source_dxf_detail?) %>
   <% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
   <details class="collapsible-panel panel panel--chrome fit-section"
            data-testid="source-dxf-detail"
            data-collapsible-key="workshop-source-dxf-detail"
-           <%= "open" if expand_layers %>>
+           <%= "open" if ux.open_source_dxf_detail? || expand_layers %>>
     <%= render "projects/fit_section_summary",
                title: t("projects.show.source_dxf_detail_summary"),
                meta: t("projects.show.source_dxf_detail_meta",

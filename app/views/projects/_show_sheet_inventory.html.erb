@@ -1,9 +1,11 @@
 <% lock_active = workshop_mutations_locked?(project) %>
+<% ux = local_assigns.fetch(:workshop_ux) { workshop_ux_mode(project) } %>
 <%= turbo_frame_tag dom_id(project, :sheet_inventory) do %>
   <% sheet_count = project.sheet_stocks.count %>
   <details class="collapsible-panel panel panel--chrome fit-section"
            data-testid="show-sheet-inventory"
-           data-collapsible-key="workshop-sheet-inventory">
+           data-collapsible-key="workshop-sheet-inventory"
+           <%= "open" if ux.open_sheet_inventory? %>>
     <%= render "projects/fit_section_summary",
                title: t("projects.form.sheet_stocks_legend"),
                meta: t("projects.show.sheet_inventory_meta", count: sheet_count) %>
