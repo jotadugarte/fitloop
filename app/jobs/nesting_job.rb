@@ -13,7 +13,7 @@ class NestingJob < ApplicationJob
       nesting_run.update!(
         status: "failed",
         finished_at: Time.current,
-        report_json: { "status" => "failed", "warnings" => ["project_missing"] }
+        report_json: { "status" => "failed", "warnings" => [ "project_missing" ] }
       )
       return
     end
@@ -29,58 +29,72 @@ class NestingJob < ApplicationJob
       Nesting::FailRun.call(nesting_run: nesting_run, error: error) if nesting_run&.status == "processing"
     ensure
       nesting_run = NestingRun.find_by(id: nesting_run_id)
-      if nesting_run && nesting_run.status != "processing"
-        last_event = UserEvent.where(project_id: project.id).order(occurred_at: :desc).first
-
-        sheets_used = 0
-        pieces_count = 0
-        orphans_by_reason = {}
-
-        work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
-        placements_path = work_dir.join("output", "placements.json")
-        if placements_path.file?
-          begin
-            placements = JSON.parse(placements_path.read)
-            sheets_used = placements["sheets"]&.size || 0
-            pieces_count = placements["sheets"]&.sum { |s| s["pieces"]&.size || 0 } || 0
-          rescue => e
-            Rails.logger.error("[NestingJob telemetry] Failed to parse placements: #{e.message}")
-          end
-        end
-
-        report = nesting_run.report_json || {}
-        orphans = report["orphans"] || []
-        if orphans.any?
-          orphans_by_reason = orphans.group_by { |o| o["reason"] }.transform_values(&:size)
-        end
-
-        duration_ms = 0
-        started = nesting_run.started_at
-        finished = nesting_run.finished_at || Time.current
-        if started
-          duration_ms = ((finished - started) * 1000).to_i
-        end
-
-        Analytics::TrackEvent.call(
-          "nest_completed",
-          user_id: last_event&.user_id,
-          anonymous_session_key: last_event&.anonymous_session_key,
-          tab_id: last_event&.tab_id,
-          project_id: project.id,
-          nesting_run_id: nesting_run.id,
-          ip: last_event&.ip,
-          user_agent: last_event&.user_agent,
-          country_code: last_event&.country_code,
-          locale: last_event&.locale || "es",
-          properties: {
-            duration_ms: duration_ms,
-            sheets_used: sheets_used,
-            pieces_count: pieces_count,
-            orphans_by_reason: orphans_by_reason,
-            status: nesting_run.status
-          }
-        )
-      end
+      emit_nest_telemetry(nesting_run, project) if nesting_run && nesting_run.status != "processing"
     end
+  end
+
+  private
+
+  def emit_nest_telemetry(nesting_run, project)
+    last_event = UserEvent.where(project_id: project.id).order(occurred_at: :desc).first
+
+    Analytics::TrackEvent.call(
+      "nest_completed",
+      user_id: last_event&.user_id,
+      anonymous_session_key: last_event&.anonymous_session_key,
+      tab_id: last_event&.tab_id,
+      project_id: project.id,
+      nesting_run_id: nesting_run.id,
+      ip: last_event&.ip,
+      user_agent: last_event&.user_agent,
+      country_code: last_event&.country_code,
+      locale: last_event&.locale || I18n.default_locale.to_s,
+      properties: nest_telemetry_properties(nesting_run)
+    )
+  end
+
+  def nest_telemetry_properties(nesting_run)
+    {
+      duration_ms: compute_duration_ms(nesting_run),
+      sheets_used: parse_sheets_used(nesting_run),
+      pieces_count: parse_pieces_count(nesting_run),
+      orphans_by_reason: parse_orphans_by_reason(nesting_run),
+      status: nesting_run.status
+    }
+  end
+
+  def compute_duration_ms(nesting_run)
+    started = nesting_run.started_at
+    return 0 unless started
+
+    finished = nesting_run.finished_at || Time.current
+    ((finished - started) * 1000).to_i
+  end
+
+  def parse_placements(nesting_run)
+    path = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s, "output", "placements.json")
+    return nil unless path.file?
+
+    JSON.parse(path.read)
+  rescue StandardError => e
+    Rails.logger.error("[NestingJob telemetry] Failed to parse placements: #{e.message}")
+    nil
+  end
+
+  def parse_sheets_used(nesting_run)
+    placements = parse_placements(nesting_run)
+    placements&.dig("sheets")&.size || 0
+  end
+
+  def parse_pieces_count(nesting_run)
+    placements = parse_placements(nesting_run)
+    placements&.dig("sheets")&.sum { |s| s["pieces"]&.size || 0 } || 0
+  end
+
+  def parse_orphans_by_reason(nesting_run)
+    orphans = (nesting_run.report_json || {})["orphans"] || []
+    return {} unless orphans.any?
+
+    orphans.group_by { |o| o["reason"] }.transform_values(&:size)
   end
 end

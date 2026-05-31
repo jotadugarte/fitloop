@@ -4,14 +4,15 @@ require "csv"
 
 module Admin
   class AnalyticsController < Admin::BaseController
-    before_action :set_filters_and_events, only: [:index, :export_csv]
+    before_action :set_filters_and_events, only: [ :index, :export_csv ]
 
     def index
-      # Calculate funnel metrics
-      @funnel_counts = {}
-      Analytics::FunnelStages::ORDERED.each do |stage|
-        @funnel_counts[stage] = @events.where(event_type: stage).count
-      end
+      # Calculate funnel metrics with a single GROUP BY query (avoids N+1).
+      # Use reorder(nil) to drop the inherited ORDER BY which conflicts with GROUP BY in Postgres.
+      counts_by_type = @events.reorder(nil)
+                               .where(event_type: Analytics::FunnelStages::ORDERED)
+                               .group(:event_type).count
+      @funnel_counts = Analytics::FunnelStages::ORDERED.index_with { |stage| counts_by_type[stage] || 0 }
 
       # Conversion calculation
       paywall_count = @funnel_counts["paywall_viewed"] || 0
@@ -88,7 +89,7 @@ module Admin
       end
 
       send_data csv_data,
-                filename: "user_events_export_#{Date.current.to_s}.csv",
+                filename: "user_events_export_#{Date.current}.csv",
                 type: "text/csv; charset=utf-8",
                 disposition: "attachment"
     end
@@ -96,8 +97,20 @@ module Admin
     private
 
     def set_filters_and_events
-      @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : 30.days.ago.to_date
-      @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+      @start_date = begin
+        Date.parse(params[:start_date])
+      rescue ArgumentError, TypeError
+        30.days.ago.to_date
+      end if params[:start_date].present?
+      @start_date ||= 30.days.ago.to_date
+
+      @end_date = begin
+        Date.parse(params[:end_date])
+      rescue ArgumentError, TypeError
+        Date.current
+      end if params[:end_date].present?
+      @end_date ||= Date.current
+
       @locale = params[:locale]
       @payment_method = params[:payment_method]
       @currency = params[:currency]

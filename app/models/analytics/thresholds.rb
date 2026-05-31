@@ -3,6 +3,7 @@
 module Analytics
   class Thresholds
     CONFIG_PATH = Rails.root.join("config/analytics.yml")
+    LOCK = Mutex.new
 
     def self.funnel_conversion_min_percent
       config[:funnel_conversion_min_percent] || 15
@@ -36,11 +37,13 @@ module Analytics
 
     def self.config
       current_mtime = File.exist?(CONFIG_PATH) ? File.mtime(CONFIG_PATH) : nil
-      if @config.nil? || @last_mtime != current_mtime
-        @config = load_config
-        @last_mtime = current_mtime
+      LOCK.synchronize do
+        if @config.nil? || @last_mtime != current_mtime
+          @config = load_config
+          @last_mtime = current_mtime
+        end
+        @config
       end
-      @config
     end
 
     def self.load_config

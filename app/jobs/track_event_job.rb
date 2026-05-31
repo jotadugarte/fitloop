@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TrackEventJob < ApplicationJob
-  queue_as :default
+  queue_as :analytics
 
   def perform(event_type, attributes)
     begin

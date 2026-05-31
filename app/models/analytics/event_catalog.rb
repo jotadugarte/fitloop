@@ -3,17 +3,22 @@
 module Analytics
   class EventCatalog
     CATALOG_PATH = Rails.root.join("config/analytics_event_catalog.yml")
+    LOCK = Mutex.new
 
     def self.all_event_types
-      load_catalog.keys
+      catalog.keys
     end
 
     def self.priority_for(event_type)
-      load_catalog.dig(event_type.to_s, "priority") || "low"
+      catalog.dig(event_type.to_s, "priority") || "low"
     end
 
     def self.required_properties_for(event_type)
-      load_catalog.dig(event_type.to_s, "required_properties") || []
+      catalog.dig(event_type.to_s, "required_properties") || []
+    end
+
+    def self.catalog
+      LOCK.synchronize { @catalog ||= load_catalog }
     end
 
     def self.load_catalog

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Analytics E2E Flow", type: :system do
+RSpec.describe "Analytics E2E Flow", "[REQ-FIT-ANALYTICS-001]", type: :system do
   let(:admin_user) { create_billing_user!(email: "admin-system-e2e@example.com") }
 
   around do |example|
@@ -19,7 +19,7 @@ RSpec.describe "Analytics E2E Flow", type: :system do
   it "tracks anonymous workspace_started, merges on login, and shows in dashboard" do
     # 1. Visit start project to trigger anonymous workspace_started
     visit start_project_path
-    
+
     # Verify anonymous event was recorded in the database
     anon_event = UserEvent.where(event_type: "workspace_started").last
     expect(anon_event).to be_present
