@@ -44,6 +44,22 @@ module Admin
                 type: "text/csv"
     end
 
+    def export_xlsx
+      base_scope = build_filtered_scope
+      statuses = Array(params[:status]).reject(&:blank?)
+      if statuses.any?
+        base_scope = base_scope.where(status: statuses)
+      end
+
+      direction = params[:direction] == "asc" ? "asc" : "desc"
+      xlsx_data = ExportPaymentsXlsx.call(base_scope, direction: direction)
+
+      send_data xlsx_data,
+                filename: "ventas-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx",
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                disposition: "attachment"
+    end
+
     def export_summary
       base_scope = build_filtered_scope
       statuses = Array(params[:status]).reject(&:blank?)

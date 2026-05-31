@@ -123,6 +123,7 @@ Rails.application.routes.draw do
     get "ventas", to: "ventas#index"
     get "ventas/exportar", to: "ventas#export", as: :export_ventas
     get "ventas/exportar-resumen", to: "ventas#export_summary", as: :export_ventas_summary
+    get "ventas/exportar-xlsx", to: "ventas#export_xlsx", as: :export_ventas_xlsx
   end
 
   # Fallback redirects for relative admin path resolution

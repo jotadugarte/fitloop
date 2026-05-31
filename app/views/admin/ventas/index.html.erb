@@ -25,10 +25,10 @@
     </div>
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
       <%= link_to admin_export_ventas_summary_path(request.query_parameters), class: "btn btn-secondary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem;" do %>
-        <span>Exportar Resumen (Hacienda)</span>
+        <span>📄 Resumen Hacienda (CSV)</span>
       <% end %>
-      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem;" do %>
-        <span>Exportar Detalle (Filtrado)</span>
+      <%= link_to admin_export_ventas_xlsx_path(request.query_parameters), class: "btn btn-primary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem;" do %>
+        <span>⬇ Exportar Reporte (.xlsx)</span>
       <% end %>
     </div>
   </header>

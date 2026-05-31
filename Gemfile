@@ -71,3 +71,5 @@ end
 
 gem "maxminddb", "~> 0.1.22"
 gem "csv"
+gem "caxlsx", "~> 4.1"
+gem "caxlsx_rails", "~> 0.6"

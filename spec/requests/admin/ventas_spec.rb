@@ -283,4 +283,52 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
     end
   end
+
+  describe "GET /admin/ventas/exportar-xlsx [REQ-FIT-ADMIN-001]" do
+    context "when unauthenticated" do
+      it "returns 404 Not Found" do
+        get "/admin/ventas/exportar-xlsx"
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when authenticated as admin" do
+      before do
+        @user = create_billing_user!(email: "client@example.com")
+        Payment.create!(
+          user: @user,
+          status: "succeeded",
+          payment_method: "sinpe_crc",
+          currency: "crc",
+          amount: 5000,
+          total_amount: 5650,
+          subtotal: 5000,
+          tax_amount: 650,
+          purchaser_name: "Ana Torres",
+          purchaser_email: "ana@example.com",
+          purpose: "single_download",
+          paid_at: Time.current,
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_xlsx_test",
+          onvo_mode: "test",
+          gateway_status: "succeeded",
+          purchase_reference: "777777777777"
+        )
+        sign_in_user! admin_user
+        get "/admin/ventas/exportar-xlsx"
+      end
+
+      it "returns 200 OK with xlsx Content-Type and attachment disposition" do
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("spreadsheetml.sheet")
+        expect(response.headers["Content-Disposition"]).to include("attachment")
+        expect(response.headers["Content-Disposition"]).to include(".xlsx")
+      end
+
+      it "returns a valid xlsx binary (PK ZIP header)" do
+        # All XLSX files are ZIP archives starting with the PK magic bytes
+        expect(response.body.bytes.first(2)).to eq([0x50, 0x4B])
+      end
+    end
+  end
 end
