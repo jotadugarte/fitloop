@@ -3,11 +3,18 @@
 module Admin
   class UsersController < Admin::BaseController
     def index
-      # Skeleton for now
+      @q = params[:q].to_s.strip
+      @users = User.all
+      if @q.present?
+        # Search by email or name (case insensitive)
+        @users = @users.where("LOWER(email) LIKE :query OR LOWER(name) LIKE :query", query: "%#{@q.downcase}%")
+      end
+      @users = @users.order(:email)
     end
 
     def show
-      # Skeleton for now
+      @user = User.find(params[:id])
+      @events = UserEvent.where(user_id: @user.id).order(occurred_at: :desc)
     end
   end
 end
