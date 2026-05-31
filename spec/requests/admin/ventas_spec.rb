@@ -123,6 +123,37 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body).not_to include("Jader Dugarte")
         expect(response.body).to include("John Doe")
       end
+
+      it "filters by date range" do
+        # Payment created 5 days ago
+        @payment_old = Payment.create!(
+          user: @user,
+          status: "succeeded",
+          payment_method: "card_usd",
+          currency: "usd",
+          amount: 20,
+          total_amount: 20,
+          purchaser_name: "Old Client",
+          purchaser_email: "old@example.com",
+          purpose: "plan_subscription",
+          paid_at: 5.days.ago,
+          created_at: 5.days.ago,
+          gateway_provider: "onvo",
+          onvo_payment_intent_id: "pi_old_1",
+          onvo_mode: "test",
+          gateway_status: "succeeded"
+        )
+
+        # Clear end_date bound to test start_date filter
+        get "/admin/ventas", params: { start_date: 2.days.ago.to_date.to_s, end_date: "" }
+        expect(response.body).to include("Jader Dugarte")
+        expect(response.body).not_to include("Old Client")
+
+        # Clear start_date bound to test end_date filter
+        get "/admin/ventas", params: { end_date: 4.days.ago.to_date.to_s, start_date: "" }
+        expect(response.body).not_to include("Jader Dugarte")
+        expect(response.body).to include("Old Client")
+      end
     end
   end
 

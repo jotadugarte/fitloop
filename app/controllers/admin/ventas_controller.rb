@@ -61,6 +61,11 @@ module Admin
     def build_filtered_scope
       scope = Payment.all
 
+      # Default dates to the first and last day of the current month in America/Costa_Rica
+      cr_time = Time.find_zone("America/Costa_Rica").now
+      params[:start_date] = cr_time.beginning_of_month.to_date.to_s if params[:start_date].nil?
+      params[:end_date] = cr_time.end_of_month.to_date.to_s if params[:end_date].nil?
+
       # Apply date filters
       if params[:start_date].present?
         begin
