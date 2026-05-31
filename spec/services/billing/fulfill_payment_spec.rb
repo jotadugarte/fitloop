@@ -93,6 +93,7 @@ RSpec.describe Billing::FulfillPayment, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]",
 
         ctx[:payment].reload
         expect(ctx[:payment]).to be_succeeded
+        expect(ctx[:payment].checkout_abandoned_at).to be_nil
         grant = DownloadGrant.find_by!(user_id: user.id, nesting_run_id: ctx[:run].id)
         expect(grant.retention_active?).to be(true)
         expect(grant.retained_nested_dxf).to be_attached

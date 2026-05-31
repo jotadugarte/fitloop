@@ -57,7 +57,11 @@ module Billing
     end
 
     def mark_succeeded!(paid_at)
-      attrs = { status: :succeeded, paid_at: paid_at }
+      attrs = {
+        status: :succeeded,
+        paid_at: paid_at,
+        checkout_abandoned_at: nil
+      }
       attrs[:gateway_status] = Payment::ONVO_GATEWAY_SUCCEEDED if @payment.onvo_gateway?
       @payment.update!(attrs)
     end
