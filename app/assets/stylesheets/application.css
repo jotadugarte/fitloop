@@ -2061,7 +2061,7 @@ h3.fit-section__legend {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-bottom: 0;
+  margin-bottom: 0.65rem;
   flex: 0 0 auto;
 }
 

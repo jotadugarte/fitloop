@@ -61,6 +61,34 @@ RSpec.describe "Project DXF upload", type: :request do
     expect(project.reload.input_dxf).to be_attached
   end
 
+  it "expands layer checklists for newly uploaded files on Mi taller" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="dxf-file-entry"')
+    expect(response.body).to match(/data-testid="dxf-file-entry"[^>]*open/m)
+  end
+
+  it "keeps existing file entries collapsed when uploading another DXF" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    body = response.body
+    expect(body.scan(/data-testid="dxf-file-entry"/).size).to eq(2)
+    expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
+  end
+
   it "updates source DXF detail on show via turbo-stream" do
     project = start_setup_session!
 

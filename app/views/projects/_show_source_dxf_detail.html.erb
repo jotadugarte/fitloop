@@ -3,12 +3,11 @@
   <% ux = local_assigns.fetch(:workshop_ux) { workshop_ux_mode(project) } %>
   <% selected_layers = project.project_layers.where(included: true) %>
   <% file_count = project.input_dxf_attachments.size %>
-  <% expand_layers = local_assigns.fetch(:expand_layers, ux.open_source_dxf_detail?) %>
   <% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
   <details class="collapsible-panel panel panel--chrome fit-section"
            data-testid="source-dxf-detail"
            data-collapsible-key="workshop-source-dxf-detail"
-           <%= "open" if ux.open_source_dxf_detail? || expand_layers %>>
+           <%= "open" if ux.open_source_dxf_detail? %>>
     <%= render "projects/fit_section_summary",
                title: t("projects.show.source_dxf_detail_summary"),
                meta: t("projects.show.source_dxf_detail_meta",
@@ -24,8 +23,8 @@
                hint: t("projects.form.dxf_upload_setup_hint"),
                wrap_layers_in_form: true,
                layers_turbo_frame: dom_id(project, :source_dxf_detail),
-               expand_layers: expand_layers,
-               expanded_attachment_ids: expanded_attachment_ids,
-               lock_active: lock_active %>
+               lock_active: lock_active,
+               expand_layers: local_assigns.fetch(:expand_layers, false),
+               expanded_attachment_ids: expanded_attachment_ids %>
   </details>
 <% end %>

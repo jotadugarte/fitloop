@@ -390,8 +390,8 @@ en:
         intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
         steps_title: "On this screen"
         steps:
-          - "Sheet inventory: check sizes and quantities, reorder consumption priority, and click “Save sheets” if you change anything."
-          - "DXF detail: upload files, pick the primary cut layer and auxiliary layers (engraving, marks…), then “Apply layers”."
+          - "Sheet inventory: add sizes and quantities; drag rows to set consumption priority."
+          - "DXF detail: upload files and pick the primary cut layer and auxiliary layers (engraving, marks…)."
           - "Previews and unplaced pieces: after nesting, review placements on each sheet and which pieces did not fit."
           - "Nesting actions: start nesting, re-nest, or cancel the run depending on project status."
           - "Nesting parameters: adjust piece separation and sheet edge margin when needed."

@@ -30,7 +30,9 @@ RSpec.describe "Project nesting parameters on show", "[REQ-FIT-UI-001]", type: :
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="setup-nesting-settings"')
+    expect(response.body).to include('data-controller="nesting-parameters-autosave"')
     expect(response.body).not_to include('data-testid="nesting-parameters"')
+    expect(response.body).not_to include(I18n.t("projects.show.apply_nesting_parameters"))
   end
 
   it "updates nesting parameters in place" do

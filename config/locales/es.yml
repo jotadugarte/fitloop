@@ -405,8 +405,8 @@ es:
         intro: "FitLoop coloca tus piezas de corte (archivos DXF) sobre las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
         steps_title: "En esta pantalla"
         steps:
-          - "Inventario de láminas: comprueba tamaños y cantidades, reordena la prioridad de uso y pulsa «Guardar láminas» si cambias algo."
-          - "Detalle DXF: sube archivos, elige la capa principal de corte y las auxiliares (grabado, marcas…), luego «Aplicar capas»."
+          - "Inventario de láminas: añade tamaños y cantidades; reordena la prioridad de uso arrastrando filas."
+          - "Detalle DXF: sube archivos y elige la capa principal de corte y las auxiliares (grabado, marcas…)."
           - "Vistas previas y piezas no colocadas: tras anidar, revisa cómo quedaron las piezas en cada lámina y cuáles no entraron en las láminas disponibles."
           - "Acciones de anidado: inicia el anidado, vuelve a anidar o cancela el proceso según el estado del proyecto."
           - "Parámetros de anidado: ajusta la separación entre piezas y el margen del borde de la lámina cuando lo necesites."

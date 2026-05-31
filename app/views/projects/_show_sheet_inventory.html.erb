@@ -19,7 +19,7 @@
                     html: {
                       data: {
                         controller: "sheet-inventory",
-                        action: "submit->sheet-inventory#flushOnSubmit",
+                        action: "submit->sheet-inventory#flushOnSubmit turbo:submit-end->sheet-inventory#clearPersistPending",
                         turbo_frame: dom_id(project, :sheet_inventory),
                         sheet_inventory_summary_unlimited_value: t("projects.form.quantity_unlimited"),
                         sheet_inventory_alert_dimensions_value: t("projects.form.alert_dimensions"),
@@ -41,10 +41,6 @@
         <% end %>
 
         <%= render "sheet_inventory", form: f, project: project, composer_draft: {} %>
-
-        <p class="form-actions form-actions--inline">
-          <%= f.submit t("projects.show.save_sheets"), class: "btn btn-secondary btn--compact", disabled: lock_active %>
-        </p>
       <% end %>
       </fieldset>
     </div>

@@ -156,6 +156,7 @@ class ProjectsController < ApplicationController
       @project.reload
       sheet_workspace_streams
     when :layers
+      expanded_ids = @project.input_dxf_attachments.map(&:id)
       [
         turbo_stream.replace(
           project_dom_id(:source_dxf_detail),
@@ -163,7 +164,8 @@ class ProjectsController < ApplicationController
           locals: {
             project: @project,
             workshop_ux: Workshop::UxMode.new(@project),
-            expand_layers: @project.workshop_setup_mode?
+            expand_layers: expanded_ids.any?,
+            expanded_attachment_ids: expanded_ids
           }
         )
       ]

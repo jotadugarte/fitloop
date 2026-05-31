@@ -9,7 +9,11 @@
                       url: nesting_parameters_project_path(project),
                       method: :patch,
                       class: "nesting-settings-form",
-                      data: { turbo_frame: dom_id(project, :setup_nesting_settings) } do |f| %>
+                      data: {
+                        controller: "nesting-parameters-autosave",
+                        turbo_frame: dom_id(project, :setup_nesting_settings),
+                        action: "change->nesting-parameters-autosave#scheduleSave turbo:submit-end->nesting-parameters-autosave#clearPending"
+                      } do |f| %>
           <% if project.errors.any? %>
             <div class="form-errors form-errors--inline" role="alert">
               <ul>
@@ -23,10 +27,6 @@
           <div class="panel panel--inset">
             <%= render "nesting_settings", form: f %>
           </div>
-
-          <p class="form-actions form-actions--inline">
-            <%= f.submit t("projects.show.apply_nesting_parameters"), class: "btn btn-secondary btn--compact", disabled: lock_active %>
-          </p>
         <% end %>
       </fieldset>
     </div>
