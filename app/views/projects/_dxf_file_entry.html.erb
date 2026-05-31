@@ -1,4 +1,4 @@
-<%# locals: (project:, attachment:, context: "setup", layers_form: false, expand_layers: false, expanded_attachment_ids: [], lock_active: false) %>
+<%# locals: (project:, attachment:, hint_variant: "show", layers_form: false, expand_layers: false, expanded_attachment_ids: [], lock_active: false) %>
 <% lock_active = local_assigns.fetch(:lock_active, false) %>
 <% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
 <% included_count = layers.count { |layer| layer.included? || layer.layer_role.present? } %>
@@ -25,7 +25,7 @@
               total: layers.size) %></span>
       <% unless lock_active %>
         <%= link_to t("projects.show.remove_dxf"),
-                    project_input_dxf_file_path(project, attachment, context: context),
+                    project_input_dxf_file_path(project, attachment),
                     class: "btn btn-secondary btn--compact dxf-file-entry__remove",
                     data: {
                       turbo_method: :delete,

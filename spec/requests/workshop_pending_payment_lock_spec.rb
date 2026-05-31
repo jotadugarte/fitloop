@@ -16,7 +16,7 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     @locked_project = Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID)
     @locked_project.update!(title: "Workshop lock", status: :completed, kerf_mm: 0, margin_mm: 5)
     @locked_project.sheet_stocks.create!(width_mm: 500, height_mm: 500, quantity: 1, sort_order: 0)
-    post project_input_dxf_files_path(@locked_project, context: "setup"),
+    post project_input_dxf_files_path(@locked_project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
     @locked_project.reload
     ProjectLayer::SetPrimary.call(@locked_project.project_layers.find_by!(layer_name: "PIECES"))
@@ -152,7 +152,7 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
   it "[REQ-FIT-BILL-001] blocks uploading DXF files in workshop" do
     count_before = project.input_dxf_attachments.count
 
-    post project_input_dxf_files_path(project, context: "show"),
+    post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
@@ -164,7 +164,7 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
   it "[REQ-FIT-BILL-001] blocks removing DXF files in workshop" do
     attachment = project.input_dxf_attachments.first!
 
-    delete project_input_dxf_file_path(project, attachment, context: "show"),
+    delete project_input_dxf_file_path(project, attachment),
            headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     expect(response).to redirect_to(workshop_path)

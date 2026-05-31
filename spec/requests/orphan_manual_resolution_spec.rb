@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Orphan manual resolution", type: :request do
+RSpec.describe "Orphan manual resolution", "[REQ-FIT-SPLIT-001]", type: :request do
   def attach_orphan_placements!(project, rings:)
     project.nesting_runs.create!(
       status: "partial",

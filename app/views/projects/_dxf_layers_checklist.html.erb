@@ -1,5 +1,5 @@
 <%# Layer checkboxes grouped by input DXF (no outer turbo frame). %>
-<% context = local_assigns.fetch(:context, "setup") %>
+<% hint_variant = local_assigns.fetch(:hint_variant, "show") %>
 <% if project.input_dxf_attachments.any? %>
   <div class="dxf-files-layers" data-testid="dxf-files-layers">
     <% project.input_dxf_attachments.each do |attachment| %>
@@ -7,7 +7,7 @@
         <%= render "projects/dxf_file_entry",
                    project: project,
                    attachment: attachment,
-                   context: context,
+                   hint_variant: hint_variant,
                    expand_layers: local_assigns.fetch(:expand_layers, false),
                    expanded_attachment_ids: Array(local_assigns.fetch(:expanded_attachment_ids, [])),
                    lock_active: local_assigns.fetch(:lock_active, false) %>

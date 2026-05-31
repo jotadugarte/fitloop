@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nest with updated pieces", type: :request do
+RSpec.describe "Nest with updated pieces", "[REQ-FIT-NEST-004] [REQ-FIT-SPLIT-001]", type: :request do
   include ActiveJob::TestHelper
 
   def prepare_partial_nest!(project)

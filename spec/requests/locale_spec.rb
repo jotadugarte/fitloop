@@ -147,7 +147,7 @@ RSpec.describe "Locale switcher", type: :request do
       sample_dxf = Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")
       project = start_setup_session!
 
-      post project_input_dxf_files_path(project, context: "setup"),
+      post project_input_dxf_files_path(project),
            params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },
            headers: { "Accept" => "text/vnd.turbo-stream.html" }
       project.reload
