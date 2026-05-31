@@ -89,6 +89,31 @@ RSpec.describe "Project DXF upload", type: :request do
     expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
   end
 
+  it "opens source DXF detail and expands new file layers after nesting on Mi taller" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "first.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    project.nesting_runs.create!(status: "completed")
+    project.update!(status: :completed)
+
+    post project_input_dxf_files_path(project, context: "show"),
+         params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    body = response.body
+    expect(response).to have_http_status(:ok)
+    expect(body).to include("data-collapsible-preserve-open")
+
+    dxf_start = body.index('data-testid="source-dxf-detail"')
+    dxf_tag = body.slice(dxf_start - 120, 280)
+    expect(dxf_tag).to include(" open")
+    expect(body.scan(/data-testid="dxf-file-entry"/).size).to eq(2)
+    expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
+  end
+
   it "updates source DXF detail on show via turbo-stream" do
     project = start_setup_session!
 

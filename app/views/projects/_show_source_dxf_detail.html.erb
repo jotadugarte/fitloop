@@ -4,10 +4,12 @@
   <% selected_layers = project.project_layers.where(included: true) %>
   <% file_count = project.input_dxf_attachments.size %>
   <% expanded_attachment_ids = Array(local_assigns.fetch(:expanded_attachment_ids, [])) %>
+  <% expand_layers = local_assigns.fetch(:expand_layers, false) %>
   <details class="collapsible-panel panel panel--chrome fit-section"
            data-testid="source-dxf-detail"
            data-collapsible-key="workshop-source-dxf-detail"
-           <%= "open" if ux.open_source_dxf_detail? %>>
+           <%= "open" if ux.open_source_dxf_detail? || expand_layers %>
+           <%= 'data-collapsible-preserve-open="true"' if expand_layers %>>
     <%= render "projects/fit_section_summary",
                title: t("projects.show.source_dxf_detail_summary"),
                meta: t("projects.show.source_dxf_detail_meta",

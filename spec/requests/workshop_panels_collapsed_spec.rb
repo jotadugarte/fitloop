@@ -73,7 +73,7 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
     expect(dxf_tag).not_to include(" open")
   end
 
-  it "[REQ-FIT-UI-003] does not auto-expand source DXF detail after uploading on Mi taller (D37)" do
+  it "[REQ-FIT-UI-003] opens source DXF detail after uploading on Mi taller so layers stay visible (D37)" do
     sample_dxf = Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")
     project = begin_workspace_session!
     enter_taller_mode!(project)
@@ -83,8 +83,13 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
          headers: { "ACCEPT" => "text/vnd.turbo-stream.html" }
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('data-testid="source-dxf-detail"')
-    expect(response.body).not_to include('data-testid="source-dxf-detail" open')
-    expect(response.body).not_to include("data-testid=\"source-dxf-detail\"\n           open")
+    body = response.body
+    expect(body).to include('data-testid="source-dxf-detail"')
+    expect(body).to include("data-collapsible-preserve-open")
+
+    dxf_start = body.index('data-testid="source-dxf-detail"')
+    dxf_tag = body.slice(dxf_start - 120, 280)
+    expect(dxf_tag).to include(" open")
+    expect(body).to match(/data-testid="dxf-file-entry"[^>]*open/m)
   end
 end

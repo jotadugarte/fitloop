@@ -85,8 +85,12 @@ export default class extends Controller {
   }
 
   expandLayerSections() {
+    const panel = document.querySelector("[data-testid='source-dxf-detail']")
+    if (panel) {
+      panel.setAttribute("open", "")
+      panel.dataset.collapsiblePreserveOpen = "true"
+    }
     document.querySelector("[data-testid='setup-dxf-upload']")?.setAttribute("open", "")
-    document.querySelector("[data-testid='source-dxf-detail']")?.setAttribute("open", "")
 
     // Turbo stream DOM is synchronous; wait one frame so <details open> layout settles.
     requestAnimationFrame(() => {
