@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **User analytics & admin bitácora** (Pending #3).
+**Next action:** **Admin Analytics (tarjeta «Estadísticas y Uso»)** (Pending #3).
 
 ---
 
@@ -147,15 +147,16 @@ _(none)_
 
 Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-### Pre-live (3–5)
+### Pre-live (3–6)
 
-3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`
-4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **User analytics & admin bitácora (core + UI)**
+3. [ ] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — Activar la tarjeta hoy deshabilitada en `/admin`: `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, gráficos, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV de eventos; gobernanza anti-drift (contrato + catálogo + spec doc + regla `.cursorrules`); **no** DXF/geometría en eventos; **no** rehacer `/admin/ventas` (ya activo). — Depends on: **Admin foundation** — Session: `task_user-analytics-bitacora.md` (archived discovery: `task_user-analytics_2026-05-21.md`)
+4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
 5. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
+6. [ ] **Admin analytics & reporting — follow-ups (fuera de #3)** — Trabajo que no entra en la tarjeta Analytics v1: **archivo frío** (`analytics_archive`, retención 6 meses hot + job de copia/purga); **alertas operativas** (email/Slack cuando conversión o fallos de pago salgan de umbral — hoy solo semáforo visual); **texto legal completo** FU-LEGAL-003 (IP/UA/país, retención, acceso admin-only) si no basta la nota en deploy checklist; **BI externo** (Metabase u otro) opcional. — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
 
-### Go-live (6 — when ready)
+### Go-live (7 — when ready)
 
-6. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
+7. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
 
 ---
 
@@ -167,7 +168,7 @@ _(no pending engine items)_
 
 ### Product & platform (deferred)
 
-- [ ] **Analytics archive (cold storage)** — second PostgreSQL `analytics_archive`, 6-month hot retention job; follow-up after go-live when event volume warrants — Session: `task_user-analytics_2026-05-21.md`
+- [ ] **Analytics archive (cold storage)** — moved to **Pending #6** (Admin analytics follow-ups)
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 
