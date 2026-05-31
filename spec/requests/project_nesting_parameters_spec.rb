@@ -46,4 +46,18 @@ RSpec.describe "Project nesting parameters on show", "[REQ-FIT-UI-001]", type: :
     expect(project.reload.kerf_mm).to eq(4)
     expect(project.margin_mm).to eq(7)
   end
+
+  it "updates setup nesting settings in place via turbo stream" do
+    project = begin_workspace_session!
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: 2.5, margin_mm: 8 } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("setup_nesting_settings_project_#{project.id}")
+    expect(response.body).not_to include("nesting_parameters_project_#{project.id}")
+    expect(project.reload.kerf_mm).to eq(2.5)
+    expect(project.margin_mm).to eq(8)
+  end
 end

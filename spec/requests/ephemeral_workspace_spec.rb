@@ -47,6 +47,34 @@ RSpec.describe "Ephemeral workspace", "[REQ-FIT-AUTH-001] [REQ-FIT-UI-001]", typ
     expect(response.body).to include(I18n.t("projects.show.nesting_parameters_title"))
   end
 
+  it "switches to taller mode after POST nesting_runs creates a run" do
+    project = begin_workspace_session!
+
+    post project_input_dxf_files_path(project),
+         params: { files: [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
+    project.reload
+    cut = project.project_layers.find_by!(layer_name: "PIECES")
+    ProjectLayer::SetPrimary.call(cut)
+
+    patch workspace_project_path(project), params: {
+      section: "sheets",
+      project: {
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
+        }
+      }
+    }
+
+    post project_nesting_runs_path(project)
+    expect(response).to redirect_to(workshop_path)
+
+    get workshop_path
+
+    expect(response.body).to include('data-workshop-setup-mode="false"')
+    expect(response.body).to include('data-testid="show-welcome"')
+    expect(project.reload.nesting_runs.count).to eq(1)
+  end
+
   it "[REQ-FIT-AUTH-001] serves only the session-bound workshop at /taller" do
     get start_project_path
     follow_redirect!

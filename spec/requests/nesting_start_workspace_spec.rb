@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Nesting start with ephemeral workspace", type: :request do
+RSpec.describe "Nesting start with ephemeral workspace", "[REQ-FIT-UI-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   it "redirects to empezar when the workspace project was discarded" do

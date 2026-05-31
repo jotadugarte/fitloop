@@ -12,6 +12,7 @@ class ProjectsController < ApplicationController
   before_action :set_workspace_project, only: %i[
     nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :assign_workshop_ux, only: %i[show nesting_sync nesting_parameters]
   before_action :reject_workshop_mutation_if_pending_payment!, only: :nested_dxf
   before_action :authorize_nested_download!, only: :nested_dxf
 
@@ -22,7 +23,6 @@ class ProjectsController < ApplicationController
   def show
     return if sync_nesting_ui_state!
 
-    @workshop_ux = Workshop::UxMode.new(@project)
     @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
@@ -50,7 +50,6 @@ class ProjectsController < ApplicationController
   def nesting_sync
     return if sync_nesting_ui_state!
 
-    @workshop_ux = Workshop::UxMode.new(@project)
     @time_limit_notice = Nesting::LocalizedProgressMessage.time_limit_notice?(@project)
     @nesting_preview = Nesting::PreviewPresenter.for(@project)
     @nesting_orphans = Nesting::OrphansPresenter.for(@project)
@@ -67,23 +66,13 @@ class ProjectsController < ApplicationController
   def nesting_parameters
     if @project.update(nesting_parameters_params)
       respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            project_dom_id(:nesting_parameters),
-            partial: "projects/nesting_parameters",
-            locals: { project: @project, workshop_ux: Workshop::UxMode.new(@project) }
-          )
-        end
+        format.turbo_stream { render turbo_stream: nesting_parameters_turbo_stream }
         format.html { redirect_to workshop_path, notice: t("projects.nesting_parameters_updated") }
       end
     else
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            project_dom_id(:nesting_parameters),
-            partial: "projects/nesting_parameters",
-            locals: { project: @project, workshop_ux: Workshop::UxMode.new(@project) }
-          ), status: :unprocessable_content
+          render turbo_stream: nesting_parameters_turbo_stream, status: :unprocessable_content
         end
         format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
       end
@@ -156,25 +145,37 @@ class ProjectsController < ApplicationController
     when :sheets
       @project.reload
       sheet_workspace_streams
-    when :layers
-      expanded_ids = @project.input_dxf_attachments.map(&:id)
-      [
-        turbo_stream.replace(
-          project_dom_id(:source_dxf_detail),
-          partial: "projects/show_source_dxf_detail",
-          locals: {
-            project: @project,
-            workshop_ux: Workshop::UxMode.new(@project),
-            expand_layers: expanded_ids.any?,
-            expanded_attachment_ids: expanded_ids
-          }
-        )
-      ]
     else
       []
     end
 
     render turbo_stream: streams, status: status
+  end
+
+  def assign_workshop_ux
+    return unless @project
+
+    @workshop_ux = Workshop::UxMode.new(@project)
+  end
+
+  def workshop_ux
+    @workshop_ux ||= Workshop::UxMode.new(@project)
+  end
+
+  def nesting_parameters_turbo_stream
+    if workshop_ux.setup?
+      turbo_stream.replace(
+        project_dom_id(:setup_nesting_settings),
+        partial: "projects/show_setup_nesting_settings",
+        locals: { project: @project }
+      )
+    else
+      turbo_stream.replace(
+        project_dom_id(:nesting_parameters),
+        partial: "projects/nesting_parameters",
+        locals: { project: @project, workshop_ux: workshop_ux }
+      )
+    end
   end
 
   def workspace_sheet_params
@@ -222,12 +223,11 @@ class ProjectsController < ApplicationController
   end
 
   def sheet_workspace_streams
-    ux = Workshop::UxMode.new(@project)
     [
       turbo_stream.replace(
         project_dom_id(:sheet_inventory),
         partial: "projects/show_sheet_inventory",
-        locals: { project: @project, workshop_ux: ux }
+        locals: { project: @project, workshop_ux: workshop_ux }
       ),
       turbo_stream.replace(
         project_dom_id(:show_actions),

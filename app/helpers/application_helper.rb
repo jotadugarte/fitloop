@@ -81,8 +81,8 @@ module ApplicationHelper
   private :warden_user_if_available
 
   def toolbar_workshop_button_class
-    base = "btn btn--compact toolbar-workshop__btn"
-    toolbar_workspace_project ? "#{base} btn-primary" : "#{base} btn-secondary"
+    # /taller auto-creates an ephemeral project when unbound; always treat as primary nav.
+    "btn btn--compact toolbar-workshop__btn btn-primary"
   end
 
   def auth_password_length_hint

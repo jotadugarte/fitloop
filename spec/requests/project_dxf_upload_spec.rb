@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Project DXF upload", type: :request do
+RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   def start_setup_session!

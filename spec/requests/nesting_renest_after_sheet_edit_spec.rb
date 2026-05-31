@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Re-nesting after sheet inventory edit", type: :request do
+RSpec.describe "Re-nesting after sheet inventory edit", "[REQ-FIT-UI-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   it "POST /projects/:id/nesting_runs succeeds after a workspace sheet save [REQ-FIT-UI-001]" do

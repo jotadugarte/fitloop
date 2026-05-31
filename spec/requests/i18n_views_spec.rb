@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "I18n view copy", type: :request do
+RSpec.describe "I18n view copy", "[REQ-FIT-UI-001] [REQ-FIT-UI-005]", type: :request do
   self.use_transactional_tests = false
 
   def with_locale(locale)
