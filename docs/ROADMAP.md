@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Nesting / workshop domain types (CbC refactor)** (Pending #0) — branch `refactor/nesting-workshop-domain-types-cbc` ready for PR.
+**Next action:** **Admin foundation** (Pending #1).
 
 ---
 
@@ -35,7 +35,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** admin foundation + ventas + analytics; nesting/workshop CbC refactor; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** admin foundation + ventas + analytics; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -128,6 +128,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 - [x] **Billing domain types (CbC refactor)** — typed value objects at billing service boundaries (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.); no HTTP/JSON shape change (REQ-FIT-BILL-001, ADR-0005) — 2026-05-30 — Session: `task_merge-setup-into-workshop.md`
 - [x] **Unified workshop UX — eliminate Parámetros iniciales** — contextual setup/taller modes on single `/taller` show; remove `/projects/new`; autosave láminas, nesting params, DXF layers; preview hidden until first nest (REQ-FIT-UI-001, REQ-FIT-UI-003, REQ-FIT-AUTH-001) — 2026-05-30 — Session: `task_merge-setup-into-workshop.md`
+- [x] **Nesting / workshop domain types (CbC refactor)** — `Nesting::*` VOs in `app/models/nesting/`; `JobParameters` + `ConfigBuilder` CLI SSOT; `AssignNestingParameters`; Python `nesting_config.py`; separate `KerfMm`/`MarginMm`; legacy + stable `PieceKey` (REQ-FIT-NEST-002, REQ-FIT-DOM-001, REQ-FIT-CLI-001, REQ-FIT-SPLIT-001, ADR-0001) — 2026-05-30 — Session: `task_nesting-workshop-domain-types-cbc.md` — Branch: `refactor/nesting-workshop-domain-types-cbc`
 
 ---
 
@@ -141,9 +142,8 @@ _(none)_
 
 Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-### Pre-live (0–4)
+### Pre-live (1–4)
 
-0. [ ] **Nesting / workshop domain types (CbC refactor)** — value objects for `margin_mm`, `kerf_mm`, piece keys (`Nesting::PieceKey`), and related workshop/nesting primitives in Rails + `nesting_engine/`; high CbC value but **separate domain** — do not mix with billing refactor (REQ-FIT-NEST-002, REQ-FIT-DOM-001, ADR-0001) — Session: `task_nesting-workshop-domain-types-cbc.md`
 1. [ ] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAIL`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton + shared layout for ventas and analytics — Depends on: **Billing domain types (CbC refactor)** (done)
 2. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
 3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`
