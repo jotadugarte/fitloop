@@ -51,7 +51,11 @@ module ApplicationHelper
   end
 
   def toolbar_workshop_path
-    toolbar_workspace_project ? workshop_path : start_project_path
+    workshop_path
+  end
+
+  def workshop_ux_mode(project)
+    Workshop::UxMode.new(project)
   end
 
   def pending_checkout_lock(project)
