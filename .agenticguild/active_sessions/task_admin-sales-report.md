@@ -66,7 +66,7 @@
     <step id="2" status="complete">
       <description>Update payment models, services (e.g., StartOnvoCheckout, SimulateSingleDownload, SimulatePlanPurchase) and specs to populate and validate the `cabys_code` field upon payment creation.</description>
     </step>
-    <step id="3" status="pending">
+    <step id="3" status="complete">
       <description>Write controller request specs for Admin::VentasController verifying authentication (non-admins get 404, admins get 200) and basic actions.</description>
     </step>
     <step id="4" status="pending">
