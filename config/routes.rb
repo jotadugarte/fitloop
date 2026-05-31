@@ -108,11 +108,11 @@ Rails.application.routes.draw do
          as: :regenerate_orphan_split_proposal
   end
 
-  resources :projects, only: %i[index new create]
+  resources :projects, only: %i[index]
 
   # Legacy bookmarks: redirect old /projects/:id URLs to /taller.
   get "projects/:id", to: redirect("/taller")
-  get "projects/:id/edit", to: redirect("/taller/edit")
+  get "projects/:id/edit", to: redirect("/taller")
   get "projects/:id/descarga-pago", to: redirect("/taller/descarga-pago")
   get "projects/:id/*path", to: redirect("/taller/%{path}")
 end
