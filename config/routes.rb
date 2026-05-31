@@ -121,8 +121,6 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "dashboard#index"
     get "ventas", to: "ventas#index"
-    get "ventas/exportar", to: "ventas#export", as: :export_ventas
-    get "ventas/exportar-resumen", to: "ventas#export_summary", as: :export_ventas_summary
     get "ventas/exportar-xlsx", to: "ventas#export_xlsx", as: :export_ventas_xlsx
   end
 

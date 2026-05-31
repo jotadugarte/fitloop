@@ -11,7 +11,8 @@ RSpec.describe Admin::ExportPaymentsXlsx, "[REQ-FIT-ADMIN-001]", type: :service 
         user: user, status: "succeeded", payment_method: "sinpe_crc", currency: "crc",
         amount: 1000, subtotal: 1000, total_amount: 1130, tax_amount: 130,
         paid_at: Time.current, gateway_provider: "onvo", onvo_payment_intent_id: "pi_crc",
-        onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download"
+        onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download",
+        product_description: "single_download"
       )
       Payment.create!(
         user: user, status: "succeeded", payment_method: "card_usd", currency: "usd",
@@ -28,6 +29,7 @@ RSpec.describe Admin::ExportPaymentsXlsx, "[REQ-FIT-ADMIN-001]", type: :service 
         workbook_xml = zip.read("xl/workbook.xml")
       end
 
+      expect(described_class::DETAIL_HEADERS).to include("Concepto")
       expect(xlsx_bytes.bytes.first(2)).to eq([ 0x50, 0x4B ])
       expect(workbook_xml).to include("Detalle CRC")
       expect(workbook_xml).to include("Detalle USD Export")

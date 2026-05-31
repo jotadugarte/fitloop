@@ -78,11 +78,16 @@ module Admin
       term = @params[:search].to_s.strip
       return scope if term.blank?
 
-      q = "%#{term}%"
+      q = "%#{escape_ilike(term)}%"
       scope.where(
-        "purchaser_name ILIKE :q OR purchaser_email ILIKE :q OR purchase_reference ILIKE :q OR sinpe_transfer_identification ILIKE :q",
+        "purchaser_name ILIKE :q ESCAPE '\\' OR purchaser_email ILIKE :q ESCAPE '\\' OR " \
+        "purchase_reference ILIKE :q ESCAPE '\\' OR sinpe_transfer_identification ILIKE :q ESCAPE '\\'",
         q: q
       )
+    end
+
+    def escape_ilike(term)
+      term.gsub(/[\\%_]/) { |char| "\\#{char}" }
     end
   end
 end

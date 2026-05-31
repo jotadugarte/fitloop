@@ -5,7 +5,7 @@ require "axlsx"
 module Admin
   class ExportPaymentsXlsx
     DETAIL_HEADERS = [
-      "ID", "Fecha y Hora", "Usuario ID", "Email Comprador", "Nombre Comprador",
+      "ID", "Fecha y Hora", "Usuario ID", "Email Comprador", "Nombre Comprador", "Concepto",
       "Identificación SINPE", "Teléfono SINPE", "Referencia de Compra",
       "ID Intento de Pago (ONVO)", "Método de Pago", "Estado",
       "Monto Lista", "Descuento", "Subtotal", "Impuesto (IVA 13%)",
@@ -23,7 +23,7 @@ module Admin
     STRIPE_COLOR       = "F0F3F7".freeze
 
     DETAIL_TYPES = [
-      :string, nil, :string, :string, :string, :string, :string, :string, :string,
+      :string, nil, :string, :string, :string, :string, :string, :string, :string, :string,
       :string, :string, :float, :float, :float, :float, :float, :string, :string
     ].freeze
 
@@ -100,7 +100,7 @@ module Admin
           )
         end
 
-        sheet.column_widths 8, 18, 10, 28, 24, 20, 14, 16, 28, 16, 12, 12, 12, 12, 12, 12, 9, 18
+        sheet.column_widths 8, 18, 10, 28, 24, 32, 20, 14, 16, 28, 16, 12, 12, 12, 12, 12, 12, 9, 18
         sheet.sheet_view.show_grid_lines = true
       end
     end
@@ -153,6 +153,7 @@ module Admin
         payment.user_id.to_s,
         payment.purchaser_email.to_s,
         payment.purchaser_name.to_s,
+        PaymentDisplayLabels.product_label(payment),
         payment.sinpe_transfer_identification.to_s,
         payment.sinpe_transfer_mobile_number.to_s,
         payment.purchase_reference.to_s,
@@ -172,7 +173,7 @@ module Admin
 
     def self.detail_row_styles(row_plain, row_date, row_money)
       [
-        row_plain, row_date, row_plain, row_plain, row_plain, row_plain, row_plain,
+        row_plain, row_date, row_plain, row_plain, row_plain, row_plain, row_plain, row_plain,
         row_plain, row_plain, row_plain, row_plain, row_money, row_money, row_money,
         row_money, row_money, row_plain, row_plain
       ]

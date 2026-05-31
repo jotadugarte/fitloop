@@ -133,7 +133,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 ### Pre-live polish (branch admin-foundation)
 
 - [x] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAILS`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton dashboard + shared layout for ventas and analytics (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-foundation.md`
-- [x] **Admin ventas / reporte de pagos** — `/admin/ventas` con filtros, tablas CRC/USD, declaración Hacienda, export CSV/resumen/XLSX, `cabys_code` en `payments` (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-sales-report.md` — Branch: `admin-dashboard-pay`
+- [x] **Admin ventas / reporte de pagos** — `/admin/ventas` con filtros, tablas CRC/USD, declaración Hacienda, export XLSX, `cabys_code` en `payments` (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-sales-report.md` — Branch: `admin-dashboard-pay`
 
 ---
 

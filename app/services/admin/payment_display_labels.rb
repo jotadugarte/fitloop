@@ -37,5 +37,18 @@ module Admin
         purpose.to_s.humanize
       end
     end
+
+    def self.product_label(payment)
+      desc = payment.product_description.to_s
+      return "Procesamiento de anidado DXF" if desc == "single_download"
+
+      if (match = desc.match(/\Aplan_(\d+)_months\z/))
+        months = match[1].to_i
+        unit = months == 1 ? "mes" : "meses"
+        return "Suscripción mensual - Plan de #{months} #{unit}"
+      end
+
+      purpose_label(payment.purpose)
+    end
   end
 end

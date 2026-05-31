@@ -13,5 +13,9 @@ module Admin
     def admin_payment_purpose_label(purpose)
       Admin::PaymentDisplayLabels.purpose_label(purpose)
     end
+
+    def admin_payment_product_label(payment)
+      Admin::PaymentDisplayLabels.product_label(payment)
+    end
   end
 end

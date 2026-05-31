@@ -12,6 +12,7 @@ module Admin
       total_count = scope.count
       total_pages = [ (total_count.to_f / PER_PAGE).ceil, 1 ].max
       payments = scope
+        .includes(:user)
         .order(created_at: direction.to_sym)
         .limit(PER_PAGE)
         .offset((page - 1) * PER_PAGE)
