@@ -190,4 +190,24 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
 
     expect(flash[:alert]).not_to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
   end
+
+  it "[REQ-FIT-BILL-001] blocks orphan resolution updates while payment pending" do
+    project.orphan_resolutions.create!(
+      piece_key: "0",
+      resolution_state: "pending",
+      reason: "oversized_for_sheet"
+    )
+
+    patch workshop_orphan_resolution_path(piece_key: "0"),
+          params: {
+            orphan_resolution: {
+              resolution_state: "manual",
+              reason: "oversized_for_sheet"
+            }
+          }
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(project.orphan_resolutions.find_by!(piece_key: "0").resolution_state).to eq("pending")
+  end
 end

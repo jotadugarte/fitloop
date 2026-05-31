@@ -3,12 +3,15 @@
 # [REQ-FIT-SPLIT-001] Accept, reject, or regenerate split previews for an orphan.
 class SplitProposalsController < ApplicationController
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
   before_action :ensure_ephemeral_workspace!
   before_action :set_orphan_resolution
 
   def accept
+    return if reject_workshop_mutation_if_pending_payment!
+
     proposal = current_draft_proposal!
     if proposal.split_not_feasible?
       redirect_to @project, alert: I18n.t("nesting.split.not_feasible_accept")
@@ -30,6 +33,8 @@ class SplitProposalsController < ApplicationController
   end
 
   def reject
+    return if reject_workshop_mutation_if_pending_payment!
+
     proposal = current_draft_proposal!
     proposal.update!(status: :rejected)
     append_session_workflow_log!("split_rejected", proposal)
@@ -37,6 +42,8 @@ class SplitProposalsController < ApplicationController
   end
 
   def regenerate
+    return if reject_workshop_mutation_if_pending_payment!
+
     @orphan_resolution.split_proposals.draft.delete_all
     Nesting::SplitPlanJob.perform_later(@orphan_resolution.id)
     append_session_workflow_log!("split_regenerate_requested", nil)
