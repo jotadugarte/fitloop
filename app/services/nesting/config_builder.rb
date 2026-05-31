@@ -15,16 +15,12 @@ module Nesting
 
     def build
       output_dir = @work_dir.join("output")
+      job_params = JobParameters.from_project(@project)
       payload = {
         project_id: @project.id.to_s,
         sheet_stocks: sheet_stock_payload,
-        kerf_mm: @project.kerf_mm,
-        margin_mm: @project.margin_mm,
-        curve_tolerance_mm: @project.curve_tolerance_mm,
-        sheet_gap_mm: @project.sheet_gap_mm,
-        time_limit_sec: @project.nesting_time_limit_sec,
         output_dir: output_dir.to_s
-      }
+      }.merge(job_params.to_config_hash)
       merge_input_layer_config!(payload)
       merge_split_config!(payload)
       payload
@@ -131,12 +127,7 @@ module Nesting
 
     def sheet_stock_payload
       @project.sheet_stocks.order(:sort_order).map do |stock|
-        {
-          width_mm: stock.width_mm,
-          height_mm: stock.height_mm,
-          quantity: stock.quantity,
-          sort_order: stock.sort_order
-        }
+        SheetStockRow.from_sheet_stock(stock).to_config_hash
       end
     end
   end

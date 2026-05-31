@@ -324,6 +324,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 - Migrations and models for `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece` (split/composite v1.1+).
 - Defaults: kerf 0, margin 5, curve tolerance 0.1, sheet gap 15, nesting time limit 600s.
+- **Typed service boundary (Rails):** Nesting and workshop services parse domain numerics and piece keys via value objects in `app/models/nesting/` (`KerfMm`, `MarginMm`, `CurveToleranceMm`, `SheetGapMm`, `NestingTimeLimitSec`, `JobParameters`, `SheetStockRow`, `PieceKey`). ActiveRecord columns remain `float` / `string`; VOs validate at service and controller boundaries before persistence or CLI payload emission. Kerf and margin are **separate types** (never conflated).
 
 ### REQ-FIT-DXF-001 (detail)
 
@@ -377,6 +378,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### REQ-FIT-NEST-002 (detail)
 
+- **Rails typed layer:** `Nesting::JobParameters.from_project` is the SSOT for CLI numeric fields (`kerf_mm`, `margin_mm`, `curve_tolerance_mm`, `sheet_gap_mm`, `time_limit_sec`) consumed by `Nesting::ConfigBuilder`; `Nesting::SheetStockRow` wraps each sheet stock row. Python engine validates parsed config in Phase F (`nesting_config.py`); JSON key names unchanged.
 - **Multi-bin:** `nesting_engine/nest_bin.py` consumes ordered `SheetStock` rows (finite quantity or ∞); opens additional sheets when a bin is full.
 - **`margin_mm` (sheet edge):** Applied only as inset from the usable bin rectangle (`nest_placement` bin fit and anchor candidates). Does **not** add extra gap between adjacent pieces on the same sheet.
 - **`kerf_mm` (piece-to-piece):** Applied in `nest_types.apply_kerf` as a symmetric buffer on each piece polygon before placement; obstacle geometry uses the buffered shape so placed pieces maintain at least `kerf_mm` clearance.
@@ -451,7 +453,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Scope:** v1.1 feature for **ephemeral** workspace projects (`Project#ephemeral?`). After a `partial` nest (or when unresolved orphans remain visible in-session), the user resolves each orphan **opt-in** via per-card actions—no automatic splitting.
 
-**Identity:** `Nesting::PieceKey` (stable string, e.g. `{blob_id}:piece-{index}` or `{blob_id}:fp-{fingerprint}`) keys `OrphanResolution#piece_key` across re-nests; do not rely on `piece_index` alone.
+**Identity:** `Nesting::PieceKey` keys `OrphanResolution#piece_key` across re-nests; do not rely on `piece_index` alone. Accepted formats (Rails `Nesting::PieceKey` / CLI `piece_keys`):
+
+- **Stable:** `{blob_id}:piece-{index}` or `{blob_id}:fp-{16-char hex fingerprint}` (from `Nesting::PieceKeyBuilder` after extract).
+- **Legacy numeric:** decimal string index only (e.g. `"0"`, `"11"`) — v1 CLI/orphan rows and ephemeral fixtures; still valid at service boundaries; prefer stable keys for new materialized rows when blob context exists.
 
 **Rails models:**
 

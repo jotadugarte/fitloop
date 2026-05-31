@@ -33,9 +33,10 @@ module Nesting
         progress_message: @snapshot.message_key
       }
 
+      time_limit = NestingTimeLimitSec.from_project(@project)
       eta = ProgressEta.estimate(
         started_at: run_started_at,
-        time_limit_sec: @project.nesting_time_limit_sec,
+        time_limit_sec: time_limit.to_i,
         pieces_total: @snapshot.pieces_total,
         pieces_placed: @snapshot.pieces_placed
       )

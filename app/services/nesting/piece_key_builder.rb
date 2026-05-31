@@ -20,14 +20,14 @@ module Nesting
       index = Integer(piece_index)
       raise ArgumentError, "piece_index must be non-negative" if index.negative?
 
-      PieceKey.new("#{blob_id}:piece-#{index}")
+      PieceKey.parse("#{blob_id}:piece-#{index}")
     end
 
     def build_from_geometry(attachment:, layer_name:, rings:)
       blob_id = blob_id_for!(attachment)
       fingerprint = geometry_fingerprint(layer_name: layer_name, rings: rings)
 
-      PieceKey.new("#{blob_id}:fp-#{fingerprint}")
+      PieceKey.parse("#{blob_id}:fp-#{fingerprint}")
     end
 
     private

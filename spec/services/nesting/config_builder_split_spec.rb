@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Nesting::ConfigBuilder do
+RSpec.describe Nesting::ConfigBuilder, "[REQ-FIT-CLI-001]" do
   describe "split payload [REQ-FIT-CLI-001] [REQ-FIT-SPLIT-001]" do
     it "[REQ-FIT-SPLIT-001] includes excluded_piece_keys and derived_pieces after accept" do
       project = Project.create!(

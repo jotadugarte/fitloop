@@ -20,12 +20,14 @@ module Nesting
     end
 
     def call
+      time_limit = NestingTimeLimitSec.from_project(@project)
+
       return if handle_cancelled!
 
       update_progress!(percent: 12, message: I18n.t("nesting.phase.starting"))
 
       begin
-        Timeout.timeout(@project.nesting_time_limit_sec) do
+        Timeout.timeout(time_limit.to_i) do
           raise CancelledError if cancel_requested?
 
           Nesting::CliRunner.call(

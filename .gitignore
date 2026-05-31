@@ -64,6 +64,7 @@ xf-test-temp/
 !.agenticguild/active_sessions/
 !.agenticguild/active_sessions/.gitkeep
 !.agenticguild/active_sessions/task_template.md
+.agenticguild/active_sessions/task_*.md
 !.agenticguild/completed_sessions/
 !.agenticguild/completed_sessions/**
 

@@ -56,23 +56,24 @@ module Nesting
     def write_config!(work_dir, input_paths)
       output_dir = work_dir.join("output")
       FileUtils.mkdir_p(output_dir)
+      resolution_key = PieceKey.parse(@orphan_resolution.piece_key)
       config = ConfigBuilder.build(project: @project, work_dir: work_dir, input_paths: input_paths).merge(
         "mode" => "plan_splits",
-        "piece_keys" => [ @orphan_resolution.piece_key ]
+        "piece_keys" => [ resolution_key.to_s ]
       )
-      plan_piece = plan_piece_geometry
+      plan_piece = plan_piece_geometry(resolution_key)
       config["plan_pieces"] = [ plan_piece ] if plan_piece
       File.write(work_dir.join("config.json"), JSON.pretty_generate(config))
     end
 
-    def plan_piece_geometry
+    def plan_piece_geometry(resolution_key)
       orphan = Nesting::OrphansPresenter.for(@project).items.find do |item|
-        item.piece_key == @orphan_resolution.piece_key
+        PieceKey.parse(item.piece_key) == resolution_key
       end
       return nil unless orphan&.exportable?
 
       {
-        "piece_key" => @orphan_resolution.piece_key,
+        "piece_key" => resolution_key.to_s,
         "rings" => orphan.rings.map { |ring| ring.map { |x, y| [ x, y ] } }
       }
     end
@@ -99,10 +100,11 @@ module Nesting
       raise "split_preview.json missing" unless preview_path.file?
 
       preview = JSON.parse(preview_path.read)
+      resolution_key = PieceKey.parse(@orphan_resolution.piece_key)
       proposal = Array(preview["proposals"]).find do |row|
-        row["piece_key"].to_s == @orphan_resolution.piece_key.to_s
+        PieceKey.parse(row.fetch("piece_key")) == resolution_key
       end
-      raise "split preview missing proposal for #{@orphan_resolution.piece_key}" unless proposal
+      raise "split preview missing proposal for #{resolution_key}" unless proposal
 
       proposal
     end

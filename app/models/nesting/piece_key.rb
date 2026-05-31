@@ -3,15 +3,25 @@
 module Nesting
   # [REQ-FIT-SPLIT-001] Stable identifier for a nestable piece across runs.
   class PieceKey
-    FORMAT = /\A\d+:(?:piece-\d+|fp-[a-f0-9]{16})\z/
+    LEGACY_FORMAT = /\A\d+\z/
+    STABLE_FORMAT = /\A\d+:(?:piece-\d+|fp-[a-f0-9]{16})\z/
+    FORMAT = /\A(?:\d+|\d+:(?:piece-\d+|fp-[a-f0-9]{16}))\z/
 
     attr_reader :value
+
+    def self.parse(raw)
+      raise ArgumentError, "piece key is required" if raw.blank?
+
+      new(raw)
+    end
 
     def initialize(value)
       raise ArgumentError, "piece key is required" if value.blank?
 
       normalized = value.to_s
-      raise ArgumentError, "invalid piece key format" unless normalized.match?(FORMAT)
+      unless normalized.match?(LEGACY_FORMAT) || normalized.match?(STABLE_FORMAT)
+        raise ArgumentError, "invalid piece key format"
+      end
 
       @value = normalized.freeze
     end
@@ -25,6 +35,7 @@ module Nesting
     end
 
     alias eql? ==
+
     def hash
       value.hash
     end

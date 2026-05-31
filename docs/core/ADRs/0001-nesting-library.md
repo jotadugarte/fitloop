@@ -60,6 +60,8 @@ Fitloop must nest irregular polygons with **holes** and **any-angle rotation** (
 | 600s best-so-far | No | Yes (`time_limit_sec`, REQ-FIT-NEST-003) |
 | Deploy / CI | — | `docs/DEPLOY.md`, `.github/workflows/ci.yml` `nesting_engine` job |
 
+**Rails CbC addendum (2026-05-30):** Nesting/workshop service boundaries use validated value objects in `app/models/nesting/` (`KerfMm`, `MarginMm`, `JobParameters`, etc.) before CLI `config.json` emission; Python placement algorithms and JSON contract unchanged.
+
 ## More information
 
 - Binding / production tests: `nesting_engine/tests/test_libnest2d_binding.py`, `nesting_engine/tests/test_nest_libnest2d.py`, `nesting_engine/tests/test_nest_full_sheet_*.py`, `nesting_engine/tests/test_nest_multi_bin_epic_integration.py`

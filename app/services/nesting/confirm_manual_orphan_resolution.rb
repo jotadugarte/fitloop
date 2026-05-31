@@ -40,8 +40,9 @@ module Nesting
     private
 
     def orphan_row_for_resolution
+      resolution_key = PieceKey.parse(@orphan_resolution.piece_key)
       Nesting::OrphansPresenter.for(@project).items.find do |orphan|
-        orphan.piece_key.to_s == @orphan_resolution.piece_key.to_s
+        PieceKey.parse(orphan.piece_key) == resolution_key
       end
     end
 

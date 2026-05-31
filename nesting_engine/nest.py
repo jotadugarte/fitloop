@@ -23,6 +23,7 @@ from nesting_engine.composite_extract import (  # noqa: E402
 )
 from nesting_engine.decoration_transform import transform_decorations  # noqa: E402
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
+from nesting_engine.nesting_config import parse_job_parameters_from_config  # noqa: E402
 from nesting_engine.progress_reporter import ProgressReporter  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -123,6 +124,7 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
     output_dir = Path(config["output_dir"])
     output_dir.mkdir(parents=True, exist_ok=True)
     progress = ProgressReporter(output_dir / "progress.json")
+    job_params = parse_job_parameters_from_config(config)
 
     warnings: list[str] = list(config.get("warnings") or [])
     pieces = load_pieces_from_config(config, warnings=warnings)
@@ -145,10 +147,10 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
     result = nest_multi_bin(
         pieces,
         stocks,
-        margin_mm=float(config.get("margin_mm", 0.0)),
-        kerf_mm=float(config.get("kerf_mm", 0.0)),
-        sheet_gap_mm=float(config.get("sheet_gap_mm", 15.0)),
-        time_limit_sec=float(config.get("time_limit_sec", 600)),
+        margin_mm=job_params.margin_mm,
+        kerf_mm=job_params.kerf_mm,
+        sheet_gap_mm=job_params.sheet_gap_mm,
+        time_limit_sec=job_params.time_limit_sec,
         progress_reporter=progress,
     )
     merged_warnings = warnings + list(result.warnings)
@@ -178,7 +180,8 @@ def run_plan_splits_from_config(config: dict) -> dict:
     warnings: list[str] = list(config.get("warnings") or [])
     pieces = load_pieces_from_config(config, warnings=warnings)
     stocks = parse_sheet_stocks_from_config(config)
-    margin_mm = float(config.get("margin_mm", 0.0))
+    job_params = parse_job_parameters_from_config(config)
+    margin_mm = job_params.margin_mm
 
     proposals: list[dict] = []
     plan_by_key = _plan_polygons_by_key(config)

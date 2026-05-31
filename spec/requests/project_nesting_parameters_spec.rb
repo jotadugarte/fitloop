@@ -60,4 +60,52 @@ RSpec.describe "Project nesting parameters on show", "[REQ-FIT-UI-001]", type: :
     expect(project.reload.kerf_mm).to eq(2.5)
     expect(project.margin_mm).to eq(8)
   end
+
+  it "returns unprocessable content when kerf is negative" do
+    project = taller_project!(kerf_mm: 1, margin_mm: 5)
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: -1, margin_mm: 7 } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(project.reload.kerf_mm).to eq(1)
+    expect(project.reload.margin_mm).to eq(5)
+  end
+
+  it "returns unprocessable content when margin is negative" do
+    project = taller_project!(kerf_mm: 1, margin_mm: 5)
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: 2, margin_mm: -3 } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(project.reload.kerf_mm).to eq(1)
+    expect(project.reload.margin_mm).to eq(5)
+  end
+
+  it "returns unprocessable content when kerf is not numeric" do
+    project = taller_project!(kerf_mm: 1, margin_mm: 5)
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: "abc", margin_mm: 7 } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(project.reload.kerf_mm).to eq(1)
+    expect(project.reload.margin_mm).to eq(5)
+  end
+
+  it "returns unprocessable content when margin is not numeric" do
+    project = taller_project!(kerf_mm: 1, margin_mm: 5)
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: 2, margin_mm: "xyz" } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+    expect(project.reload.kerf_mm).to eq(1)
+    expect(project.reload.margin_mm).to eq(5)
+  end
 end

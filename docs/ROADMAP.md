@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Nesting / workshop domain types (CbC refactor)** (Pending #0).
+**Next action:** **Admin foundation** (Pending #1).
 
 ---
 
@@ -143,7 +143,7 @@ Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `
 
 ### Pre-live (0–4)
 
-0. [ ] **Nesting / workshop domain types (CbC refactor)** — value objects for `margin_mm`, `kerf_mm`, piece keys (`Nesting::PieceKey`), and related workshop/nesting primitives in Rails + `nesting_engine/`; high CbC value but **separate domain** — do not mix with billing refactor (REQ-FIT-NEST-002, REQ-FIT-DOM-001, ADR-0001) — Depends on: **none** (not a blocker for admin)
+0. [ ] **Nesting / workshop domain types (CbC refactor)** — value objects for `margin_mm`, `kerf_mm`, piece keys (`Nesting::PieceKey`), and related workshop/nesting primitives in Rails + `nesting_engine/`; high CbC value but **separate domain** — do not mix with billing refactor (REQ-FIT-NEST-002, REQ-FIT-DOM-001, ADR-0001) — Session: `task_nesting-workshop-domain-types-cbc.md`
 1. [ ] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAIL`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton + shared layout for ventas and analytics — Depends on: **Billing domain types (CbC refactor)** (done)
 2. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
 3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`

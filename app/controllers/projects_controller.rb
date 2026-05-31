@@ -64,18 +64,19 @@ class ProjectsController < ApplicationController
   end
 
   def nesting_parameters
-    if @project.update(nesting_parameters_params)
+    parsed = Nesting::AssignNestingParameters.call(raw_params: nesting_parameters_params)
+    unless parsed.ok?
+      @project.errors.add(:base, parsed.errors.first)
+      return render_nesting_parameters_failure
+    end
+
+    if @project.update(kerf_mm: parsed.kerf.to_f, margin_mm: parsed.margin.to_f)
       respond_to do |format|
         format.turbo_stream { render turbo_stream: nesting_parameters_turbo_stream }
         format.html { redirect_to workshop_path, notice: t("projects.nesting_parameters_updated") }
       end
     else
-      respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: nesting_parameters_turbo_stream, status: :unprocessable_content
-        end
-        format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
-      end
+      render_nesting_parameters_failure
     end
   end
 
@@ -175,6 +176,15 @@ class ProjectsController < ApplicationController
         partial: "projects/nesting_parameters",
         locals: { project: @project, workshop_ux: workshop_ux }
       )
+    end
+  end
+
+  def render_nesting_parameters_failure
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: nesting_parameters_turbo_stream, status: :unprocessable_content
+      end
+      format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
     end
   end
 
