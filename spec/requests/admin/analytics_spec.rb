@@ -124,4 +124,40 @@ RSpec.describe "Admin::AnalyticsController", "[REQ-FIT-ANALYTICS-001]", type: :r
       expect(response.body).to include("Cuotas Agotadas (Mes)")
     end
   end
+
+  describe "GET /admin/analytics/export.csv" do
+    let(:regular_user) { create_billing_user!(email: "regular-user@example.com") }
+
+    it "blocks non-admin users with 404" do
+      delete destroy_user_session_path
+      sign_in_user! regular_user
+      get "/admin/analytics/export.csv"
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "allows admins to download a CSV file with filtered user events" do
+      # Set up events with specific locales
+      UserEvent.create!(
+        event_type: "workspace_started",
+        occurred_at: Time.current,
+        locale: "es",
+        priority: "low"
+      )
+      UserEvent.create!(
+        event_type: "paywall_viewed",
+        occurred_at: Time.current,
+        locale: "en",
+        priority: "low"
+      )
+
+      # Request with es filter
+      get "/admin/analytics/export.csv", params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.header["Content-Type"]).to include("text/csv")
+      expect(response.header["Content-Disposition"]).to include("filename=")
+      expect(response.body).to include("workspace_started")
+      expect(response.body).not_to include("paywall_viewed")
+    end
+  end
 end
