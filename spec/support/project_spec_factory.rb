@@ -31,10 +31,20 @@ module ProjectSpecFactory
 
     sheet_stocks = kwargs.delete(:sheet_stocks_attributes)
     project.update!(kwargs)
-    return project unless sheet_stocks
+    if sheet_stocks
+      project.sheet_stocks.destroy_all
+      project.update!(sheet_stocks_attributes: sheet_stocks)
+      project.reload
+    else
+      ensure_default_sheet_stocks!(project)
+    end
+    project
+  end
 
-    project.sheet_stocks.destroy_all
-    project.update!(sheet_stocks_attributes: sheet_stocks)
+  def ensure_default_sheet_stocks!(project)
+    return project if project.sheet_stocks.exists?
+
+    project.update!(sheet_stocks_attributes: { "0" => DEFAULT_SHEET_STOCK.dup })
     project.reload
   end
 end
@@ -64,13 +74,18 @@ RSpec.configure do |config|
     def begin_workspace_session!
       if respond_to?(:visit)
         visit start_project_path
-        Project.ephemeral.order(:id).last!
+        ProjectSpecFactory.ensure_default_sheet_stocks!(Project.ephemeral.order(:id).last!)
       else
         get start_project_path
         follow_redirect!
-        Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID) ||
-          Project.find(session[Workspace::SESSION_KEY])
+        project = Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID) ||
+                  Project.find(session[Workspace::SESSION_KEY])
+        ProjectSpecFactory.ensure_default_sheet_stocks!(project)
       end
+    end
+
+    def start_ephemeral_workspace!
+      begin_workspace_session!
     end
 
     def bind_workspace_session!(project)

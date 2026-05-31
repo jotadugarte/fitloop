@@ -3,12 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "Orphan manual resolution", type: :request do
-  def start_ephemeral_workspace!
-    get start_project_path
-    follow_redirect!
-    Project.find(session[:workspace_project_id])
-  end
-
   def attach_orphan_placements!(project, rings:)
     project.nesting_runs.create!(
       status: "partial",

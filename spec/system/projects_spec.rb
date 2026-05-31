@@ -9,7 +9,7 @@ RSpec.describe "Project sheet inventory UI", type: :system do
       }
     )
 
-    visit edit_project_path(project)
+    visit project_path(project)
 
     expect(page).to have_css("[data-controller='sheet-inventory']")
     expect(page).to have_css(".sheet-inventory-table")

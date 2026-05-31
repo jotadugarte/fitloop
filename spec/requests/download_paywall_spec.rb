@@ -63,7 +63,7 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
     get download_paywall_project_path(project), headers: { "X-Workspace-Tab-Id" => tab_a }
     expect(response).to have_http_status(:ok)
 
-    get checkout_path(nesting_run_id: run.id)
+    get checkout_path(nesting_run_id: run.id), headers: { "X-Workspace-Tab-Id" => tab_a }
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="checkout-demo"')
 

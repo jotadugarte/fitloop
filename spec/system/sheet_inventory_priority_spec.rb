@@ -9,7 +9,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
       }
     )
 
-    visit edit_project_path(project)
+    visit project_path(project)
 
     expect(page).to have_css("[data-controller='sheet-inventory']")
     expect(page).to have_content(I18n.t("projects.form.consumption_priority"))
@@ -24,7 +24,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
       }
     )
 
-    visit edit_project_path(project)
+    visit project_path(project)
 
     rows = page.all("[data-testid='sheet-stock-row']")
     expect(rows.size).to eq(2)
@@ -41,7 +41,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
       }
     )
 
-    visit edit_project_path(project)
+    visit project_path(project)
 
     expect(page).to have_css("[data-testid='sheet-stock-drag-handle']", count: 2)
     expect(page).to have_css("[data-sheet-inventory-target='list'][data-sortable='true']")
@@ -53,7 +53,7 @@ RSpec.describe "Sheet inventory consumption priority", type: :system do
       }
     )
 
-    visit edit_project_path(project)
+    visit project_path(project)
 
     expect(page).to have_css("[data-controller='sheet-inventory'][data-sheet-inventory-has-unlimited-value='true']")
     expect(page).to have_field("sheet_composer_quantity", disabled: false)

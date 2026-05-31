@@ -3,12 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "Orphan resolutions", type: :request do
-  def start_ephemeral_workspace!
-    get start_project_path
-    follow_redirect!
-    Project.find(session[:workspace_project_id])
-  end
-
   describe "PATCH /projects/:project_id/orphan_resolutions/:piece_key [REQ-FIT-SPLIT-001]" do
     let(:project) { start_ephemeral_workspace! }
     let(:piece_key) { "0" }

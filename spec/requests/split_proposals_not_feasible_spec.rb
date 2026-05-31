@@ -3,12 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "Split proposal not feasible [REQ-FIT-SPLIT-001]", type: :request do
-  def start_ephemeral_workspace!
-    get start_project_path
-    follow_redirect!
-    Project.find(session[:workspace_project_id])
-  end
-
   let(:project) { start_ephemeral_workspace! }
   let(:orphan_resolution) do
     OrphanResolution.create!(

@@ -5,12 +5,6 @@ require "rails_helper"
 RSpec.describe "Nest with updated pieces", type: :request do
   include ActiveJob::TestHelper
 
-  def start_ephemeral_workspace!
-    get start_project_path
-    follow_redirect!
-    Project.find(session[:workspace_project_id])
-  end
-
   def prepare_partial_nest!(project)
     sample_dxf = Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")
     project.input_dxf.attach(

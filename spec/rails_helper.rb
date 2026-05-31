@@ -8,6 +8,9 @@ require "dotenv/load"
 
 require_relative "../config/environment"
 
+# Isolate test billing from developer .env (ONVO keys). ONVO request specs override per example.
+ENV["BILLING_GATEWAY"] = Billing::Gateway::SIMULATE
+
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 
