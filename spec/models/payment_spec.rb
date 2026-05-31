@@ -373,8 +373,8 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
     end
   end
 
-  describe "cabys_code validation and assignment" do
-    it "automatically assigns the default CAByS code to a new payment on creation" do
+  describe "cabys_code validation and assignment [REQ-FIT-ADMIN-001]" do
+    it "[REQ-FIT-ADMIN-001] automatically assigns the default CAByS code to a new payment on creation" do
       payment = described_class.create!(
         user: user,
         status: "pending",
@@ -386,7 +386,7 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
       expect(payment.cabys_code).to eq(Payment::DEFAULT_CABYS_CODE)
     end
 
-    it "validates that cabys_code matches DEFAULT_CABYS_CODE" do
+    it "[REQ-FIT-ADMIN-001] validates that cabys_code matches DEFAULT_CABYS_CODE" do
       payment = described_class.new(
         user: user,
         status: "pending",
