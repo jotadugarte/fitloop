@@ -72,4 +72,56 @@ RSpec.describe "Admin::AnalyticsController", "[REQ-FIT-ANALYTICS-001]", type: :r
       expect(response.body).to include("metric--alert")
     end
   end
+
+  describe "Monetization KPIs" do
+    before do
+      # Seed some payments
+      # Succeeded single download payment
+      Payment.create!(
+        user: admin_user,
+        amount: 5.0,
+        currency: "usd",
+        payment_method: "card_usd",
+        purpose: "single_download",
+        status: "succeeded",
+        paid_at: Time.current
+      )
+
+      # Succeeded plan subscription payment (1 month tier)
+      sub = Subscription.create!(
+        user: admin_user,
+        tier_months: 1,
+        starts_at: Time.current,
+        ends_at: Time.current + 1.month
+      )
+      Payment.create!(
+        user: admin_user,
+        amount: 20.0,
+        currency: "usd",
+        payment_method: "card_usd",
+        purpose: "plan_subscription",
+        status: "succeeded",
+        paid_at: Time.current,
+        subscription: sub
+      )
+
+      # Seed plan monthly usage that is exhausted (downloads_used: 50, quota_limit: 50)
+      PlanMonthlyUsage.create!(
+        subscription: sub,
+        period_year: Time.current.year,
+        period_month: Time.current.month,
+        quota_limit: 50,
+        downloads_used: 50
+      )
+    end
+
+    it "displays single vs plan payments, plans by tier, and exhausted quota counts" do
+      get "/admin/analytics"
+
+      expect(response.body).to include("Pagos Únicos")
+      expect(response.body).to include("Pagos de Planes")
+      expect(response.body).to include("Planes 1 Mes")
+      expect(response.body).to include("Cuotas Agotadas (Mes)")
+    end
+  end
 end
