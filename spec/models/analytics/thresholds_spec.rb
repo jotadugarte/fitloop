@@ -53,7 +53,7 @@ RSpec.describe Analytics::Thresholds, "[REQ-FIT-ANALYTICS-001]" do
         new_content = original_content.gsub("funnel_conversion_min_percent: 15", "funnel_conversion_min_percent: 10")
         File.write(config_path, new_content)
         # Update the mtime to be in the future to trigger reload
-        FileUtils.touch(config_path, mtime: Time.current + 5.seconds)
+        FileUtils.touch(config_path, mtime: (Time.current + 5.seconds).to_time)
 
         expect(described_class.funnel_conversion_min_percent).to eq(10)
       ensure
