@@ -4,39 +4,67 @@
       <h1 class="admin-dashboard__title">Ventas y Reporte de Pagos</h1>
       <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
     </div>
-    <div>
-      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;" do %>
-        <span>Exportar CSV (Filtrado)</span>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <%= link_to admin_export_ventas_summary_path(request.query_parameters), class: "btn btn-secondary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem;" do %>
+        <span>Exportar Resumen (Hacienda)</span>
+      <% end %>
+      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary", style: "display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem;" do %>
+        <span>Exportar Detalle (Filtrado)</span>
       <% end %>
     </div>
   </header>
 
   <!-- Filters Section -->
   <%= form_with url: admin_ventas_path, method: :get, local: true, class: "admin-panel", style: "margin-bottom: 2rem;" do |f| %>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; align-items: end;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; align-items: start;">
       <div>
-        <label for="search" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Buscar</label>
-        <%= f.text_field :search, value: params[:search], placeholder: "Nombre, email, ref...", id: "search", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+        <label for="search" class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Buscar</label>
+        <%= f.text_field :search, value: params[:search], placeholder: "Nombre, email, ref...", id: "search", style: "width: 100%; padding: 0.45rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
       </div>
+      
       <div>
-        <label for="status" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Estado</label>
-        <%= f.select :status, [["Todos", ""], ["SUCCEEDED", "succeeded"], ["PENDING", "pending"], ["FAILED", "failed"]], { selected: params[:status] }, { id: "status", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" } %>
+        <span class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Estado</span>
+        <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.15rem;">
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "status[]", "succeeded", Array(params[:status]).include?("succeeded") %> SUCCEEDED
+          </label>
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "status[]", "pending", Array(params[:status]).include?("pending") %> PENDING
+          </label>
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "status[]", "failed", Array(params[:status]).include?("failed") %> FAILED
+          </label>
+        </div>
       </div>
+
       <div>
-        <label for="payment_method" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Método</label>
-        <%= f.select :payment_method, [["Todos", ""], ["Card USD", "card_usd"], ["Card CRC", "card_crc"], ["SINPE CRC", "sinpe_crc"]], { selected: params[:payment_method] }, { id: "payment_method", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" } %>
+        <span class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Método de Pago</span>
+        <div style="display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.15rem;">
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "payment_method[]", "card_usd", Array(params[:payment_method]).include?("card_usd") %> Card USD
+          </label>
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "payment_method[]", "card_crc", Array(params[:payment_method]).include?("card_crc") %> Card CRC
+          </label>
+          <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; color: var(--fit-navy-dark, #1e3a5f); font-weight: 500;">
+            <%= check_box_tag "payment_method[]", "sinpe_crc", Array(params[:payment_method]).include?("sinpe_crc") %> SINPE CRC
+          </label>
+        </div>
       </div>
+
       <div>
-        <label for="start_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Desde</label>
-        <%= f.date_field :start_date, value: params[:start_date], id: "start_date", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+        <label for="start_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Desde</label>
+        <%= f.date_field :start_date, value: params[:start_date], id: "start_date", style: "width: 100%; padding: 0.45rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
       </div>
+
       <div>
-        <label for="end_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.35rem;">Hasta</label>
-        <%= f.date_field :end_date, value: params[:end_date], id: "end_date", style: "width: 100%; padding: 0.4rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
+        <label for="end_date" class="admin-stat-card__label" style="display: block; margin-bottom: 0.5rem;">Hasta</label>
+        <%= f.date_field :end_date, value: params[:end_date], id: "end_date", style: "width: 100%; padding: 0.45rem 0.6rem; border-radius: 4px; border: 1px solid var(--fit-border, #c5d0dc); font-size: 0.85rem;" %>
       </div>
-      <div style="display: flex; gap: 0.5rem;">
-        <%= f.submit "Filtrar", class: "btn btn-secondary", style: "flex: 1; padding: 0.45rem; font-size: 0.85rem; font-weight: 500;" %>
-        <%= link_to "Limpiar", admin_ventas_path, class: "btn btn-secondary", style: "flex: 1; text-align: center; padding: 0.45rem; text-decoration: none; font-size: 0.85rem; font-weight: 500; display: inline-block; line-height: 1.5;" %>
+
+      <div style="display: flex; gap: 0.5rem; align-self: end; width: 100%;">
+        <%= f.submit "Filtrar", class: "btn btn-secondary", style: "flex: 1; padding: 0.5rem; font-size: 0.85rem; font-weight: 500;" %>
+        <%= link_to "Limpiar", admin_ventas_path, class: "btn btn-secondary", style: "flex: 1; text-align: center; padding: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 500; display: inline-block; line-height: 1.5;" %>
       </div>
     </div>
   <% end %>

@@ -3,40 +3,7 @@
 module Admin
   class VentasController < Admin::BaseController
     def index
-      base_scope = Payment.all
-
-      # Apply date filters
-      if params[:start_date].present?
-        begin
-          start_time = Time.zone.parse(params[:start_date]).beginning_of_day
-          base_scope = base_scope.where("created_at >= ?", start_time)
-        rescue ArgumentError
-          # Ignore invalid date formats
-        end
-      end
-
-      if params[:end_date].present?
-        begin
-          end_time = Time.zone.parse(params[:end_date]).end_of_day
-          base_scope = base_scope.where("created_at <= ?", end_time)
-        rescue ArgumentError
-          # Ignore invalid date formats
-        end
-      end
-
-      # Apply payment method filter
-      if params[:payment_method].present?
-        base_scope = base_scope.where(payment_method: params[:payment_method])
-      end
-
-      # Apply search
-      if params[:search].present?
-        q = "%#{params[:search]}%"
-        base_scope = base_scope.where(
-          "purchaser_name ILIKE :q OR purchaser_email ILIKE :q OR purchase_reference ILIKE :q OR sinpe_transfer_identification ILIKE :q",
-          q: q
-        )
-      end
+      base_scope = build_filtered_scope
 
       # Compute metrics on the filtered base scope (excluding status filter)
       @total_revenue_crc = base_scope.where(status: "succeeded", currency: "crc").sum("COALESCE(NULLIF(total_amount, 0), amount)")
@@ -47,8 +14,9 @@ module Admin
 
       # Apply status filter for listing
       @payments_scope = base_scope
-      if params[:status].present?
-        @payments_scope = @payments_scope.where(status: params[:status])
+      statuses = Array(params[:status]).reject(&:blank?)
+      if statuses.any?
+        @payments_scope = @payments_scope.where(status: statuses)
       end
 
       # Pagination
@@ -60,38 +28,10 @@ module Admin
     end
 
     def export
-      base_scope = Payment.all
-
-      if params[:start_date].present?
-        begin
-          start_time = Time.zone.parse(params[:start_date]).beginning_of_day
-          base_scope = base_scope.where("created_at >= ?", start_time)
-        rescue ArgumentError
-        end
-      end
-
-      if params[:end_date].present?
-        begin
-          end_time = Time.zone.parse(params[:end_date]).end_of_day
-          base_scope = base_scope.where("created_at <= ?", end_time)
-        rescue ArgumentError
-        end
-      end
-
-      if params[:payment_method].present?
-        base_scope = base_scope.where(payment_method: params[:payment_method])
-      end
-
-      if params[:search].present?
-        q = "%#{params[:search]}%"
-        base_scope = base_scope.where(
-          "purchaser_name ILIKE :q OR purchaser_email ILIKE :q OR purchase_reference ILIKE :q OR sinpe_transfer_identification ILIKE :q",
-          q: q
-        )
-      end
-
-      if params[:status].present?
-        base_scope = base_scope.where(status: params[:status])
+      base_scope = build_filtered_scope
+      statuses = Array(params[:status]).reject(&:blank?)
+      if statuses.any?
+        base_scope = base_scope.where(status: statuses)
       end
 
       payments = base_scope.order(created_at: :desc)
@@ -100,6 +40,60 @@ module Admin
       send_data csv_data,
                 filename: "ventas-export-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.csv",
                 type: "text/csv"
+    end
+
+    def export_summary
+      base_scope = build_filtered_scope
+      statuses = Array(params[:status]).reject(&:blank?)
+      if statuses.any?
+        base_scope = base_scope.where(status: statuses)
+      end
+
+      csv_data = ExportSummaryCsv.call(base_scope)
+
+      send_data csv_data,
+                filename: "ventas-resumen-declaracion-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.csv",
+                type: "text/csv"
+    end
+
+    private
+
+    def build_filtered_scope
+      scope = Payment.all
+
+      # Apply date filters
+      if params[:start_date].present?
+        begin
+          start_time = Time.zone.parse(params[:start_date]).beginning_of_day
+          scope = scope.where("created_at >= ?", start_time)
+        rescue ArgumentError
+        end
+      end
+
+      if params[:end_date].present?
+        begin
+          end_time = Time.zone.parse(params[:end_date]).end_of_day
+          scope = scope.where("created_at <= ?", end_time)
+        rescue ArgumentError
+        end
+      end
+
+      # Apply payment method filter (handles single value or array)
+      methods = Array(params[:payment_method]).reject(&:blank?)
+      if methods.any?
+        scope = scope.where(payment_method: methods)
+      end
+
+      # Apply search
+      if params[:search].present?
+        q = "%#{params[:search]}%"
+        scope = scope.where(
+          "purchaser_name ILIKE :q OR purchaser_email ILIKE :q OR purchase_reference ILIKE :q OR sinpe_transfer_identification ILIKE :q",
+          q: q
+        )
+      end
+
+      scope
     end
   end
 end
