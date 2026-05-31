@@ -4,7 +4,7 @@ require "csv"
 
 module Admin
   class ExportSummaryCsv
-    def self.call(payments)
+    def self.call(payments, direction: "desc")
       # Filter for succeeded payments since only succeeded payments are relevant to tax declaration
       succeeded_payments = payments.where(status: "succeeded")
 
@@ -28,7 +28,10 @@ module Admin
         ]
 
         # Sort chronologically by date, then currency, then payment method
-        grouped.keys.sort_by { |k| [k[0], k[1], k[2]] }.each do |key|
+        sorted_keys = grouped.keys.sort_by { |k| [k[0], k[1], k[2]] }
+        sorted_keys = sorted_keys.reverse if direction == "desc"
+
+        sorted_keys.each do |key|
           date_str, currency, payment_method = key
           group_payments = grouped[key]
 

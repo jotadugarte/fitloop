@@ -140,7 +140,13 @@
               <th>Impuesto</th>
               <th class="text-right">Total</th>
               <th class="text-center">Estado</th>
-              <th>Fecha</th>
+              <th>
+                <% next_direction = @direction == "desc" ? "asc" : "desc" %>
+                <%= link_to admin_ventas_path(request.query_parameters.merge(direction: next_direction)), style: "color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;" do %>
+                  <span>Fecha</span>
+                  <span><%= @direction == "desc" ? "↓" : "↑" %></span>
+                <% end %>
+              </th>
               <th class="text-center">Detalle</th>
             </tr>
           </thead>

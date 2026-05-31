@@ -4,6 +4,7 @@ module Admin
   class VentasController < Admin::BaseController
     def index
       base_scope = build_filtered_scope
+      @direction = params[:direction] == "asc" ? "asc" : "desc"
 
       # Compute metrics on the filtered base scope (excluding status filter)
       @total_revenue_crc = base_scope.where(status: "succeeded", currency: "crc").sum("COALESCE(NULLIF(total_amount, 0), amount)")
@@ -24,7 +25,7 @@ module Admin
       per_page = 20
       @total_count = @payments_scope.count
       @total_pages = (@total_count.to_f / per_page).ceil
-      @payments = @payments_scope.order(created_at: :desc).limit(per_page).offset((@page - 1) * per_page)
+      @payments = @payments_scope.order(created_at: @direction.to_sym).limit(per_page).offset((@page - 1) * per_page)
     end
 
     def export
@@ -34,7 +35,8 @@ module Admin
         base_scope = base_scope.where(status: statuses)
       end
 
-      payments = base_scope.order(created_at: :desc)
+      direction = params[:direction] == "asc" ? "asc" : "desc"
+      payments = base_scope.order(created_at: direction.to_sym)
       csv_data = ExportPaymentsCsv.call(payments)
 
       send_data csv_data,
@@ -49,7 +51,8 @@ module Admin
         base_scope = base_scope.where(status: statuses)
       end
 
-      csv_data = ExportSummaryCsv.call(base_scope)
+      direction = params[:direction] == "asc" ? "asc" : "desc"
+      csv_data = ExportSummaryCsv.call(base_scope, direction: direction)
 
       send_data csv_data,
                 filename: "ventas-resumen-declaracion-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.csv",

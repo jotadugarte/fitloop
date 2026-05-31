@@ -124,6 +124,24 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body).to include("John Doe")
       end
 
+      it "sorts transactions ascending when direction=asc is passed" do
+        get "/admin/ventas", params: { direction: "asc" }
+        expect(response).to have_http_status(:ok)
+        
+        jader_index = response.body.index("Jader Dugarte")
+        pending_index = response.body.index("Pending Client")
+        expect(jader_index).to be < pending_index
+      end
+
+      it "sorts transactions descending by default" do
+        get "/admin/ventas"
+        expect(response).to have_http_status(:ok)
+        
+        jader_index = response.body.index("Jader Dugarte")
+        pending_index = response.body.index("Pending Client")
+        expect(pending_index).to be < jader_index
+      end
+
       it "filters by date range" do
         # Payment created 5 days ago
         @payment_old = Payment.create!(
