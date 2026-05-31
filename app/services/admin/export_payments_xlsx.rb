@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "axlsx"
+
 module Admin
   class ExportPaymentsXlsx
     DETAIL_HEADERS = [
@@ -20,11 +22,35 @@ module Admin
     ACCENT_COLOR       = "2A4D7A".freeze
     STRIPE_COLOR       = "F0F3F7".freeze
 
+    # Cell types for the detail sheet — matches the values array position.
+    # :string forces Excel to treat numeric-looking values as text,
+    # preventing scientific/exponential notation on long digit sequences.
+    DETAIL_TYPES = [
+      :string,  # id              (forced text — no thousands separator)
+      nil,      # created_at      (caxlsx auto-detects ActiveSupport::TimeWithZone)
+      :string,  # user_id         (forced text)
+      :string,  # purchaser_email
+      :string,  # purchaser_name
+      :string,  # sinpe_transfer_identification  ← was 2.34E+11
+      :string,  # sinpe_transfer_mobile_number   ← was 8.89E+07
+      :string,  # purchase_reference             ← was 8.05E+11
+      :string,  # onvo_payment_intent_id         ← was 7.10E+10
+      :string,  # payment_method label
+      :string,  # status label
+      :float,   # list_price
+      :float,   # discount_amount
+      :float,   # subtotal
+      :float,   # tax_amount
+      :float,   # total_amount
+      :string,  # currency
+      :string   # cabys_code                     ← was 8.31E+12
+    ].freeze
+
     def self.call(payments, direction: "desc")
       package = Axlsx::Package.new
       wb = package.workbook
 
-      header_style   = wb.styles.add_style(
+      header_style = wb.styles.add_style(
         bg_color: HEADER_STYLE_COLOR,
         fg_color: "FFFFFF",
         b: true,
@@ -87,37 +113,42 @@ module Admin
 
         sorted_payments.each_with_index do |p, idx|
           stripe = idx.odd?
-          row_plain  = stripe ? stripe_style      : plain_style
-          row_money  = stripe ? money_stripe_style : money_style
-          row_date   = stripe ? date_stripe_style  : date_style
+          row_plain = stripe ? stripe_style      : plain_style
+          row_money = stripe ? money_stripe_style : money_style
+          row_date  = stripe ? date_stripe_style  : date_style
 
           actual_total = p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f
 
-          sheet.add_row [
-            p.id,
-            p.created_at.in_time_zone("America/Costa_Rica"),
-            p.user_id,
-            p.purchaser_email.to_s,
-            p.purchaser_name.to_s,
-            p.sinpe_transfer_identification.to_s,
-            p.sinpe_transfer_mobile_number.to_s,
-            p.purchase_reference.to_s,
-            p.onvo_payment_intent_id.to_s,
-            payment_method_label(p.payment_method),
-            status_label(p.status),
-            p.list_price.to_f,
-            p.discount_amount.to_f,
-            p.subtotal.to_f,
-            p.tax_amount.to_f,
-            actual_total,
-            p.currency.to_s.upcase,
-            p.cabys_code.to_s
-          ], style: [
-            row_plain, row_date, row_plain, row_plain, row_plain,
-            row_plain, row_plain, row_plain, row_plain, row_plain,
-            row_plain, row_money, row_money, row_money, row_money,
-            row_money, row_plain, row_plain
-          ], height: 20
+          sheet.add_row(
+            [
+              p.id.to_s,
+              p.created_at.in_time_zone("America/Costa_Rica"),
+              p.user_id.to_s,
+              p.purchaser_email.to_s,
+              p.purchaser_name.to_s,
+              p.sinpe_transfer_identification.to_s,
+              p.sinpe_transfer_mobile_number.to_s,
+              p.purchase_reference.to_s,
+              p.onvo_payment_intent_id.to_s,
+              payment_method_label(p.payment_method),
+              status_label(p.status),
+              p.list_price.to_f,
+              p.discount_amount.to_f,
+              p.subtotal.to_f,
+              p.tax_amount.to_f,
+              actual_total,
+              p.currency.to_s.upcase,
+              p.cabys_code.to_s
+            ],
+            types: DETAIL_TYPES,
+            style: [
+              row_plain, row_date,  row_plain, row_plain, row_plain,
+              row_plain, row_plain, row_plain, row_plain, row_plain,
+              row_plain, row_money, row_money, row_money, row_money,
+              row_money, row_plain, row_plain
+            ],
+            height: 20
+          )
         end
 
         # Column widths (approximate best-fit)
@@ -158,20 +189,26 @@ module Admin
             p.total_amount.to_f > 0 ? p.total_amount.to_f : p.amount.to_f
           }.round(2)
 
-          sheet.add_row [
-            date_str,
-            currency.to_s.upcase,
-            payment_method_label(method),
-            count,
-            sum_list,
-            sum_discount,
-            sum_subtotal,
-            sum_tax,
-            sum_total
-          ], style: [
-            row_plain, row_plain, row_plain, row_plain,
-            row_money, row_money, row_money, row_money, row_money
-          ], height: 20
+          sheet.add_row(
+            [
+              date_str,
+              currency.to_s.upcase,
+              payment_method_label(method),
+              count,
+              sum_list,
+              sum_discount,
+              sum_subtotal,
+              sum_tax,
+              sum_total
+            ],
+            types: [ :string, :string, :string, :integer,
+                     :float,  :float,  :float,  :float,  :float ],
+            style: [
+              row_plain, row_plain, row_plain, row_plain,
+              row_money, row_money, row_money, row_money, row_money
+            ],
+            height: 20
+          )
         end
 
         sheet.column_widths 14, 9, 16, 14, 18, 16, 24, 16, 18
@@ -185,8 +222,8 @@ module Admin
 
     def self.payment_method_label(method)
       case method.to_s
-      when "card_crc" then "Tarjeta CRC"
-      when "card_usd" then "Tarjeta USD"
+      when "card_crc"  then "Tarjeta CRC"
+      when "card_usd"  then "Tarjeta USD"
       when "sinpe_crc" then "SINPE Móvil"
       else method.to_s.upcase.tr("_", " ")
       end
