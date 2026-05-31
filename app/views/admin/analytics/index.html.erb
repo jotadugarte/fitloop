@@ -4,6 +4,14 @@
     <p class="admin-dashboard__tagline">Métricas del embudo de conversión y actividad del optimizador</p>
   </header>
 
+  <% if @bot_heuristic %>
+    <div class="panel panel--alert" style="margin-bottom: 2rem;">
+      <p style="margin: 0; font-weight: 600; color: var(--fit-alert-text);">
+        ⚠️ Advertencia: Tráfico sospechoso detectado. El volumen de eventos de baja prioridad en la última hora supera el umbral límite de <%= Analytics::Thresholds.low_priority_events_per_hour %>.
+      </p>
+    </div>
+  <% end %>
+
   <!-- Filters panel -->
   <div class="panel panel--solid" style="margin-bottom: 2rem; padding: 1.25rem;">
     <%= form_with url: admin_analytics_path, method: :get, local: true, class: "analytics-filter-form", style: "display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;" do |f| %>
@@ -39,7 +47,8 @@
   </div>
 
   <!-- KPI Grid -->
-  <div class="analytics-grid">
+  <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">Métricas de Conversión y Uso</h2>
+  <div class="analytics-grid" style="margin-bottom: 2rem;">
     <div class="metric-card">
       <h3 class="metric-card__title">Proyectos Iniciados</h3>
       <div class="metric-card__value"><%= @funnel_counts["workspace_started"] %></div>
@@ -68,6 +77,42 @@
           Normal (Mín. <%= Analytics::Thresholds.funnel_conversion_min_percent %>%)
         <% end %>
       </p>
+    </div>
+  </div>
+
+  <!-- Monetization KPI Grid -->
+  <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">Métricas de Monetización y Facturación</h2>
+  <div class="analytics-grid" style="margin-bottom: 3rem;">
+    <div class="metric-card">
+      <h3 class="metric-card__title">Pagos Únicos</h3>
+      <div class="metric-card__value"><%= @single_payments_count %></div>
+      <p class="metric-card__subtitle">Descargas únicas facturadas</p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">Pagos de Planes</h3>
+      <div class="metric-card__value"><%= @plan_payments_count %></div>
+      <p class="metric-card__subtitle">Suscripciones a planes facturados</p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">Planes 1 Mes</h3>
+      <div class="metric-card__value"><%= @plans_1_month %></div>
+      <p class="metric-card__subtitle">Suscripciones activas de 1 mes</p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">Planes 2 / 4 Meses</h3>
+      <div class="metric-card__value"><%= @plans_2_month + @plans_4_month %></div>
+      <p class="metric-card__subtitle">
+        2 Meses: <strong><%= @plans_2_month %></strong> | 4 Meses: <strong><%= @plans_4_month %></strong>
+      </p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">Cuotas Agotadas (Mes)</h3>
+      <div class="metric-card__value"><%= @exhausted_quotas_count %></div>
+      <p class="metric-card__subtitle">Usuarios con descargas agotadas</p>
     </div>
   </div>
 
