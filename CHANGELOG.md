@@ -6,6 +6,7 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Added
 
+- **Admin foundation:** Added the `admin` boolean attribute on `User`, automated promotion of admin email lists via boot initializer (`FITLOOP_ADMIN_EMAILS`), layout for admin dashboard, and a secure stealth access gate at `/admin/*` returning 404 for unauthorized requests (`REQ-FIT-ADMIN-001`).
 - **Unified Mi taller funnel:** EMPEZAR lands on `/taller` with contextual **setup mode** (láminas → nesting params → DXF; preview hidden until first nest) vs **taller mode** after first successful nest (`REQ-FIT-UI-001`, `REQ-FIT-UI-003`).
 - **Workshop autosave:** sheet inventory, debounced nesting parameters, and DXF layer selection persist without explicit Save/Apply buttons in setup mode.
 - **ONVO live billing:** card (CRC/USD) and SINPE Móvil checkout when `BILLING_GATEWAY=onvo`; Payment Intents, embedded card form with 3DS return, SINPE transfer instructions, processing poll, and authoritative webhook fulfillment (`REQ-FIT-BILL-001`, ADR-0006).

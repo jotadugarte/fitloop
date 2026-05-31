@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Admin foundation** (Pending #1).
+**Next action:** **Admin ventas / reporte de pagos** (Pending #2).
 
 ---
 
@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
-| Pre-live | Billing refactor + admin ops + deploy checklist | **Pending** (see Pending) |
+| Pre-live | Billing refactor + admin ops + deploy checklist | **In Progress** (Branch: admin-foundation) |
 | Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #5) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
@@ -130,6 +130,10 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 - [x] **Unified workshop UX — eliminate Parámetros iniciales** — contextual setup/taller modes on single `/taller` show; remove `/projects/new`; autosave láminas, nesting params, DXF layers; preview hidden until first nest (REQ-FIT-UI-001, REQ-FIT-UI-003, REQ-FIT-AUTH-001) — 2026-05-30 — Session: `task_merge-setup-into-workshop.md`
 - [x] **Nesting / workshop domain types (CbC refactor)** — `Nesting::*` VOs in `app/models/nesting/`; `JobParameters` + `ConfigBuilder` CLI SSOT; `AssignNestingParameters`; Python `nesting_config.py`; separate `KerfMm`/`MarginMm`; legacy + stable `PieceKey` (REQ-FIT-NEST-002, REQ-FIT-DOM-001, REQ-FIT-CLI-001, REQ-FIT-SPLIT-001, ADR-0001) — 2026-05-30 — Session: `task_nesting-workshop-domain-types-cbc.md` — Branch: `refactor/nesting-workshop-domain-types-cbc`
 
+### Pre-live polish (branch admin-foundation)
+
+- [x] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAILS`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton dashboard + shared layout for ventas and analytics (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-foundation.md`
+
 ---
 
 ## In Progress
@@ -142,9 +146,8 @@ _(none)_
 
 Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-### Pre-live (1–4)
+### Pre-live (2–4)
 
-1. [ ] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAIL`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton + shared layout for ventas and analytics — Depends on: **Billing domain types (CbC refactor)** (done)
 2. [ ] **Admin ventas / reporte de pagos** — UI admin sobre snapshots en `payments` (comprador, producto, lista, descuento SINPE/overage, subtotal, IVA, total; exitosos y fallidos); export CSV opcional — Depends on: **Admin foundation** — Session: `task_billing-cart_2026-05-28.md`
 3. [ ] **User analytics & admin bitácora (core + UI)** — `user_events`, `Analytics::TrackEvent`, workshop + billing instrumentation, `/admin/analytics` KPIs + embudo, `/admin/usuarios` timeline, CSV export; **no** DXF/geometry persistence; **archive frío (6-month second DB) → post-live follow-up** — Depends on: **Admin foundation** — Session: `task_user-analytics_2026-05-21.md`
 4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **User analytics & admin bitácora (core + UI)**

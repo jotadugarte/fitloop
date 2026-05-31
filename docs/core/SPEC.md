@@ -146,6 +146,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); ONVO payment intents + webhook fulfillment (`BILLING_GATEWAY`) | P7 |
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
+| **REQ-FIT-ADMIN-001** | Admin foundation: `users.admin` flag, CSV promotion on boot, secure 404 gate on `/admin/*`, skeleton dashboard and layout | Pre-live |
 
 ### REQ-FIT-AUTH-001 (detail)
 
@@ -206,6 +207,17 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 **Non-goals v1:** link additional OAuth providers from Mi cuenta (D12); age verification (D17).
 
 **Tests:** `test/spec/auth_billing_spec_doc_test.rb`; Devise/OmniAuth request specs (implementation plan P1).
+
+### REQ-FIT-ADMIN-001 (detail)
+
+**Scope:** Admin foundation to support internal operations (analytics, sales reporting) secure from unauthorized access.
+
+- **Role flag:** `User#admin` is a boolean column default `false`. ActiveRecord automatically generates helper predicate `admin?`.
+- **Promotion:** On application boot, the initializer `config/initializers/promote_admins.rb` checks the `FITLOOP_ADMIN_EMAILS` environment variable. If present, it maps the comma-separated emails and updates the matched users setting `admin: true`. Promotion logic checks for the presence of the environment variable and database table before execution, preventing early setup or migration failures and warning log clutter.
+- **Admin routes:** Under the `/admin` namespace (linked to `/admin` root index).
+- **Stealth access gate:** `Admin::BaseController` enforces authorization via `require_admin!`. Unauthorized requests (both unauthenticated guest requests and authenticated non-admin users) raise `ActionController::RoutingError` which returns a standard **404 Not Found** response to the client. This avoids leaking the existence of the administrative endpoints.
+- **Admin dashboard skeleton:** Displays links to `Ventas` and `Analytics` sections (marked as "Próximamente" in the foundation release).
+- **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under [admin.css](file:///home/jader/proyectos/fitloop/app/assets/stylesheets/admin.css).
 
 ### REQ-FIT-BILL-001 (detail)
 
