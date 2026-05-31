@@ -19,18 +19,18 @@
       <%= link_to "Ir a Ventas", admin_ventas_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
     </div>
 
-    <!-- Analytics Card (Disabled) -->
-    <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; opacity: 0.75;">
+    <!-- Analytics Card (Active) -->
+    <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
       <div>
         <h2 class="admin-panel__title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
           <span>Estadísticas y Uso</span>
-          <span class="badge badge--pending">Próximamente</span>
+          <span class="badge badge--succeeded">Activo</span>
         </h2>
         <p style="color: var(--fit-text-muted, #5c6d82); font-size: 0.9rem; line-height: 1.5; margin: 0;">
           Métricas de uso del optimizador, volumen de DXFs procesados y analíticas de retención y actividad de usuarios.
         </p>
       </div>
-      <span class="btn btn-secondary btn--compact" style="text-align: center; cursor: not-allowed; opacity: 0.65; display: block; width: 100%; padding: 0.5rem; font-weight: 500;">Ir a Analytics</span>
+      <%= link_to "Ir a Analytics", admin_analytics_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
     </div>
   </div>
 </div>
