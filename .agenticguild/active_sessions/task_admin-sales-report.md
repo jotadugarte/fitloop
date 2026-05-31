@@ -69,7 +69,7 @@
     <step id="3" status="complete">
       <description>Write controller request specs for Admin::VentasController verifying authentication (non-admins get 404, admins get 200) and basic actions.</description>
     </step>
-    <step id="4" status="pending">
+    <step id="4" status="complete">
       <description>Add routes for `/admin/ventas` and `/admin/ventas/exportar` under the `:admin` namespace in config/routes.rb.</description>
     </step>
     <step id="5" status="pending">
