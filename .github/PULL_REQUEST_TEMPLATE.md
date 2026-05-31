@@ -45,6 +45,7 @@ To prevent "drift" between the codebase and our AI context, please attest that y
 - [ ] **Architecture (ADR)**: I have created/updated ADRs in `docs/core/ADRs/` if new paradigms were introduced.
 - [ ] **AI Rules**: I have updated `.cursorrules` or approved a `harvest-rules` run if developer protocols changed.
 - [ ] **Boundaries**: I have updated `docs/core/SYSTEM_ARCHITECTURE.md` if the tech stack, libraries, or core patterns shifted.
+- [ ] **Reporting & Analytics**: If this PR affects billing, workshop, or payments, I have updated `docs/core/ANALYTICS_AND_REPORTING_CONTRACT.md` and `config/analytics_event_catalog.yml` and verified spec_doc_verifier passes.
 
 ## 🔍 Reviewer Focus Areas
 [Are there specific areas where you want the reviewer to pay extra attention? Complex logic, high-risk changes, etc.]
