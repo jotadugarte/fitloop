@@ -34,21 +34,6 @@ RSpec.describe "Orphan manual resolution", "[REQ-FIT-SPLIT-001]", type: :request
     project.update!(status: :partial)
   end
 
-  def write_mother_dxf(path, rings)
-    python = Rails.root.join("nesting_engine/.venv/bin/python")
-    script = <<~PY
-      import ezdxf
-      doc = ezdxf.new("R2010")
-      doc.modelspace().add_lwpolyline(
-          #{rings.first.map { |point| [ point[0], point[1] ] }.inspect},
-          close=True,
-          dxfattribs={"layer": "PIECES"},
-      )
-      doc.saveas(#{path.to_s.inspect})
-    PY
-    system(python.to_s, "-c", script, exception: true)
-  end
-
   let(:mother_rings) do
     [
       [

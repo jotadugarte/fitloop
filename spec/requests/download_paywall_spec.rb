@@ -18,13 +18,6 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
     run
   end
 
-  def start_workspace_for_tab!(tab_id)
-    headers = { "X-Workspace-Tab-Id" => tab_id }
-    get start_project_path, headers: headers
-    follow_redirect!(headers: headers)
-    Workspace.find(session, tab_id: tab_id)
-  end
-
   it "[REQ-FIT-BILL-001] omits duplicate sign-in buttons (header only)" do
     project = begin_workspace_session!
     attach_nested_output!(project)

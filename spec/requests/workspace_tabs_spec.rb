@@ -3,18 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "Workspace tab isolation", "[REQ-FIT-AUTH-001]", type: :request do
-  def tab_headers(tab_id)
-    { "X-Workspace-Tab-Id" => tab_id }
-  end
-
-  def start_workspace_for_tab!(tab_id)
-    headers = tab_headers(tab_id)
-    get start_project_path, headers: headers
-    expect(response).to redirect_to(workshop_path)
-    follow_redirect!(headers: headers)
-    Workspace.find(session, tab_id: tab_id)
-  end
-
   let(:tab_a) { "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }
   let(:tab_b) { "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" }
 

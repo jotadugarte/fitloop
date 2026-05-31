@@ -88,6 +88,17 @@ RSpec.configure do |config|
       begin_workspace_session!
     end
 
+    def tab_headers(tab_id)
+      { "X-Workspace-Tab-Id" => tab_id }
+    end
+
+    def start_workspace_for_tab!(tab_id)
+      headers = tab_headers(tab_id)
+      get start_project_path, headers: headers
+      follow_redirect!(headers: headers)
+      Workspace.find(session, tab_id: tab_id)
+    end
+
     def bind_workspace_session!(project)
       raise ArgumentError, "bind_workspace_session! requires an ephemeral project" unless project.ephemeral?
 

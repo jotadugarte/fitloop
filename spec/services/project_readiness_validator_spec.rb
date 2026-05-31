@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe ProjectReadinessValidator do
+RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
   let(:project) { create_project_for_spec!(title: "Pre-flight bench") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
