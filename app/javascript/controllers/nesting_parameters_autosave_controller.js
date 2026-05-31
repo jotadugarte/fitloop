@@ -1,9 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
-// [REQ-FIT-UI-001] Auto-save kerf/margin when nesting parameter fields change.
+// [REQ-FIT-UI-001] Debounced form autosave with queued follow-up when a save is in flight.
 export default class extends Controller {
   connect() {
     this.pending = false
+    this.dirty = false
     this.saveTimer = null
   }
 
@@ -17,13 +18,24 @@ export default class extends Controller {
   }
 
   submitForm() {
-    if (this.pending || !this.element.reportValidity()) return
+    if (!this.element.reportValidity()) return
+
+    if (this.pending) {
+      this.dirty = true
+      return
+    }
 
     this.pending = true
+    this.dirty = false
     this.element.requestSubmit()
   }
 
   clearPending() {
     this.pending = false
+
+    if (!this.dirty) return
+
+    this.dirty = false
+    this.submitForm()
   }
 }

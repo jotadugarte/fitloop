@@ -46,7 +46,7 @@ RSpec.describe "Project workspace layers (Tu anidado)", type: :request do
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:no_content)
     expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true)
 
     patch workspace_project_path(project),
@@ -60,7 +60,7 @@ RSpec.describe "Project workspace layers (Tu anidado)", type: :request do
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:no_content)
     expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
     expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
   end

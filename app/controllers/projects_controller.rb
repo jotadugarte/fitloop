@@ -126,7 +126,8 @@ class ProjectsController < ApplicationController
     return if reject_workshop_mutation_if_pending_payment!
 
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
-    render_workspace_turbo_stream(:layers)
+    # Avoid replacing the layer form on autosave — rapid radio/check changes race with turbo streams.
+    head :no_content
   end
 
   def update_workspace_billing!

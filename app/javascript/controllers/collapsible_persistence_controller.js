@@ -31,6 +31,15 @@ function pagePath() {
   return window.location.pathname
 }
 
+function setupModeActive() {
+  return document.querySelector("[data-workshop-setup-mode='true']") != null
+}
+
+const SETUP_OPEN_PANEL_KEYS = new Set([
+  "workshop-sheet-inventory",
+  "workshop-source-dxf-detail"
+])
+
 function lockedClosedOnPath(path, key) {
   if (path !== "/taller") return false
   if (document.querySelector("[data-workshop-setup-mode='true']")) return false
@@ -66,6 +75,11 @@ export default class extends Controller {
 
       if (lockedClosedOnPath(path, key)) {
         details.open = false
+        return
+      }
+
+      if (setupModeActive() && SETUP_OPEN_PANEL_KEYS.has(key)) {
+        details.open = true
         return
       }
 

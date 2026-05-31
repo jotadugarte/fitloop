@@ -51,12 +51,13 @@
           <%= form_with url: workspace_project_path(project),
                         method: :patch,
                         class: "source-dxf-detail__layers-form",
-                        data: { turbo_frame: layers_turbo_frame } do %>
+                        data: {
+                          controller: "nesting-parameters-autosave",
+                          turbo_frame: layers_turbo_frame,
+                          action: "change->nesting-parameters-autosave#scheduleSave turbo:submit-end->nesting-parameters-autosave#clearPending"
+                        } do %>
             <%= hidden_field_tag :section, "layers" %>
             <%= render "projects/dxf_layers_checklist", **checklist_locals %>
-            <p class="form-actions form-actions--inline">
-              <%= submit_tag t("projects.show.apply_layers"), class: "btn btn-secondary btn--compact" %>
-            </p>
           <% end %>
         <% else %>
           <p class="dxf-files-layers__empty panel panel--inset"><%= t("projects.form.dxf_layers_prompt") %></p>
