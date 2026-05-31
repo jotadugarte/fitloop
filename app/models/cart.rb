@@ -11,6 +11,16 @@ class Cart < ApplicationRecord
   validate :must_have_guest_or_user
   validate :must_have_exactly_one_product_reference
 
+  def tier_months_vo
+    return nil if tier_months.blank?
+
+    Billing::TierMonths.parse(tier_months)
+  end
+
+  def currency_vo
+    Billing::Currency.parse(currency_mode)
+  end
+
   private
 
   def must_have_guest_or_user

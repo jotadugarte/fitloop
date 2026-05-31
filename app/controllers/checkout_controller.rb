@@ -235,7 +235,7 @@ class CheckoutController < ApplicationController
 
       if @cart.tier_months.present?
         @checkout_kind = :plan
-        @tier_months = @cart.tier_months
+        @tier_months = Billing::TierMonths.parse(@cart.tier_months).to_i
       else
         @checkout_kind = :single_download
         @nesting_run = @cart.nesting_run

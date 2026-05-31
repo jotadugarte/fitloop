@@ -6,7 +6,7 @@ module SetsWorkspaceProject
 
   private
 
-  def set_workspace_project
+  def set_workspace_project(create_if_missing: false)
     return if expire_workspace_after_tab_closure!
 
     param_id = explicit_workspace_project_id
@@ -14,9 +14,8 @@ module SetsWorkspaceProject
     if param_id.present?
       @project = Workspace.resolve!(session, param_id, tab_id: workspace_tab_id)
     else
-      assign_workspace_project_from_session!
+      assign_workspace_project_from_session!(create_if_missing: create_if_missing)
     end
-    # Implicit return after redirect/render from assign_workspace_project_from_session! (RuboCop: no redundant `return`).
     nil if performed?
   rescue ActiveRecord::RecordNotFound
     recover_workspace_project!(param_id) || redirect_to(
@@ -25,14 +24,25 @@ module SetsWorkspaceProject
     )
   end
 
-  def assign_workspace_project_from_session!
+  def assign_workspace_project_from_session!(create_if_missing: false)
     if missing_tab_id_for_bound_workspaces?
       redirect_to start_project_path, alert: I18n.t("workspace.expired")
       return
     end
 
+    tid = workspace_tab_id.presence || Workspace::DEFAULT_TAB_ID
+    workspaces = session[Workspace::WORKSPACES_KEY]
+    bound_id = workspaces.is_a?(Hash) ? workspaces[tid].presence : nil
+    bound_id ||= session[Workspace::SESSION_KEY] if tid == Workspace::DEFAULT_TAB_ID
     @project = Workspace.find(session, tab_id: workspace_tab_id)
-    redirect_to start_project_path, alert: I18n.t("workspace.expired") unless @project
+    return if @project
+
+    if create_if_missing && bound_id.blank?
+      @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+      return
+    end
+
+    redirect_to start_project_path, alert: I18n.t("workspace.expired")
   end
 
   def missing_tab_id_for_bound_workspaces?

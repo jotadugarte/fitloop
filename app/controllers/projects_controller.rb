@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# [REQ-FIT-UI-001] Ephemeral workspace setup and project show.
+# [REQ-FIT-UI-001] Ephemeral workshop at /taller with contextual setup mode.
 class ProjectsController < ApplicationController
   include SetsWorkspaceProject
   include RequiresNestedDownloadAuthorization
@@ -8,9 +8,11 @@ class ProjectsController < ApplicationController
 
   layout "application"
 
+  before_action -> { set_workspace_project(create_if_missing: true) }, only: :show
   before_action :set_workspace_project, only: %i[
-    show edit update nesting_sync nesting_parameters workspace nested_dxf
+    nesting_sync nesting_parameters workspace nested_dxf
   ]
+  before_action :assign_workshop_ux, only: %i[show nesting_sync nesting_parameters]
   before_action :reject_workshop_mutation_if_pending_payment!, only: :nested_dxf
   before_action :authorize_nested_download!, only: :nested_dxf
 
@@ -57,51 +59,20 @@ class ProjectsController < ApplicationController
 
   def start
     Workspace.discard!(session, tab_id: workspace_tab_id)
-    redirect_to new_project_path
-  end
-
-  def new
-    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
-    @composer_draft = restored_composer_draft
-  end
-
-  def create
-    redirect_to new_project_path
-  end
-
-  def edit
-    @composer_draft = restored_composer_draft
-    render :new
-  end
-
-  def update
-    attributes = normalized_project_attributes
-    sync_sheet_inventory!(@project, attributes["sheet_stocks_attributes"])
-    @project.assign_attributes(attributes)
-    normalize_sheet_stock_consumption_order!(@project)
-    finish_ephemeral_setup
+    Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    redirect_to workshop_path
   end
 
   def nesting_parameters
     if @project.update(nesting_parameters_params)
       respond_to do |format|
-        format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            project_dom_id(:nesting_parameters),
-            partial: "projects/nesting_parameters",
-            locals: { project: @project }
-          )
-        end
+        format.turbo_stream { render turbo_stream: nesting_parameters_turbo_stream }
         format.html { redirect_to workshop_path, notice: t("projects.nesting_parameters_updated") }
       end
     else
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: turbo_stream.replace(
-            project_dom_id(:nesting_parameters),
-            partial: "projects/nesting_parameters",
-            locals: { project: @project }
-          ), status: :unprocessable_content
+          render turbo_stream: nesting_parameters_turbo_stream, status: :unprocessable_content
         end
         format.html { redirect_to workshop_path, alert: @project.errors.full_messages.to_sentence }
       end
@@ -144,7 +115,8 @@ class ProjectsController < ApplicationController
     return if reject_workshop_mutation_if_pending_payment!
 
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
-    render_workspace_turbo_stream(:layers)
+    # Avoid replacing the layer form on autosave — rapid radio/check changes race with turbo streams.
+    head :no_content
   end
 
   def update_workspace_billing!
@@ -173,19 +145,37 @@ class ProjectsController < ApplicationController
     when :sheets
       @project.reload
       sheet_workspace_streams
-    when :layers
-      [
-        turbo_stream.replace(
-          project_dom_id(:source_dxf_detail),
-          partial: "projects/show_source_dxf_detail",
-          locals: { project: @project }
-        )
-      ]
     else
       []
     end
 
     render turbo_stream: streams, status: status
+  end
+
+  def assign_workshop_ux
+    return unless @project
+
+    @workshop_ux = Workshop::UxMode.new(@project)
+  end
+
+  def workshop_ux
+    @workshop_ux ||= Workshop::UxMode.new(@project)
+  end
+
+  def nesting_parameters_turbo_stream
+    if workshop_ux.setup?
+      turbo_stream.replace(
+        project_dom_id(:setup_nesting_settings),
+        partial: "projects/show_setup_nesting_settings",
+        locals: { project: @project }
+      )
+    else
+      turbo_stream.replace(
+        project_dom_id(:nesting_parameters),
+        partial: "projects/nesting_parameters",
+        locals: { project: @project, workshop_ux: workshop_ux }
+      )
+    end
   end
 
   def workspace_sheet_params
@@ -196,52 +186,8 @@ class ProjectsController < ApplicationController
     attributes
   end
 
-  def finish_ephemeral_setup
-    unless @project.save
-      @composer_draft = composer_draft_params
-      render(:new, status: :unprocessable_content)
-      return
-    end
-
-    ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
-
-    if @project.input_dxf_attachments.blank?
-      flash.now[:alert] = t("projects.setup.missing_dxf")
-      @composer_draft = composer_draft_params
-      render(:new, status: :unprocessable_content)
-      return
-    end
-
-    readiness = ProjectReadinessValidator.validate(@project)
-    unless readiness.ok?
-      flash.now[:alert] = readiness.errors.join(" ")
-      @composer_draft = composer_draft_params
-      render(:new, status: :unprocessable_content)
-      return
-    end
-
-    Workspace.bind!(session, @project, tab_id: workspace_tab_id)
-    @project.update!(status: :ready)
-    redirect_to workshop_path
-  end
-
   def nesting_parameters_params
     params.require(:project).permit(:kerf_mm, :margin_mm)
-  end
-
-  def project_params
-    params.require(:project).permit(
-      :title,
-      :kerf_mm,
-      :margin_mm,
-      sheet_stocks_attributes: %i[id width_mm height_mm quantity sort_order _destroy]
-    )
-  end
-
-  def normalized_project_attributes
-    attributes = project_params.to_h
-    normalize_sheet_quantities!(attributes["sheet_stocks_attributes"])
-    attributes
   end
 
   def normalize_sheet_quantities!(sheet_stocks_attributes)
@@ -268,14 +214,6 @@ class ProjectsController < ApplicationController
     )
   end
 
-  def composer_draft_params
-    params.fetch(:composer_draft, {}).permit(:width_mm, :height_mm, :quantity).to_h
-  end
-
-  def restored_composer_draft
-    session.delete(PersistWorkspaceSheetInventoryDraft::COMPOSER_SESSION_KEY) || {}
-  end
-
   def sync_nesting_ui_state!
     @project = Nesting::ProjectStatusSync.call(project: @project)
     return false if @project.present?
@@ -289,7 +227,7 @@ class ProjectsController < ApplicationController
       turbo_stream.replace(
         project_dom_id(:sheet_inventory),
         partial: "projects/show_sheet_inventory",
-        locals: { project: @project }
+        locals: { project: @project, workshop_ux: workshop_ux }
       ),
       turbo_stream.replace(
         project_dom_id(:show_actions),
@@ -324,16 +262,18 @@ class ProjectsController < ApplicationController
         partial: "projects/show_actions",
         locals: { project: @project }
       )
-      streams << turbo_stream.replace(
-        project_dom_id(:preview_zone),
-        partial: "projects/show_preview_zone",
-        locals: {
-          project: @project,
-          preview: @nesting_preview,
-          orphans: @nesting_orphans,
-          plan_download_included: Billing::PlanDownloadAvailability.plan_included?(user: current_user)
-        }
-      )
+      if workshop_ux.show_preview_zone?
+        streams << turbo_stream.replace(
+          project_dom_id(:preview_zone),
+          partial: "projects/show_preview_zone",
+          locals: {
+            project: @project,
+            preview: @nesting_preview,
+            orphans: @nesting_orphans,
+            plan_download_included: Billing::PlanDownloadAvailability.plan_included?(user: current_user)
+          }
+        )
+      end
     end
 
     streams

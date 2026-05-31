@@ -51,22 +51,38 @@ module ApplicationHelper
   end
 
   def toolbar_workshop_path
-    toolbar_workspace_project ? workshop_path : start_project_path
+    workshop_path
+  end
+
+  def workshop_ux_mode(project)
+    Workshop::UxMode.new(project)
   end
 
   def pending_checkout_lock(project)
-    return nil unless current_user
+    user = warden_user_if_available
+    return nil unless user
 
-    Billing::PendingCheckoutLock.for(project: project, user: current_user)
+    Billing::PendingCheckoutLock.for(project: project, user: user)
   end
 
   def workshop_mutations_locked?(project)
     pending_checkout_lock(project)&.active?
   end
 
+  # Turbo Stream broadcasts render partials without the Warden middleware stack.
+  def warden_user_if_available
+    env = request&.env
+    return nil unless env&.key?("warden")
+
+    env["warden"]&.user
+  rescue Devise::MissingWarden
+    nil
+  end
+  private :warden_user_if_available
+
   def toolbar_workshop_button_class
-    base = "btn btn--compact toolbar-workshop__btn"
-    toolbar_workspace_project ? "#{base} btn-primary" : "#{base} btn-secondary"
+    # /taller auto-creates an ephemeral project when unbound; always treat as primary nav.
+    "btn btn--compact toolbar-workshop__btn btn-primary"
   end
 
   def auth_password_length_hint

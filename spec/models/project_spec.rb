@@ -39,6 +39,20 @@ RSpec.describe Project, type: :model do
     end
   end
 
+  describe "#workshop_setup_mode? [REQ-FIT-UI-001]" do
+    let(:project) { described_class.create!(title: "Bench", ephemeral: true, status: :draft) }
+
+    it "is true for draft projects without nesting runs" do
+      expect(project).to be_workshop_setup_mode
+    end
+
+    it "is false once a nesting run exists" do
+      project.nesting_runs.create!(status: "processing", params_snapshot: {})
+
+      expect(project).not_to be_workshop_setup_mode
+    end
+  end
+
   describe "ephemeral workspace [REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
     it "defaults ephemeral to true" do
       expect(described_class.new.ephemeral).to be(true)

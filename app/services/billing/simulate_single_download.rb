@@ -16,7 +16,7 @@ module Billing
     def initialize(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
       @user = user
       @nesting_run = nesting_run
-      @payment_method = payment_method
+      @payment_method = PaymentMethod.parse(payment_method)
       @outcome = outcome
       @iva_applicable = iva_applicable
     end
@@ -26,7 +26,6 @@ module Billing
       unless PlanDownloadAvailability.single_download_checkout_allowed?(user: @user)
         raise ArgumentError, "active plan monthly quota must be used before single purchase"
       end
-      raise ArgumentError, "unknown payment_method" unless CheckoutPaymentMethod::ALL.include?(@payment_method)
       raise ArgumentError, "nested_dxf missing" unless @nesting_run.project.nested_dxf.attached?
       return record_failure! if @outcome == "failure"
 
@@ -36,7 +35,11 @@ module Billing
     private
 
     def config
-      CheckoutPaymentMethod.config_for(@payment_method)
+      {
+        payment_method: @payment_method.to_s,
+        currency: @payment_method.currency.to_sym,
+        card: @payment_method.card?
+      }
     end
 
     def unit_amount
@@ -50,7 +53,7 @@ module Billing
       Pricing.price(
         product: :single_download,
         currency: config.fetch(:currency),
-        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
+        payment_method: @payment_method.billing_method.to_sym,
         overage: overage
       )
     end
@@ -65,7 +68,7 @@ module Billing
     def billing_context
       {
         currency: config.fetch(:currency),
-        payment_method: CheckoutPaymentMethod.billing_method_for(@payment_method),
+        payment_method: @payment_method.billing_method.to_sym,
         iva_applicable: @iva_applicable
       }
     end

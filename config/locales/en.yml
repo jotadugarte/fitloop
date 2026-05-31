@@ -376,9 +376,9 @@ en:
         steps_title: "On this screen"
         steps:
           - "Add your sheets: width, height, and how many you have of each size. Leave quantity blank for unlimited sheets of that size."
-          - "Optional: open “Nesting parameters” to adjust piece spacing and sheet edge margin."
+          - "Adjust piece spacing and sheet edge margin under “Nesting parameters”."
           - "Upload your DXF files and pick the cut layer (primary) and auxiliary layers (engraving, marks…)."
-          - "Click “Continue” to run nesting and see the result."
+          - "Click “Start nesting” to run nesting and see the result."
     new:
       title: "New project"
       setup_title: "Initial parameters"
@@ -390,8 +390,8 @@ en:
         intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
         steps_title: "On this screen"
         steps:
-          - "Sheet inventory: check sizes and quantities, reorder consumption priority, and click “Save sheets” if you change anything."
-          - "DXF detail: upload files, pick the primary cut layer and auxiliary layers (engraving, marks…), then “Apply layers”."
+          - "Sheet inventory: add sizes and quantities; drag rows to set consumption priority."
+          - "DXF detail: upload files and pick the primary cut layer and auxiliary layers (engraving, marks…)."
           - "Previews and unplaced pieces: after nesting, review placements on each sheet and which pieces did not fit."
           - "Nesting actions: start nesting, re-nest, or cancel the run depending on project status."
           - "Nesting parameters: adjust piece separation and sheet edge margin when needed."
@@ -567,6 +567,7 @@ en:
 
   project_readiness:
     heading: "Cannot start nesting yet"
+    no_sheet_stocks: "Add at least one sheet type to the inventory."
     no_layers_selected: "Select at least one layer to include in nesting."
     no_extractable_pieces: "No closed contours were found on the selected layers."
     primary_layer_required: "Choose a primary layer for each DXF file that includes associated layers."

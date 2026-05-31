@@ -19,6 +19,8 @@ export default class extends Controller {
   }
 
   connect() {
+    this.persistPending = false
+    this.persistDirty = false
     this.listTarget.dataset.sortable = "true"
     this.sortable = Sortable.create(this.listTarget, {
       handle: "[data-testid='sheet-stock-drag-handle']",
@@ -29,6 +31,7 @@ export default class extends Controller {
         this.enforceTableLayout()
         this.pinUnlimitedLast()
         this.reindexSortOrders()
+        this.persistInventory()
       }
     })
     this.enforceTableLayout()
@@ -76,6 +79,7 @@ export default class extends Controller {
     this.reindexSortOrders()
     this.clearComposer()
     this.syncInventoryState()
+    this.persistInventory()
   }
 
   addComposerToList() {
@@ -95,6 +99,7 @@ export default class extends Controller {
     }
     this.clearComposer()
     this.syncInventoryState()
+    this.persistInventory()
   }
 
   flushComposerIfNeeded() {
@@ -322,5 +327,28 @@ export default class extends Controller {
       `[data-sheet-inventory-row][data-sheet-inventory-index="${editingIndex}"]`
     )
     return Boolean(row && this.isUnlimitedRow(row))
+  }
+
+  persistInventory() {
+    const form = this.element.closest("form")
+    if (!form) return
+
+    if (this.persistPending) {
+      this.persistDirty = true
+      return
+    }
+
+    this.persistPending = true
+    this.persistDirty = false
+    form.requestSubmit()
+  }
+
+  clearPersistPending() {
+    this.persistPending = false
+
+    if (!this.persistDirty) return
+
+    this.persistDirty = false
+    this.persistInventory()
   }
 }

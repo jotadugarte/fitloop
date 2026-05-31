@@ -31,8 +31,19 @@ function pagePath() {
   return window.location.pathname
 }
 
-function lockedClosedOnPath(path, key) {
+function setupModeActive() {
+  return document.querySelector("[data-workshop-setup-mode='true']") != null
+}
+
+const SETUP_OPEN_PANEL_KEYS = new Set([
+  "workshop-sheet-inventory",
+  "workshop-source-dxf-detail"
+])
+
+function lockedClosedOnPath(path, key, details) {
+  if (details?.dataset.collapsiblePreserveOpen === "true") return false
   if (path !== "/taller") return false
+  if (document.querySelector("[data-workshop-setup-mode='true']")) return false
   return key === "workshop-sheet-inventory" || key === "workshop-source-dxf-detail"
 }
 
@@ -63,8 +74,13 @@ export default class extends Controller {
       const key = panelKey(details)
       if (!key) return
 
-      if (lockedClosedOnPath(path, key)) {
+      if (lockedClosedOnPath(path, key, details)) {
         details.open = false
+        return
+      }
+
+      if (setupModeActive() && SETUP_OPEN_PANEL_KEYS.has(key)) {
+        details.open = true
         return
       }
 
@@ -87,6 +103,9 @@ export default class extends Controller {
     if (!store[path]) store[path] = {}
 
     store[path][key] = details.open
+    if (details.dataset.collapsiblePreserveOpen === "true" && !details.open) {
+      delete details.dataset.collapsiblePreserveOpen
+    }
     writeStore(store)
   }
 }

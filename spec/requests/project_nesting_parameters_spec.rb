@@ -2,18 +2,18 @@
 
 require "rails_helper"
 
-RSpec.describe "Project nesting parameters on show", type: :request do
-  it "renders an inline form to edit kerf and margin" do
-    project = create_project_for_spec!(
-      title: I18n.t("workspace.default_title"),
-      kerf_mm: 3,
-      margin_mm: 6,
-      sheet_stocks_attributes: {
-        "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
-      }
-    )
+RSpec.describe "Project nesting parameters on show", "[REQ-FIT-UI-001]", type: :request do
+  def taller_project!(kerf_mm: 3, margin_mm: 6)
+    project = begin_workspace_session!
+    project.update!(kerf_mm: kerf_mm, margin_mm: margin_mm)
+    project.nesting_runs.create!(status: "failed", params_snapshot: {})
+    project
+  end
 
-    get project_path(project)
+  it "renders an inline form to edit kerf and margin in taller mode" do
+    taller_project!
+
+    get workshop_path
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-testid="nesting-parameters"')
@@ -23,15 +23,20 @@ RSpec.describe "Project nesting parameters on show", type: :request do
     expect(response.body).to include('value="6.0"')
   end
 
+  it "renders inline setup nesting settings before the first nest" do
+    begin_workspace_session!
+
+    get workshop_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('data-testid="setup-nesting-settings"')
+    expect(response.body).to include('data-controller="nesting-parameters-autosave"')
+    expect(response.body).not_to include('data-testid="nesting-parameters"')
+    expect(response.body).not_to include(I18n.t("projects.show.apply_nesting_parameters"))
+  end
+
   it "updates nesting parameters in place" do
-    project = create_project_for_spec!(
-      title: I18n.t("workspace.default_title"),
-      kerf_mm: 1,
-      margin_mm: 5,
-      sheet_stocks_attributes: {
-        "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
-      }
-    )
+    project = taller_project!(kerf_mm: 1, margin_mm: 5)
 
     patch nesting_parameters_project_path(project),
           params: { project: { kerf_mm: 4, margin_mm: 7 } },
@@ -40,5 +45,19 @@ RSpec.describe "Project nesting parameters on show", type: :request do
     expect(response).to have_http_status(:ok)
     expect(project.reload.kerf_mm).to eq(4)
     expect(project.margin_mm).to eq(7)
+  end
+
+  it "updates setup nesting settings in place via turbo stream" do
+    project = begin_workspace_session!
+
+    patch nesting_parameters_project_path(project),
+          params: { project: { kerf_mm: 2.5, margin_mm: 8 } },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("setup_nesting_settings_project_#{project.id}")
+    expect(response.body).not_to include("nesting_parameters_project_#{project.id}")
+    expect(project.reload.kerf_mm).to eq(2.5)
+    expect(project.margin_mm).to eq(8)
   end
 end

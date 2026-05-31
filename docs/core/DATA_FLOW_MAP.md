@@ -108,7 +108,7 @@ Blobs use standard `active_storage_*` tables; deleting a project does **not** au
 ```
 GET /empezar (start)
   → Workspace.discard!(session)  [prior workspace]
-  → redirect new_project_path
+  → redirect workshop_path
   → Workspace.find_or_create!(session) → ephemeral Project
   → Workspace.bind!(session, project)
 

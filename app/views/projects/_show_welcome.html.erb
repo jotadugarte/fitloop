@@ -1,6 +1,16 @@
-<%= render "projects/onboarding_welcome",
-           testid: "show-welcome",
-           intro: t("projects.show.welcome.intro"),
-           steps_title: t("projects.show.welcome.steps_title"),
-           steps: t("projects.show.welcome.steps"),
-           variant: "hero" %>
+<% ux = local_assigns.fetch(:workshop_ux) { workshop_ux_mode(project) } %>
+<% if ux.setup? %>
+  <%= render "projects/onboarding_welcome",
+             testid: "setup-welcome",
+             intro: t("projects.setup.welcome.intro"),
+             steps_title: t("projects.setup.welcome.steps_title"),
+             steps: t("projects.setup.welcome.steps"),
+             variant: "hero" %>
+<% else %>
+  <%= render "projects/onboarding_welcome",
+             testid: "show-welcome",
+             intro: t("projects.show.welcome.intro"),
+             steps_title: t("projects.show.welcome.steps_title"),
+             steps: t("projects.show.welcome.steps"),
+             variant: "hero" %>
+<% end %>

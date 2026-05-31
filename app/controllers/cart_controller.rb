@@ -74,7 +74,7 @@ class CartController < ApplicationController
     when Cart
       [source.kind, source.tier_months]
     when Billing::PendingCart
-      [source.kind, source.tier_months]
+      [source.kind, source.tier_months&.to_i]
     else
       data = source.stringify_keys
       [data.fetch("kind").to_s, data["tier_months"]]

@@ -65,7 +65,7 @@ RSpec.describe "Auth billing 2:30 AM scenarios", "[REQ-FIT-BILL-001] [REQ-FIT-BI
 
       visit nested_dxf_project_path(project)
 
-      expect(page).to have_current_path(new_project_path)
+      expect(page).to have_current_path(start_project_path).or have_current_path(workshop_path)
       disposition = page.driver.response.headers["Content-Disposition"]
       expect(disposition.to_s).not_to include("attachment")
       expect(page).to have_content(I18n.t("workspace.expired"))

@@ -2,13 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "Orphan manual resolution", type: :request do
-  def start_ephemeral_workspace!
-    get start_project_path
-    follow_redirect!
-    Project.find(session[:workspace_project_id])
-  end
-
+RSpec.describe "Orphan manual resolution", "[REQ-FIT-SPLIT-001]", type: :request do
   def attach_orphan_placements!(project, rings:)
     project.nesting_runs.create!(
       status: "partial",
@@ -38,21 +32,6 @@ RSpec.describe "Orphan manual resolution", type: :request do
       content_type: "application/json"
     )
     project.update!(status: :partial)
-  end
-
-  def write_mother_dxf(path, rings)
-    python = Rails.root.join("nesting_engine/.venv/bin/python")
-    script = <<~PY
-      import ezdxf
-      doc = ezdxf.new("R2010")
-      doc.modelspace().add_lwpolyline(
-          #{rings.first.map { |point| [ point[0], point[1] ] }.inspect},
-          close=True,
-          dxfattribs={"layer": "PIECES"},
-      )
-      doc.saveas(#{path.to_s.inspect})
-    PY
-    system(python.to_s, "-c", script, exception: true)
   end
 
   let(:mother_rings) do

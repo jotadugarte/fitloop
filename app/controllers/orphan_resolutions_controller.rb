@@ -3,11 +3,13 @@
 # [REQ-FIT-SPLIT-001] Update per-orphan resolution state in the ephemeral workspace.
 class OrphanResolutionsController < ApplicationController
   include SetsWorkspaceProject
+  include BlocksWorkshopDuringPendingPayment
 
   before_action :set_workspace_project
   before_action :ensure_ephemeral_workspace!
 
   def update
+    return if reject_workshop_mutation_if_pending_payment!
     resolution = @project.orphan_resolutions.find_or_initialize_by(piece_key: params[:piece_key])
     resolution.assign_attributes(orphan_resolution_params)
     resolution.save!
@@ -18,6 +20,8 @@ class OrphanResolutionsController < ApplicationController
   end
 
   def confirm_manual
+    return if reject_workshop_mutation_if_pending_payment!
+
     resolution = @project.orphan_resolutions.find_by!(piece_key: params[:piece_key])
     unless resolution.manual?
       redirect_to @project, alert: I18n.t("nesting.split.manual.not_manual_state")

@@ -40,7 +40,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Fields:** `title`, `ephemeral` (default `true`), `kerf_mm` (default 0), `margin_mm` (5), `curve_tolerance_mm` (0.1), `sheet_gap_mm` (15), `nesting_time_limit_sec` (600), `status` (`draft` \| `ready` \| `processing` \| `completed` \| `partial` \| `failed`), `progress_percent`, `progress_message`, `session_workflow_log` (JSON), timestamps
 - **Attachments (Active Storage):** many `input_dxf`; one `nested_dxf` when job succeeds or is partial
 - **Associations:** `has_many :sheet_stocks`, `has_many :project_layers`, `has_many :nesting_runs`
-- **Invariants:** all user-facing rows are `ephemeral: true`; title present when setup completes; ≥1 `SheetStock`; ≥1 `ProjectLayer` with `included: true`; on `completed`/`partial`, nested DXF attached unless validation-only failure
+- **Invariants:** all user-facing rows are `ephemeral: true`; title present; ≥1 `SheetStock` before nest start; ≥1 `ProjectLayer` with `included: true` before nest; on `completed`/`partial`, nested DXF attached unless validation-only failure
 
 ### SheetStock
 
@@ -69,23 +69,25 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W1 — Create project and sheet inventory
 
-1. User starts workspace (`GET /empezar`) → `Workspace` creates/binds an ephemeral `Project` in `session[:workspace_project_id]`.
-2. User completes setup (title, sheet stocks, DXF, layers) via the ephemeral setup form.
+1. User starts workspace (`GET /empezar`) → `Workspace.discard!` for the tab → `Workspace.create!` / bind → redirect **`GET /taller`** (Mi taller). No separate «Parámetros iniciales» route (`/projects/new` removed).
+2. **Workshop setup mode** (`Project#workshop_setup_mode?` — `draft` and zero `NestingRun` rows): Mi taller shows setup welcome, **Inventario de láminas** and **Detalle DXF** collapsibles **open**, **Parámetros de anidado** inline (not collapsible) between them, preview/progress hidden; primary CTA **«Iniciar anidado»** (errors via flash if láminas/DXF/capas missing — `ProjectReadinessValidator`, including **zero sheet stocks**). **Autosave:** láminas (add/reorder/delete → `PATCH /taller/workspace` `section=sheets`); kerf/margin (debounced `PATCH /taller/nesting_parameters`); DXF layer roles (immediate `PATCH /taller/workspace` `section=layers`, `204 No Content` — no «Aplicar capas»). No separate «Guardar láminas» / «Aplicar» buttons.
 3. User adds one or more **SheetStock** rows (width, height, quantity finite or ∞). **At most one** ∞ row per project.
 4. UI shows a **Priority** column (`#1`, `#2`, …) and legend: engine consumes **top → bottom**.
 5. User reorders rows via **drag-and-drop** (SortableJS); new **finite** rows insert before any ∞ row; ∞ is **auto-pinned last** on add, drag, and save.
 6. **Sort: finite first** button stable-sorts finite rows (preserves relative order among finites) and keeps ∞ last.
 7. `sort_order` persisted; server normalizes finite-before-∞ on save (`SheetStocks::NormalizeConsumptionOrder`).
 
+**Workshop taller mode** (after first nest run or non-`draft` status): REQ-FIT-UI-003 — láminas and DXF detail collapsibles default **closed** on `/taller`; nesting parameters in collapsed panel at bottom; preview and orphans visible.
+
 ### W2 — Upload DXFs and select layers
 
-1. User attaches multiple DXF files (Active Storage).
+1. User attaches multiple DXF files (Active Storage) on `/taller`; turbo-stream replaces **`show_source_dxf_detail`** (new uploads expand only the new file's layer checklist).
 2. System computes union of layer names → **layer checklist** UI.
-3. User checks layers to include (`ProjectLayer.included`).
+3. User selects primary/auxiliary layers per file; selection **autosaves** via `PATCH /taller/workspace` (`section=layers`).
 
 ### W3 — Pre-flight and start nesting
 
-1. `ProjectReadinessValidator` blocks if zero layers selected or zero extractable pieces (i18n errors).
+1. `ProjectReadinessValidator` blocks if zero sheet stocks, zero layers selected, or zero extractable pieces (i18n errors). Triggered on **«Iniciar anidado»** from Mi taller (setup or taller mode).
 2. `NestingJob` enqueued (Solid Queue); status → `processing`; Turbo Stream progress.
 3. Rails writes `config.json` + paths; invokes `nesting_engine` **CLI**.
 4. On finish: map status **`completed`** \| **`partial`** \| **`failed`**; attach outputs; broadcast UI.
@@ -97,7 +99,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 ### W5 — Ephemeral session access
 
-1. `GET /projects` redirects to workspace start (`/empezar`); no saved-project list.
+1. `GET /projects` redirects to workspace start (`/empezar`); no saved-project list. **`GET /projects/new` is not routed** — configuration happens on `/taller`.
 2. Access to a `Project` requires tab-scoped bind: `session[:workspaces][tab_id]` (`Workspace.resolve!` with `tab_id`).
 3. Opening another ephemeral project ID without bind → redirect to start with `workspace.expired` (HTML) or `RecordNotFound` (internal).
 4. Returning home, explicit discard, or user logout → `Workspace.discard!` destroys the project for that tab and clears the bind.
@@ -124,10 +126,10 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-NEST-001** | Nesting library spike (libnest2d or ADR fallback) | P0 |
 | **REQ-FIT-DOM-001** | Models: `Project`, `SheetStock`, `ProjectLayer`, `NestingRun` with defaults | P1 |
 | **REQ-FIT-AUTH-001** | Ephemeral **workspace session bind** via `Workspace`; no PIN; `resolve!` for project access | P1 |
-| **REQ-FIT-UI-001** | Project CRUD; ordered sheet inventory UI (finite + ∞) | P1 |
+| **REQ-FIT-UI-001** | Ephemeral workshop UI (`/taller`); ordered sheet inventory (finite + ∞); contextual setup vs taller modes | P1 |
 | **REQ-FIT-DXF-001** | Multi-DXF upload; union layers; **layer checklist** (i18n) | P2 |
 | **REQ-FIT-DXF-002** | **Primary layer per file** + **auxiliary** layers clipped to primary polygons; composite nest + output | v1.2 |
-| **REQ-FIT-VAL-001** | Pre-flight: reject zero layers / zero pieces | P2 |
+| **REQ-FIT-VAL-001** | Pre-flight: reject zero sheet stocks / zero layers / zero pieces | P2 |
 | **REQ-FIT-EXT-002** | Extractor: INSERT on layer, nested blocks depth ≤8, warnings in report | P2 |
 | **REQ-FIT-CLI-001** | CLI contract documented; `NestingJob` + `Nesting::CliRunner` | P3 |
 | **REQ-FIT-NEST-002** | Multi-bin nest; outputs nested DXF + `placements.json` + `report.json` | P3 |
@@ -209,7 +211,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Scope:** Paywall and **ONVO live payments** (or **simulated** checkout when `BILLING_GATEWAY=simulate`) for **nested DXF** download only (D23). Preview and `placements.json` remain free. Remove orphan DXF download button. See **ADR-0006** for gateway contract.
 
-**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time).
+**Pricing:** `config/billing.yml` with Spanish comments; `Billing::Pricing` hot-reloads on file mtime (D53). Per-product **official** and **SINPE** prices in CRC and USD; overage amounts are explicit keys (not derived from a percentage at display/checkout time). **Typed domain layer:** validated value objects under `app/models/billing/` (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.) enforce billing invariants at service boundaries; see ADR-0005 addendum.
 
 **Regional currency and tax (country resolution):**
 
@@ -409,6 +411,25 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).
 
 **Tests:** `nesting_engine/tests/test_progress_reporter.py`, `test_nest_progress.py`, `test_cli_mock.py`; `spec/services/nesting/progress_*_spec.rb`, `cli_runner_spec.rb`, `spec/system/nesting_progress_spec.rb`, `spec/i18n/nesting_phase_labels_spec.rb`.
+
+### REQ-FIT-UI-001 (detail)
+
+**Scope:** Single ephemeral workshop at **`GET /taller`**. No `/projects/new` setup page.
+
+**Modes (`Workshop::UxMode` / `Project#workshop_setup_mode?`):**
+
+| Mode | Predicate | UX |
+|------|-----------|-----|
+| **Setup** | `draft?` && `nesting_runs.none?` | Welcome copy from `projects.setup.welcome`; láminas + DXF `<details open>`; kerf/margin inline between them; preview/progress hidden; «Iniciar anidado» with readiness errors |
+| **Taller** | otherwise | REQ-FIT-UI-003 collapsed láminas/DXF; preview + orphans; nesting parameters panel at bottom |
+
+**Entry:** `GET /empezar` → discard tab project → bind new ephemeral → redirect `/taller`. Toolbar **Mi taller** → `/taller` (auto `find_or_create!` when unbound).
+
+**Collapsible persistence:** On `/taller` in taller mode, `workshop-sheet-inventory` and `workshop-source-dxf-detail` default closed (Stimulus `collapsible_persistence_controller`); setup mode skips forced closed.
+
+**Autosave (setup and taller):** Sheet inventory, nesting parameters, and DXF layer selection persist without explicit save buttons — see W1 step 2 and W2. Layer autosave responds `204 No Content` to avoid turbo-stream races on rapid radio/check changes.
+
+**Tests:** `spec/models/project_spec.rb` (`workshop_setup_mode?`), `spec/presenters/workshop/ux_mode_spec.rb`, `spec/requests/ephemeral_workspace_spec.rb`, `spec/requests/project_nesting_parameters_spec.rb`, `spec/requests/project_dxf_upload_spec.rb`.
 
 ### REQ-FIT-UI-005 (detail)
 

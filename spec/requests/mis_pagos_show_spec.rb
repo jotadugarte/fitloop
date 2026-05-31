@@ -129,6 +129,44 @@ RSpec.describe "Mis pagos page", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]", type: 
       expect(response.body).to include(I18n.t("billing.checkout.sinpe_crc", locale: :es))
     end
 
+    it "[REQ-FIT-BILL-001] shows late fulfilled SINPE in payment history after checkout abandon" do
+      project = Project.create!(ephemeral: true, title: "Late SINPE history", status: :completed)
+      run = project.nesting_runs.create!(status: "completed")
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED-DXF"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_late_sinpe_history",
+        onvo_mode: "test",
+        gateway_status: "processing",
+        purchase_reference: "511256066920",
+        checkout_abandoned_at: 5.minutes.ago,
+        checkout_lock_released_at: 5.minutes.ago,
+        checkout_lock_reason: "user_abandoned"
+      )
+      Billing::FulfillPayment.call(payment: payment)
+
+      get mis_pagos_path, params: { locale: "es" }
+
+      expect(response).to have_http_status(:ok)
+      expect(payment.reload).to be_succeeded
+      expect(payment.checkout_abandoned_at).to be_nil
+      expect(response.body).to include("511256066920")
+      expect(response.body).to include(I18n.t("billing.mis_pagos.status.succeeded", locale: :es))
+      expect(response.body).to include(I18n.t("billing.checkout.sinpe_crc", locale: :es))
+    end
+
     it "[REQ-FIT-BILL-001] hides pending banner when grant was refreshed for the pending checkout" do
       project = Project.create!(ephemeral: true, title: "Stale pending", status: :completed)
       run = project.nesting_runs.create!(status: "completed")

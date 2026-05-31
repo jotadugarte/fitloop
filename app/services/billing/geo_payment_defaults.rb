@@ -70,10 +70,7 @@ module Billing
     end
 
     def self.normalize_country(country_code)
-      return nil if country_code.nil?
-
-      stripped = country_code.to_s.strip.upcase
-      stripped.empty? ? nil : stripped
+      CountryCode.parse(country_code)&.to_s
     end
 
     def self.persist_country_code!(session, country_code)

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe ProjectReadinessValidator do
+RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
   let(:project) { create_project_for_spec!(title: "Pre-flight bench") }
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
@@ -16,6 +16,16 @@ RSpec.describe ProjectReadinessValidator do
   end
 
   describe ".validate [REQ-FIT-VAL-001]" do
+    it "rejects when no sheet stocks exist" do
+      project = create_project_for_spec!(title: "No sheets")
+      project.sheet_stocks.destroy_all
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(false)
+      expect(result.errors).to include(I18n.t("project_readiness.no_sheet_stocks"))
+    end
+
     it "rejects when no layers are selected" do
       attach_sample_dxf!
       project.project_layers.update_all(included: false)

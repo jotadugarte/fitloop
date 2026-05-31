@@ -39,6 +39,11 @@ class Project < ApplicationRecord
     derived_pieces.exists? && (completed? || partial?)
   end
 
+  # [REQ-FIT-UI-001] Setup onboarding on /taller before the first nesting run.
+  def workshop_setup_mode?
+    draft? && !nesting_runs.exists?
+  end
+
   private
 
   def must_have_sheet_stocks

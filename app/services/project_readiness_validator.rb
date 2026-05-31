@@ -14,6 +14,7 @@ class ProjectReadinessValidator
 
   def validate
     errors = []
+    errors << I18n.t("project_readiness.no_sheet_stocks") unless sheet_stocks?
     errors << I18n.t("project_readiness.no_layers_selected") unless selected_layers?
     errors.concat(missing_primary_layer_errors)
     errors << I18n.t("project_readiness.no_extractable_pieces") if selected_layers? && extractable_piece_count.zero?
@@ -22,6 +23,10 @@ class ProjectReadinessValidator
   end
 
   private
+
+  def sheet_stocks?
+    @project.sheet_stocks.exists?
+  end
 
   def selected_layers?
     @project.project_layers.where(included: true).exists?

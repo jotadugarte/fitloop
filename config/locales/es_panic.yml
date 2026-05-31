@@ -572,6 +572,7 @@ es_panic:
         split_applied: Machete aplicado
   project_readiness:
     heading: 'No puede avanzar sin arreglar esto:'
+    no_sheet_stocks: Agregue al menos un tipo de lámina al inventario o no hay donde cortar.
     no_layers_selected: "¡Ojo! Seleccione al menos un layer, el láser no lee mentes."
     no_extractable_pieces: Suba un archivo que tenga líneas de corte, por amor a Dios.
     primary_layer_required: Marque por lo menos UNA capa como 'Corte principal' o la máquina se va a volver loca.

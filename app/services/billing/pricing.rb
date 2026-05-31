@@ -24,7 +24,8 @@ module Billing
 
       # [REQ-FIT-BILL-001] Returns [card_usd, official_crc, sinpe_crc] for a plan tier.
       def plan_price_triple(tier_months)
-        case tier_months.to_i
+        tier = coerce_tier_months(tier_months)
+        case tier.to_i
         when 1
           [plan_1_month_card_usd, plan_1_month_official_crc, plan_1_month_sinpe_crc]
         when 2
@@ -50,14 +51,17 @@ module Billing
       }.freeze
 
       def price(product:, currency:, payment_method:, overage:, tier_months: nil)
-        validate_price_args!(product:, currency:, payment_method:, overage:, tier_months:)
+        curr = coerce_currency(currency)
+        method = coerce_billing_method(payment_method)
+        tier = tier_months.nil? ? nil : coerce_tier_months(tier_months)
+        validate_price_args!(product:, currency: curr, payment_method: method, overage:, tier_months: tier)
 
-        resolver = PRICE_KEY_RESOLVERS[[ currency, payment_method ]]
+        resolver = PRICE_KEY_RESOLVERS[[ curr.to_sym, method.to_sym ]]
         raise ArgumentError, "unsupported currency/payment_method combination" unless resolver
 
-        key = send(resolver, product:, overage:, tier_months: tier_months)
+        key = send(resolver, product:, overage:, tier_months: tier)
         amount = fetch(key)
-        validate_price_amount!(amount, key, currency)
+        validate_price_amount!(amount, key, curr.to_sym)
         amount
       end
 
@@ -82,13 +86,28 @@ module Billing
 
       def validate_price_args!(product:, currency:, payment_method:, overage:, tier_months:)
         raise ArgumentError, "product must be a Symbol" unless product.is_a?(Symbol)
-        raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(currency)
-        raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(payment_method)
+        curr = currency.is_a?(Currency) ? currency : coerce_currency(currency)
+        method = payment_method.is_a?(BillingMethod) ? payment_method : coerce_billing_method(payment_method)
+        raise ArgumentError, "currency must be :usd or :crc" unless %i[usd crc].include?(curr.to_sym)
+        raise ArgumentError, "payment_method must be :card or :sinpe" unless %i[card sinpe].include?(method.to_sym)
         raise ArgumentError, "overage must be boolean" unless overage == true || overage == false
+        raise ArgumentError, "sinpe requires crc currency" unless method.compatible_with_currency?(curr)
         return unless product == :plan
 
         raise ArgumentError, "tier_months required for product :plan" if tier_months.nil?
         raise ArgumentError, "plan overage is not supported" if overage
+      end
+
+      def coerce_tier_months(raw)
+        raw.is_a?(TierMonths) ? raw : TierMonths.parse(raw)
+      end
+
+      def coerce_currency(raw)
+        raw.is_a?(Currency) ? raw : Currency.parse(raw)
+      end
+
+      def coerce_billing_method(raw)
+        raw.is_a?(BillingMethod) ? raw : BillingMethod.parse(raw)
       end
 
       def validate_price_amount!(amount, _key, currency)
@@ -130,7 +149,8 @@ module Billing
       end
 
       def plan_key_prefix(tier_months)
-        case tier_months.to_i
+        tier = tier_months.is_a?(TierMonths) ? tier_months : coerce_tier_months(tier_months)
+        case tier.to_i
         when 1 then "plan_1_month"
         when 2 then "plan_2_months"
         when 4 then "plan_4_months"

@@ -57,7 +57,11 @@ module Billing
     end
 
     def mark_succeeded!(paid_at)
-      attrs = { status: :succeeded, paid_at: paid_at }
+      attrs = {
+        status: :succeeded,
+        paid_at: paid_at,
+        checkout_abandoned_at: nil
+      }
       attrs[:gateway_status] = Payment::ONVO_GATEWAY_SUCCEEDED if @payment.onvo_gateway?
       @payment.update!(attrs)
     end
@@ -66,10 +70,7 @@ module Billing
       match = @payment.product_description.to_s.match(/\Aplan_(\d+)_months\z/)
       raise ArgumentError, "invalid plan product_description" unless match
 
-      tier = match[1].to_i
-      raise ArgumentError, "invalid plan tier" unless Subscription::ALLOWED_TIER_MONTHS.include?(tier)
-
-      tier
+      TierMonths.parse(match[1]).to_i
     end
 
     def upsert_subscription!(paid_at:, tier_months:)

@@ -26,4 +26,22 @@ RSpec.describe Billing::CheckoutBreakdown, "[REQ-FIT-BILL-001]" do
       expect(breakdown.fetch(:total_amount)).to eq(breakdown.fetch(:subtotal))
     end
   end
+
+  describe "typed CheckoutContext [REQ-FIT-BILL-001]" do
+    it "accepts CheckoutContext and returns unchanged hash shape" do
+      ctx = Billing::CheckoutContext.from_session(
+        currency: :crc,
+        payment_method: :sinpe,
+        iva_applicable: true,
+        country_code: "CR"
+      )
+      breakdown = described_class.for_single_download(billing_context: ctx, overage: false)
+
+      expect(breakdown.keys).to contain_exactly(
+        :currency, :payment_method, :iva_applicable, :list_price,
+        :discount_amount, :subtotal, :tax_amount, :total_amount
+      )
+      expect(breakdown.fetch(:total_amount)).to eq(1130)
+    end
+  end
 end

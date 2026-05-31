@@ -2,22 +2,18 @@
 
 require "rails_helper"
 
-RSpec.describe "Project workspace layers (Tu anidado)", type: :request do
+RSpec.describe "Project workspace layers (Tu anidado)", "[REQ-FIT-UI-001]", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   def ready_workspace_project!
-    get start_project_path
-    follow_redirect!
-    project = Project.find(session[:workspace_project_id])
+    project = begin_workspace_session!
 
-    post project_input_dxf_files_path(project, context: "setup"),
-         params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
+    post project_input_dxf_files_path(project),
+         params: { files: [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] }
 
     project.reload
     cut = project.project_layers.find_by!(layer_name: "PIECES")
     ProjectLayer::SetPrimary.call(cut)
-    project.update!(status: :ready)
-    Workspace.bind!(session, project)
     project
   end
 
@@ -46,7 +42,7 @@ RSpec.describe "Project workspace layers (Tu anidado)", type: :request do
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:no_content)
     expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true)
 
     patch workspace_project_path(project),
@@ -60,7 +56,7 @@ RSpec.describe "Project workspace layers (Tu anidado)", type: :request do
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:ok)
+    expect(response).to have_http_status(:no_content)
     expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
     expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
   end
