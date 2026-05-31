@@ -121,7 +121,10 @@
       50. DXF upload turbo target: `ProjectInputDxfFilesController` always turbo-replaces **`show_source_dxf_detail`** with `workshop_ux` locals; do not pass obsolete `context=setup` on upload/delete URLs. Expand only newly uploaded file layer checklists.
       51. Billing domain types: billing services accept **`Billing::*` value objects** (`TierMonths`, `PaymentMethod`, `Money`, `CheckoutContext`, etc.) at boundaries — parse params/session in controllers, not deep inside `Pricing`/`CheckoutBreakdown`. AR enums unchanged; invalid states fail at VO construction (`ArgumentError`).
       52. Nesting domain types: nesting/workshop services accept **`Nesting::*` value objects** in `app/models/nesting/` at boundaries — separate `KerfMm` and `MarginMm`; `JobParameters.from_project` is SSOT for CLI numerics via `ConfigBuilder`; `AssignNestingParameters` for workshop kerf/margin params; Python validates via `nesting_config.py`. Do not mix `Billing::*` into `Nesting::`. AR columns stay float/string; `.to_f` / `.to_s` only at persistence edge.
-      53. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
+      53. Nesting CLI `time_limit_sec`: `nesting_engine/nesting_config.py` requires a whole-number `time_limit_sec` in `config.json` (reject fractional values); aligns with `Nesting::NestingTimeLimitSec` on Rails.
+      54. Nesting piece keys: compare orphan/split/preview identity with `Nesting::PieceKey.parse` and VO equality — not raw `String#==` on persisted `piece_key` or JSON fields alone.
+      55. Nesting model specs: `spec/models/nesting/*_spec.rb` use `RSpec.describe ClassName, "[REQ-FIT-*]"` on the outer describe (in addition to service request spec tags in rule 26).
+      56. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
     </rules>
   </project_rules>
 </agentic_guild_os>
