@@ -19,7 +19,8 @@
         <nav class="admin-header__nav" style="display: flex; gap: 1.25rem;">
           <%= link_to "Inicio", admin_root_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500; opacity: 0.85;" %>
           <%= link_to "Ventas", admin_ventas_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500;" %>
-          <span style="color: rgba(255,255,255,0.4); font-size: 0.9rem; font-weight: 500; cursor: not-allowed;">Analytics (Próximamente)</span>
+          <%= link_to "Analytics", admin_analytics_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500;" %>
+          <%= link_to "Usuarios", admin_usuarios_path, style: "color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 500;" %>
         </nav>
       </div>
       <div class="admin-header__user">

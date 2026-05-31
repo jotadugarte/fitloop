@@ -30,7 +30,6 @@ RSpec.describe "Admin Dashboard", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body).to include("Ventas y Reportes")
         expect(response.body).to include("Estadísticas y Uso")
         expect(response.body).to include("Activo")
-        expect(response.body).to include("Próximamente")
       end
     end
 

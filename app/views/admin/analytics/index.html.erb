@@ -1,6 +1,84 @@
 <div class="admin-dashboard">
-  <header class="admin-dashboard__header">
+  <header class="admin-dashboard__header" style="margin-bottom: 2rem;">
     <h1 class="admin-dashboard__title">Estadísticas y Uso</h1>
-    <p class="admin-dashboard__tagline">Métricas de conversión y analíticas del sistema</p>
+    <p class="admin-dashboard__tagline">Métricas del embudo de conversión y actividad del optimizador</p>
   </header>
+
+  <!-- Filters panel -->
+  <div class="panel panel--solid" style="margin-bottom: 2rem; padding: 1.25rem;">
+    <%= form_with url: admin_analytics_path, method: :get, local: true, class: "analytics-filter-form", style: "display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;" do |f| %>
+      <div class="field">
+        <%= f.label :start_date, "Fecha Inicio", class: "field__label" %>
+        <%= f.date_field :start_date, value: @start_date, class: "input", style: "width: 100%;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :end_date, "Fecha Fin", class: "field__label" %>
+        <%= f.date_field :end_date, value: @end_date, class: "input", style: "width: 100%;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :locale, "Idioma / Locale", class: "field__label" %>
+        <%= f.select :locale, options_for_select([["Todos", ""]] + @available_locales.map { |l| [l, l] }, @locale), {}, class: "input", style: "width: 100%;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :payment_method, "Método de Pago", class: "field__label" %>
+        <%= f.select :payment_method, options_for_select([["Todos", ""]] + @available_payment_methods.map { |pm| [pm, pm] }, @payment_method), {}, class: "input", style: "width: 100%;" %>
+      </div>
+
+      <div class="field">
+        <%= f.label :currency, "Moneda", class: "field__label" %>
+        <%= f.select :currency, options_for_select([["Todos", ""]] + @available_currencies.map { |c| [c, c] }, @currency), {}, class: "input", style: "width: 100%;" %>
+      </div>
+
+      <div class="form-actions" style="margin: 0;">
+        <%= f.submit "Filtrar", class: "btn btn-primary", style: "width: 100%;" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="analytics-grid">
+    <div class="metric-card">
+      <h3 class="metric-card__title">Proyectos Iniciados</h3>
+      <div class="metric-card__value"><%= @funnel_counts["workspace_started"] %></div>
+      <p class="metric-card__subtitle">Eventos `workspace_started` registrados</p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">DXF Cargados</h3>
+      <div class="metric-card__value"><%= @funnel_counts["first_dxf_uploaded"] %></div>
+      <p class="metric-card__subtitle">Eventos `first_dxf_uploaded` registrados</p>
+    </div>
+
+    <div class="metric-card">
+      <h3 class="metric-card__title">Nidos Completados</h3>
+      <div class="metric-card__value"><%= @funnel_counts["nest_completed"] %></div>
+      <p class="metric-card__subtitle">Eventos `nest_completed` registrados</p>
+    </div>
+
+    <div class="metric-card <%= 'metric--alert' if @conversion_alert %>">
+      <h3 class="metric-card__title">Conversión Paywall</h3>
+      <div class="metric-card__value"><%= @conversion_percent %>%</div>
+      <p class="metric-card__subtitle">
+        <% if @conversion_alert %>
+          ⚠️ Por debajo de <%= Analytics::Thresholds.funnel_conversion_min_percent %>%
+        <% else %>
+          Normal (Mín. <%= Analytics::Thresholds.funnel_conversion_min_percent %>%)
+        <% end %>
+      </p>
+    </div>
+  </div>
+
+  <!-- Funnel Chart -->
+  <div class="fit-section">
+    <h2 class="fit-section__legend">Embudo de Conversión</h2>
+    <div class="analytics-chart-container" style="height: 300px;"
+         data-controller="admin-chart"
+         data-admin-chart-labels-value="<%= Analytics::FunnelStages::ORDERED.to_json %>"
+         data-admin-chart-data-value="<%= Analytics::FunnelStages::ORDERED.map { |stage| @funnel_counts[stage] }.to_json %>">
+      <canvas data-admin-chart-target="canvas"></canvas>
+    </div>
+  </div>
 </div>
