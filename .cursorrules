@@ -120,7 +120,8 @@
       49. Workshop autosave: Mi taller persists láminas, kerf/margin, and DXF layer selection without explicit «Guardar» / «Aplicar capas» buttons — `PATCH /taller/workspace` (`section=sheets|layers`) and debounced `PATCH /taller/nesting_parameters`. Layer autosave responds **`204 No Content`** (no turbo re-render) to avoid radio/check race conditions.
       50. DXF upload turbo target: `ProjectInputDxfFilesController` always turbo-replaces **`show_source_dxf_detail`** with `workshop_ux` locals; do not pass obsolete `context=setup` on upload/delete URLs. Expand only newly uploaded file layer checklists.
       51. Billing domain types: billing services accept **`Billing::*` value objects** (`TierMonths`, `PaymentMethod`, `Money`, `CheckoutContext`, etc.) at boundaries — parse params/session in controllers, not deep inside `Pricing`/`CheckoutBreakdown`. AR enums unchanged; invalid states fail at VO construction (`ArgumentError`).
-      52. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
+      52. Nesting domain types: nesting/workshop services accept **`Nesting::*` value objects** in `app/models/nesting/` at boundaries — separate `KerfMm` and `MarginMm`; `JobParameters.from_project` is SSOT for CLI numerics via `ConfigBuilder`; `AssignNestingParameters` for workshop kerf/margin params; Python validates via `nesting_config.py`. Do not mix `Billing::*` into `Nesting::`. AR columns stay float/string; `.to_f` / `.to_s` only at persistence edge.
+      53. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
     </rules>
   </project_rules>
 </agentic_guild_os>
