@@ -69,6 +69,20 @@ This ADR **supersedes** the access model described for **REQ-FIT-AUTH-001** in p
 - ADR accepted (this document).
 - Follow-on steps in `task_remove-pin.md`: `workspace_spec`, `workspace_access_spec`, model migration, controller simplification, doc verifier + full regression.
 
+## Addendum (2026-05-30): Unified workshop — no `/projects/new`
+
+**Status:** Accepted (extends this ADR + REQ-FIT-UI-001)  
+**Context:** Parámetros iniciales (`/projects/new`) duplicated Mi taller (`/taller`). Product is not live; no bookmark compatibility required.
+
+**Decision:**
+
+- **`GET /empezar`** discards the tab workspace, creates/binds a new ephemeral `Project`, redirects **`GET /taller`**.
+- **Setup configuration** (láminas, inline nesting parameters, DXF, layers) occurs on `/taller` in **setup mode** (`Project#workshop_setup_mode?`).
+- **Remove** routes and views for `/projects/new`, `projects#create`, `projects#edit`, and the monolithic «Continuar» setup submit — no 301 redirect.
+- **Toolbar** «Mi taller» always targets `/taller`; unbound sessions use `Workspace.find_or_create!` on show.
+
+**Validation:** `spec/requests/ephemeral_workspace_spec.rb`; task `task_merge-setup-into-workshop.md`.
+
 ## More information
 
 - Archived session log: `.agenticguild/completed_sessions/task_remove-pin_2026-05-20.md` (decisions D1–D5)
