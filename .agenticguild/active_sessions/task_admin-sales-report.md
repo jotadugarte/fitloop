@@ -84,7 +84,7 @@
     <step id="8" status="complete">
       <description>Implement CSV generation in a helper or service class, exporting all fields necessary for Costa Rica invoicing including `cabys_code`.</description>
     </step>
-    <step id="9" status="pending">
+    <step id="9" status="complete">
       <description>Run all specs (including database and request tests) and perform manual visual checks on the admin views.</description>
     </step>
   </implementation_plan>
