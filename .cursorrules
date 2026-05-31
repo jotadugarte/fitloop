@@ -125,6 +125,9 @@
       54. Nesting piece keys: compare orphan/split/preview identity with `Nesting::PieceKey.parse` and VO equality — not raw `String#==` on persisted `piece_key` or JSON fields alone.
       55. Nesting model specs: `spec/models/nesting/*_spec.rb` use `RSpec.describe ClassName, "[REQ-FIT-*]"` on the outer describe (in addition to service request spec tags in rule 26).
       56. Turbo broadcast + Warden: partials rendered via Turbo Stream broadcast run outside the Warden stack — use `warden_user_if_available` (or pass explicit user) for checkout-lock helpers; never call `current_user` in broadcast-only partials.
+      57. Admin stealth gate: all routes under the `/admin` namespace must raise `ActionController::RoutingError` (standard 404) for unauthenticated or non-admin requests, to avoid leaking the admin endpoint's existence. Do not redirect to login.
+      58. Admin promotion on boot: promote users to admin via `FITLOOP_ADMIN_EMAILS` env var in a boot initializer (`config/initializers/promote_admins.rb`). The promotion logic must check for the presence of the environment variable and ensure the `users` table exists before querying, to prevent log clutter during setup/migrations. Never commit real admin email strings to source control.
     </rules>
   </project_rules>
 </agentic_guild_os>
+

@@ -1,6 +1,6 @@
 # Schema Reference — Fitloop
 
-**Source of truth:** `db/schema.rb` (version `2026_05_30_220000`). Regenerate this doc when migrations change.
+**Source of truth:** `db/schema.rb` (version `2026_05_31_163805`). Regenerate this doc when migrations change.
 
 **ORM models:** `Project`, `SheetStock`, `ProjectLayer`, `NestingRun`, `OrphanResolution`, `SplitProposal`, `DerivedPiece`, `User`, `Subscription`, `Payment`, `DownloadGrant`, `PlanMonthlyUsage`, `Cart` (+ Active Storage attachments on `Project` and `DownloadGrant`).
 
@@ -195,6 +195,7 @@ Standard Rails 8 tables for blob metadata:
 | `email` | string | Unique (Devise) |
 | `encrypted_password` | string | Min 12 chars for email auth |
 | `name` | string | Required at registration |
+| `admin` | boolean | Admin flag promoted via boot initializer (default `false`) |
 | `confirmed_at` | datetime | Gate before billing (`billing_ready?`) |
 | `terms_accepted_at` | datetime | Required at registration |
 | `terms_version` | string | Legal version id |

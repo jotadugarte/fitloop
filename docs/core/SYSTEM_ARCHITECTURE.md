@@ -143,11 +143,12 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 
 ---
 
-## 10. User accounts and billing (normative)
+## 10. User accounts, admin, and billing (normative)
 
 | Layer | Module / service | Responsibility |
 |-------|------------------|----------------|
 | **Auth** | Devise + OmniAuth controllers under `app/controllers/users/` | Register, login, email confirmation, password reset, OAuth callbacks; account edit/delete |
+| **Admin** | `BaseController`, `DashboardController`, `promote_admins.rb` | `users.admin` boolean column promoted via `FITLOOP_ADMIN_EMAILS` env on boot. The `/admin` namespace requires admin? else raises `RoutingError` (404) to prevent endpoint leakage |
 | **Workspace** | `Workspace`, `SetsWorkspaceProject`, `ResolvesWorkspaceTab` | Ephemeral `Project` per browser tab (`session[:workspaces]`); tab cookie/header; 120s TTL after tab close (ADR-0004, extended in ADR-0005) |
 | **Paywall** | `DownloadPaywallController`, `RequiresNestedDownloadAuthorization` | Nested DXF only; catalog at `/taller/descarga-pago` with MEIC pricing; guests and unconfirmed users redirected; signed download token (~15 min) |
 | **Cart** | `Cart`, `CartController`, `Billing::CartUpsert`, `Billing::CartMergeOnLogin`, `Billing::PendingCart` | Single-item DB cart (guest or user); price snapshot at add; replace-confirm; merge on login (user wins) |
@@ -156,4 +157,4 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 
 Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
 
-**Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003` in `docs/core/SPEC.md`. **ADRs:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`, `docs/core/ADRs/0006-onvo-live-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.
+**Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003`, `REQ-FIT-ADMIN-001` in `docs/core/SPEC.md`. **ADRs:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`, `docs/core/ADRs/0006-onvo-live-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.
