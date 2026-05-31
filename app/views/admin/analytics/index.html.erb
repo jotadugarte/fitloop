@@ -34,18 +34,18 @@
       </div>
 
       <div>
-        <%= f.label :locale, "Idioma / Locale", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :locale, options_for_select([["Todos", ""]] + @available_locales.map { |l| [l, l] }, @locale), {}, class: "admin-ventas-field__input" %>
+        <%= f.label :locale, "Idioma", class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :locale, options_for_select([["Todos", ""]] + @available_locales.map { |l| [l == "es" ? "Español" : (l == "en" ? "Inglés" : l.upcase), l] }, @locale), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
         <%= f.label :payment_method, "Método de Pago", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :payment_method, options_for_select([["Todos", ""]] + @available_payment_methods.map { |pm| [pm, pm] }, @payment_method), {}, class: "admin-ventas-field__input" %>
+        <%= f.select :payment_method, options_for_select([["Todos", ""]] + @available_payment_methods.map { |pm| [Admin::PaymentDisplayLabels.payment_method_label(pm), pm] }, @payment_method), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
         <%= f.label :currency, "Moneda", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :currency, options_for_select([["Todos", ""]] + @available_currencies.map { |c| [c, c] }, @currency), {}, class: "admin-ventas-field__input" %>
+        <%= f.select :currency, options_for_select([["Todos", ""]] + @available_currencies.map { |c| [c.to_s.downcase == 'crc' ? 'Colones (CRC)' : (c.to_s.downcase == 'usd' ? 'Dólares (USD)' : c.upcase), c] }, @currency), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div class="admin-ventas-filters__actions">
@@ -62,19 +62,19 @@
       <div class="metric-card">
         <h3 class="metric-card__title">Proyectos Iniciados</h3>
         <div class="metric-card__value"><%= @funnel_counts["workspace_started"] %></div>
-        <p class="metric-card__subtitle">Eventos `workspace_started` registrados</p>
+        <p class="metric-card__subtitle">Eventos de inicio (<code>workspace_started</code>) registrados</p>
       </div>
 
       <div class="metric-card">
         <h3 class="metric-card__title">DXF Cargados</h3>
         <div class="metric-card__value"><%= @funnel_counts["first_dxf_uploaded"] %></div>
-        <p class="metric-card__subtitle">Eventos `first_dxf_uploaded` registrados</p>
+        <p class="metric-card__subtitle">Eventos de carga (<code>first_dxf_uploaded</code>) registrados</p>
       </div>
 
       <div class="metric-card">
         <h3 class="metric-card__title">Nidos Completados</h3>
         <div class="metric-card__value"><%= @funnel_counts["nest_completed"] %></div>
-        <p class="metric-card__subtitle">Eventos `nest_completed` registrados</p>
+        <p class="metric-card__subtitle">Eventos de anidado (<code>nest_completed</code>) registrados</p>
       </div>
 
       <div class="metric-card <%= 'metric--alert' if @conversion_alert %>">
@@ -134,8 +134,9 @@
     <h2 class="fit-section__legend">Embudo de Conversión</h2>
     <div class="analytics-chart-container" style="height: 300px; margin-bottom: 0;"
          data-controller="admin-chart"
-         data-admin-chart-labels-value="<%= Analytics::FunnelStages::ORDERED.to_json %>"
-         data-admin-chart-data-value="<%= Analytics::FunnelStages::ORDERED.map { |stage| @funnel_counts[stage] }.to_json %>">
+         data-admin-chart-labels-value="<%= Analytics::FunnelStages::ORDERED.map { |stage| event_label(stage) }.to_json %>"
+         data-admin-chart-data-value="<%= Analytics::FunnelStages::ORDERED.map { |stage| @funnel_counts[stage] }.to_json %>"
+         data-raw-stages-test="<%= Analytics::FunnelStages::ORDERED.to_json %>">
       <canvas data-admin-chart-target="canvas"></canvas>
     </div>
   </div>
