@@ -33,8 +33,7 @@ RSpec.describe "Auth events telemetry", "[REQ-FIT-ANALYTICS-001]", type: :reques
             name: "New User",
             password: "securepassword12",
             password_confirmation: "securepassword12",
-            terms_accepted_at: Time.current.to_s,
-            terms_version: "v1-placeholder",
+            terms_accepted: "1",
             time_zone: "America/Costa_Rica"
           }
         }
@@ -43,11 +42,11 @@ RSpec.describe "Auth events telemetry", "[REQ-FIT-ANALYTICS-001]", type: :reques
 
     it "tracks email_confirmed when user confirmation is completed" do
       user = create_billing_user!(email: "unconfirmed@example.com")
-      user.update!(confirmed_at: nil)
-      token = user.confirmation_token
+      raw_token, enc_token = Devise.token_generator.generate(User, :confirmation_token)
+      user.update!(confirmation_token: enc_token, confirmed_at: nil, confirmation_sent_at: Time.current)
 
       expect {
-        get user_confirmation_path(confirmation_token: token)
+        get user_confirmation_path(confirmation_token: raw_token)
       }.to have_enqueued_job(TrackEventJob).with("email_confirmed", anything)
     end
   end
@@ -67,7 +66,7 @@ RSpec.describe "Auth events telemetry", "[REQ-FIT-ANALYTICS-001]", type: :reques
         delete "/eliminar-cuenta", params: {
           user: {
             current_password: "securepassword12",
-            confirm_phrase: "ELIMINAR"
+            confirm_phrase: I18n.t("auth.account_deletion.confirm_phrase_expected")
           }
         }
       }.to change(UserEvent.where(event_type: "account_deleted"), :count).by(1)
