@@ -151,7 +151,7 @@ Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `
 ### Pre-live (3–6)
 
 3. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
-4. [ ] **Admin analytics & reporting — follow-ups (fuera de Analytics v1)** — Trabajo que no entra en la tarjeta Analytics v1: **archivo frío** (`analytics_archive`, retención 6 meses hot + job de copia/purga); **alertas operativas** (email/Slack cuando conversión o fallos de pago salgan de umbral — hoy solo semáforo visual); **texto legal completo** FU-LEGAL-003 (IP/UA/país, retención, acceso admin-only) si no basta la nota en deploy checklist; **BI externo** (Metabase u otro) opcional. — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
+4. [ ] **Términos y condiciones — compra de plan (FU-LEGAL-001, FU-LEGAL-002)** — Redactar T&C definitivos para suscripción (planes 1/2/4 meses) e **mostrarlos y exigir aceptación en el checkout de plan** (hoy: placeholder en `/terminos`/`/privacidad` y checkbox solo en registro). **Auditoría previa en código y SPEC:** obligaciones reales al comprar/renovar — cupo 50 descargas/mes calendario, extensión desde `ends_at` (no reinicio), sin periodo de gracia, overage 50% tras agotar cupo, descargas incluidas sin retención 24h ni re-descarga tras perder sesión, proyectos efímeros, IVA CR en checkout, ONVO/SINPE, cuenta suspendida/borrada con plan activo. **Recursos externos:** abogado(a) derecho digital y consumo CR (MEIC, contratos B2C, revocación/reembolsos); revisión fiscal (IVA, facturación electrónica); encaje con términos del procesador ONVO. **Entrega:** copy versionado (`TermsVersion`), registro de aceptación en checkout de plan, páginas legales actualizadas, SPEC/ADR si cambian reglas declaradas al usuario.
 5. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
 ### Go-live (7 — when ready)
 
@@ -167,7 +167,9 @@ _(no pending engine items)_
 
 ### Product & platform (deferred)
 
-- [ ] **Analytics archive (cold storage)** — moved to **Pending #6** (Admin analytics follow-ups)
+- [ ] **Analytics archive (cold storage)** — `analytics_archive`, retención 6 meses hot + job de copia/purga (fuera de Analytics v1)
+- [ ] **Analytics operational alerts** — email/Slack cuando conversión o fallos de pago salgan de umbral (hoy solo semáforo en `/admin/analytics`)
+- [ ] **External BI** (Metabase u otro) — opcional; conectar a `user_events` o réplica read-only
 - [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 
