@@ -23,7 +23,7 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
         purpose: "single_download"
       )
 
-      filter = described_class.new(search: "%")
+      filter = described_class.new({ search: "%" })
       expect(filter.apply(Payment.all)).to be_empty
     end
 
@@ -36,7 +36,7 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
         onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download"
       )
 
-      filter = described_class.new(start_date: 2.days.ago.to_date.to_s, end_date: "")
+      filter = described_class.new({ start_date: 2.days.ago.to_date.to_s, end_date: "" })
       scope = filter.apply(Payment.all)
 
       expect(scope).to be_empty

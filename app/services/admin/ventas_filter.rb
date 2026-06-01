@@ -4,9 +4,15 @@ module Admin
   # [REQ-FIT-ADMIN-001] Query filters for /admin/ventas (no params mutation).
   class VentasFilter
     CR_ZONE = "America/Costa_Rica"
+    DATE_COLUMNS = {
+      created_at: "created_at",
+      paid_at: "paid_at"
+    }.freeze
 
-    def initialize(params)
+    def initialize(params = {}, date_column: :created_at)
       @params = params
+      @date_column = date_column.to_sym
+      raise ArgumentError, "invalid date_column: #{date_column}" unless DATE_COLUMNS.key?(@date_column)
     end
 
     def start_date_value
@@ -53,7 +59,8 @@ module Admin
       return scope if date_str.blank?
 
       start_time = cr_zone.parse(date_str).beginning_of_day
-      scope.where("created_at >= ?", start_time)
+      scope = exclude_null_date_column(scope) if @date_column == :paid_at
+      scope.where("#{date_sql_column} >= ?", start_time)
     rescue ArgumentError
       scope
     end
@@ -62,9 +69,18 @@ module Admin
       return scope if date_str.blank?
 
       end_time = cr_zone.parse(date_str).end_of_day
-      scope.where("created_at <= ?", end_time)
+      scope = exclude_null_date_column(scope) if @date_column == :paid_at
+      scope.where("#{date_sql_column} <= ?", end_time)
     rescue ArgumentError
       scope
+    end
+
+    def exclude_null_date_column(scope)
+      scope.where.not(date_sql_column => nil)
+    end
+
+    def date_sql_column
+      DATE_COLUMNS.fetch(@date_column)
     end
 
     def apply_payment_methods(scope)
