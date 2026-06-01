@@ -136,4 +136,8 @@ module ApplicationHelper
       quantity: sheet_stock_quantity_label(stock)
     )
   end
+
+  def event_label(event_type)
+    t("admin.events.#{event_type}", default: event_type.to_s.humanize)
+  end
 end

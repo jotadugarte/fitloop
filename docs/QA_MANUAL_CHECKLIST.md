@@ -122,6 +122,19 @@ Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in
 - [ ] On long pending, “confirmando…” copy shown; user can check Mis pagos later after webhook
 - [ ] `payment-intent.failed` webhook marks payment failed without wiping snapshot fields
 
+## User Analytics & Admin Bitácora [REQ-FIT-ANALYTICS-001]
+
+- [ ] `/admin/analytics` dashboard displays metric aggregate cards (funnel counts, conversion rate)
+- [ ] Funnel metric cards display alert style `metric--alert` when below configured conversion threshold
+- [ ] `/admin/analytics` displays monetization widgets (single downloads, active plans by tier, exhausted quotas)
+- [ ] Dates and filters (locale, payment method, currency) apply correctly and update counts on `/admin/analytics`
+- [ ] Bot heuristic warns of potential scrapers when low priority events exceed limit in the last hour
+- [ ] `/admin/analytics/export.csv` downloads CSV of filtered user events
+- [ ] Non-admin user visiting `/admin/analytics` or `/admin/usuarios` is blocked with a 404 (no redirection)
+- [ ] `/admin/usuarios` displays user search index (searchable by name and email)
+- [ ] Clicking a user drills down to `/admin/usuarios/:id` to display a chronological event timeline with Spanish labels
+- [ ] Session merge works: anonymous events merge to user accounts on successful login/registration
+
 ## Security & ops
 
 - [ ] No PIN or admin-unlock UI in the app

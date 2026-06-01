@@ -174,6 +174,37 @@ Nestable child pieces materialized after split accept (`REQ-FIT-SPLIT-001`, comp
 
 ---
 
+## `user_events`
+
+Telemetry and operations log for admin dashboard and timeline queries.
+
+| Column | Type | Null | Default | Notes |
+|--------|------|------|---------|-------|
+| `id` | bigint | PK | | |
+| `event_type` | string | no | | System event name matching the catalog |
+| `priority` | string | no | `low` | `low` or `critical` |
+| `properties` | jsonb | no | `{}` | Key-value metadata depending on event type |
+| `user_id` | bigint | yes | | Nullable; references `users.id` (no cascade deletion) |
+| `anonymous_session_key` | string | yes | | Ephemeral session tracking |
+| `tab_id` | string | yes | | Browser tab identifier |
+| `project_id` | bigint | yes | | Historical project ID (no database foreign key to allow project deletion) |
+| `nesting_run_id` | bigint | yes | | Historical nesting run ID (no database foreign key) |
+| `ip` | string | yes | | Client IP address |
+| `user_agent` | string | yes | | Client User-Agent |
+| `country_code` | string | yes | | Resolved 2-letter country code |
+| `locale` | string | yes | | Request locale |
+| `idempotency_key` | string | yes | | Unique identifier to filter duplicate actions |
+| `occurred_at` | datetime | no | | Monotonic UTC timestamp when event happened |
+| `created_at` | datetime | no | | |
+
+**Indexes:**
+- `index_user_events_on_event_type`
+- `index_user_events_on_user_id`
+- `index_user_events_on_occurred_at`
+- `index_user_events_on_idempotency_key` (unique where not null)
+
+---
+
 ## Active Storage tables
 
 Standard Rails 8 tables for blob metadata:

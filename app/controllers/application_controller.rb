@@ -11,9 +11,12 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  before_action :set_anonymous_session_key
+
   def after_sign_in_path_for(resource)
     if resource.is_a?(User)
       Billing::CartMergeOnLogin.call(user: resource, guest_token: session[:cart_guest_token])
+      Analytics::MergeAnonymousSession.call(session[:anonymous_session_key], resource.id)
       session.delete(:cart_guest_token)
       session.delete(:pending_cart)
     end
@@ -22,6 +25,10 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def set_anonymous_session_key
+    session[:anonymous_session_key] ||= SecureRandom.hex(16)
+  end
 
   def layout_for_controller
     devise_controller? ? "minimal" : "application"

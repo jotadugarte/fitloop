@@ -11,7 +11,7 @@ module Webhooks
         return
       end
 
-      Billing::Onvo::HandleWebhookEvent.call(payload: webhook_payload)
+      Billing::Onvo::HandleWebhookEvent.call(payload: webhook_payload, request: request)
       head :ok
     rescue Billing::Onvo::HandleWebhookEvent::PaymentNotFound
       head :not_found

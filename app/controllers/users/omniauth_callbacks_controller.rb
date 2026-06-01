@@ -27,6 +27,15 @@ module Users
 
       existing_oauth = User.find_by(provider: auth.provider.to_s, uid: auth.uid.to_s)
       if existing_oauth
+        Analytics::TrackEvent.call(
+          "user_logged_in",
+          user_id: existing_oauth.id,
+          anonymous_session_key: session[:anonymous_session_key],
+          ip: request.remote_ip,
+          user_agent: request.user_agent,
+          country_code: Analytics::ResolveCountry.call(request),
+          locale: I18n.locale.to_s
+        )
         sign_in_and_redirect existing_oauth, event: :authentication
         return
       end
@@ -44,6 +53,27 @@ module Users
       end
 
       @user = User.from_omniauth(auth, time_zone: time_zone)
+      
+      Analytics::TrackEvent.call(
+        "account_registered",
+        user_id: @user.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
+      Analytics::TrackEvent.call(
+        "user_logged_in",
+        user_id: @user.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
       sign_in_and_redirect @user, event: :authentication
     end
 

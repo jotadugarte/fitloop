@@ -55,9 +55,9 @@ class Workspace
       workspaces_hash(session).find { |_tab, pid| pid.to_i == project_id.to_i }&.first
     end
 
-    def find_or_create!(session, tab_id: nil)
+    def find_or_create!(session, tab_id: nil, request: nil)
       tid = normalize_tab_id(tab_id)
-      find(session, tab_id: tid) || create!(session, tab_id: tid)
+      find(session, tab_id: tid) || create!(session, tab_id: tid, request: request)
     end
 
     def resolve!(session, project_id, tab_id: nil)
@@ -74,11 +74,11 @@ class Workspace
       project
     end
 
-    def discard!(session, tab_id: nil)
+    def discard!(session, tab_id: nil, request: nil)
       if tab_id.present?
-        discard_tab!(session, normalize_tab_id(tab_id))
+        discard_tab!(session, normalize_tab_id(tab_id), request: request)
       else
-        tab_ids(session).each { |tid| discard_tab!(session, tid) }
+        tab_ids(session).each { |tid| discard_tab!(session, tid, request: request) }
         session.delete(SESSION_KEY)
         session.delete(WORKSPACES_KEY)
       end
@@ -126,7 +126,7 @@ class Workspace
       sync_legacy_session_key!(session)
     end
 
-    def create!(session, tab_id: nil)
+    def create!(session, tab_id: nil, request: nil)
       project = Project.create!(
         ephemeral: true,
         title: I18n.t("workspace.default_title"),
@@ -134,12 +134,25 @@ class Workspace
         last_activity_at: Time.current
       )
       bind!(session, project, tab_id: tab_id)
+
+      Analytics::TrackEvent.call(
+        "workspace_started",
+        user_id: request&.env&.[]("warden")&.user&.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        tab_id: normalize_tab_id(tab_id),
+        project_id: project.id,
+        ip: request&.remote_ip,
+        user_agent: request&.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
       project
     end
 
-    def reset!(session, tab_id: nil)
-      discard!(session, tab_id: tab_id)
-      create!(session, tab_id: tab_id)
+    def reset!(session, tab_id: nil, request: nil)
+      discard!(session, tab_id: tab_id, request: request)
+      create!(session, tab_id: tab_id, request: request)
     end
 
     private
@@ -187,17 +200,43 @@ class Workspace
       sync_legacy_session_key!(session)
     end
 
-    def discard_tab!(session, tab_id)
+    def discard_tab!(session, tab_id, request: nil)
       project = find(session, tab_id: tab_id)
       cancel_active_nesting!(project) if project
-      project&.destroy
+      if project
+        Analytics::TrackEvent.call(
+          "project_discarded",
+          user_id: request&.env&.[]("warden")&.user&.id,
+          anonymous_session_key: session[:anonymous_session_key],
+          tab_id: tab_id,
+          project_id: project.id,
+          ip: request&.remote_ip,
+          user_agent: request&.user_agent,
+          country_code: Analytics::ResolveCountry.call(request),
+          locale: I18n.locale.to_s,
+          properties: project.metadata_snapshot
+        )
+        project.destroy
+      end
       workspaces_hash(session).delete(tab_id)
       session[WORKSPACES_KEY] = workspaces_hash(session)
       sync_legacy_session_key!(session)
     end
 
-    def expire_project!(session, project, tab_id:)
+    def expire_project!(session, project, tab_id:, request: nil)
       cancel_active_nesting!(project)
+      Analytics::TrackEvent.call(
+        "project_discarded",
+        user_id: request&.env&.[]("warden")&.user&.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        tab_id: tab_id,
+        project_id: project.id,
+        ip: request&.remote_ip,
+        user_agent: request&.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s,
+        properties: project.metadata_snapshot
+      )
       project.destroy!
       workspaces_hash(session).delete(tab_id)
       session[WORKSPACES_KEY] = workspaces_hash(session)

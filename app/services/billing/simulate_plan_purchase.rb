@@ -3,16 +3,18 @@
 module Billing
   # [REQ-FIT-BILL-002] Simulated plan subscription checkout (D28, D29, D37).
   class SimulatePlanPurchase
-    def self.call(user:, tier_months:, payment_method:, outcome:, project:)
-      new(user: user, tier_months: tier_months, payment_method: payment_method, outcome: outcome, project: project).call
+    def self.call(user:, tier_months:, payment_method:, outcome:, project:, request: nil, session: nil)
+      new(user: user, tier_months: tier_months, payment_method: payment_method, outcome: outcome, project: project, request: request, session: session).call
     end
 
-    def initialize(user:, tier_months:, payment_method:, outcome:, project:)
+    def initialize(user:, tier_months:, payment_method:, outcome:, project:, request: nil, session: nil)
       @user = user
       @tier_months = TierMonths.parse(tier_months)
       @payment_method = PaymentMethod.parse(payment_method)
       @outcome = outcome
       @project = project
+      @request = request
+      @session = session
     end
 
     def call
@@ -28,7 +30,7 @@ module Billing
       payment = Payment.create!(
         base_payment_attrs(status: "pending", paid_at: nil).merge(snapshot_fields)
       )
-      FailPayment.call(payment: payment)
+      FailPayment.call(payment: payment, request: @request, session: @session)
       :failed
     end
 
@@ -36,7 +38,7 @@ module Billing
       payment = Payment.create!(
         base_payment_attrs(status: "pending", paid_at: nil).merge(snapshot_fields)
       )
-      FulfillPayment.call(payment: payment)
+      FulfillPayment.call(payment: payment, request: @request, session: @session)
       payment.reload
       { subscription: payment.subscription, payment: payment, project: @project }
     end

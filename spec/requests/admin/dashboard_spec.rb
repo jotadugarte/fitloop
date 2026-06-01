@@ -27,10 +27,9 @@ RSpec.describe "Admin Dashboard", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "displays the admin dashboard options for Ventas and Analytics" do
-        expect(response.body).to include("Ventas y Reportes")
-        expect(response.body).to include("Estadísticas y Uso")
-        expect(response.body).to include("Activo")
-        expect(response.body).to include("Próximamente")
+        expect(response.body).to include(ERB::Util.html_escape(I18n.t("admin.dashboard.ventas.title")))
+        expect(response.body).to include(ERB::Util.html_escape(I18n.t("admin.dashboard.analytics.title")))
+        expect(response.body).to include(I18n.t("admin.dashboard.active_badge"))
       end
     end
 

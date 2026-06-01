@@ -52,7 +52,7 @@ module Admin
     def apply_start_date(scope, date_str)
       return scope if date_str.blank?
 
-      start_time = Time.zone.parse(date_str).beginning_of_day
+      start_time = cr_zone.parse(date_str).beginning_of_day
       scope.where("created_at >= ?", start_time)
     rescue ArgumentError
       scope
@@ -61,7 +61,7 @@ module Admin
     def apply_end_date(scope, date_str)
       return scope if date_str.blank?
 
-      end_time = Time.zone.parse(date_str).end_of_day
+      end_time = cr_zone.parse(date_str).end_of_day
       scope.where("created_at <= ?", end_time)
     rescue ArgumentError
       scope
@@ -78,7 +78,7 @@ module Admin
       term = @params[:search].to_s.strip
       return scope if term.blank?
 
-      q = "%#{escape_ilike(term)}%"
+      q = Admin::IlikeSearch.pattern(term)
       scope.where(
         "purchaser_name ILIKE :q ESCAPE '\\' OR purchaser_email ILIKE :q ESCAPE '\\' OR " \
         "purchase_reference ILIKE :q ESCAPE '\\' OR sinpe_transfer_identification ILIKE :q ESCAPE '\\'",
@@ -86,8 +86,8 @@ module Admin
       )
     end
 
-    def escape_ilike(term)
-      term.gsub(/[\\%_]/) { |char| "\\#{char}" }
+    def cr_zone
+      Time.find_zone(CR_ZONE)
     end
   end
 end

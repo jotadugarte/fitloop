@@ -48,6 +48,7 @@ AI agents **must not** introduce the following without an ADR:
 * 🚫 **Margin as inter-piece gap:** Do not apply `margin_mm` between pieces on the same sheet. Sheet-edge inset only (`nest_placement`); piece-to-piece clearance via `kerf_mm` in `nest_types.apply_kerf` (see §7 and `REQ-FIT-NEST-002`).
 * 🚫 **Unsanctioned payment gateways:** no Stripe or providers outside **ADR-0006**. Live card/SINPE capture only via **ONVO** when `BILLING_GATEWAY=onvo` (`Billing::Onvo::*`, `POST /webhooks/onvo`). Simulated buttons remain for `BILLING_GATEWAY=simulate` (`Billing::SimulateSingleDownload`, `Billing::SimulatePlanPurchase`).
 * 🚫 **Billing math in Python:** prices, grants, subscriptions, and paywall checks stay in Rails.
+* 🚫 **Analytics context via thread-locals or class variables in billing services:** `Billing::FulfillPayment` and `Billing::FailPayment` accept `request:` and `session:` as optional keyword arguments — never pass geo/session context via thread-local storage, class-level state, or globals. Services receiving `nil` for these args must gracefully emit analytics with `nil` for geo fields (webhook / job paths).
 
 ---
 
@@ -158,3 +159,33 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
 
 **Requirement detail:** `REQ-FIT-AUTH-002`, `REQ-FIT-BILL-001`..`003`, `REQ-FIT-ADMIN-001` in `docs/core/SPEC.md`. **ADRs:** `docs/core/ADRs/0005-user-accounts-and-simulated-billing.md`, `docs/core/ADRs/0006-onvo-live-billing.md`. **Data flow:** `docs/core/DATA_FLOW_MAP.md` § User and billing.
+
+---
+
+## 11. Analytics pipeline (normative)
+
+**REQ:** `REQ-FIT-ANALYTICS-001`. **ADR:** `docs/core/ADRs/0008-admin-analytics-and-user-events.md`.
+
+| Layer | Module / service | Responsibility |
+|-------|------------------|----------------|
+| **Event type** | `Analytics::EventType` | Parses and validates `event_type` strings against `EventCatalog`; rejects unknown types at VO construction |
+| **Payload** | `Analytics::EventPayload` | Boundary VO: catalog `required_properties`, session/geo context, `to_event_attributes` for `UserEvent` / job serialization |
+| **Ingestion** | `Analytics::TrackEvent` | Single call-site; accepts kwargs → `EventPayload.from_kwargs` → `call_payload`; dispatches critical events synchronously, low-priority via `TrackEventJob` with 300/hour rate limit per session/user |
+| **Nest telemetry context** | `Analytics::NestTelemetryContext` | Resolves user/session fields for `nest_completed` from pre-start project events (workshop types preferred on async fallback) |
+| **Queue isolation** | `TrackEventJob` (`queue_as :analytics`) | Dedicated Solid Queue queue; isolates analytics writes from nesting workloads on `:default` queue |
+| **Catalog** | `Analytics::EventCatalog` (`config/analytics_event_catalog.yml`) | Memoized with `Mutex` (thread-safe); maps `event_type` → `priority` + `required_properties`; reloaded only on boot |
+| **Thresholds** | `Analytics::Thresholds` (`config/analytics.yml`) | Hot-reload on file mtime with `Mutex` guard; exposes funnel conversion %, payment failure %, nest p95, low-priority rate limit |
+| **Funnel** | `Analytics::FunnelStages::ORDERED` | Ordered constant: `workspace_started → first_dxf_uploaded → nest_completed → paywall_viewed → payment_succeeded → download_completed` |
+| **Geo** | `Analytics::ResolveCountry` | `CF-IPCountry` header (Cloudflare production), GeoLite2 MMDB fallback; returns nil when request is nil |
+| **Session merge** | `Analytics::MergeAnonymousSession` | On login/register: reassigns anonymous events to `user_id`; uses `in_batches(of: 500)` to prevent long-lock UPDATE on large event histories |
+| **Dashboard** | `Admin::AnalyticsController` | `/admin/analytics` — funnel KPIs (single GROUP BY with `reorder(nil)` to avoid Postgres ORDER BY conflict), monetization from `Admin::ReportingScope`, bot heuristic, CSV export; safe `Date.parse` with rescue |
+| **Timeline** | `Admin::UsersController` | `/admin/usuarios` — search + per-user event timeline |
+| **Drift governance** | `SpecDocVerifier` + `spec_doc_test.rb` | Asserts: catalog event types ↔ Ruby constants ↔ contract doc; funnel stages ↔ contract; XLSX headers ↔ contract; threshold keys ↔ contract. Failing = reminder to update dashboards/ventas |
+
+**Invariants:**
+- Never bypass `Analytics::TrackEvent` — do not write directly to `UserEvent` from controllers or jobs.
+- Ingestion boundary is `Analytics::EventPayload` — validate event type and required properties via the VO, not ad hoc in controllers.
+- Analytics jobs use `:analytics` queue only — never `:default`.
+- Bulk `UserEvent` updates (e.g. session merge) must use `in_batches` — no unbounded `update_all`.
+- `EventCatalog` and `Thresholds` config access must go through the memoized class method (not `load_catalog` / `load_config` directly) to benefit from thread-safe caching.
+- After any new `event_type`: update `analytics_event_catalog.yml` + `ANALYTICS_AND_REPORTING_CONTRACT.md` + `SpecDocVerifier` in the same PR (rule 67 in `.cursorrules`).

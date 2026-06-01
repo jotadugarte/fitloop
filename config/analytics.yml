@@ -1,0 +1,6 @@
+# Umbrales para el semáforo del panel de control de administración.
+# Estos umbrales controlan cuándo se muestran las alertas visuales en rojo (coral).
+funnel_conversion_min_percent: 15
+payment_failure_rate_max_percent: 20
+nest_duration_p95_max_seconds: 600
+low_priority_events_per_hour: 300

@@ -13,6 +13,7 @@ class User < ApplicationRecord
   has_many :subscriptions, dependent: :destroy
   has_many :payments, dependent: :destroy
   has_many :download_grants, dependent: :destroy
+  has_many :user_events, dependent: :nullify
 
   before_validation :normalize_email
 

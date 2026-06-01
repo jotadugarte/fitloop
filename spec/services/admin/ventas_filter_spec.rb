@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
+  include ActiveSupport::Testing::TimeHelpers
+
   describe "#apply" do
     it "defaults to current month when date params are absent" do
       cr_now = Time.find_zone("America/Costa_Rica").now
@@ -38,6 +40,22 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
       scope = filter.apply(Payment.all)
 
       expect(scope).to be_empty
+    end
+
+    it "includes payments on the last CR calendar day when UTC is already the next month" do
+      cr_zone = Time.find_zone("America/Costa_Rica")
+      travel_to cr_zone.parse("2026-05-31 20:00:00") do
+        user = create_billing_user!(email: "cr-boundary@example.com")
+        payment = Payment.create!(
+          user: user, status: "succeeded", payment_method: "card_crc", currency: "crc",
+          amount: 100, subtotal: 100, total_amount: 100, paid_at: Time.current,
+          created_at: Time.current, gateway_provider: "onvo", onvo_payment_intent_id: "pi_cr",
+          onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download"
+        )
+
+        filter = described_class.new({})
+        expect(filter.apply(Payment.all)).to include(payment)
+      end
     end
   end
 end

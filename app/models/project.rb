@@ -44,6 +44,20 @@ class Project < ApplicationRecord
     draft? && !nesting_runs.exists?
   end
 
+  def metadata_snapshot
+    {
+      title: title,
+      kerf_mm: kerf_mm,
+      margin_mm: margin_mm,
+      curve_tolerance_mm: curve_tolerance_mm,
+      sheet_gap_mm: sheet_gap_mm,
+      nesting_time_limit_sec: nesting_time_limit_sec,
+      sheet_stocks: sheet_stocks.map { |s| { width_mm: s.width_mm, height_mm: s.height_mm, quantity: s.quantity } },
+      layers_count: project_layers.count,
+      included_layers: project_layers.where(included: true).pluck(:layer_name)
+    }
+  end
+
   private
 
   def must_have_sheet_stocks

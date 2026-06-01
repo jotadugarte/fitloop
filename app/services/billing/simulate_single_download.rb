@@ -3,22 +3,26 @@
 module Billing
   # [REQ-FIT-BILL-001] Simulated single-download checkout (D37).
   class SimulateSingleDownload
-    def self.call(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
+    def self.call(user:, nesting_run:, payment_method:, outcome:, iva_applicable:, request: nil, session: nil)
       new(
         user: user,
         nesting_run: nesting_run,
         payment_method: payment_method,
         outcome: outcome,
-        iva_applicable: iva_applicable
+        iva_applicable: iva_applicable,
+        request: request,
+        session: session
       ).call
     end
 
-    def initialize(user:, nesting_run:, payment_method:, outcome:, iva_applicable:)
+    def initialize(user:, nesting_run:, payment_method:, outcome:, iva_applicable:, request: nil, session: nil)
       @user = user
       @nesting_run = nesting_run
       @payment_method = PaymentMethod.parse(payment_method)
       @outcome = outcome
       @iva_applicable = iva_applicable
+      @request = request
+      @session = session
     end
 
     def call
@@ -84,7 +88,7 @@ module Billing
         purpose: "single_download",
         **snapshot_fields
       )
-      FailPayment.call(payment: payment)
+      FailPayment.call(payment: payment, request: @request, session: @session)
       :failed
     end
 
@@ -106,7 +110,7 @@ module Billing
         purpose: "single_download",
         **snapshot_fields
       )
-      FulfillPayment.call(payment: payment)
+      FulfillPayment.call(payment: payment, request: @request, session: @session)
       grant = DownloadGrant.find_by!(user_id: @user.id, nesting_run_id: @nesting_run.id)
       { payment: payment.reload, grant: grant, project: @nesting_run.project }
     end

@@ -1,0 +1,78 @@
+<div class="admin-dashboard">
+  <header class="admin-dashboard__header admin-dashboard__header--split">
+    <div>
+      <h1 class="admin-dashboard__title"><%= t("admin.users.show.title", name: @user.name.presence || @user.email) %></h1>
+      <p class="admin-dashboard__tagline"><%= t("admin.users.show.tagline") %></p>
+    </div>
+    <div>
+      <%= link_to t("admin.users.show.back"), admin_usuarios_path, class: "btn btn-secondary", style: "text-decoration: none;" %>
+    </div>
+  </header>
+
+  <section class="fit-section">
+    <h2 class="fit-section__legend"><%= t("admin.users.show.info_legend") %></h2>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <div class="detail-item__label"><%= t("admin.users.show.user_id") %></div>
+        <div class="detail-item__value font-mono"><%= @user.id %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label"><%= t("admin.users.show.name") %></div>
+        <div class="detail-item__value"><%= @user.name.presence || "—" %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label"><%= t("admin.users.show.email") %></div>
+        <div class="detail-item__value"><%= @user.email %></div>
+      </div>
+      <div class="detail-item">
+        <div class="detail-item__label"><%= t("admin.users.show.registered") %></div>
+        <div class="detail-item__value"><%= @user.created_at.strftime("%Y-%m-%d %H:%M") %></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="fit-section">
+    <h2 class="fit-section__legend"><%= t("admin.users.show.timeline_legend") %></h2>
+
+    <div class="fit-section__content" style="padding-top: 1.5rem;">
+      <% if @events.any? %>
+        <div class="admin-timeline">
+          <% @events.each do |event| %>
+            <div class="admin-timeline__item">
+              <div class="admin-timeline__dot <%= 'admin-timeline__dot--critical' if event.priority == 'critical' %>"></div>
+
+              <div class="admin-timeline__header">
+                <span class="admin-timeline__event-type"><%= event_label(event.event_type) %></span>
+                <span class="admin-timeline__time"><%= event.occurred_at.strftime("%Y-%m-%d %H:%M:%S") %></span>
+              </div>
+
+              <div class="admin-timeline__body">
+                <div><strong><%= t("admin.users.show.type_label") %></strong> <code><%= event.event_type %></code></div>
+                <% if event.ip.present? || event.country_code.present? %>
+                  <div class="admin-timeline__meta">
+                    <%= t(
+                          "admin.users.show.meta",
+                          ip: event.ip || "—",
+                          country: event.country_code || "—",
+                          locale: event.locale || "—"
+                        ) %>
+                  </div>
+                <% end %>
+                <% if event.properties.present? %>
+                  <div class="admin-timeline__properties">
+                    <span class="admin-timeline__properties-label"><%= t("admin.users.show.properties") %></span>
+                    <pre class="admin-timeline__properties-pre"><%= JSON.pretty_generate(event.properties) %></pre>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="admin-empty-state">
+          <%= t("admin.users.show.empty") %>
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -38,7 +38,7 @@ module SetsWorkspaceProject
     return if @project
 
     if create_if_missing && bound_id.blank?
-      @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+      @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
       return
     end
 
@@ -93,9 +93,9 @@ module SetsWorkspaceProject
     project = project_for_tab_expiry
 
     if project && Workspace.bound_to_project?(session, project)
-      Workspace.expire_project_everywhere!(session, project)
+      Workspace.expire_project_everywhere!(session, project, request: request)
     else
-      Workspace.expire_tab_after_closure!(session, tab_id: workspace_tab_id)
+      Workspace.expire_tab_after_closure!(session, tab_id: workspace_tab_id, request: request)
     end
 
     redirect_to start_project_path, alert: I18n.t("workspace.tab_closed_expired")

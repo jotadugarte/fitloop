@@ -1,0 +1,68 @@
+<div class="admin-dashboard">
+  <header class="admin-dashboard__header">
+    <h1 class="admin-dashboard__title"><%= t("admin.users.index.title") %></h1>
+    <p class="admin-dashboard__tagline"><%= t("admin.users.index.tagline") %></p>
+  </header>
+
+  <%= form_with url: admin_usuarios_path, method: :get, local: true, class: "fit-section admin-ventas-filters" do |f| %>
+    <h2 class="fit-section__legend"><%= t("admin.users.index.search_legend") %></h2>
+    <div class="admin-ventas-filters__grid" style="grid-template-columns: 1fr auto; align-items: end;">
+      <div>
+        <%= f.label :q, t("admin.users.index.search_label"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.text_field :q, value: @q, class: "admin-ventas-field__input", placeholder: t("admin.users.index.search_placeholder") %>
+      </div>
+      <div class="admin-ventas-filters__actions">
+        <%= f.submit t("admin.users.index.search_submit"), class: "btn btn-secondary" %>
+        <% if @q.present? %>
+          <%= link_to t("admin.users.index.clear"), admin_usuarios_path, class: "btn btn-secondary btn--link" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <section class="fit-section">
+    <h2 class="fit-section__legend"><%= t("admin.users.index.list_legend") %></h2>
+    <div class="table-container" style="margin-left: -1.25rem; margin-right: -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem; margin-bottom: -1.15rem;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th><%= t("admin.users.index.col_id") %></th>
+            <th><%= t("admin.users.index.col_name") %></th>
+            <th><%= t("admin.users.index.col_email") %></th>
+            <th><%= t("admin.users.index.col_admin") %></th>
+            <th><%= t("admin.users.index.col_registered") %></th>
+            <th class="text-right"><%= t("admin.users.index.col_actions") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @users.any? %>
+            <% @users.each do |user| %>
+              <tr>
+                <td class="font-mono text-sm"><%= user.id %></td>
+                <td class="font-bold"><%= user.name.presence || "—" %></td>
+                <td><%= user.email %></td>
+                <td>
+                  <% if user.admin? %>
+                    <span class="badge badge--succeeded"><%= t("admin.users.index.admin_yes") %></span>
+                  <% else %>
+                    <span class="badge badge--pending"><%= t("admin.users.index.admin_no") %></span>
+                  <% end %>
+                </td>
+                <td class="admin-table__date"><%= user.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+                <td class="text-right">
+                  <%= link_to t("admin.users.index.view_timeline"), admin_usuario_path(user), class: "btn btn-secondary btn--compact", style: "text-decoration: none;" %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="6" class="admin-empty-state">
+                <%= t("admin.users.index.empty") %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

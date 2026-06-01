@@ -36,6 +36,19 @@ class ProjectsController < ApplicationController
       via_download_token: params[:download_token].present?
     )
 
+    Analytics::TrackEvent.call(
+      "download_completed",
+      user_id: current_user&.id,
+      anonymous_session_key: session[:anonymous_session_key],
+      project_id: @project.id,
+      nesting_run_id: @nesting_run.id,
+      idempotency_key: "download_completed_plan_#{current_user&.id}_#{@nesting_run.id}_#{Time.current.to_i / 10}",
+      ip: request.remote_ip,
+      user_agent: request.user_agent,
+      country_code: Analytics::ResolveCountry.call(request),
+      locale: I18n.locale.to_s
+    )
+
     attachment = @project.nested_dxf
     return head(:not_found) unless attachment.attached?
 
@@ -58,8 +71,8 @@ class ProjectsController < ApplicationController
   end
 
   def start
-    Workspace.discard!(session, tab_id: workspace_tab_id)
-    Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    Workspace.discard!(session, tab_id: workspace_tab_id, request: request)
+    Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
     redirect_to workshop_path
   end
 

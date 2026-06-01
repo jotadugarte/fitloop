@@ -21,6 +21,15 @@ module Accounts
       )
       OauthCollision.clear!(session)
       sign_in(:user, user)
+      Analytics::TrackEvent.call(
+        "user_logged_in",
+        user_id: user.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
       redirect_to root_path, notice: t("auth.merge.accepted")
     rescue Accounts::MergeRejected
       flash.now[:alert] = t("auth.merge.invalid_password")

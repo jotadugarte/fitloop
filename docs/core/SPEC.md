@@ -147,6 +147,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 | **REQ-FIT-ADMIN-001** | Admin foundation + `/admin/ventas` sales report (filters, CRC/USD tables, Hacienda totals, XLSX export, `cabys_code` on `payments`); stealth 404 gate on `/admin/*` | Pre-live |
+| **REQ-FIT-ANALYTICS-001** | Admin analytics & user event bitácora (dashboard, funnel stages, event catalog, analytics.yml thresholds, geo-IP, user timeline, A41 drift contract verifier) | Pre-live |
 
 ### REQ-FIT-AUTH-001 (detail)
 
@@ -216,10 +217,26 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Promotion:** On application boot, the initializer `config/initializers/promote_admins.rb` checks the `FITLOOP_ADMIN_EMAILS` environment variable. If present, it maps the comma-separated emails and updates the matched users setting `admin: true`. Promotion logic checks for the presence of the environment variable and database table before execution, preventing early setup or migration failures and warning log clutter.
 - **Admin routes:** Under the `/admin` namespace (linked to `/admin` root index).
 - **Stealth access gate:** `Admin::BaseController` enforces authorization via `require_admin!`. Unauthorized requests (both unauthenticated guest requests and authenticated non-admin users) raise `ActionController::RoutingError` which returns a standard **404 Not Found** response to the client. This avoids leaking the existence of the administrative endpoints.
-- **Admin dashboard skeleton:** Landing at `/admin` with links to **Ventas** (active: `/admin/ventas`, payment history, Hacienda declaration panels, XLSX export) and **Analytics** (pending).
+- **Admin dashboard skeleton:** Landing at `/admin` with links to **Ventas** (active: `/admin/ventas`, payment history, Hacienda declaration panels, XLSX export) and **Analytics** (active: `/admin/analytics` KPI dashboard + CSV export, `/admin/usuarios` user bitácora).
 - **Admin ventas (`/admin/ventas`):** Read-only reporting on `Payment` rows via `Admin::ReportingScope` (excludes `superseded_at` set). Filters by date (default: current month in `America/Costa_Rica`), status, payment method, and search; separate CRC/USD tables with independent pagination (`crc_page` / `usd_page`). Spanish product labels via `Admin::PaymentDisplayLabels` (e.g. `single_download` → “Procesamiento de anidado DXF”; `plan_N_months` from `product_description`). **Export (XLSX only):** `GET /admin/ventas/exportar` — workbook with per-currency detail + Hacienda summary sheets. Legacy `/admin/ventas/exportar-xlsx` redirects preserving query string. No CSV export.
 - **CAByS (Hacienda CR):** `payments.cabys_code` required, default `Payment::DEFAULT_CABYS_CODE` (`8314200000100`), assigned on create; backfill migration for legacy NULL rows.
 - **Admin layout:** A clean, minimal layout separate from the main public application shell. CSS rules are kept clean and maintainable under `app/assets/stylesheets/admin.css`.
+
+### REQ-FIT-ANALYTICS-001 (detail)
+
+**Scope:** Internal user analytics dashboard and per-user historical event timeline log (bitácora).
+
+- **Data Model:** Flat `user_events` table with standard columns and `properties` JSONB for metadata. Append-only.
+- **Domain types (CbC):** Analytics ingestion uses value objects under `app/models/analytics/` at the `TrackEvent` boundary — `Analytics::EventType` (catalog-validated identifier) and `Analytics::EventPayload` (validated properties + session/geo context, `to_event_attributes` for persistence). Call sites may pass keyword args; `TrackEvent` wraps them via `EventPayload.from_kwargs` before `call_payload`.
+- **Pipeline:** `Analytics::TrackEvent` service records events. Critical events are recorded synchronously in the request path; low-priority events are enqueued asynchronously to `TrackEventJob` with a 300/hour rate limit.
+- **Queue isolation:** `TrackEventJob` runs on the dedicated `:analytics` Solid Queue queue to prevent high-volume low-priority writes from competing with time-sensitive nesting jobs on the `:default` queue.
+- **Funnel Stages:** Sequential conversion stages matching `Analytics::FunnelStages::ORDERED`.
+- **Thread-safe config:** `Analytics::EventCatalog` and `Analytics::Thresholds` use a class-level `Mutex` to guard memoized class variables. `Thresholds` hot-reloads on file mtime change; `EventCatalog` memoizes once per boot.
+- **Session merge:** `Analytics::MergeAnonymousSession` reassigns anonymous session events to `user_id` on login/register. Uses `in_batches(of: 500)` to prevent long-lock `UPDATE` statements.
+- **Drift Governance (A41):** 6-layer contract check enforcing consistency between `ANALYTICS_AND_REPORTING_CONTRACT.md`, `analytics_event_catalog.yml`, code constants, and the `SpecDocVerifier` test suite.
+- **Geolocation:** Country code resolved via local GeoLite2 database or Cloudflare header fallback.
+- **Anonymization:** Deleting accounts anonymizes user record, but keeps historical timelines by storing email snapshots inside `account_deleted` event properties.
+- **Dashboard UI:** Graced with custom Chart.js v4 graphs in internal `/admin/analytics` and `/admin/usuarios` routes.
 
 ### REQ-FIT-BILL-001 (detail)
 

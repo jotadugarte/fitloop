@@ -71,6 +71,16 @@ module Users
     end
 
     def handle_successful_sign_up
+      Analytics::TrackEvent.call(
+        "account_registered",
+        user_id: resource.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
       if resource.active_for_authentication?
         set_flash_message! :notice, :signed_up
         sign_up(resource_name, resource)

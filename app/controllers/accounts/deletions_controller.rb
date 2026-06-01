@@ -41,8 +41,23 @@ module Accounts
         return render :confirm, status: :unprocessable_entity
       end
 
-      Workspace.discard!(session)
+      Workspace.discard!(session, request: request)
       user = current_user
+      
+      Analytics::TrackEvent.call(
+        "account_deleted",
+        user_id: user.id,
+        anonymous_session_key: session[:anonymous_session_key],
+        properties: {
+          historical_email: user.email,
+          historical_name: user.name
+        },
+        ip: request.remote_ip,
+        user_agent: request.user_agent,
+        country_code: Analytics::ResolveCountry.call(request),
+        locale: I18n.locale.to_s
+      )
+
       sign_out(:user)
       user.destroy!
       session.delete(:account_deletion_acknowledged)

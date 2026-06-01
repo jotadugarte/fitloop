@@ -20,6 +20,18 @@ class DownloadPaywallController < ApplicationController
     @plan_download_included = Billing::PlanDownloadAvailability.plan_included?(user: current_user)
     @single_download_checkout_allowed =
       Billing::PlanDownloadAvailability.single_download_checkout_allowed?(user: current_user)
+
+    Analytics::TrackEvent.call(
+      "paywall_viewed",
+      user_id: current_user&.id,
+      anonymous_session_key: session[:anonymous_session_key],
+      tab_id: workspace_tab_id,
+      project_id: @project&.id,
+      ip: request.remote_ip,
+      user_agent: request.user_agent,
+      country_code: Analytics::ResolveCountry.call(request),
+      locale: I18n.locale.to_s
+    )
   end
 
   private
@@ -35,7 +47,7 @@ class DownloadPaywallController < ApplicationController
       return
     end
 
-    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id)
+    @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
 
     nil if performed?
   end
