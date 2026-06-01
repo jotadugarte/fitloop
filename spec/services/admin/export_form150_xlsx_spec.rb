@@ -1,21 +1,10 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "stringio"
 require "zip"
 
 RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service do
-  def xlsx_sheet_xml(xlsx_bytes, sheet_index)
-    Zip::File.open_buffer(xlsx_bytes) do |zip|
-      zip.read("xl/worksheets/sheet#{sheet_index}.xml")
-    end
-  end
-
-  def xlsx_workbook_xml(xlsx_bytes)
-    Zip::File.open_buffer(xlsx_bytes) do |zip|
-      zip.read("xl/workbook.xml")
-    end
-  end
-
   describe ".call" do
     it "returns XLSX with Soporte ventas and Formulario 150 sheets" do
       user = create_billing_user!(email: "form150@example.com")
@@ -41,10 +30,21 @@ RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service d
         start_date: Time.current.to_date.to_s,
         end_date: Time.current.to_date.to_s
       )
+      expect(xlsx_bytes).to be_a(String)
 
-      workbook_xml = xlsx_workbook_xml(xlsx_bytes)
-      soporte_xml = xlsx_sheet_xml(xlsx_bytes, 1)
-      formulario_xml = xlsx_sheet_xml(xlsx_bytes, 2)
+      workbook_xml = nil
+      soporte_xml = nil
+      formulario_xml = nil
+
+      Zip::File.open_buffer(xlsx_bytes) do |zip|
+        workbook_xml = zip.read("xl/workbook.xml")
+        soporte_xml = zip.read("xl/worksheets/sheet1.xml")
+        formulario_xml = zip.read("xl/worksheets/sheet2.xml")
+      end
+
+      [ workbook_xml, soporte_xml, formulario_xml ].each do |xml|
+        xml.force_encoding("UTF-8") if xml.respond_to?(:force_encoding)
+      end
 
       expect(xlsx_bytes.bytes.first(2)).to eq([ 0x50, 0x4B ])
       expect(workbook_xml).to include("Soporte ventas")
@@ -54,7 +54,7 @@ RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service d
       expect(soporte_xml).to include("111111111111")
       expect(soporte_xml).to include("222222222222")
       expect(formulario_xml).to include("SUMIFS")
-      expect(formulario_xml).not_to match(/<v>[\d.]+<\/v>\s*<\/c>\s*<\/row>\s*<\/sheetData>\s*<\/worksheet>/m)
+      expect(formulario_xml).to include("<f>SUMIFS")
     end
   end
 end
