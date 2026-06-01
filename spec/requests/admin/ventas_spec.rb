@@ -280,7 +280,7 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "honors status filters in the export scope" do
-        filter = Admin::VentasFilter.new(status: [ "succeeded" ])
+        filter = Admin::VentasFilter.new({ status: [ "succeeded" ] })
         base = filter.apply(Admin::ReportingScope.call)
 
         expect(filter.apply_status(base).count).to eq(1)
