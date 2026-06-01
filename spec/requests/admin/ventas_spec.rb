@@ -299,4 +299,105 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       expect(response).to redirect_to(%r{/admin/ventas/exportar\?})
     end
   end
+
+  describe "GET /admin/ventas/exportar-formulario-150 [REQ-FIT-ADMIN-001]" do
+    context "when unauthenticated" do
+      it "returns 404 Not Found" do
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when authenticated as non-admin" do
+      it "returns 404 Not Found" do
+        sign_in_user! non_admin_user
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when authenticated as admin" do
+      before do
+        @user = create_billing_user!(email: "f150@example.com")
+        cr_zone = Time.find_zone("America/Costa_Rica")
+
+        @crc_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "sinpe_crc", currency: "crc",
+          amount: 5000, subtotal: 5000, total_amount: 5650, tax_amount: 650,
+          paid_at: cr_zone.parse("2026-05-20 12:00:00"),
+          created_at: cr_zone.parse("2026-04-01 12:00:00"),
+          purchaser_name: "Form150 CRC", purchaser_email: "crc@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_crc",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "333333333333"
+        )
+        @usd_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "card_usd", currency: "usd",
+          amount: 10, subtotal: 10, total_amount: 10, tax_amount: 0,
+          paid_at: cr_zone.parse("2026-05-25 12:00:00"),
+          created_at: cr_zone.parse("2026-04-01 12:00:00"),
+          purchaser_name: "Form150 USD", purchaser_email: "usd@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_usd",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "444444444444"
+        )
+        @failed_payment = Payment.create!(
+          user: @user, status: "failed", payment_method: "card_crc", currency: "crc",
+          amount: 100, subtotal: 100, total_amount: 100,
+          paid_at: cr_zone.parse("2026-05-22 12:00:00"),
+          created_at: Time.current,
+          purchaser_name: "Form150 Failed", purchaser_email: "fail@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_fail",
+          onvo_mode: "test", gateway_status: "failed"
+        )
+        sign_in_user! admin_user
+      end
+
+      it "returns 200 OK with xlsx attachment" do
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("spreadsheetml.sheet")
+        expect(response.headers["Content-Disposition"]).to include("attachment")
+        expect(response.headers["Content-Disposition"]).to include("formulario-150")
+        expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
+      end
+
+      it "honors status filter query params" do
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new({ status: [ "succeeded" ] }, date_column: :paid_at)
+        base = filter.apply(Admin::ReportingScope.call)
+        expect(filter.apply_status(base).count).to eq(2)
+      end
+
+      it "honors payment_method and search query params" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { payment_method: [ "sinpe_crc" ], search: "crc@example.com" }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new(
+          { payment_method: [ "sinpe_crc" ], search: "crc@example.com" },
+          date_column: :paid_at
+        )
+        scope = filter.apply_status(filter.apply(Admin::ReportingScope.call))
+        expect(scope.count).to eq(1)
+        expect(scope.first).to eq(@crc_payment)
+      end
+
+      it "filters by paid_at date window, not created_at" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31", status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new(
+          { start_date: "2026-05-01", end_date: "2026-05-31", status: [ "succeeded" ] },
+          date_column: :paid_at
+        )
+        scope = filter.apply_status(filter.apply(Admin::ReportingScope.call))
+        expect(scope).to contain_exactly(@crc_payment, @usd_payment)
+      end
+    end
+  end
 end
