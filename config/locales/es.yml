@@ -798,6 +798,18 @@ es:
         subject: "Instrucciones de confirmación"
 
   admin:
+    dashboard:
+      title: "Panel de administración"
+      tagline: "Bienvenido/a. Selecciona una sección para ver los reportes correspondientes:"
+      active_badge: "Activo"
+      ventas:
+        title: "Ventas y Reportes"
+        description: "Monitoreo de ingresos, facturación, reporte de IVA para Hacienda Costa Rica, y exportación detallada de transacciones."
+        cta: "Ir a Ventas"
+      analytics:
+        title: "Estadísticas y Uso"
+        description: "Métricas de uso del optimizador, volumen de DXFs procesados y analíticas de retención y actividad de usuarios."
+        cta: "Ir a Analytics"
     events:
       workspace_started: "Espacio de trabajo iniciado"
       first_dxf_uploaded: "Primer archivo DXF cargado"
@@ -855,6 +867,22 @@ es:
         exhausted_quotas: "Cuotas Agotadas (Mes)"
         exhausted_quotas_sub: "Usuarios con descargas agotadas"
       funnel_chart: "Embudo de Conversión"
+      export_csv:
+        headers:
+          id: "ID"
+          event_type: "Tipo de Evento"
+          priority: "Prioridad"
+          occurred_at: "Fecha de Ocurrencia"
+          user_id: "ID de Usuario"
+          anonymous_session_key: "Clave de Sesión Anónima"
+          tab_id: "ID de Pestaña"
+          project_id: "ID de Proyecto"
+          nesting_run_id: "ID de Ejecución de Anidado"
+          ip: "IP"
+          user_agent: "Agente de Usuario"
+          country_code: "Código de País"
+          locale: "Idioma"
+          properties: "Propiedades"
     users:
       index:
         title: "Bitácora de Usuarios"

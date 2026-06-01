@@ -1,36 +1,34 @@
 <div class="admin-dashboard">
   <header class="admin-dashboard__header">
-    <h1 class="admin-dashboard__title">Panel de administración</h1>
-    <p class="admin-dashboard__tagline">Bienvenido/a. Selecciona una sección para ver los reportes correspondientes:</p>
+    <h1 class="admin-dashboard__title"><%= t("admin.dashboard.title") %></h1>
+    <p class="admin-dashboard__tagline"><%= t("admin.dashboard.tagline") %></p>
   </header>
 
   <div class="admin-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-    <!-- Ventas Card (Active) -->
     <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
       <div>
         <h2 class="admin-panel__title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <span>Ventas y Reportes</span>
-          <span class="badge badge--succeeded">Activo</span>
+          <span><%= t("admin.dashboard.ventas.title") %></span>
+          <span class="badge badge--succeeded"><%= t("admin.dashboard.active_badge") %></span>
         </h2>
         <p style="color: var(--fit-text-muted, #5c6d82); font-size: 0.9rem; line-height: 1.5; margin: 0;">
-          Monitoreo de ingresos, facturación, reporte de IVA para Hacienda Costa Rica, y exportación detallada de transacciones.
+          <%= t("admin.dashboard.ventas.description") %>
         </p>
       </div>
-      <%= link_to "Ir a Ventas", admin_ventas_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
+      <%= link_to t("admin.dashboard.ventas.cta"), admin_ventas_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
     </div>
 
-    <!-- Analytics Card (Active) -->
     <div class="admin-panel" style="display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem;">
       <div>
         <h2 class="admin-panel__title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <span>Estadísticas y Uso</span>
-          <span class="badge badge--succeeded">Activo</span>
+          <span><%= t("admin.dashboard.analytics.title") %></span>
+          <span class="badge badge--succeeded"><%= t("admin.dashboard.active_badge") %></span>
         </h2>
         <p style="color: var(--fit-text-muted, #5c6d82); font-size: 0.9rem; line-height: 1.5; margin: 0;">
-          Métricas de uso del optimizador, volumen de DXFs procesados y analíticas de retención y actividad de usuarios.
+          <%= t("admin.dashboard.analytics.description") %>
         </p>
       </div>
-      <%= link_to "Ir a Analytics", admin_analytics_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
+      <%= link_to t("admin.dashboard.analytics.cta"), admin_analytics_path, class: "btn btn-primary", style: "text-decoration: none; text-align: center; display: block; width: 100%; padding: 0.5rem; font-weight: 500;" %>
     </div>
   </div>
 </div>

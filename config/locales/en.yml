@@ -783,6 +783,18 @@ en:
         subject: "Confirmation instructions"
 
   admin:
+    dashboard:
+      title: "Administration panel"
+      tagline: "Welcome. Choose a section to view the corresponding reports:"
+      active_badge: "Active"
+      ventas:
+        title: "Sales & Reports"
+        description: "Revenue monitoring, billing, Costa Rica tax reporting, and detailed transaction export."
+        cta: "Go to Sales"
+      analytics:
+        title: "Usage Statistics"
+        description: "Optimizer usage metrics, DXF volume processed, and user retention and activity analytics."
+        cta: "Go to Analytics"
     events:
       workspace_started: "Workspace started"
       first_dxf_uploaded: "First DXF file uploaded"
@@ -840,6 +852,22 @@ en:
         exhausted_quotas: "Exhausted Quotas (Month)"
         exhausted_quotas_sub: "Users with exhausted downloads"
       funnel_chart: "Conversion Funnel"
+      export_csv:
+        headers:
+          id: "ID"
+          event_type: "Event Type"
+          priority: "Priority"
+          occurred_at: "Occurred At"
+          user_id: "User ID"
+          anonymous_session_key: "Anonymous Session Key"
+          tab_id: "Tab ID"
+          project_id: "Project ID"
+          nesting_run_id: "Nesting Run ID"
+          ip: "IP"
+          user_agent: "User Agent"
+          country_code: "Country Code"
+          locale: "Locale"
+          properties: "Properties"
     users:
       index:
         title: "User Activity Log"

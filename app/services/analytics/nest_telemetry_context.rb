@@ -3,19 +3,30 @@
 module Analytics
   # Resolves user/session context for nest_completed telemetry from pre-nest project events.
   class NestTelemetryContext
+    WORKSHOP_CONTEXT_TYPES = %w[workspace_started first_dxf_uploaded].freeze
+
     def self.from(project:, nesting_run:)
       primary_anchor = nesting_run.started_at || nesting_run.created_at
-      event = find_event(project, primary_anchor)
-      fallback_anchor = nesting_run.finished_at || Time.current
-      event ||= find_event(project, fallback_anchor) if fallback_anchor > primary_anchor
+      event = find_event(project, anchor: primary_anchor)
+
+      if event.nil?
+        fallback_anchor = nesting_run.finished_at || Time.current
+        if fallback_anchor > primary_anchor
+          event = find_event(
+            project,
+            anchor: fallback_anchor,
+            event_types: WORKSHOP_CONTEXT_TYPES
+          )
+        end
+      end
+
       new(event)
     end
 
-    def self.find_event(project, anchor)
-      UserEvent.where(project_id: project.id)
-               .where("occurred_at <= ?", anchor)
-               .order(occurred_at: :desc)
-               .first
+    def self.find_event(project, anchor:, event_types: nil)
+      scope = UserEvent.where(project_id: project.id).where("occurred_at <= ?", anchor)
+      scope = scope.where(event_type: event_types) if event_types.present?
+      scope.order(occurred_at: :desc).first
     end
 
     private_class_method :find_event

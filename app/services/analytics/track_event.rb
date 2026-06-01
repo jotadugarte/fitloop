@@ -52,6 +52,8 @@ module Analytics
       [event_type_str, props]
     end
 
+    private_class_method :validate!
+
     def self.persist_critical!(event_attributes, idempotency_key)
       UserEvent.create!(event_attributes)
     rescue ActiveRecord::RecordNotUnique

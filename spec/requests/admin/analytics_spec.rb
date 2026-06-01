@@ -118,10 +118,10 @@ RSpec.describe "Admin::AnalyticsController", "[REQ-FIT-ANALYTICS-001]", type: :r
     it "displays single vs plan payments, plans by tier, and exhausted quota counts" do
       get "/admin/analytics"
 
-      expect(response.body).to include("Pagos Únicos")
-      expect(response.body).to include("Pagos de Planes")
-      expect(response.body).to include("Planes 1 Mes")
-      expect(response.body).to include("Cuotas Agotadas (Mes)")
+      expect(response.body).to include(I18n.t("admin.analytics.monetization.single_payments"))
+      expect(response.body).to include(I18n.t("admin.analytics.monetization.plan_payments"))
+      expect(response.body).to include(I18n.t("admin.analytics.monetization.plans_1_month"))
+      expect(response.body).to include(I18n.t("admin.analytics.monetization.exhausted_quotas"))
     end
   end
 

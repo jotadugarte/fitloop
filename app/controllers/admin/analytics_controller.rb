@@ -51,22 +51,7 @@ module Admin
 
     def export_csv
       csv_data = CSV.generate(headers: true) do |csv|
-        csv << [
-          "ID",
-          "Event Type",
-          "Priority",
-          "Occurred At",
-          "User ID",
-          "Anonymous Session Key",
-          "Tab ID",
-          "Project ID",
-          "Nesting Run ID",
-          "IP",
-          "User Agent",
-          "Country Code",
-          "Locale",
-          "Properties"
-        ]
+        csv << csv_header_labels
 
         @events.find_each do |event|
           csv << [
@@ -95,6 +80,15 @@ module Admin
     end
 
     private
+
+    CSV_HEADER_KEYS = %w[
+      id event_type priority occurred_at user_id anonymous_session_key tab_id
+      project_id nesting_run_id ip user_agent country_code locale properties
+    ].freeze
+
+    def csv_header_labels
+      CSV_HEADER_KEYS.map { |key| t("admin.analytics.export_csv.headers.#{key}") }
+    end
 
     def set_filters_and_events
       @start_date = begin
