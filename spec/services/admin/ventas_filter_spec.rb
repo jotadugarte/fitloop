@@ -58,4 +58,54 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
       end
     end
   end
+
+  describe "#apply with date_column: :paid_at" do
+    it "filters by paid_at in CR timezone, not created_at" do
+      cr_zone = Time.find_zone("America/Costa_Rica")
+      user = create_billing_user!(email: "paid-at-filter@example.com")
+
+      paid_recently = Payment.create!(
+        user: user, status: "succeeded", payment_method: "card_crc", currency: "crc",
+        amount: 100, subtotal: 100, total_amount: 100,
+        paid_at: cr_zone.parse("2026-05-15 10:00:00"),
+        created_at: cr_zone.parse("2026-04-01 10:00:00"),
+        gateway_provider: "onvo", onvo_payment_intent_id: "pi_paid_recent",
+        onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download"
+      )
+      paid_old = Payment.create!(
+        user: user, status: "succeeded", payment_method: "card_crc", currency: "crc",
+        amount: 200, subtotal: 200, total_amount: 200,
+        paid_at: cr_zone.parse("2026-04-10 10:00:00"),
+        created_at: cr_zone.parse("2026-05-15 10:00:00"),
+        gateway_provider: "onvo", onvo_payment_intent_id: "pi_paid_old",
+        onvo_mode: "test", gateway_status: "succeeded", purpose: "single_download"
+      )
+
+      filter = described_class.new(
+        { start_date: "2026-05-01", end_date: "2026-05-31" },
+        date_column: :paid_at
+      )
+      scope = filter.apply(Payment.all)
+
+      expect(scope).to include(paid_recently)
+      expect(scope).not_to include(paid_old)
+    end
+
+    it "excludes payments with NULL paid_at when a date range is applied" do
+      user = create_billing_user!(email: "null-paid-at@example.com")
+      pending = Payment.create!(
+        user: user, status: "pending", payment_method: "card_crc", currency: "crc",
+        amount: 100, subtotal: 100, total_amount: 100, paid_at: nil,
+        created_at: Time.current, gateway_provider: "onvo", onvo_payment_intent_id: "pi_null",
+        onvo_mode: "test", gateway_status: "processing", purpose: "single_download"
+      )
+
+      filter = described_class.new(
+        { start_date: Time.current.to_date.to_s, end_date: Time.current.to_date.to_s },
+        date_column: :paid_at
+      )
+
+      expect(filter.apply(Payment.all)).not_to include(pending)
+    end
+  end
 end
