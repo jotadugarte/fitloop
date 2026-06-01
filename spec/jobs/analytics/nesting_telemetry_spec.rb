@@ -64,4 +64,28 @@ RSpec.describe "Nesting job telemetry", "[REQ-FIT-ANALYTICS-001]", type: :job do
     expect(event.properties["pieces_count"]).to be_a(Integer)
     expect(event.properties["orphans_by_reason"]).to be_a(Hash)
   end
+
+  it "ignores project events recorded after the nesting run started when resolving context" do
+    other_user = create_billing_user!(email: "later-session@example.com")
+    UserEvent.create!(
+      event_type: "paywall_viewed",
+      project_id: project.id,
+      user_id: other_user.id,
+      anonymous_session_key: "anon-late",
+      tab_id: "tab-late",
+      ip: "10.0.0.1",
+      user_agent: "LateAgent",
+      country_code: "US",
+      locale: "en",
+      priority: "low",
+      occurred_at: nesting_run.started_at + 1.second
+    )
+
+    NestingJob.perform_now(nesting_run.id)
+
+    event = UserEvent.where(event_type: "nest_completed").last
+    expect(event.user_id).to eq(user.id)
+    expect(event.anonymous_session_key).to eq("anon-1234")
+    expect(event.tab_id).to eq("tab-abc")
+  end
 end

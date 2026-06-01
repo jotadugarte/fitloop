@@ -32,6 +32,16 @@ RSpec.describe "Admin::UsersController", "[REQ-FIT-ANALYTICS-001]", type: :reque
       expect(response.body).to include("Alice Smith")
       expect(response.body).not_to include("Bob Jones")
     end
+
+    it "treats ILIKE wildcards literally in search query" do
+      create_billing_user!(email: "percent@test.com").tap { |u| u.update!(name: "100% Done") }
+
+      get "/admin/usuarios", params: { q: "100%" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("100% Done")
+      expect(response.body).not_to include("Alice Smith")
+    end
   end
 
   describe "GET /admin/usuarios/:id" do

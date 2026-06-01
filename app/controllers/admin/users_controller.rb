@@ -6,8 +6,11 @@ module Admin
       @q = params[:q].to_s.strip
       @users = User.all
       if @q.present?
-        # Search by email or name (case insensitive)
-        @users = @users.where("LOWER(email) LIKE :query OR LOWER(name) LIKE :query", query: "%#{@q.downcase}%")
+        query = Admin::IlikeSearch.pattern(@q.downcase)
+        @users = @users.where(
+          "LOWER(email) LIKE :query ESCAPE '\\' OR LOWER(name) LIKE :query ESCAPE '\\'",
+          query: query
+        )
       end
       @users = @users.order(:email)
     end

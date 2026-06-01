@@ -1,12 +1,12 @@
 <div class="admin-dashboard">
   <header class="admin-dashboard__header admin-dashboard__header--split">
     <div>
-      <h1 class="admin-dashboard__title">Estadísticas y Uso</h1>
-      <p class="admin-dashboard__tagline">Métricas del embudo de conversión y actividad del optimizador</p>
+      <h1 class="admin-dashboard__title"><%= t("admin.analytics.title") %></h1>
+      <p class="admin-dashboard__tagline"><%= t("admin.analytics.tagline") %></p>
     </div>
     <div class="admin-ventas-actions">
       <%= link_to admin_export_analytics_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
-        <span>⬇ Exportar Eventos (.csv)</span>
+        <span><%= t("admin.analytics.export_events") %></span>
       <% end %>
     </div>
   </header>
@@ -14,124 +14,118 @@
   <% if @bot_heuristic %>
     <div class="panel panel--alert">
       <p style="margin: 0; font-weight: 600; color: var(--fit-alert-text);">
-        ⚠️ Advertencia: Tráfico sospechoso detectado. El volumen de eventos de baja prioridad en la última hora supera el umbral límite de <%= Analytics::Thresholds.low_priority_events_per_hour %>.
+        <%= t("admin.analytics.bot_alert", threshold: Analytics::Thresholds.low_priority_events_per_hour) %>
       </p>
     </div>
   <% end %>
 
-  <!-- Filters panel -->
   <%= form_with url: admin_analytics_path, method: :get, local: true, class: "fit-section admin-ventas-filters" do |f| %>
-    <h2 class="fit-section__legend">Filtros de Reporte</h2>
+    <h2 class="fit-section__legend"><%= t("admin.analytics.filters.legend") %></h2>
     <div class="admin-ventas-filters__grid">
       <div>
-        <%= f.label :start_date, "Fecha Inicio", class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.label :start_date, t("admin.analytics.filters.start_date"), class: "admin-stat-card__label admin-ventas-field__label" %>
         <%= f.date_field :start_date, value: @start_date, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
-        <%= f.label :end_date, "Fecha Fin", class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.label :end_date, t("admin.analytics.filters.end_date"), class: "admin-stat-card__label admin-ventas-field__label" %>
         <%= f.date_field :end_date, value: @end_date, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
-        <%= f.label :locale, "Idioma", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :locale, options_for_select([["Todos", ""]] + @available_locales.map { |l| [l == "es" ? "Español" : (l == "en" ? "Inglés" : l.upcase), l] }, @locale), {}, class: "admin-ventas-field__input" %>
+        <%= f.label :locale, t("admin.analytics.filters.locale"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :locale, options_for_select([[t("admin.analytics.filters.all"), ""]] + @available_locales.map { |l| [l == "es" ? t("admin.analytics.filters.locale_es") : (l == "en" ? t("admin.analytics.filters.locale_en") : l.upcase), l] }, @locale), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
-        <%= f.label :payment_method, "Método de Pago", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :payment_method, options_for_select([["Todos", ""]] + @available_payment_methods.map { |pm| [Admin::PaymentDisplayLabels.payment_method_label(pm), pm] }, @payment_method), {}, class: "admin-ventas-field__input" %>
+        <%= f.label :payment_method, t("admin.analytics.filters.payment_method"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :payment_method, options_for_select([[t("admin.analytics.filters.all"), ""]] + @available_payment_methods.map { |pm| [Admin::PaymentDisplayLabels.payment_method_label(pm), pm] }, @payment_method), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div>
-        <%= f.label :currency, "Moneda", class: "admin-stat-card__label admin-ventas-field__label" %>
-        <%= f.select :currency, options_for_select([["Todos", ""]] + @available_currencies.map { |c| [c.to_s.downcase == 'crc' ? 'Colones (CRC)' : (c.to_s.downcase == 'usd' ? 'Dólares (USD)' : c.upcase), c] }, @currency), {}, class: "admin-ventas-field__input" %>
+        <%= f.label :currency, t("admin.analytics.filters.currency"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :currency, options_for_select([[t("admin.analytics.filters.all"), ""]] + @available_currencies.map { |c| [c.to_s.downcase == "crc" ? t("admin.analytics.filters.currency_crc") : (c.to_s.downcase == "usd" ? t("admin.analytics.filters.currency_usd") : c.upcase), c] }, @currency), {}, class: "admin-ventas-field__input" %>
       </div>
 
       <div class="admin-ventas-filters__actions">
-        <%= f.submit "Filtrar", class: "btn btn-secondary" %>
-        <%= link_to "Limpiar", admin_analytics_path, class: "btn btn-secondary btn--link" %>
+        <%= f.submit t("admin.analytics.filters.submit"), class: "btn btn-secondary" %>
+        <%= link_to t("admin.analytics.filters.clear"), admin_analytics_path, class: "btn btn-secondary btn--link" %>
       </div>
     </div>
   <% end %>
 
-  <!-- KPI Grid -->
   <section class="fit-section">
-    <h2 class="fit-section__legend">Métricas de Conversión y Uso</h2>
+    <h2 class="fit-section__legend"><%= t("admin.analytics.conversion.legend") %></h2>
     <div class="analytics-grid" style="margin-bottom: 0;">
       <div class="metric-card">
-        <h3 class="metric-card__title">Proyectos Iniciados</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.conversion.workspace_started") %></h3>
         <div class="metric-card__value"><%= @funnel_counts["workspace_started"] %></div>
-        <p class="metric-card__subtitle">Eventos de inicio (<code>workspace_started</code>) registrados</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.conversion.workspace_started_sub").html_safe %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">DXF Cargados</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.conversion.first_dxf") %></h3>
         <div class="metric-card__value"><%= @funnel_counts["first_dxf_uploaded"] %></div>
-        <p class="metric-card__subtitle">Eventos de carga (<code>first_dxf_uploaded</code>) registrados</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.conversion.first_dxf_sub").html_safe %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">Nidos Completados</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.conversion.nest_completed") %></h3>
         <div class="metric-card__value"><%= @funnel_counts["nest_completed"] %></div>
-        <p class="metric-card__subtitle">Eventos de anidado (<code>nest_completed</code>) registrados</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.conversion.nest_completed_sub").html_safe %></p>
       </div>
 
       <div class="metric-card <%= 'metric--alert' if @conversion_alert %>">
-        <h3 class="metric-card__title">Conversión Paywall</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.conversion.paywall") %></h3>
         <div class="metric-card__value"><%= @conversion_percent %>%</div>
         <p class="metric-card__subtitle">
           <% if @conversion_alert %>
-            ⚠️ Por debajo de <%= Analytics::Thresholds.funnel_conversion_min_percent %>%
+            <%= t("admin.analytics.conversion.below_min", min: Analytics::Thresholds.funnel_conversion_min_percent) %>
           <% else %>
-            Normal (Mín. <%= Analytics::Thresholds.funnel_conversion_min_percent %>%)
+            <%= t("admin.analytics.conversion.normal", min: Analytics::Thresholds.funnel_conversion_min_percent) %>
           <% end %>
         </p>
       </div>
     </div>
   </section>
 
-  <!-- Monetization KPI Grid -->
   <section class="fit-section">
-    <h2 class="fit-section__legend">Métricas de Monetización y Facturación</h2>
+    <h2 class="fit-section__legend"><%= t("admin.analytics.monetization.legend") %></h2>
     <div class="analytics-grid" style="margin-bottom: 0;">
       <div class="metric-card">
-        <h3 class="metric-card__title">Pagos Únicos</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.monetization.single_payments") %></h3>
         <div class="metric-card__value"><%= @single_payments_count %></div>
-        <p class="metric-card__subtitle">Descargas únicas facturadas</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.monetization.single_payments_sub") %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">Pagos de Planes</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.monetization.plan_payments") %></h3>
         <div class="metric-card__value"><%= @plan_payments_count %></div>
-        <p class="metric-card__subtitle">Suscripciones a planes facturados</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.monetization.plan_payments_sub") %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">Planes 1 Mes</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.monetization.plans_1_month") %></h3>
         <div class="metric-card__value"><%= @plans_1_month %></div>
-        <p class="metric-card__subtitle">Suscripciones activas de 1 mes</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.monetization.plans_1_month_sub") %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">Planes 2 / 4 Meses</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.monetization.plans_multi") %></h3>
         <div class="metric-card__value"><%= @plans_2_month + @plans_4_month %></div>
-        <p class="metric-card__subtitle">
-          2 Meses: <strong><%= @plans_2_month %></strong> | 4 Meses: <strong><%= @plans_4_month %></strong>
-        </p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.monetization.plans_multi_sub", two: @plans_2_month, four: @plans_4_month).html_safe %></p>
       </div>
 
       <div class="metric-card">
-        <h3 class="metric-card__title">Cuotas Agotadas (Mes)</h3>
+        <h3 class="metric-card__title"><%= t("admin.analytics.monetization.exhausted_quotas") %></h3>
         <div class="metric-card__value"><%= @exhausted_quotas_count %></div>
-        <p class="metric-card__subtitle">Usuarios con descargas agotadas</p>
+        <p class="metric-card__subtitle"><%= t("admin.analytics.monetization.exhausted_quotas_sub") %></p>
       </div>
     </div>
   </section>
 
-  <!-- Funnel Chart -->
   <div class="fit-section">
-    <h2 class="fit-section__legend">Embudo de Conversión</h2>
+    <h2 class="fit-section__legend"><%= t("admin.analytics.funnel_chart") %></h2>
     <div class="analytics-chart-container" style="height: 300px; margin-bottom: 0;"
          data-controller="admin-chart"
          data-admin-chart-labels-value="<%= Analytics::FunnelStages::ORDERED.map { |stage| event_label(stage) }.to_json %>"

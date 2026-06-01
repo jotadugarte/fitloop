@@ -84,62 +84,55 @@ class SpecDocVerifier
     end
 
     contract_content = File.read(CONTRACT_PATH)
+    verify_event_catalog!(errors)
+    verify_funnel_stages!(errors, contract_content)
+    verify_xlsx_headers!(errors, contract_content)
+    verify_threshold_keys!(errors, contract_content)
+  end
 
-    # Event Catalog match
-    if File.file?(EVENT_CATALOG_PATH)
-      require "yaml"
-      yaml_data = YAML.load_file(EVENT_CATALOG_PATH)
-      if yaml_data.is_a?(Hash)
-        yaml_events = yaml_data.keys
-        begin
-          catalog_events = Analytics::EventCatalog.all_event_types
-          yaml_events.each do |event|
-            errors << "event type #{event} from catalog YAML not registered in Analytics::EventCatalog" unless catalog_events.include?(event)
-          end
-        rescue NameError
-          errors << "Analytics::EventCatalog is not defined"
-        end
-      else
-        errors << "invalid config/analytics_event_catalog.yml format"
-      end
-    else
-      errors << "missing config/analytics_event_catalog.yml"
+  def verify_event_catalog!(errors)
+    return errors << "missing config/analytics_event_catalog.yml" unless File.file?(EVENT_CATALOG_PATH)
+
+    require "yaml"
+    yaml_data = YAML.load_file(EVENT_CATALOG_PATH)
+    return errors << "invalid config/analytics_event_catalog.yml format" unless yaml_data.is_a?(Hash)
+
+    catalog_events = Analytics::EventCatalog.all_event_types
+    yaml_data.each_key do |event|
+      errors << "event type #{event} from catalog YAML not registered in Analytics::EventCatalog" unless catalog_events.include?(event)
     end
+  rescue NameError
+    errors << "Analytics::EventCatalog is not defined"
+  end
 
-    # Funnel stages match
-    begin
-      Analytics::FunnelStages::ORDERED.each do |stage|
-        errors << "funnel stage #{stage} not found in contract" unless contract_content.include?(stage)
-      end
-    rescue NameError
-      errors << "Analytics::FunnelStages::ORDERED is not defined"
+  def verify_funnel_stages!(errors, contract_content)
+    Analytics::FunnelStages::ORDERED.each do |stage|
+      errors << "funnel stage #{stage} not found in contract" unless contract_content.include?(stage)
     end
+  rescue NameError
+    errors << "Analytics::FunnelStages::ORDERED is not defined"
+  end
 
-    # Admin::ExportPaymentsXlsx detail and summary headers listed in contract
-    begin
-      Admin::ExportPaymentsXlsx::DETAIL_HEADERS.each do |header|
-        errors << "XLSX detail header '#{header}' not listed in contract" unless contract_content.include?(header)
-      end
-      Admin::ExportPaymentsXlsx::SUMMARY_HEADERS.each do |header|
-        errors << "XLSX summary header '#{header}' not listed in contract" unless contract_content.include?(header)
-      end
-    rescue NameError
-      errors << "Admin::ExportPaymentsXlsx is not defined"
+  def verify_xlsx_headers!(errors, contract_content)
+    Admin::ExportPaymentsXlsx::DETAIL_HEADERS.each do |header|
+      errors << "XLSX detail header '#{header}' not listed in contract" unless contract_content.include?(header)
     end
+    Admin::ExportPaymentsXlsx::SUMMARY_HEADERS.each do |header|
+      errors << "XLSX summary header '#{header}' not listed in contract" unless contract_content.include?(header)
+    end
+  rescue NameError
+    errors << "Admin::ExportPaymentsXlsx is not defined"
+  end
 
-    # config/analytics.yml threshold keys listed in contract
-    if File.file?(ANALYTICS_CONFIG_PATH)
-      require "yaml"
-      thresholds = YAML.load_file(ANALYTICS_CONFIG_PATH)
-      if thresholds.is_a?(Hash)
-        thresholds.keys.each do |key|
-          errors << "threshold key '#{key}' not listed in contract" unless contract_content.include?(key)
-        end
-      else
-        errors << "invalid config/analytics.yml format"
-      end
-    else
-      errors << "missing config/analytics.yml"
+  def verify_threshold_keys!(errors, contract_content)
+    return errors << "missing config/analytics.yml" unless File.file?(ANALYTICS_CONFIG_PATH)
+
+    require "yaml"
+    thresholds = YAML.load_file(ANALYTICS_CONFIG_PATH)
+    return errors << "invalid config/analytics.yml format" unless thresholds.is_a?(Hash)
+
+    thresholds.each_key do |key|
+      errors << "threshold key '#{key}' not listed in contract" unless contract_content.include?(key)
     end
   end
 end

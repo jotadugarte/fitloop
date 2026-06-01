@@ -23,6 +23,23 @@ RSpec.describe Analytics::TrackEvent, "[REQ-FIT-ANALYTICS-001]" do
       end
     end
 
+    context "when required properties are missing" do
+      it "rejects the tracking attempt when keys are absent" do
+        expect {
+          described_class.call(critical_event, properties: { duration_ms: 120 })
+        }.to raise_error(ArgumentError, /missing required properties/i)
+      end
+
+      it "rejects blank required property values" do
+        expect {
+          described_class.call(
+            "account_deleted",
+            properties: { historical_email: "", historical_name: "Ana" }
+          )
+        }.to raise_error(ArgumentError, /missing required properties.*historical_email/i)
+      end
+    end
+
     context "when event is critical priority" do
       it "saves the event synchronously in the database" do
         expect {
@@ -66,18 +83,17 @@ RSpec.describe Analytics::TrackEvent, "[REQ-FIT-ANALYTICS-001]" do
       it "prevents duplicate sync insertions for critical events" do
         key = "idemp-key-1"
         attrs = {
-          properties: { foo: "bar" },
+          properties: {},
           idempotency_key: key,
           occurred_at: Time.current
         }
 
         expect {
-          described_class.call(critical_event, **attrs)
+          described_class.call("payment_succeeded", **attrs)
         }.to change(UserEvent, :count).by(1)
 
-        # Second call with same idempotency key should be a no-op (return nil or true, but not raise/insert)
         expect {
-          described_class.call(critical_event, **attrs)
+          described_class.call("payment_succeeded", **attrs)
         }.not_to change(UserEvent, :count)
       end
     end
@@ -121,6 +137,7 @@ RSpec.describe Analytics::TrackEvent, "[REQ-FIT-ANALYTICS-001]" do
         expect {
           described_class.call(
             critical_event,
+            properties: { duration_ms: 120, pieces_count: 5, sheets_used: 1 },
             anonymous_session_key: "session-rate-3",
             occurred_at: Time.current
           )

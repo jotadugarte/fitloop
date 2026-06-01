@@ -36,19 +36,19 @@ class NestingJob < ApplicationJob
   private
 
   def emit_nest_telemetry(nesting_run, project)
-    last_event = UserEvent.where(project_id: project.id).order(occurred_at: :desc).first
+    context = Analytics::NestTelemetryContext.from(project: project, nesting_run: nesting_run)
 
     Analytics::TrackEvent.call(
       "nest_completed",
-      user_id: last_event&.user_id,
-      anonymous_session_key: last_event&.anonymous_session_key,
-      tab_id: last_event&.tab_id,
+      user_id: context.user_id,
+      anonymous_session_key: context.anonymous_session_key,
+      tab_id: context.tab_id,
       project_id: project.id,
       nesting_run_id: nesting_run.id,
-      ip: last_event&.ip,
-      user_agent: last_event&.user_agent,
-      country_code: last_event&.country_code,
-      locale: last_event&.locale || I18n.default_locale.to_s,
+      ip: context.ip,
+      user_agent: context.user_agent,
+      country_code: context.country_code,
+      locale: context.locale,
       properties: nest_telemetry_properties(nesting_run)
     )
   end
