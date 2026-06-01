@@ -26,7 +26,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | Post-P7 | UI / billing / auth polish on `main` | **Complete** (see Done) |
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
-| Pre-live | Billing refactor + admin ops + deploy checklist | **In Progress** (Branch: `admin-dashboard-pay`) |
+| Pre-live | T&C plan checkout, deploy checklist, admin IVA export | **In Progress** (Branch: `declaracion-iva`; IVA Form 150 shipped) |
 | Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #5) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).

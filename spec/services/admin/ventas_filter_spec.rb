@@ -115,5 +115,12 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
       expect(filter.period_start_date).to eq(cr_zone.now.beginning_of_month.to_date.to_s)
       expect(filter.period_end_date).to eq(cr_zone.now.end_of_month.to_date.to_s)
     end
+
+    it "form150_period_label reports unbounded range when date params are cleared" do
+      filter = described_class.new({ start_date: "", end_date: "" }, date_column: :paid_at)
+
+      expect(filter.form150_period_unbounded?).to be(true)
+      expect(filter.form150_period_label).to eq("Sin filtro de fechas")
+    end
   end
 end

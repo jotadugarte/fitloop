@@ -21,5 +21,11 @@ module Admin
     def admin_payment_net_collected(payment)
       Admin::HaciendaSummaryRows.net_collected(payment)
     end
+
+    def admin_form150_export_params(query_params)
+      qp = query_params.respond_to?(:to_unsafe_h) ? query_params.to_unsafe_h : query_params.dup
+      qp["status"] = [ "succeeded" ] unless qp.key?("status")
+      qp
+    end
   end
 end

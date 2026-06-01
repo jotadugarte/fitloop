@@ -382,10 +382,37 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(formulario_xml).to include("<f>SUMIFS")
       end
 
-      it "returns 200 when start_date and end_date are blank (defaults to current month)" do
+      it "labels unbounded period and does not apply paid_at month filter when dates are cleared" do
+        cr_zone = Time.find_zone("America/Costa_Rica")
+        april_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "card_crc", currency: "crc",
+          amount: 300, subtotal: 300, total_amount: 339, tax_amount: 39,
+          paid_at: cr_zone.parse("2026-04-15 10:00:00"),
+          created_at: Time.current,
+          purchaser_name: "April Paid", purchaser_email: "april@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_april",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "555555555555"
+        )
+
         get "/admin/ventas/exportar-formulario-150", params: { start_date: "", end_date: "" }
         expect(response).to have_http_status(:ok)
-        expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
+        disposition = response.headers["Content-Disposition"]
+        expect(disposition).to include("formulario-150-")
+        expect(disposition).to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{6}\.xlsx/)
+        expect(disposition).not_to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.xlsx/)
+
+        formulario_xml = nil
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) do |zip|
+          formulario_xml = zip.read("xl/worksheets/sheet2.xml")
+          soporte_xml = zip.read("xl/worksheets/sheet1.xml")
+        end
+        [ formulario_xml, soporte_xml ].each { |xml| xml.force_encoding("UTF-8") if xml.respond_to?(:force_encoding) }
+
+        expect(formulario_xml).to include("Sin filtro de fechas")
+        expect(soporte_xml).to include(april_payment.purchase_reference)
+        expect(soporte_xml).to include("fail@example.com")
       end
 
       it "names attachment with explicit paid_at date range" do

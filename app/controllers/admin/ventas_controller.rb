@@ -6,7 +6,7 @@ module Admin
       @filter = VentasFilter.new(params)
       @start_date = @filter.start_date_value
       @end_date = @filter.end_date_value
-      @direction = params[:direction] == "asc" ? "asc" : "desc"
+      @direction = sort_direction
 
       base_scope = @filter.apply(ReportingScope.call)
       @declaration_totals = DeclarationTotals.for_scope(base_scope)
@@ -34,8 +34,7 @@ module Admin
     end
 
     def export_xlsx
-      direction = params[:direction] == "asc" ? "asc" : "desc"
-      xlsx_data = ExportPaymentsXlsx.call(filtered_payments_scope, direction: direction)
+      xlsx_data = ExportPaymentsXlsx.call(filtered_payments_scope, direction: sort_direction)
 
       send_data xlsx_data,
                 filename: "ventas-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx",
@@ -46,26 +45,30 @@ module Admin
     def export_form150
       filter = VentasFilter.new(params, date_column: :paid_at)
       scope = filter.apply_status(filter.apply(ReportingScope.call))
-      direction = params[:direction] == "asc" ? "asc" : "desc"
-      start_date = filter.period_start_date
-      end_date = filter.period_end_date
       xlsx_data = ExportForm150Xlsx.call(
         scope,
-        start_date: start_date,
-        end_date: end_date,
-        direction: direction
+        period_label: filter.form150_period_label,
+        direction: sort_direction
       )
 
       send_data xlsx_data,
-                filename: form150_filename(start_date, end_date),
+                filename: form150_filename(filter),
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 disposition: "attachment"
     end
 
     private
 
-    def form150_filename(start_date, end_date)
-      "formulario-150-#{start_date}-#{end_date}.xlsx"
+    def form150_filename(filter)
+      if filter.form150_period_unbounded?
+        return "formulario-150-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx"
+      end
+
+      "formulario-150-#{filter.period_start_date}-#{filter.period_end_date}.xlsx"
+    end
+
+    def sort_direction
+      params[:direction] == "asc" ? "asc" : "desc"
     end
 
     def filtered_payments_scope

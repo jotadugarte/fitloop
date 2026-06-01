@@ -25,10 +25,10 @@ RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service d
         purchase_reference: "222222222222"
       )
 
+      today = Time.current.to_date.to_s
       xlsx_bytes = described_class.call(
         Payment.all,
-        start_date: Time.current.to_date.to_s,
-        end_date: Time.current.to_date.to_s
+        period_label: "#{today} — #{today}"
       )
       expect(xlsx_bytes).to be_a(String)
 

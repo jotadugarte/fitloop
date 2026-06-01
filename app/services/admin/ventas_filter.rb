@@ -35,6 +35,21 @@ module Admin
       end_date_value.presence || default_end_date
     end
 
+    def explicit_date_range_cleared?
+      @params.key?(:start_date) && @params[:start_date].blank? &&
+        @params.key?(:end_date) && @params[:end_date].blank?
+    end
+
+    def form150_period_unbounded?
+      explicit_date_range_cleared?
+    end
+
+    def form150_period_label
+      return "Sin filtro de fechas" if form150_period_unbounded?
+
+      "#{period_start_date} — #{period_end_date}"
+    end
+
     def apply(scope)
       scope = apply_date_range(scope)
       scope = apply_payment_methods(scope)

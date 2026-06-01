@@ -28,13 +28,13 @@ module Admin
     # Upper row bound for SUMIFS; raise if Fitloop payment volume exceeds this band.
     FORMULA_MAX_DATA_ROW = 5000
 
-    def self.call(payments, start_date:, end_date:, direction: "desc")
+    def self.call(payments, period_label:, direction: "desc")
       package = Axlsx::Package.new
       wb = package.workbook
       styles = VentasXlsxStyles.build(wb)
 
       add_soporte_sheet(wb, payments, direction:, styles:)
-      add_formulario_sheet(wb, start_date:, end_date:, styles:)
+      add_formulario_sheet(wb, period_label:, styles:)
 
       package.to_stream.read
     end
@@ -65,12 +65,12 @@ module Admin
     end
     private_class_method :add_soporte_sheet
 
-    def self.add_formulario_sheet(wb, start_date:, end_date:, styles:)
+    def self.add_formulario_sheet(wb, period_label:, styles:)
       wb.add_worksheet(name: FORM_SHEET) do |sheet|
         sheet.escape_formulas = false
 
         sheet.add_row [ "Formulario 150 — Impuesto al Valor Agregado (IVA01)" ], style: styles.fetch(:header)
-        sheet.add_row [ "Período", "#{start_date} — #{end_date}" ], style: styles.fetch(:plain)
+        sheet.add_row [ "Período", period_label ], style: styles.fetch(:plain)
         sheet.add_row [ FORM_DATE_FILTER_NOTE ], style: styles.fetch(:plain)
         sheet.add_row [ "Cédula", "" ], style: styles.fetch(:plain)
         sheet.add_row [ "Nombre", "" ], style: styles.fetch(:plain)
