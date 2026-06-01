@@ -141,5 +141,17 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
       params = { status: [ "failed" ] }
       expect(described_class.normalize_form150_export_params(params)).to eq("status" => [ "failed" ])
     end
+
+    it "defaults status to succeeded when status is an empty array" do
+      expect(described_class.normalize_form150_export_params({ status: [] })).to include("status" => [ "succeeded" ])
+    end
+  end
+
+  describe "#initialize" do
+    it "coerces string-key params for indifferent date access" do
+      filter = described_class.new({ "start_date" => "", "end_date" => "" }, date_column: :paid_at)
+
+      expect(filter.form150_period_unbounded?).to be(true)
+    end
   end
 end

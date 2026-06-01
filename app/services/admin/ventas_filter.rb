@@ -10,9 +10,14 @@ module Admin
     }.freeze
 
     def initialize(params = {}, date_column: :created_at)
-      @params = params
+      @params = self.class.coerce_params(params)
       @date_column = date_column.to_sym
       raise ArgumentError, "invalid date_column: #{date_column}" unless DATE_COLUMNS.key?(@date_column)
+    end
+
+    def self.coerce_params(params)
+      raw = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.dup
+      raw.with_indifferent_access
     end
 
     def start_date_value
@@ -60,10 +65,15 @@ module Admin
     end
 
     def self.normalize_form150_export_params(params)
-      normalized = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.dup
-      normalized = normalized.stringify_keys
-      normalized["status"] = [ "succeeded" ] unless status_param_key?(normalized)
+      normalized = coerce_params(params)
+      normalized["status"] = [ "succeeded" ] unless status_filter_present?(normalized)
       normalized
+    end
+
+    def self.status_filter_present?(params)
+      return false unless status_param_key?(params)
+
+      Array(params[:status]).map(&:presence).compact.any?
     end
 
     def self.status_param_key?(params)

@@ -135,6 +135,15 @@ Reference: [ADR-0006](core/ADRs/0006-onvo-live-billing.md), ONVO test methods in
 - [ ] Clicking a user drills down to `/admin/usuarios/:id` to display a chronological event timeline with Spanish labels
 - [ ] Session merge works: anonymous events merge to user accounts on successful login/registration
 
+## Admin ventas & Formulario 150 [REQ-FIT-ADMIN-001]
+
+- [ ] `/admin/ventas` loads for admin; non-admin gets 404 (no redirect to login)
+- [ ] List date filters use **fecha de registro** (`created_at`); export Formulario 150 uses **fecha de pago** (`paid_at`) — spot-check with a payment where the two dates differ
+- [ ] **Exportar Formulario 150** downloads XLSX with sheets «Soporte ventas» and «Formulario 150»
+- [ ] In Excel: delete or edit a row on «Soporte ventas»; casilla totals on «Formulario 150» recalculate via `SUMIFS` (not static values)
+- [ ] Cleared Desde/Hasta (empty) → period label «Sin filtro de fechas»; partial clear → «—» on the open bound
+- [ ] Export without status filter includes only **succeeded** payments (failed rows absent unless status filter explicitly includes them)
+
 ## Security & ops
 
 - [ ] No PIN or admin-unlock UI in the app
