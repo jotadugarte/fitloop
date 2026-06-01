@@ -52,7 +52,7 @@ module Admin
     def apply_start_date(scope, date_str)
       return scope if date_str.blank?
 
-      start_time = Time.zone.parse(date_str).beginning_of_day
+      start_time = cr_zone.parse(date_str).beginning_of_day
       scope.where("created_at >= ?", start_time)
     rescue ArgumentError
       scope
@@ -61,7 +61,7 @@ module Admin
     def apply_end_date(scope, date_str)
       return scope if date_str.blank?
 
-      end_time = Time.zone.parse(date_str).end_of_day
+      end_time = cr_zone.parse(date_str).end_of_day
       scope.where("created_at <= ?", end_time)
     rescue ArgumentError
       scope
@@ -86,5 +86,8 @@ module Admin
       )
     end
 
+    def cr_zone
+      Time.find_zone(CR_ZONE)
+    end
   end
 end
