@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-30 — **Billing cart + MEIC UX** merged to `main` (PR #18). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). Branch **`merge-setup-into-workshop`** ready for PR: unified `/taller` setup funnel + billing CbC refactor. **Production VM** deferred until pre-live polish complete.
+**Last audit:** 2026-05-31 — **Admin Analytics + user bitácora** on branch `user-analytics` (REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Admin Analytics (tarjeta «Estadísticas y Uso»)** (Pending #3).
+**Next action:** **Declaración de IVA (formato Hacienda)** (Pending #4).
 
 ---
 
@@ -35,7 +35,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** admin analytics/bitácora; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** declaración IVA Hacienda; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -134,6 +134,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 - [x] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAILS`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton dashboard + shared layout for ventas and analytics (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-foundation.md`
 - [x] **Admin ventas / reporte de pagos** — `/admin/ventas` con filtros, tablas CRC/USD, declaración Hacienda, export XLSX, `cabys_code` en `payments` (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-sales-report.md` — Branch: `admin-dashboard-pay`
+- [x] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV; gobernanza anti-drift A41 (REQ-FIT-ANALYTICS-001, ADR-0008) — 2026-05-31 — Session: `task_user-analytics-bitacora.md` — Branch: `user-analytics`
 
 ---
 
@@ -149,11 +150,9 @@ Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `
 
 ### Pre-live (3–6)
 
-3. [ ] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — Activar la tarjeta hoy deshabilitada en `/admin`: `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, gráficos, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV de eventos; gobernanza anti-drift (contrato + catálogo + spec doc + regla `.cursorrules`); **no** DXF/geometría en eventos; **no** rehacer `/admin/ventas` (ya activo). — Depends on: **Admin foundation** — Session: `task_user-analytics-bitacora.md` (archived discovery: `task_user-analytics_2026-05-21.md`)
-4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
-5. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
-6. [ ] **Admin analytics & reporting — follow-ups (fuera de #3)** — Trabajo que no entra en la tarjeta Analytics v1: **archivo frío** (`analytics_archive`, retención 6 meses hot + job de copia/purga); **alertas operativas** (email/Slack cuando conversión o fallos de pago salgan de umbral — hoy solo semáforo visual); **texto legal completo** FU-LEGAL-003 (IP/UA/país, retención, acceso admin-only) si no basta la nota en deploy checklist; **BI externo** (Metabase u otro) opcional. — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
-
+3. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
+4. [ ] **Admin analytics & reporting — follow-ups (fuera de Analytics v1)** — Trabajo que no entra en la tarjeta Analytics v1: **archivo frío** (`analytics_archive`, retención 6 meses hot + job de copia/purga); **alertas operativas** (email/Slack cuando conversión o fallos de pago salgan de umbral — hoy solo semáforo visual); **texto legal completo** FU-LEGAL-003 (IP/UA/país, retención, acceso admin-only) si no basta la nota en deploy checklist; **BI externo** (Metabase u otro) opcional. — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
+5. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
 ### Go-live (7 — when ready)
 
 7. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
