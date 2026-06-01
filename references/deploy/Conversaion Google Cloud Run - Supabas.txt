@@ -1,0 +1,35 @@
+Opción 2: Google Cloud Run + Supabase
+Esta es una arquitectura Serverless (sin servidor fijo). No tenés una máquina encendida las 24 horas esperando peticiones; en su lugar, Google Cloud levanta contenedores de tu aplicación instantáneamente solo cuando alguien entra a la página.
+
+¿Cómo funciona la infraestructura?
+La Base de Datos (Supabase): Te registrás en Supabase y creás una base de datos PostgreSQL gratuita (te da 500 MB de espacio permanente). Copiás la URL de conexión que te proveen.
+
+La Aplicación (Google Cloud Run): Empacás tu aplicación de Rails y Python en un contenedor Docker y lo subís al registro de Google.
+
+El Comportamiento Serverless: Cuando la web no tiene visitas, el consumo de Cloud Run es de cero. En el momento en que un estudiante digita [www.modusloop.com](https://www.modusloop.com), Google detecta la petición, enciende tu contenedor en menos de dos segundos, Rails procesa la interfaz con Hotwire y se conecta a la base de datos de Supabase.
+
+Manejo del Nesting pesado: Si un usuario ejecuta el script de Python para optimizar las láminas, Cloud Run le asigna la potencia de CPU y RAM necesaria para procesar esa petición específica. Si entran 4 usuarios al mismo tiempo, Google levanta 4 contenedores en paralelo aislados. Cada estudiante tiene su propio entorno de cómputo, evitando que la app se ralentice o se congele.
+
+¿Qué incluye la capa gratuita permanente de Google Cloud Run?
+2 millones de peticiones (requests) al mes.
+
+360,000 segundos de vCPU al mes.
+
+180,000 GiB-segundos de memoria RAM al mes.
+
+Mapeo de dominios personalizados gratis: Google te da los registros DNS exactos para que los pegues en el panel avanzado de Namecheap y configure el HTTPS en minutos.
+
+Ventajas para tu App:
+Infraestructura indestructible: Está alojada en los centros de datos de Google. Jamás se va a caer por falta de luz o internet local.
+
+Escalabilidad horizontal perfecta: Si un profesor del TEC pone a todo un grupo de arquitectura a usar Fitloop al mismo tiempo, Google asimila la carga creando múltiples instancias automáticamente.
+
+Contras:
+Arranque en frío (Cold Start): Si nadie ha entrado a la página en los últimos 15 minutos, el contenedor se apaga. El próximo usuario que ingrese experimentará una demora de unos 3 o 4 segundos en la carga inicial mientras Google "despierta" el contenedor. Las siguientes páginas que navegue ya cargarán de forma instantánea.
+
+Requiere Tarjeta de Crédito: Google exige asociar una tarjeta para activar la cuenta de GCP y mitigar abusos de bots, aunque no te cobrarán nada mientras no superes los 2 millones de peticiones mensuales.
+
+Resumen técnico: ¿Cuál te conviene más?
+Si querés despreocuparte por completo del mantenimiento de servidores, que la página sea inmune a apagones y aceptar que la primera carga del día tarde un par de segundos, la combinación de Google Cloud Run + Supabase es sumamente profesional y robusta.
+
+Si tenés hardware disponible en casa, no querés registrar tarjetas de crédito en ninguna nube comercial, y querés bases de datos masivas sin límites de espacio para almacenar cientos de proyectos DXF pesados, montar tu nube privada con Coolify te dará una libertad absoluta.
