@@ -46,14 +46,18 @@ module Admin
     def export_form150
       filter = VentasFilter.new(params, date_column: :paid_at)
       scope = filter.apply_status(filter.apply(ReportingScope.call))
+      direction = params[:direction] == "asc" ? "asc" : "desc"
+      start_date = filter.period_start_date
+      end_date = filter.period_end_date
       xlsx_data = ExportForm150Xlsx.call(
         scope,
-        start_date: filter.period_start_date,
-        end_date: filter.period_end_date
+        start_date: start_date,
+        end_date: end_date,
+        direction: direction
       )
 
       send_data xlsx_data,
-                filename: form150_filename(filter.period_start_date, filter.period_end_date),
+                filename: form150_filename(start_date, end_date),
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 disposition: "attachment"
     end
@@ -61,11 +65,7 @@ module Admin
     private
 
     def form150_filename(start_date, end_date)
-      if start_date.present? && end_date.present?
-        "formulario-150-#{start_date}-#{end_date}.xlsx"
-      else
-        "formulario-150-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx"
-      end
+      "formulario-150-#{start_date}-#{end_date}.xlsx"
     end
 
     def filtered_payments_scope

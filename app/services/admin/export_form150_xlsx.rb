@@ -20,6 +20,8 @@ module Admin
     CASILLA_IMPUESTO_13 = "Monto de impuesto a 13%"
     CASILLA_EXENTAS = "Total ventas exentas con derecho a crédito pleno"
 
+    FORM_DATE_FILTER_NOTE =
+      "Filtro de fechas del export: fecha de pago (paid_at) en zona CR — no la fecha de registro del listado."
     FORM_FOOTNOTE = "Copiar montos a TRIBU-CR Formulario 150 (IVA01). Compras y crédito fiscal: completar en portal."
 
     DATA_ROW_START = 2
@@ -69,6 +71,7 @@ module Admin
 
         sheet.add_row [ "Formulario 150 — Impuesto al Valor Agregado (IVA01)" ], style: styles.fetch(:header)
         sheet.add_row [ "Período", "#{start_date} — #{end_date}" ], style: styles.fetch(:plain)
+        sheet.add_row [ FORM_DATE_FILTER_NOTE ], style: styles.fetch(:plain)
         sheet.add_row [ "Cédula", "" ], style: styles.fetch(:plain)
         sheet.add_row [ "Nombre", "" ], style: styles.fetch(:plain)
         sheet.add_row []

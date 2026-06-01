@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module Admin
-  # Shared Axlsx styles for admin ventas XLSX exports.
+  # [REQ-FIT-ADMIN-001] Shared Axlsx styles for admin ventas XLSX exports.
   class VentasXlsxStyles
-    HEADER_STYLE_COLOR = "1E3A5F"
-    ACCENT_COLOR       = "2A4D7A"
-    STRIPE_COLOR       = "F0F3F7"
+    HEADER_STYLE_COLOR = "1E3A5F".freeze
+    ACCENT_COLOR       = "2A4D7A".freeze
+    STRIPE_COLOR       = "F0F3F7".freeze
 
     def self.build(wb)
       {

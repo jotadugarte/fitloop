@@ -388,6 +388,32 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
       end
 
+      it "names attachment with explicit paid_at date range" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31" }
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to include("formulario-150-2026-05-01-2026-05-31")
+      end
+
+      it "orders soporte rows by paid_at ascending when direction=asc" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: {
+              start_date: "2026-05-01",
+              end_date: "2026-05-31",
+              status: [ "succeeded" ],
+              direction: "asc"
+            }
+        expect(response).to have_http_status(:ok)
+
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| soporte_xml = zip.read("xl/worksheets/sheet1.xml") }
+        soporte_xml.force_encoding("UTF-8") if soporte_xml.respond_to?(:force_encoding)
+
+        crc_pos = soporte_xml.index("333333333333")
+        usd_pos = soporte_xml.index("444444444444")
+        expect(crc_pos).to be < usd_pos
+      end
+
       it "honors status filter query params" do
         get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
         expect(response).to have_http_status(:ok)

@@ -5,12 +5,17 @@
       <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
     </div>
     <div class="admin-ventas-actions">
-      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
-        <span>⬇ Exportar Reporte (.xlsx)</span>
-      <% end %>
-      <%= link_to admin_export_form150_ventas_path(request.query_parameters), class: "btn btn-secondary admin-ventas-export-btn" do %>
-        <span>⬇ Exportar Formulario 150</span>
-      <% end %>
+      <div class="admin-ventas-actions__buttons">
+        <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
+          <span>⬇ Exportar Reporte (.xlsx)</span>
+        <% end %>
+        <%= link_to admin_export_form150_ventas_path(request.query_parameters), class: "btn btn-secondary admin-ventas-export-btn" do %>
+          <span>⬇ Exportar Formulario 150</span>
+        <% end %>
+      </div>
+      <p class="admin-ventas-actions__hint admin-dashboard__tagline">
+        Formulario 150: el rango Desde/Hasta usa <strong>fecha de pago</strong> (paid_at), no la fecha de registro del listado.
+      </p>
     </div>
   </header>
 

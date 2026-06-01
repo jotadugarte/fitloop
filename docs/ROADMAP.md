@@ -4,9 +4,9 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-31 — **Admin Analytics + user bitácora** on branch `user-analytics` (REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). **Production VM** deferred until pre-live polish complete.
+**Last audit:** 2026-05-31 — **Formulario 150 / IVA Hacienda** on branch `declaracion-iva` (REQ-FIT-ADMIN-001). **Admin Analytics + user bitácora** shipped (`user-analytics`, REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** on `main` (PR #19). **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Términos y condiciones — compra de plan** (Pending #4).
+**Next action:** **Términos y condiciones — compra de plan** (Pending #3).
 
 ---
 
@@ -27,7 +27,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
 | Pre-live | Billing refactor + admin ops + deploy checklist | **In Progress** (Branch: `admin-dashboard-pay`) |
-| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #6) |
+| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #5) |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -149,13 +149,13 @@ _(none)_
 
 Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
 
-### Pre-live (3–6)
+### Pre-live (3–5)
 
-4. [ ] **Términos y condiciones — compra de plan (FU-LEGAL-001, FU-LEGAL-002)** — Redactar T&C definitivos para suscripción (planes 1/2/4 meses) e **mostrarlos y exigir aceptación en el checkout de plan** (hoy: placeholder en `/terminos`/`/privacidad` y checkbox solo en registro). **Auditoría previa en código y SPEC:** obligaciones reales al comprar/renovar — cupo 50 descargas/mes calendario, extensión desde `ends_at` (no reinicio), sin periodo de gracia, overage 50% tras agotar cupo, descargas incluidas sin retención 24h ni re-descarga tras perder sesión, proyectos efímeros, IVA CR en checkout, ONVO/SINPE, cuenta suspendida/borrada con plan activo. **Recursos externos:** abogado(a) derecho digital y consumo CR (MEIC, contratos B2C, revocación/reembolsos); revisión fiscal (IVA, facturación electrónica); encaje con términos del procesador ONVO. **Entrega:** copy versionado (`TermsVersion`), registro de aceptación en checkout de plan, páginas legales actualizadas, SPEC/ADR si cambian reglas declaradas al usuario.
-5. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
-### Go-live (7 — when ready)
+3. [ ] **Términos y condiciones — compra de plan (FU-LEGAL-001, FU-LEGAL-002)** — Redactar T&C definitivos para suscripción (planes 1/2/4 meses) e **mostrarlos y exigir aceptación en el checkout de plan** (hoy: placeholder en `/terminos`/`/privacidad` y checkbox solo en registro). **Auditoría previa en código y SPEC:** obligaciones reales al comprar/renovar — cupo 50 descargas/mes calendario, extensión desde `ends_at` (no reinicio), sin periodo de gracia, overage 50% tras agotar cupo, descargas incluidas sin retención 24h ni re-descarga tras perder sesión, proyectos efímeros, IVA CR en checkout, ONVO/SINPE, cuenta suspendida/borrada con plan activo. **Recursos externos:** abogado(a) derecho digital y consumo CR (MEIC, contratos B2C, revocación/reembolsos); revisión fiscal (IVA, facturación electrónica); encaje con términos del procesador ONVO. **Entrega:** copy versionado (`TermsVersion`), registro de aceptación en checkout de plan, páginas legales actualizadas, SPEC/ADR si cambian reglas declaradas al usuario.
+4. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
+### Go-live (5 — when ready)
 
-7. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
+5. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
 
 ---
 
