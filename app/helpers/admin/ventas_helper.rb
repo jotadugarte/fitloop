@@ -23,9 +23,7 @@ module Admin
     end
 
     def admin_form150_export_params(query_params)
-      qp = query_params.respond_to?(:to_unsafe_h) ? query_params.to_unsafe_h : query_params.dup
-      qp["status"] = [ "succeeded" ] unless qp.key?("status")
-      qp
+      Admin::VentasFilter.normalize_form150_export_params(query_params)
     end
   end
 end

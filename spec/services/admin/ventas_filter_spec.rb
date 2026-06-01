@@ -122,5 +122,24 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
       expect(filter.form150_period_unbounded?).to be(true)
       expect(filter.form150_period_label).to eq("Sin filtro de fechas")
     end
+
+    it "form150_period_label shows em dash when only one date bound is cleared" do
+      filter = described_class.new({ start_date: "", end_date: "2026-05-31" }, date_column: :paid_at)
+
+      expect(filter.form150_period_partial?).to be(true)
+      expect(filter.form150_timestamp_filename?).to be(true)
+      expect(filter.form150_period_label).to eq("— — 2026-05-31")
+    end
+  end
+
+  describe ".normalize_form150_export_params" do
+    it "defaults status to succeeded when omitted" do
+      expect(described_class.normalize_form150_export_params({})).to include("status" => [ "succeeded" ])
+    end
+
+    it "preserves status when present with symbol key" do
+      params = { status: [ "failed" ] }
+      expect(described_class.normalize_form150_export_params(params)).to eq("status" => [ "failed" ])
+    end
   end
 end

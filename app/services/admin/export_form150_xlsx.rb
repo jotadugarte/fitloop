@@ -10,6 +10,7 @@ module Admin
 
     RUBRO_VENTAS_13 = "Ventas a 13%"
     RUBRO_EXENTAS = "Exentas crédito pleno"
+    RUBRO_NO_DECLARABLE = "No declarable"
 
     SOPORTE_HEADERS = [
       "Fecha pago", "Método", "Moneda", "Subtotal", "IVA 13%", "Total cobrado",
@@ -136,6 +137,8 @@ module Admin
     private_class_method :soporte_row_values
 
     def self.rubro_for(payment)
+      return RUBRO_NO_DECLARABLE unless payment.status == "succeeded"
+
       payment.usd? ? RUBRO_EXENTAS : RUBRO_VENTAS_13
     end
     private_class_method :rubro_for

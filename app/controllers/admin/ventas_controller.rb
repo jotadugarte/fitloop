@@ -43,7 +43,7 @@ module Admin
     end
 
     def export_form150
-      filter = VentasFilter.new(params, date_column: :paid_at)
+      filter = VentasFilter.new(form150_export_params, date_column: :paid_at)
       scope = filter.apply_status(filter.apply(ReportingScope.call))
       xlsx_data = ExportForm150Xlsx.call(
         scope,
@@ -60,11 +60,15 @@ module Admin
     private
 
     def form150_filename(filter)
-      if filter.form150_period_unbounded?
+      if filter.form150_timestamp_filename?
         return "formulario-150-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx"
       end
 
       "formulario-150-#{filter.period_start_date}-#{filter.period_end_date}.xlsx"
+    end
+
+    def form150_export_params
+      VentasFilter.normalize_form150_export_params(params)
     end
 
     def sort_direction

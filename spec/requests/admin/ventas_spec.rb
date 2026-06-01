@@ -412,7 +412,31 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
 
         expect(formulario_xml).to include("Sin filtro de fechas")
         expect(soporte_xml).to include(april_payment.purchase_reference)
-        expect(soporte_xml).to include("fail@example.com")
+        expect(soporte_xml).not_to include("fail@example.com")
+      end
+
+      it "labels partial period when only start_date is cleared" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "", end_date: "2026-05-31", status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{6}\.xlsx/)
+
+        formulario_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| formulario_xml = zip.read("xl/worksheets/sheet2.xml") }
+        formulario_xml.force_encoding("UTF-8") if formulario_xml.respond_to?(:force_encoding)
+        expect(formulario_xml).to include("— — 2026-05-31")
+      end
+
+      it "defaults to succeeded payments when status param is omitted" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31" }
+
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| soporte_xml = zip.read("xl/worksheets/sheet1.xml") }
+        soporte_xml.force_encoding("UTF-8") if soporte_xml.respond_to?(:force_encoding)
+
+        expect(soporte_xml).to include("333333333333")
+        expect(soporte_xml).not_to include("fail@example.com")
       end
 
       it "names attachment with explicit paid_at date range" do

@@ -59,5 +59,25 @@ RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service d
       expect(formulario_xml).not_to include("Total ventas generales gravadas")
       expect(formulario_xml).to include("paid_at")
     end
+
+    it "marks non-succeeded payments as No declarable in soporte" do
+      user = create_billing_user!(email: "failed-rubro@example.com")
+      Payment.create!(
+        user: user, status: "failed", payment_method: "card_crc", currency: "crc",
+        amount: 100, subtotal: 100, total_amount: 100, tax_amount: 0,
+        paid_at: Time.current, created_at: Time.current,
+        gateway_provider: "onvo", onvo_payment_intent_id: "pi_failed_rubro",
+        onvo_mode: "test", gateway_status: "failed", purpose: "single_download"
+      )
+
+      today = Time.current.to_date.to_s
+      xlsx_bytes = described_class.call(Payment.where(user: user), period_label: "#{today} — #{today}")
+
+      soporte_xml = nil
+      Zip::File.open_buffer(xlsx_bytes) { |zip| soporte_xml = zip.read("xl/worksheets/sheet1.xml") }
+      soporte_xml.force_encoding("UTF-8") if soporte_xml.respond_to?(:force_encoding)
+
+      expect(soporte_xml).to include("No declarable")
+    end
   end
 end

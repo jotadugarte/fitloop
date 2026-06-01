@@ -12,5 +12,10 @@ RSpec.describe Admin::VentasHelper, "[REQ-FIT-ADMIN-001]", type: :helper do
       params = { "status" => [ "failed" ] }
       expect(helper.admin_form150_export_params(params)).to eq(params)
     end
+
+    it "preserves an explicit status filter with symbol key" do
+      params = { status: [ "pending" ] }
+      expect(helper.admin_form150_export_params(params)).to eq("status" => [ "pending" ])
+    end
   end
 end
