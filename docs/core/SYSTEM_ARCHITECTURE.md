@@ -168,7 +168,10 @@ Projects remain **ephemeral** — `User` does not own saved projects. Persisted 
 
 | Layer | Module / service | Responsibility |
 |-------|------------------|----------------|
-| **Ingestion** | `Analytics::TrackEvent` | Single call-site; validates event type against `EventCatalog`; dispatches critical events synchronously, low-priority via `TrackEventJob` with 300/hour rate limit per session/user |
+| **Event type** | `Analytics::EventType` | Parses and validates `event_type` strings against `EventCatalog`; rejects unknown types at VO construction |
+| **Payload** | `Analytics::EventPayload` | Boundary VO: catalog `required_properties`, session/geo context, `to_event_attributes` for `UserEvent` / job serialization |
+| **Ingestion** | `Analytics::TrackEvent` | Single call-site; accepts kwargs → `EventPayload.from_kwargs` → `call_payload`; dispatches critical events synchronously, low-priority via `TrackEventJob` with 300/hour rate limit per session/user |
+| **Nest telemetry context** | `Analytics::NestTelemetryContext` | Resolves user/session fields for `nest_completed` from pre-start project events (workshop types preferred on async fallback) |
 | **Queue isolation** | `TrackEventJob` (`queue_as :analytics`) | Dedicated Solid Queue queue; isolates analytics writes from nesting workloads on `:default` queue |
 | **Catalog** | `Analytics::EventCatalog` (`config/analytics_event_catalog.yml`) | Memoized with `Mutex` (thread-safe); maps `event_type` → `priority` + `required_properties`; reloaded only on boot |
 | **Thresholds** | `Analytics::Thresholds` (`config/analytics.yml`) | Hot-reload on file mtime with `Mutex` guard; exposes funnel conversion %, payment failure %, nest p95, low-priority rate limit |
@@ -181,6 +184,7 @@ Projects remain **ephemeral** — `User` does not own saved projects. Persisted 
 
 **Invariants:**
 - Never bypass `Analytics::TrackEvent` — do not write directly to `UserEvent` from controllers or jobs.
+- Ingestion boundary is `Analytics::EventPayload` — validate event type and required properties via the VO, not ad hoc in controllers.
 - Analytics jobs use `:analytics` queue only — never `:default`.
 - Bulk `UserEvent` updates (e.g. session merge) must use `in_batches` — no unbounded `update_all`.
 - `EventCatalog` and `Thresholds` config access must go through the memoized class method (not `load_catalog` / `load_config` directly) to benefit from thread-safe caching.
