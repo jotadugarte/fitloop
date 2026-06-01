@@ -43,7 +43,30 @@ module Admin
                 disposition: "attachment"
     end
 
+    def export_form150
+      filter = VentasFilter.new(params, date_column: :paid_at)
+      scope = filter.apply_status(filter.apply(ReportingScope.call))
+      xlsx_data = ExportForm150Xlsx.call(
+        scope,
+        start_date: filter.start_date_value,
+        end_date: filter.end_date_value
+      )
+
+      send_data xlsx_data,
+                filename: form150_filename(filter.start_date_value, filter.end_date_value),
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                disposition: "attachment"
+    end
+
     private
+
+    def form150_filename(start_date, end_date)
+      if start_date.present? && end_date.present?
+        "formulario-150-#{start_date}-#{end_date}.xlsx"
+      else
+        "formulario-150-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx"
+      end
+    end
 
     def filtered_payments_scope
       filter = VentasFilter.new(params)
