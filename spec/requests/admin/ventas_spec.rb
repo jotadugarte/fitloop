@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "zip"
 
 RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
   def sign_in_user!(user)
@@ -360,6 +361,30 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
         expect(response.content_type).to include("spreadsheetml.sheet")
         expect(response.headers["Content-Disposition"]).to include("attachment")
         expect(response.headers["Content-Disposition"]).to include("formulario-150")
+        expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
+      end
+
+      it "returns XLSX body with soporte rows and Formulario 150 formulas" do
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        soporte_xml = nil
+        formulario_xml = nil
+        Zip::File.open_buffer(response.body) do |zip|
+          soporte_xml = zip.read("xl/worksheets/sheet1.xml")
+          formulario_xml = zip.read("xl/worksheets/sheet2.xml")
+        end
+        [ soporte_xml, formulario_xml ].each { |xml| xml.force_encoding("UTF-8") if xml.respond_to?(:force_encoding) }
+
+        expect(soporte_xml).to include("333333333333")
+        expect(soporte_xml).to include("444444444444")
+        expect(soporte_xml).not_to include("fail@example.com")
+        expect(formulario_xml).to include("<f>SUMIFS")
+      end
+
+      it "returns 200 when start_date and end_date are blank (defaults to current month)" do
+        get "/admin/ventas/exportar-formulario-150", params: { start_date: "", end_date: "" }
+        expect(response).to have_http_status(:ok)
         expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
       end
 

@@ -27,6 +27,14 @@ module Admin
       @params[:end_date].presence
     end
 
+    def period_start_date
+      start_date_value.presence || default_start_date
+    end
+
+    def period_end_date
+      end_date_value.presence || default_end_date
+    end
+
     def apply(scope)
       scope = apply_date_range(scope)
       scope = apply_payment_methods(scope)

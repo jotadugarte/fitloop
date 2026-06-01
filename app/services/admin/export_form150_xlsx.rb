@@ -19,21 +19,17 @@ module Admin
     CASILLA_VENTAS_13 = "Total ventas a 13%"
     CASILLA_IMPUESTO_13 = "Monto de impuesto a 13%"
     CASILLA_EXENTAS = "Total ventas exentas con derecho a crédito pleno"
-    CASILLA_VENTAS_GRAVADAS = "Total ventas generales gravadas"
-    CASILLA_MONTO_IMPUESTO = "Monto impuesto"
 
     FORM_FOOTNOTE = "Copiar montos a TRIBU-CR Formulario 150 (IVA01). Compras y crédito fiscal: completar en portal."
 
     DATA_ROW_START = 2
-    DATA_ROW_END = 5000
+    # Upper row bound for SUMIFS; raise if Fitloop payment volume exceeds this band.
+    FORMULA_MAX_DATA_ROW = 5000
 
     def self.call(payments, start_date:, end_date:, direction: "desc")
-      raise ArgumentError, "start_date required" if start_date.blank?
-      raise ArgumentError, "end_date required" if end_date.blank?
-
       package = Axlsx::Package.new
       wb = package.workbook
-      styles = ExportPaymentsXlsx.send(:build_styles, wb)
+      styles = VentasXlsxStyles.build(wb)
 
       add_soporte_sheet(wb, payments, direction:, styles:)
       add_formulario_sheet(wb, start_date:, end_date:, styles:)
@@ -93,9 +89,7 @@ module Admin
       casillas = [
         [ CASILLA_VENTAS_13, sumifs_subtotal(RUBRO_VENTAS_13), "CRC", "Sección I" ],
         [ CASILLA_IMPUESTO_13, sumifs_iva(RUBRO_VENTAS_13), "CRC", "Sección I" ],
-        [ CASILLA_EXENTAS, sumifs_subtotal(RUBRO_EXENTAS), "USD", "Sección I — exportación servicios" ],
-        [ CASILLA_VENTAS_GRAVADAS, sumifs_subtotal(RUBRO_VENTAS_13), "CRC", "Sección I" ],
-        [ CASILLA_MONTO_IMPUESTO, sumifs_iva(RUBRO_VENTAS_13), "CRC", "Sección I" ]
+        [ CASILLA_EXENTAS, sumifs_subtotal(RUBRO_EXENTAS), "USD", "Sección I — exportación servicios" ]
       ]
 
       casillas.each do |label, formula, currency, notes|
@@ -111,12 +105,12 @@ module Admin
     private_class_method :add_formulario_casilla_rows
 
     def self.sumifs_subtotal(rubro)
-      "=SUMIFS('#{SOPORTE_SHEET}'!D#{DATA_ROW_START}:D#{DATA_ROW_END},'#{SOPORTE_SHEET}'!K#{DATA_ROW_START}:K#{DATA_ROW_END},\"#{rubro}\")"
+      "=SUMIFS('#{SOPORTE_SHEET}'!D#{DATA_ROW_START}:D#{FORMULA_MAX_DATA_ROW},'#{SOPORTE_SHEET}'!K#{DATA_ROW_START}:K#{FORMULA_MAX_DATA_ROW},\"#{rubro}\")"
     end
     private_class_method :sumifs_subtotal
 
     def self.sumifs_iva(rubro)
-      "=SUMIFS('#{SOPORTE_SHEET}'!E#{DATA_ROW_START}:E#{DATA_ROW_END},'#{SOPORTE_SHEET}'!K#{DATA_ROW_START}:K#{DATA_ROW_END},\"#{rubro}\")"
+      "=SUMIFS('#{SOPORTE_SHEET}'!E#{DATA_ROW_START}:E#{FORMULA_MAX_DATA_ROW},'#{SOPORTE_SHEET}'!K#{DATA_ROW_START}:K#{FORMULA_MAX_DATA_ROW},\"#{rubro}\")"
     end
     private_class_method :sumifs_iva
 
@@ -139,7 +133,7 @@ module Admin
     private_class_method :soporte_row_values
 
     def self.rubro_for(payment)
-      payment.currency.to_s == "usd" ? RUBRO_EXENTAS : RUBRO_VENTAS_13
+      payment.usd? ? RUBRO_EXENTAS : RUBRO_VENTAS_13
     end
     private_class_method :rubro_for
 

@@ -55,6 +55,8 @@ RSpec.describe Admin::ExportForm150Xlsx, "[REQ-FIT-ADMIN-001]", type: :service d
       expect(soporte_xml).to include("222222222222")
       expect(formulario_xml).to include("SUMIFS")
       expect(formulario_xml).to include("<f>SUMIFS")
+      expect(formulario_xml).to include("Total ventas a 13%")
+      expect(formulario_xml).not_to include("Total ventas generales gravadas")
     end
   end
 end

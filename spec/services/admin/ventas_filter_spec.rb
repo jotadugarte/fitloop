@@ -107,5 +107,13 @@ RSpec.describe Admin::VentasFilter, "[REQ-FIT-ADMIN-001]", type: :service do
 
       expect(filter.apply(Payment.all)).not_to include(pending)
     end
+
+    it "period_start_date and period_end_date fall back to current month when params are blank strings" do
+      cr_zone = Time.find_zone("America/Costa_Rica")
+      filter = described_class.new({ start_date: "", end_date: "" }, date_column: :paid_at)
+
+      expect(filter.period_start_date).to eq(cr_zone.now.beginning_of_month.to_date.to_s)
+      expect(filter.period_end_date).to eq(cr_zone.now.end_of_month.to_date.to_s)
+    end
   end
 end

@@ -48,12 +48,12 @@ module Admin
       scope = filter.apply_status(filter.apply(ReportingScope.call))
       xlsx_data = ExportForm150Xlsx.call(
         scope,
-        start_date: filter.start_date_value,
-        end_date: filter.end_date_value
+        start_date: filter.period_start_date,
+        end_date: filter.period_end_date
       )
 
       send_data xlsx_data,
-                filename: form150_filename(filter.start_date_value, filter.end_date_value),
+                filename: form150_filename(filter.period_start_date, filter.period_end_date),
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 disposition: "attachment"
     end

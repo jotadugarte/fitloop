@@ -6,7 +6,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Last audit:** 2026-05-31 — **Admin Analytics + user bitácora** on branch `user-analytics` (REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** merged to `main` (PR #19, ADR-0006). **Production VM** deferred until pre-live polish complete.
 
-**Next action:** **Declaración de IVA (formato Hacienda)** (Pending #4).
+**Next action:** **Términos y condiciones — compra de plan** (Pending #4).
 
 ---
 
@@ -35,7 +35,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** declaración IVA Hacienda; deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -135,6 +135,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 - [x] **Admin foundation** — `users.admin`, `FITLOOP_ADMIN_EMAILS`, `Admin::BaseController` (non-admin → 404 on `/admin/*`), `/admin` skeleton dashboard + shared layout for ventas and analytics (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-foundation.md`
 - [x] **Admin ventas / reporte de pagos** — `/admin/ventas` con filtros, tablas CRC/USD, declaración Hacienda, export XLSX, `cabys_code` en `payments` (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_admin-sales-report.md` — Branch: `admin-dashboard-pay`
 - [x] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV; gobernanza anti-drift A41 (REQ-FIT-ANALYTICS-001, ADR-0008) — 2026-05-31 — Session: `task_user-analytics-bitacora.md` — Branch: `user-analytics`
+- [x] **Declaración de IVA (formato Hacienda)** — `GET /admin/ventas/exportar-formulario-150` (Formulario 150 / IVA01): hojas «Soporte ventas» + «Formulario 150» con fórmulas `SUMIFS`, filtro `paid_at`, mismos filtros que ventas (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_hacienda-iva-declaration.md` — Branch: `declaracion-iva`
 
 ---
 
@@ -150,7 +151,6 @@ Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `
 
 ### Pre-live (3–6)
 
-3. [ ] **Declaración de IVA (formato Hacienda)** — Generar declaración de IVA lo más parecido posible a los formularios oficiales de Hacienda Costa Rica (CRC vs USD/exportación separados; campos y totales alineados al D-104 u otros formularios vigentes); parte desde `/admin/ventas` y exports actuales — Depends on: **Admin ventas / reporte de pagos**
 4. [ ] **Términos y condiciones — compra de plan (FU-LEGAL-001, FU-LEGAL-002)** — Redactar T&C definitivos para suscripción (planes 1/2/4 meses) e **mostrarlos y exigir aceptación en el checkout de plan** (hoy: placeholder en `/terminos`/`/privacidad` y checkbox solo en registro). **Auditoría previa en código y SPEC:** obligaciones reales al comprar/renovar — cupo 50 descargas/mes calendario, extensión desde `ends_at` (no reinicio), sin periodo de gracia, overage 50% tras agotar cupo, descargas incluidas sin retención 24h ni re-descarga tras perder sesión, proyectos efímeros, IVA CR en checkout, ONVO/SINPE, cuenta suspendida/borrada con plan activo. **Recursos externos:** abogado(a) derecho digital y consumo CR (MEIC, contratos B2C, revocación/reembolsos); revisión fiscal (IVA, facturación electrónica); encaje con términos del procesador ONVO. **Entrega:** copy versionado (`TermsVersion`), registro de aceptación en checkout de plan, páginas legales actualizadas, SPEC/ADR si cambian reglas declaradas al usuario.
 5. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
 ### Go-live (7 — when ready)

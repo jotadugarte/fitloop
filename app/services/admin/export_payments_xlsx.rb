@@ -18,10 +18,6 @@ module Admin
       "Total Subtotal (Base Imponible)", "Total IVA 13%", "Total Neto Cobrado"
     ].freeze
 
-    HEADER_STYLE_COLOR = "1E3A5F".freeze
-    ACCENT_COLOR       = "2A4D7A".freeze
-    STRIPE_COLOR       = "F0F3F7".freeze
-
     DETAIL_TYPES = [
       :string, nil, :string, :string, :string, :string, :string, :string, :string, :string,
       :string, :string, :float, :float, :float, :float, :float, :string, :string
@@ -30,7 +26,7 @@ module Admin
     def self.call(payments, direction: "desc")
       package = Axlsx::Package.new
       wb = package.workbook
-      styles = build_styles(wb)
+      styles = VentasXlsxStyles.build(wb)
 
       add_detail_sheet(wb, payments.where(currency: "crc"), direction:, styles:, sheet_name: "Detalle CRC")
       add_detail_sheet(wb, payments.where(currency: "usd"), direction:, styles:, sheet_name: "Detalle USD Export")
@@ -39,45 +35,6 @@ module Admin
 
       package.to_stream.read
     end
-
-    def self.build_styles(wb)
-      {
-        header: wb.styles.add_style(
-          bg_color: HEADER_STYLE_COLOR, fg_color: "FFFFFF", b: true, sz: 10,
-          alignment: { wrap_text: true, horizontal: :center, vertical: :center },
-          border: { style: :thin, color: "FFFFFF" }
-        ),
-        summary_header: wb.styles.add_style(
-          bg_color: ACCENT_COLOR, fg_color: "FFFFFF", b: true, sz: 10,
-          alignment: { wrap_text: true, horizontal: :center, vertical: :center },
-          border: { style: :thin, color: "FFFFFF" }
-        ),
-        stripe: wb.styles.add_style(bg_color: STRIPE_COLOR, sz: 10, alignment: { vertical: :center }),
-        plain: wb.styles.add_style(sz: 10, alignment: { vertical: :center }),
-        money: wb.styles.add_style(sz: 10, format_code: "#,##0.00", alignment: { horizontal: :right, vertical: :center }),
-        money_stripe: wb.styles.add_style(
-          sz: 10, bg_color: STRIPE_COLOR, format_code: "#,##0.00",
-          alignment: { horizontal: :right, vertical: :center }
-        ),
-        date: wb.styles.add_style(sz: 10, format_code: "DD/MM/YYYY HH:MM", alignment: { vertical: :center }),
-        date_stripe: wb.styles.add_style(
-          sz: 10, bg_color: STRIPE_COLOR, format_code: "DD/MM/YYYY HH:MM", alignment: { vertical: :center }
-        ),
-        totals: wb.styles.add_style(
-          bg_color: HEADER_STYLE_COLOR, fg_color: "FFFFFF", b: true, sz: 10,
-          alignment: { horizontal: :right, vertical: :center }, border: { style: :thin, color: "FFFFFF" }
-        ),
-        totals_label: wb.styles.add_style(
-          bg_color: HEADER_STYLE_COLOR, fg_color: "FFFFFF", b: true, sz: 10,
-          alignment: { horizontal: :center, vertical: :center }, border: { style: :thin, color: "FFFFFF" }
-        ),
-        totals_money: wb.styles.add_style(
-          bg_color: HEADER_STYLE_COLOR, fg_color: "FFFFFF", b: true, sz: 10, format_code: "#,##0.00",
-          alignment: { horizontal: :right, vertical: :center }, border: { style: :thin, color: "FFFFFF" }
-        )
-      }
-    end
-    private_class_method :build_styles
 
     def self.add_detail_sheet(wb, payments, direction:, styles:, sheet_name:)
       sorted_payments = payments.order(created_at: direction.to_sym)
