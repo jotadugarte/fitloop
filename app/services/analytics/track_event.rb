@@ -3,14 +3,9 @@
 module Analytics
   class TrackEvent
     def self.call(event_type, properties: {}, user_id: nil, anonymous_session_key: nil, tab_id: nil, project_id: nil, nesting_run_id: nil, ip: nil, user_agent: nil, country_code: nil, locale: nil, idempotency_key: nil, occurred_at: nil)
-      event_type_str, props = validate!(event_type, properties)
-      priority = Analytics::EventCatalog.priority_for(event_type_str)
-      occurred_at ||= Time.current
-
-      event_attributes = {
-        event_type: event_type_str,
-        priority: priority,
-        properties: props,
+      payload = EventPayload.from_kwargs(
+        event_type,
+        properties: properties,
         user_id: user_id,
         anonymous_session_key: anonymous_session_key,
         tab_id: tab_id,
@@ -22,37 +17,24 @@ module Analytics
         locale: locale,
         idempotency_key: idempotency_key,
         occurred_at: occurred_at
-      }
+      )
+      call_payload(payload)
+    end
 
-      if priority == "critical"
-        persist_critical!(event_attributes, idempotency_key)
+    def self.call_payload(payload)
+      raise ArgumentError, "payload required" unless payload.is_a?(EventPayload)
+
+      event_attributes = payload.to_event_attributes
+
+      if payload.priority == "critical"
+        persist_critical!(event_attributes, payload.idempotency_key)
       else
-        return false if rate_limit_exceeded?(user_id, anonymous_session_key)
+        return false if rate_limit_exceeded?(payload.user_id, payload.anonymous_session_key)
 
-        TrackEventJob.perform_later(event_type_str, event_attributes.as_json)
+        TrackEventJob.perform_later(payload.event_type.to_s, event_attributes.as_json)
       end
       true
     end
-
-    def self.validate!(event_type, properties)
-      event_type_str = event_type.to_s
-      unless Analytics::EventCatalog.all_event_types.include?(event_type_str)
-        raise ArgumentError, "Event type '#{event_type_str}' is not registered in the catalog"
-      end
-
-      props = properties.stringify_keys
-      missing_props = Analytics::EventCatalog.required_properties_for(event_type_str).reject do |key|
-        props[key].present?
-      end
-      if missing_props.any?
-        raise ArgumentError,
-              "Event type '#{event_type_str}' missing required properties: #{missing_props.join(', ')}"
-      end
-
-      [event_type_str, props]
-    end
-
-    private_class_method :validate!
 
     def self.persist_critical!(event_attributes, idempotency_key)
       UserEvent.create!(event_attributes)
