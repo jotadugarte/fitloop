@@ -21,5 +21,9 @@ module Admin
     def admin_payment_net_collected(payment)
       Admin::HaciendaSummaryRows.net_collected(payment)
     end
+
+    def admin_form150_export_params(query_params)
+      Admin::VentasFilter.normalize_form150_export_params(query_params)
+    end
   end
 end

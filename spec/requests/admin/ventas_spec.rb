@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "zip"
 
 RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
   def sign_in_user!(user)
@@ -280,7 +281,7 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "honors status filters in the export scope" do
-        filter = Admin::VentasFilter.new(status: [ "succeeded" ])
+        filter = Admin::VentasFilter.new({ status: [ "succeeded" ] })
         base = filter.apply(Admin::ReportingScope.call)
 
         expect(filter.apply_status(base).count).to eq(1)
@@ -297,6 +298,208 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       sign_in_user! admin_user
       get "/admin/ventas/exportar-xlsx", params: { status: [ "succeeded" ] }
       expect(response).to redirect_to(%r{/admin/ventas/exportar\?})
+    end
+  end
+
+  describe "GET /admin/ventas/exportar-formulario-150 [REQ-FIT-ADMIN-001]" do
+    context "when unauthenticated" do
+      it "returns 404 Not Found" do
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when authenticated as non-admin" do
+      it "returns 404 Not Found" do
+        sign_in_user! non_admin_user
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when authenticated as admin" do
+      before do
+        @user = create_billing_user!(email: "f150@example.com")
+        cr_zone = Time.find_zone("America/Costa_Rica")
+
+        @crc_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "sinpe_crc", currency: "crc",
+          amount: 5000, subtotal: 5000, total_amount: 5650, tax_amount: 650,
+          paid_at: cr_zone.parse("2026-05-20 12:00:00"),
+          created_at: cr_zone.parse("2026-04-01 12:00:00"),
+          purchaser_name: "Form150 CRC", purchaser_email: "crc@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_crc",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "333333333333"
+        )
+        @usd_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "card_usd", currency: "usd",
+          amount: 10, subtotal: 10, total_amount: 10, tax_amount: 0,
+          paid_at: cr_zone.parse("2026-05-25 12:00:00"),
+          created_at: cr_zone.parse("2026-04-01 12:00:00"),
+          purchaser_name: "Form150 USD", purchaser_email: "usd@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_usd",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "444444444444"
+        )
+        @failed_payment = Payment.create!(
+          user: @user, status: "failed", payment_method: "card_crc", currency: "crc",
+          amount: 100, subtotal: 100, total_amount: 100,
+          paid_at: cr_zone.parse("2026-05-22 12:00:00"),
+          created_at: Time.current,
+          purchaser_name: "Form150 Failed", purchaser_email: "fail@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_fail",
+          onvo_mode: "test", gateway_status: "failed"
+        )
+        sign_in_user! admin_user
+      end
+
+      it "returns 200 OK with xlsx attachment" do
+        get "/admin/ventas/exportar-formulario-150"
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include("spreadsheetml.sheet")
+        expect(response.headers["Content-Disposition"]).to include("attachment")
+        expect(response.headers["Content-Disposition"]).to include("formulario-150")
+        expect(response.body.bytes.first(2)).to eq([ 0x50, 0x4B ])
+      end
+
+      it "returns XLSX body with soporte rows and Formulario 150 formulas" do
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        soporte_xml = nil
+        formulario_xml = nil
+        Zip::File.open_buffer(response.body) do |zip|
+          soporte_xml = zip.read("xl/worksheets/sheet1.xml")
+          formulario_xml = zip.read("xl/worksheets/sheet2.xml")
+        end
+        [ soporte_xml, formulario_xml ].each { |xml| xml.force_encoding("UTF-8") if xml.respond_to?(:force_encoding) }
+
+        expect(soporte_xml).to include("333333333333")
+        expect(soporte_xml).to include("444444444444")
+        expect(soporte_xml).not_to include("fail@example.com")
+        expect(formulario_xml).to include("<f>SUMIFS")
+      end
+
+      it "labels unbounded period and does not apply paid_at month filter when dates are cleared" do
+        cr_zone = Time.find_zone("America/Costa_Rica")
+        april_payment = Payment.create!(
+          user: @user, status: "succeeded", payment_method: "card_crc", currency: "crc",
+          amount: 300, subtotal: 300, total_amount: 339, tax_amount: 39,
+          paid_at: cr_zone.parse("2026-04-15 10:00:00"),
+          created_at: Time.current,
+          purchaser_name: "April Paid", purchaser_email: "april@example.com",
+          purpose: "single_download", product_description: "single_download",
+          gateway_provider: "onvo", onvo_payment_intent_id: "pi_f150_april",
+          onvo_mode: "test", gateway_status: "succeeded", purchase_reference: "555555555555"
+        )
+
+        get "/admin/ventas/exportar-formulario-150", params: { start_date: "", end_date: "" }
+        expect(response).to have_http_status(:ok)
+        disposition = response.headers["Content-Disposition"]
+        expect(disposition).to include("formulario-150-")
+        expect(disposition).to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{6}\.xlsx/)
+        expect(disposition).not_to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.xlsx/)
+
+        formulario_xml = nil
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) do |zip|
+          formulario_xml = zip.read("xl/worksheets/sheet2.xml")
+          soporte_xml = zip.read("xl/worksheets/sheet1.xml")
+        end
+        [ formulario_xml, soporte_xml ].each { |xml| xml.force_encoding("UTF-8") if xml.respond_to?(:force_encoding) }
+
+        expect(formulario_xml).to include("Sin filtro de fechas")
+        expect(soporte_xml).to include(april_payment.purchase_reference)
+        expect(soporte_xml).not_to include("fail@example.com")
+      end
+
+      it "labels partial period when only start_date is cleared" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "", end_date: "2026-05-31", status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to match(/formulario-150-\d{4}-\d{2}-\d{2}-\d{6}\.xlsx/)
+
+        formulario_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| formulario_xml = zip.read("xl/worksheets/sheet2.xml") }
+        formulario_xml.force_encoding("UTF-8") if formulario_xml.respond_to?(:force_encoding)
+        expect(formulario_xml).to include("— — 2026-05-31")
+      end
+
+      it "defaults to succeeded payments when status param is omitted" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31" }
+
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| soporte_xml = zip.read("xl/worksheets/sheet1.xml") }
+        soporte_xml.force_encoding("UTF-8") if soporte_xml.respond_to?(:force_encoding)
+
+        expect(soporte_xml).to include("333333333333")
+        expect(soporte_xml).not_to include("fail@example.com")
+      end
+
+      it "names attachment with explicit paid_at date range" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31" }
+        expect(response).to have_http_status(:ok)
+        expect(response.headers["Content-Disposition"]).to include("formulario-150-2026-05-01-2026-05-31")
+      end
+
+      it "orders soporte rows by paid_at ascending when direction=asc" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: {
+              start_date: "2026-05-01",
+              end_date: "2026-05-31",
+              status: [ "succeeded" ],
+              direction: "asc"
+            }
+        expect(response).to have_http_status(:ok)
+
+        soporte_xml = nil
+        Zip::File.open_buffer(response.body) { |zip| soporte_xml = zip.read("xl/worksheets/sheet1.xml") }
+        soporte_xml.force_encoding("UTF-8") if soporte_xml.respond_to?(:force_encoding)
+
+        crc_pos = soporte_xml.index("333333333333")
+        usd_pos = soporte_xml.index("444444444444")
+        expect(crc_pos).to be < usd_pos
+      end
+
+      it "honors status filter query params" do
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new({ status: [ "succeeded" ] }, date_column: :paid_at)
+        base = filter.apply(Admin::ReportingScope.call)
+        expect(filter.apply_status(base).count).to eq(2)
+      end
+
+      it "honors payment_method and search query params" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { payment_method: [ "sinpe_crc" ], search: "crc@example.com" }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new(
+          { payment_method: [ "sinpe_crc" ], search: "crc@example.com" },
+          date_column: :paid_at
+        )
+        scope = filter.apply_status(filter.apply(Admin::ReportingScope.call))
+        expect(scope.count).to eq(1)
+        expect(scope.first).to eq(@crc_payment)
+      end
+
+      it "filters by paid_at date window, not created_at" do
+        get "/admin/ventas/exportar-formulario-150",
+            params: { start_date: "2026-05-01", end_date: "2026-05-31", status: [ "succeeded" ] }
+        expect(response).to have_http_status(:ok)
+
+        filter = Admin::VentasFilter.new(
+          { start_date: "2026-05-01", end_date: "2026-05-31", status: [ "succeeded" ] },
+          date_column: :paid_at
+        )
+        scope = filter.apply_status(filter.apply(Admin::ReportingScope.call))
+        expect(scope).to contain_exactly(@crc_payment, @usd_payment)
+      end
     end
   end
 end

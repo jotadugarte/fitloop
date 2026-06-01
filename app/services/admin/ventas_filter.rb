@@ -4,9 +4,20 @@ module Admin
   # [REQ-FIT-ADMIN-001] Query filters for /admin/ventas (no params mutation).
   class VentasFilter
     CR_ZONE = "America/Costa_Rica"
+    DATE_COLUMNS = {
+      created_at: "created_at",
+      paid_at: "paid_at"
+    }.freeze
 
-    def initialize(params)
-      @params = params
+    def initialize(params = {}, date_column: :created_at)
+      @params = self.class.coerce_params(params)
+      @date_column = date_column.to_sym
+      raise ArgumentError, "invalid date_column: #{date_column}" unless DATE_COLUMNS.key?(@date_column)
+    end
+
+    def self.coerce_params(params)
+      raw = params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params.dup
+      raw.with_indifferent_access
     end
 
     def start_date_value
@@ -19,6 +30,54 @@ module Admin
       return default_end_date unless @params.key?(:end_date)
 
       @params[:end_date].presence
+    end
+
+    def period_start_date
+      start_date_value.presence || default_start_date
+    end
+
+    def period_end_date
+      end_date_value.presence || default_end_date
+    end
+
+    def explicit_date_range_cleared?
+      @params.key?(:start_date) && @params[:start_date].blank? &&
+        @params.key?(:end_date) && @params[:end_date].blank?
+    end
+
+    def form150_period_unbounded?
+      explicit_date_range_cleared?
+    end
+
+    def form150_period_partial?
+      (@params.key?(:start_date) && @params[:start_date].blank?) ||
+        (@params.key?(:end_date) && @params[:end_date].blank?)
+    end
+
+    def form150_timestamp_filename?
+      form150_period_unbounded? || form150_period_partial?
+    end
+
+    def form150_period_label
+      return "Sin filtro de fechas" if form150_period_unbounded?
+
+      "#{form150_period_start_display} — #{form150_period_end_display}"
+    end
+
+    def self.normalize_form150_export_params(params)
+      normalized = coerce_params(params)
+      normalized["status"] = [ "succeeded" ] unless status_filter_present?(normalized)
+      normalized
+    end
+
+    def self.status_filter_present?(params)
+      return false unless status_param_key?(params)
+
+      Array(params[:status]).map(&:presence).compact.any?
+    end
+
+    def self.status_param_key?(params)
+      params.key?("status") || params.key?(:status)
     end
 
     def apply(scope)
@@ -53,7 +112,8 @@ module Admin
       return scope if date_str.blank?
 
       start_time = cr_zone.parse(date_str).beginning_of_day
-      scope.where("created_at >= ?", start_time)
+      scope = exclude_null_date_column(scope) if @date_column == :paid_at
+      scope.where("#{date_sql_column} >= ?", start_time)
     rescue ArgumentError
       scope
     end
@@ -62,9 +122,18 @@ module Admin
       return scope if date_str.blank?
 
       end_time = cr_zone.parse(date_str).end_of_day
-      scope.where("created_at <= ?", end_time)
+      scope = exclude_null_date_column(scope) if @date_column == :paid_at
+      scope.where("#{date_sql_column} <= ?", end_time)
     rescue ArgumentError
       scope
+    end
+
+    def exclude_null_date_column(scope)
+      scope.where.not(date_sql_column => nil)
+    end
+
+    def date_sql_column
+      DATE_COLUMNS.fetch(@date_column)
     end
 
     def apply_payment_methods(scope)
@@ -88,6 +157,20 @@ module Admin
 
     def cr_zone
       Time.find_zone(CR_ZONE)
+    end
+
+    def form150_period_start_display
+      return "—" if @params.key?(:start_date) && @params[:start_date].blank?
+      return default_start_date unless @params.key?(:start_date)
+
+      @params[:start_date].presence || default_start_date
+    end
+
+    def form150_period_end_display
+      return "—" if @params.key?(:end_date) && @params[:end_date].blank?
+      return default_end_date unless @params.key?(:end_date)
+
+      @params[:end_date].presence || default_end_date
     end
   end
 end

@@ -128,7 +128,10 @@
       57. Admin stealth gate: all routes under the `/admin` namespace must raise `ActionController::RoutingError` (standard 404) for unauthenticated or non-admin requests, to avoid leaking the admin endpoint's existence. Do not redirect to login.
       58. Admin promotion on boot: promote users to admin via `FITLOOP_ADMIN_EMAILS` env var in a boot initializer (`config/initializers/promote_admins.rb`). The promotion logic must check for the presence of the environment variable and ensure the `users` table exists before querying, to prevent log clutter during setup/migrations. Never commit real admin email strings to source control.
       59. Admin ventas scope: UI and XLSX export use `Admin::ReportingScope` (`Payment.where(superseded_at: nil)`) — do not include superseded checkout attempts in Hacienda declaration totals or export rows.
-      60. Admin ventas export: **XLSX only** via `GET /admin/ventas/exportar` (`Admin::ExportPaymentsXlsx`). Do not reintroduce CSV export routes. Legacy `/admin/ventas/exportar-xlsx` may redirect to `/admin/ventas/exportar` with query string preserved.
+      60. Admin ventas export: **XLSX only** via `GET /admin/ventas/exportar` (`Admin::ExportPaymentsXlsx`) and shared `Admin::VentasXlsxStyles`. **Formulario 150:** `GET /admin/ventas/exportar-formulario-150` (`Admin::ExportForm150Xlsx`) — do not reintroduce CSV export routes. Legacy `/admin/ventas/exportar-xlsx` may redirect to `/admin/ventas/exportar` with query string preserved.
+      60a. Admin Formulario 150 dates: `/admin/ventas` list filters use `created_at`; Form 150 export uses `Admin::VentasFilter` with `date_column: :paid_at` (same `start_date`/`end_date` query params). UI labels must distinguish registro vs pago.
+      60b. Admin Formulario 150 status: `VentasFilter.normalize_form150_export_params` (controller + `admin_form150_export_params` helper) defaults `status` to `[succeeded]` when `status` is omitted or empty; do not include failed/pending in IVA soporte unless the admin explicitly filters those statuses.
+      60c. Admin Formulario 150 soporte rubro: `ExportForm150Xlsx` assigns rubro «No declarable» to non-`succeeded` payments — never «Ventas a 13%» or «Exentas crédito pleno» — so Form 150 `SUMIFS` casillas exclude them.
       61. Admin ventas labels: Spanish payment method, status, and product labels live in `Admin::PaymentDisplayLabels` (shared by views and XLSX). Product copy uses `product_description` when present (`single_download`, `plan_N_months`), with `purpose` fallback.
       62. Payment CAByS: `Payment::DEFAULT_CABYS_CODE` (`8314200000100`) is the only valid `cabys_code`; assign on create; admin export shows default when column blank pre-backfill.
       63. Admin ventas filters: `Admin::VentasFilter` must not mutate `params`. Default month bounds apply only when `params` lacks `:start_date` / `:end_date`; explicit empty date params mean no bound on that side.
@@ -150,6 +153,7 @@
       79. Analytics model specs: `spec/models/analytics/*_spec.rb` outer `RSpec.describe` must include `"[REQ-FIT-ANALYTICS-001]"` (mirrors rules 21, 55, 66).
       80. `user_events.properties` hygiene: Never store blobs, DXF/SVG/geometry payloads, or client absolute file paths in `properties` JSONB — metadata only (filename, bytes, counts, snapshots).
       81. Admin event labels i18n: User bitácora and analytics CSV event labels use `admin.events.*` locale keys (Spanish primary; `es_panic` parity per rule 18) — no hardcoded event type strings in views.
+      82. Admin helper specs: `spec/helpers/admin/*_spec.rb` use `RSpec.describe ClassName, "[REQ-FIT-ADMIN-001]"` on the outer describe (or the REQ for the admin domain under test), mirroring rule 66 for admin services.
     </rules>
   </project_rules>
 </agentic_guild_os>

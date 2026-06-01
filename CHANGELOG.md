@@ -28,6 +28,7 @@ All notable user-facing changes to Fitloop are documented here.
 - **Modo Arquitecto en Pánico** (`:es_panic`) joke locale with EN/ES + panic switcher and full key parity with Spanish (`REQ-FIT-UI-005`).
 
 - **Admin ventas / reporte de pagos:** `/admin/ventas` with filters, CRC/USD tables, Hacienda declaration summary, XLSX export, and `cabys_code` on payments (`REQ-FIT-ADMIN-001`).
+- **Formulario 150 (IVA) export:** `GET /admin/ventas/exportar-formulario-150` — XLSX with «Soporte ventas» + «Formulario 150» (`SUMIFS` casillas Sección I); `paid_at` date filter; defaults to succeeded payments when status omitted (`REQ-FIT-ADMIN-001`).
 - **Admin analytics & user bitácora:** `user_events` pipeline, `Analytics::TrackEvent` instrumentation across workshop/billing/auth, `/admin/analytics` KPI dashboard with conversion funnel and CSV export, `/admin/usuarios` search and per-user event timeline (`REQ-FIT-ANALYTICS-001`, ADR-0008).
 
 ### Changed

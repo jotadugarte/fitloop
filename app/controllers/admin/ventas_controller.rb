@@ -6,7 +6,7 @@ module Admin
       @filter = VentasFilter.new(params)
       @start_date = @filter.start_date_value
       @end_date = @filter.end_date_value
-      @direction = params[:direction] == "asc" ? "asc" : "desc"
+      @direction = sort_direction
 
       base_scope = @filter.apply(ReportingScope.call)
       @declaration_totals = DeclarationTotals.for_scope(base_scope)
@@ -34,8 +34,7 @@ module Admin
     end
 
     def export_xlsx
-      direction = params[:direction] == "asc" ? "asc" : "desc"
-      xlsx_data = ExportPaymentsXlsx.call(filtered_payments_scope, direction: direction)
+      xlsx_data = ExportPaymentsXlsx.call(filtered_payments_scope, direction: sort_direction)
 
       send_data xlsx_data,
                 filename: "ventas-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx",
@@ -43,7 +42,38 @@ module Admin
                 disposition: "attachment"
     end
 
+    def export_form150
+      filter = VentasFilter.new(form150_export_params, date_column: :paid_at)
+      scope = filter.apply_status(filter.apply(ReportingScope.call))
+      xlsx_data = ExportForm150Xlsx.call(
+        scope,
+        period_label: filter.form150_period_label,
+        direction: sort_direction
+      )
+
+      send_data xlsx_data,
+                filename: form150_filename(filter),
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                disposition: "attachment"
+    end
+
     private
+
+    def form150_filename(filter)
+      if filter.form150_timestamp_filename?
+        return "formulario-150-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.xlsx"
+      end
+
+      "formulario-150-#{filter.period_start_date}-#{filter.period_end_date}.xlsx"
+    end
+
+    def form150_export_params
+      VentasFilter.normalize_form150_export_params(params)
+    end
+
+    def sort_direction
+      params[:direction] == "asc" ? "asc" : "desc"
+    end
 
     def filtered_payments_scope
       filter = VentasFilter.new(params)

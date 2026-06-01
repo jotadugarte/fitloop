@@ -5,9 +5,20 @@
       <p class="admin-dashboard__tagline">Historial detallado de transacciones, desglose financiero para Hacienda y exportación de datos.</p>
     </div>
     <div class="admin-ventas-actions">
-      <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
-        <span>⬇ Exportar Reporte (.xlsx)</span>
-      <% end %>
+      <div class="admin-ventas-actions__buttons">
+        <%= link_to admin_export_ventas_path(request.query_parameters), class: "btn btn-primary admin-ventas-export-btn" do %>
+          <span>⬇ Exportar Reporte (.xlsx)</span>
+        <% end %>
+        <%= link_to admin_export_form150_ventas_path(admin_form150_export_params(request.query_parameters)), class: "btn btn-secondary admin-ventas-export-btn" do %>
+          <span>⬇ Exportar Formulario 150</span>
+        <% end %>
+      </div>
+      <p class="admin-ventas-actions__hint admin-dashboard__tagline">
+        Reporte ventas: Desde/Hasta por <strong>fecha de registro</strong> (created_at).
+      </p>
+      <p class="admin-ventas-actions__hint admin-dashboard__tagline">
+        Formulario 150: Desde/Hasta por <strong>fecha de pago</strong> (paid_at); si no eliges estado, el export incluye solo cobros exitosos.
+      </p>
     </div>
   </header>
 
@@ -55,12 +66,12 @@
       </div>
 
       <div>
-        <label for="start_date" class="admin-stat-card__label admin-ventas-field__label">Desde</label>
+        <label for="start_date" class="admin-stat-card__label admin-ventas-field__label">Desde (registro)</label>
         <%= f.date_field :start_date, value: @start_date, id: "start_date", class: "admin-ventas-field__input" %>
       </div>
 
       <div>
-        <label for="end_date" class="admin-stat-card__label admin-ventas-field__label">Hasta</label>
+        <label for="end_date" class="admin-stat-card__label admin-ventas-field__label">Hasta (registro)</label>
         <%= f.date_field :end_date, value: @end_date, id: "end_date", class: "admin-ventas-field__input" %>
       </div>
 

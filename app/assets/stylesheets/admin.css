@@ -351,8 +351,21 @@
 
 .admin-ventas-actions {
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.admin-ventas-actions__buttons {
+  display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.admin-ventas-actions__hint {
+  margin: 0;
+  max-width: 28rem;
+  text-align: right;
 }
 
 .admin-ventas-export-btn {
