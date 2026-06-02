@@ -7,9 +7,9 @@ Versión: 2026-06-01
 
 Fitloop («**Fitloop**», «**el Servicio**», «**nosotros**») es una aplicación web que permite cargar archivos DXF, configurar láminas y ejecutar un proceso de distribución (nesting) para obtener un DXF distribuido listo para corte.
 
-El Servicio es operado por **Jesús Dugarte, identificación:186201204601 y domicilio en Costa Rica** («**el Operador**»).
+El Servicio es operado por **Jesús Dugarte, identificación: 186201204601 y domicilio en Costa Rica** («**el Operador**»).
 
-Al registrarse, navegar, usar el taller, comprar un plan o pagar una descarga, usted («**Usuario**», «**usted**») acepta estos Términos de Servicio y nuestra [Política de privacidad](/privacidad). Si no está de acuerdo, no utilice el Servicio ni realice pagos.
+Al registrarse, navegar, usar el taller, comprar un plan o pagar una descarga, usted («**Usuario**») acepta estos Términos de Servicio y nuestra [Política de privacidad](/privacidad). Si no está de acuerdo, no utilice el Servicio ni realice pagos.
 
 #### 2. Descripción del servicio
 
@@ -41,7 +41,7 @@ La distribución es un servicio **digital** que se ejecuta en nuestros servidore
 
 Fitloop ofrece dos tipos de compra:
 
-**A) Descarga suelta** — pago único por la descarga de un DXF distribuido de una ejecución de distribución concreta.
+**A) Descarga única** — pago único por la descarga de un DXF distribuido de una ejecución de distribución concreta.
 
 **B) Plan prepagado** — pago único por un **periodo de acceso** de 1, 2 o 4 meses calendario (según el plan elegido), con un cupo mensual de descargas incluidas.
 
@@ -55,24 +55,24 @@ Fitloop ofrece dos tipos de compra:
 
 6.3. **Extensión:** si compra un plan adicional mientras tiene uno activo, el nuevo periodo **se suma al final** del plan vigente (no reinicia la fecha desde el día de la compra).
 
-6.4. **Sin periodo de gracia:** al vencer el plan, **pierde de inmediato** el beneficio de descargas incluidas. Debe adquirir un nuevo plan o pagar descargas sueltas para continuar descargando.
+6.4. **Sin periodo de gracia:** al vencer el plan, **pierde de inmediato** el beneficio de descargas incluidas. Debe adquirir un nuevo plan o pagar descargas únicas para continuar descargando.
 
 6.5. **Descargas incluidas en el plan:**
    - Solo aplican mientras el plan esté activo y quede cupo en el mes.
    - **No incluyen retención de 24 horas** en «Mis pagos».
    - Si pierde la sesión de taller o el proyecto efímero, **debe volver a distribuir**; no podrá re-descargar una distribución anterior solo porque formaba parte de su plan.
 
-6.6. **Cupo agotado — descarga con tarifa reducida:** si agotó las 50 descargas del mes calendario en curso pero su plan sigue activo, puede comprar **descargas sueltas adicionales** al **50 % del precio normal** de descarga suelta (tarifa de excedente). Los precios vigentes se muestran en el paywall y checkout antes del pago.
+6.6. **Cupo agotado — descarga con tarifa reducida:** si agotó las 50 descargas del mes calendario en curso pero su plan sigue activo, puede comprar **descargas únicas adicionales** al **50 % del precio normal** de descarga única (tarifa de excedente). Los precios vigentes se muestran en el paywall y checkout antes del pago.
 
 6.7. **Un plan activo por cuenta:** solo puede tener un plan activo a la vez; las compras adicionales extienden ese plan según §6.3.
 
-#### 7. Descarga suelta — condiciones
+#### 7. Descarga única — condiciones
 
-7.1. Al pagar una descarga suelta obtiene derecho a descargar el DXF distribuido de **esa ejecución de distribución específica**.
+7.1. Al pagar una descarga única obtiene derecho a descargar el DXF distribuido de **esa ejecución de distribución específica**.
 
 7.2. **Retención 24 horas:** tras un pago exitoso, conservamos una copia del archivo en «Mis pagos» durante **24 horas** desde la confirmación del pago, para que pueda descargarlo aunque pierda la sesión del taller. **Pasadas 24 horas**, el archivo deja de estar disponible para descarga.
 
-7.3. Las descargas sueltas **no son reembolsables** una vez confirmado el pago y habilitada la descarga o iniciada la retención.
+7.3. Las descargas únicas **no son reembolsables** una vez confirmado el pago y habilitada la descarga o iniciada la retención.
 
 #### 8. Precios, impuestos y facturación
 
@@ -126,7 +126,7 @@ Fitloop ofrece dos tipos de compra:
 
 #### 13. Aceptación de términos en el checkout
 
-13.1. Antes de procesar cualquier pago (plan o descarga suelta), debe marcar la casilla de aceptación de estos Términos y la Política de privacidad vigentes.
+13.1. Antes de procesar cualquier pago (plan o descarga única), debe marcar la casilla de aceptación de estos Términos y la Política de privacidad vigentes.
 
 13.2. Si publicamos una **nueva versión material** de estos Términos, deberá aceptarla antes de su próximo pago.
 
