@@ -7,7 +7,7 @@ Versión: 2026-06-01
 
 Fitloop («**Fitloop**», «**el Servicio**», «**nosotros**») es una aplicación web que permite cargar archivos DXF, configurar láminas y ejecutar un proceso de distribución (nesting) para obtener un DXF distribuido listo para corte.
 
-El Servicio es operado por **[OPERADOR — completar razón social, cédula jurídica o identificación y domicilio en Costa Rica]** («**el Operador**»).
+El Servicio es operado por **Jesús Dugarte, identificación:186201401601 y domicilio en Costa Rica** («**el Operador**»).
 
 Al registrarse, navegar, usar el taller, comprar un plan o pagar una descarga, usted («**Usuario**», «**usted**») acepta estos Términos de Servicio y nuestra [Política de privacidad](/privacidad). Si no está de acuerdo, no utilice el Servicio ni realice pagos.
 
@@ -140,4 +140,4 @@ Estos Términos se rigen por las **leyes de la República de Costa Rica**. Cualq
 
 #### 16. Contacto
 
-Consultas sobre estos Términos: **[correo de soporte — completar]**.
+Consultas sobre estos Términos: **soporte@modusloop.com**.

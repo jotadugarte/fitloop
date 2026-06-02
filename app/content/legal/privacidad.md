@@ -24,7 +24,7 @@ Conservamos datos de cuenta mientras mantenga la cuenta. Archivos de descarga su
 
 #### Sus derechos
 
-Puede solicitar acceso, rectificación o eliminación contactando **[correo — completar]**. Eliminar la cuenta implica borrado del acceso según los Términos.
+Puede solicitar acceso, rectificación o eliminación contactando **soporte@modusloop.com**. Eliminar la cuenta implica borrado del acceso según los Términos.
 
 #### Transferencias
 
