@@ -5,7 +5,7 @@ Versión: 2026-06-01
 
 #### 1. Identificación del servicio
 
-Fitloop («**Fitloop**», «**el Servicio**», «**nosotros**») es una aplicación web que permite cargar archivos DXF, configurar láminas y ejecutar un proceso de anidado (nesting) para obtener un DXF anidado listo para corte.
+Fitloop («**Fitloop**», «**el Servicio**», «**nosotros**») es una aplicación web que permite cargar archivos DXF, configurar láminas y ejecutar un proceso de distribución (nesting) para obtener un DXF distribuido listo para corte.
 
 El Servicio es operado por **[OPERADOR — completar razón social, cédula jurídica o identificación y domicilio en Costa Rica]** («**el Operador**»).
 
@@ -15,11 +15,11 @@ Al registrarse, navegar, usar el taller, comprar un plan o pagar una descarga, u
 
 Fitloop ofrece:
 
-- Un **taller en línea** para cargar DXF, definir inventario de láminas, seleccionar capas y ejecutar anizados.
-- **Vista previa** del resultado de anidado (sin costo).
-- **Descarga del DXF anidado** mediante pago o beneficio de plan, según corresponda.
+- Un **taller en línea** para cargar DXF, definir inventario de láminas, seleccionar capas y ejecutar distribuciones.
+- **Vista previa** del resultado de distribución (sin costo).
+- **Descarga del DXF distribuido** mediante pago o beneficio de plan, según corresponda.
 
-El anidado es un servicio **digital** que se ejecuta en nuestros servidores. Los tiempos de procesamiento dependen de la complejidad del proyecto y pueden estar sujetos a un límite de tiempo configurado.
+La distribución es un servicio **digital** que se ejecuta en nuestros servidores. Los tiempos de procesamiento dependen de la complejidad del proyecto y pueden estar sujetos a un límite de tiempo configurado.
 
 #### 3. Cuenta de usuario
 
@@ -33,7 +33,7 @@ El anidado es un servicio **digital** que se ejecuta en nuestros servidores. Los
 
 #### 4. Proyectos y sesión de trabajo
 
-4.1. Los proyectos de anidado en Fitloop son **efímeros**: están vinculados a su sesión de navegador y pestaña de trabajo. Si cierra el navegador, cambia de dispositivo o pierde la sesión, **puede perder el acceso al proyecto en curso** y deberá volver a cargar sus archivos y ejecutar un nuevo anidado.
+4.1. Los proyectos de distribución en Fitloop son **efímeros**: están vinculados a su sesión de navegador y pestaña de trabajo. Si cierra el navegador, cambia de dispositivo o pierde la sesión, **puede perder el acceso al proyecto en curso** y deberá volver a cargar sus archivos y ejecutar una nueva distribución.
 
 4.2. Fitloop **no garantiza** almacenamiento permanente de sus archivos DXF ni de configuraciones de taller más allá de lo estrictamente necesario para prestar el Servicio.
 
@@ -41,7 +41,7 @@ El anidado es un servicio **digital** que se ejecuta en nuestros servidores. Los
 
 Fitloop ofrece dos tipos de compra:
 
-**A) Descarga suelta** — pago único por la descarga de un DXF anidado de una ejecución de anidado concreta.
+**A) Descarga suelta** — pago único por la descarga de un DXF distribuido de una ejecución de distribución concreta.
 
 **B) Plan prepagado** — pago único por un **periodo de acceso** de 1, 2 o 4 meses calendario (según el plan elegido), con un cupo mensual de descargas incluidas.
 
@@ -49,7 +49,7 @@ Fitloop ofrece dos tipos de compra:
 
 #### 6. Planes prepagados — condiciones (FU-LEGAL-002)
 
-6.1. **Cupo mensual:** durante cada mes calendario dentro de su periodo activo, tiene derecho a **50 (cincuenta) descargas incluidas** del DXF anidado. El cupo **se reinicia al inicio de cada mes calendario** mientras su plan esté vigente (por ejemplo, un plan de 2 meses incluye hasta 50 descargas en el mes 1 y hasta 50 en el mes 2).
+6.1. **Cupo mensual:** durante cada mes calendario dentro de su periodo activo, tiene derecho a **50 (cincuenta) descargas incluidas** del DXF distribuido. El cupo **se reinicia al inicio de cada mes calendario** mientras su plan esté vigente (por ejemplo, un plan de 2 meses incluye hasta 50 descargas en el mes 1 y hasta 50 en el mes 2).
 
 6.2. **Inicio y fin del plan:** el plan comienza en el momento del pago confirmado. Finaliza al **último instante del día natural** correspondiente a la duración contratada (1, 2 o 4 meses), calculado según la **zona horaria registrada en su cuenta**.
 
@@ -60,7 +60,7 @@ Fitloop ofrece dos tipos de compra:
 6.5. **Descargas incluidas en el plan:**
    - Solo aplican mientras el plan esté activo y quede cupo en el mes.
    - **No incluyen retención de 24 horas** en «Mis pagos».
-   - Si pierde la sesión de taller o el proyecto efímero, **debe volver a anidar**; no podrá re-descargar un anidado anterior solo porque formaba parte de su plan.
+   - Si pierde la sesión de taller o el proyecto efímero, **debe volver a distribuir**; no podrá re-descargar una distribución anterior solo porque formaba parte de su plan.
 
 6.6. **Cupo agotado — descarga con tarifa reducida:** si agotó las 50 descargas del mes calendario en curso pero su plan sigue activo, puede comprar **descargas sueltas adicionales** al **50 % del precio normal** de descarga suelta (tarifa de excedente). Los precios vigentes se muestran en el paywall y checkout antes del pago.
 
@@ -68,7 +68,7 @@ Fitloop ofrece dos tipos de compra:
 
 #### 7. Descarga suelta — condiciones
 
-7.1. Al pagar una descarga suelta obtiene derecho a descargar el DXF anidado de **esa ejecución de anidado específica**.
+7.1. Al pagar una descarga suelta obtiene derecho a descargar el DXF distribuido de **esa ejecución de distribución específica**.
 
 7.2. **Retención 24 horas:** tras un pago exitoso, conservamos una copia del archivo en «Mis pagos» durante **24 horas** desde la confirmación del pago, para que pueda descargarlo aunque pierda la sesión del taller. **Pasadas 24 horas**, el archivo deja de estar disponible para descarga.
 
@@ -99,7 +99,7 @@ Fitloop ofrece dos tipos de compra:
 10.1. **Todas las ventas son finales.** No ofrecemos reembolsos, devoluciones ni créditos por:
 
 - cambio de opinión;
-- resultados de anidado distintos a lo esperado (salvo fallo técnico imputable al Servicio según §11);
+- resultados de distribución distintos a lo esperado (salvo fallo técnico imputable al Servicio según §11);
 - pérdida de sesión, proyecto efímero o falta de uso del cupo del plan;
 - eliminación voluntaria de cuenta;
 - vencimiento del plan o del periodo de retención de 24 horas.
@@ -108,7 +108,7 @@ Fitloop ofrece dos tipos de compra:
 
 #### 11. Disponibilidad, calidad y limitación de responsabilidad
 
-11.1. Fitloop se ofrece «**tal cual**» y «**según disponibilidad**». No garantizamos que el anidado sea óptimo para todo caso de producción, ni ausencia total de errores.
+11.1. Fitloop se ofrece «**tal cual**» y «**según disponibilidad**». No garantizamos que la distribución sea óptima para todo caso de producción, ni ausencia total de errores.
 
 11.2. Usted es responsable de **verificar** el DXF resultante antes de usarlo en corte, producción o instalación.
 
