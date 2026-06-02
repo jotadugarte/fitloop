@@ -12,9 +12,7 @@ module ApplicationHelper
     markdown.render(text).html_safe
   end
 
-  def user_omniauth_authorize_path(provider)
-    public_send(Auth::OmniauthProviders.authorize_path_name(provider).to_sym)
-  end
+
 
   def auth_back_path
     session[:workspace_return_to].presence || root_path
