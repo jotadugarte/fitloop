@@ -365,7 +365,7 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "returns XLSX body with soporte rows and Formulario 150 formulas" do
-        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ], start_date: "2026-05-01", end_date: "2026-05-31" }
         expect(response).to have_http_status(:ok)
 
         soporte_xml = nil
@@ -466,21 +466,21 @@ RSpec.describe "Admin::Ventas", "[REQ-FIT-ADMIN-001]", type: :request do
       end
 
       it "honors status filter query params" do
-        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ] }
+        get "/admin/ventas/exportar-formulario-150", params: { status: [ "succeeded" ], start_date: "2026-05-01", end_date: "2026-05-31" }
         expect(response).to have_http_status(:ok)
 
-        filter = Admin::VentasFilter.new({ status: [ "succeeded" ] }, date_column: :paid_at)
+        filter = Admin::VentasFilter.new({ status: [ "succeeded" ], start_date: "2026-05-01", end_date: "2026-05-31" }, date_column: :paid_at)
         base = filter.apply(Admin::ReportingScope.call)
         expect(filter.apply_status(base).count).to eq(2)
       end
 
       it "honors payment_method and search query params" do
         get "/admin/ventas/exportar-formulario-150",
-            params: { payment_method: [ "sinpe_crc" ], search: "crc@example.com" }
+            params: { payment_method: [ "sinpe_crc" ], search: "crc@example.com", start_date: "2026-05-01", end_date: "2026-05-31" }
         expect(response).to have_http_status(:ok)
 
         filter = Admin::VentasFilter.new(
-          { payment_method: [ "sinpe_crc" ], search: "crc@example.com" },
+          { payment_method: [ "sinpe_crc" ], search: "crc@example.com", start_date: "2026-05-01", end_date: "2026-05-31" },
           date_column: :paid_at
         )
         scope = filter.apply_status(filter.apply(Admin::ReportingScope.call))
