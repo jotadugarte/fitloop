@@ -29,15 +29,18 @@ RSpec.describe "OAuth removal", "[REQ-FIT-AUTH-002]", type: :request do
 
   describe "OmniAuth routing" do
     it "does not route to google_oauth2" do
-      expect { get "/users/auth/google_oauth2" }.to raise_error(ActionController::RoutingError)
+      get "/users/auth/google_oauth2"
+      expect(response).to have_http_status(:not_found)
     end
 
     it "does not route to facebook" do
-      expect { get "/users/auth/facebook" }.to raise_error(ActionController::RoutingError)
+      get "/users/auth/facebook"
+      expect(response).to have_http_status(:not_found)
     end
 
     it "does not route to apple" do
-      expect { get "/users/auth/apple" }.to raise_error(ActionController::RoutingError)
+      get "/users/auth/apple"
+      expect(response).to have_http_status(:not_found)
     end
   end
 end
