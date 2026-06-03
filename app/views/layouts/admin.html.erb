@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="<%= I18n.locale %>">
   <head>
-    <title>Fitloop Admin</title>
+    <title>moduSLoop Admin</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <link rel="icon" href="/images/minilogo.png" type="image/png">
+    <link rel="icon" href="/images/icono-modusloop.png" type="image/png" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/images/icono-modusloop-dark.png" type="image/png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/images/icono-modusloop.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +17,7 @@
   <body class="layout-admin">
     <header class="admin-header">
       <div class="admin-header__brand">
-        <%= link_to "Fitloop Admin", admin_root_path %>
+        <%= link_to "moduSLoop Admin", admin_root_path %>
         <nav class="admin-header__nav">
           <%= link_to "Inicio", admin_root_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if current_page?(admin_root_path)}" %>
           <%= link_to "Ventas", admin_ventas_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if request.path.start_with?('/admin/ventas')}" %>
@@ -26,7 +28,7 @@
       <div class="admin-header__user">
         <% if user_signed_in? %>
           <span class="admin-header__user-email"><%= current_user.email %></span>
-          <%= link_to "← Ir a Fitloop", root_path,
+          <%= link_to "← Ir a moduSLoop", root_path,
                 class: "btn btn-secondary btn--compact",
                 style: "opacity: 0.85; text-decoration: none;" %>
           <%= button_to t("auth.nav.sign_out"),

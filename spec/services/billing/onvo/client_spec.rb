@@ -33,7 +33,7 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
       result = client.create_payment_intent(
         amount: 113_000,
         currency: "CRC",
-        description: "Fitloop #42",
+        description: "fiTLoop #42",
         metadata: { payment_id: "42" }
       )
 
@@ -43,7 +43,7 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
         body: {
           amount: 113_000,
           currency: "CRC",
-          description: "Fitloop #42",
+          description: "fiTLoop #42",
           metadata: { payment_id: "42" }
         }
       )

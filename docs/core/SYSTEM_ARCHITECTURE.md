@@ -1,8 +1,8 @@
-# System Architecture & Boundaries — Fitloop
+# System Architecture & Boundaries — moduSLoop
 
-**Purpose:** Unchangeable technical laws for the Fitloop DXF sheet-nesting web app. AI agents must not violate these boundaries without an approved ADR in `docs/core/ADRs/`.
+**Purpose:** Unchangeable technical laws for the moduSLoop platform (with fiTLoop DXF sheet-nesting as its first tool). AI agents must not violate these boundaries without an approved ADR in `docs/core/ADRs/`.
 
-**Product:** Fitloop — ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live job progress, nested DXF download + browser preview. Brand assets live under `images/` (app logo).
+**Product:** moduSLoop is a platform where fiTLoop is the first active tool (ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live job progress, nested DXF download + browser preview). Brand assets live under `images/` (logo-modusloop.png, fitloop-logo.png).
 
 ---
 
@@ -67,7 +67,7 @@ fitloop/                 # Rails 8 app (root)
   app/                   # MVC, jobs, services
   nesting_engine/        # Python package (extract, nest, CLI)
   docs/core/             # SPEC, ADRs, this file
-  images/                # Fitloop logo and static brand assets
+  images/                # moduSLoop / fiTLoop logos and static brand assets
   test/                  # Minitest/RSpec (see TESTING_STRATEGY_MATRIX.md)
 ```
 

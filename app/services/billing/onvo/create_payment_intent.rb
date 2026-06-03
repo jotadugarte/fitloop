@@ -38,7 +38,7 @@ module Billing
       end
 
       def intent_description
-        @description.presence || "Fitloop payment ##{@payment.id}"
+        @description.presence || "fiTLoop payment ##{@payment.id}"
       end
 
       def persist_gateway_fields!(response)

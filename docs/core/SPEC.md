@@ -1,4 +1,4 @@
-# Project Specification — Fitloop
+# Project Specification — moduSLoop
 
 > **REQ-ID format:** `REQ-FIT-[DOMAIN]-[NNN]` — every test must reference the REQ-ID it verifies. See `docs/core/TESTING_STRATEGY_MATRIX.md`.
 
@@ -6,9 +6,11 @@
 
 ## Purpose
 
-Fitloop is a web application for **DXF sheet nesting**: users start an **ephemeral workspace** (one in-browser session per visit), attach multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
+**moduSLoop** is a platform for student tools. Its first active tool is **fiTLoop**, a web application for **DXF sheet nesting**: users start an **ephemeral workspace** (one in-browser session per visit), attach multiple input DXFs, define an ordered **sheet inventory** (finite quantities or infinite), select layers via a **layer checklist**, and run a background nesting job. The Python `nesting_engine` returns a nested DXF, `placements.json`, and `report.json`. The UI shows live progress (Turbo Streams), browser preview, and download. Units are **millimeters** throughout.
 
-Branding assets (logo) live under `images/`. UI copy is internationalized (`en`, `es`, optional joke locale `es_panic`).
+Future tools, such as the schedule-synchronization tool **synCLoop**, will be hosted on the same platform sharing the authentication system.
+
+Branding assets (logos) live under `images/`. UI copy is internationalized (`en`, `es`, optional joke locale `es_panic`).
 
 ---
 
@@ -16,9 +18,12 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 | Term | Definition | In code / UX |
 |------|------------|----------------|
+| **moduSLoop** | The student tool hub platform. Holds user authentication, layout shell, and navigation. | Platform |
+| **fiTLoop** | The DXF sheet nesting tool within moduSLoop (formerly Fitloop). | Tool |
+| **synCLoop** | The upcoming schedule synchronization tool within moduSLoop (coming soon placeholder). | Tool |
 | **Project** | Ephemeral nesting workspace: title, parameters, inputs, sheet stocks, selected layers, job state | `Project` model (`ephemeral: true`) |
 | **Workspace** | Session-bound aggregate: ephemeral `Project`(s) per browser tab | `Workspace` service, `session[:workspaces]` hash (`tab_id` → `project_id`) |
-| **User** | Persistent account for login, verification, and billing; does **not** own `Project` rows in v1 | `User` model, Devise |
+| **User** | Persistent account for login, verification, and billing valid across the whole moduSLoop platform | `User` model, Devise |
 | **DownloadGrant** | Entitlement to download one `NestingRun`'s nested DXF (plan quota or single purchase) | `DownloadGrant`, signed download token |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
 | **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
@@ -138,7 +143,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-002** | Browser preview from `placements.json` | P4 |
 | **REQ-FIT-NEST-004** | Re-nest: new `NestingRun`, replace download, history | P4 |
 | **REQ-FIT-UI-003** | Download nested DXF; workspace start redirect (no saved-project list); session-bound show | P4 |
-| **REQ-FIT-UI-004** | Architecture-studio web design; Fitloop identity; polished UI (`en`/`es`) | P4 |
+| **REQ-FIT-UI-004** | Architecture-studio web design; moduSLoop / fiTLoop identity; polished UI (`en`/`es`) | P4 |
 | **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv on Linux VM) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
@@ -156,7 +161,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - **Create:** `Workspace.find_or_create!` / `create!` → `Project(ephemeral: true)`; `Workspace.bind!(session, project, tab_id:)` sets `session[:workspaces][tab_id]`.
 - **Read / mutate:** Controllers use `Workspace.resolve!(session, id, tab_id:)` — returns the project only when the tab's bind matches the ephemeral id.
 - **Multi-tab:** Each browser tab has a UUID `tab_id` (Stimulus `workspace_tab_controller`); independent ephemeral projects per tab.
-- **Tab-close TTL:** On real tab close (`pagehide` without in-app Turbo visit), client sets `fitloop_workspace_tab_left_at` cookie; **>120s** after closing the tab without logout → expire bind on return with `workspace.tab_closed_expired`. Navigating within Fitloop (planes, Mis pagos, paywall) does not start the timer. No idle expiry while the tab stays open.
+- **Tab-close TTL:** On real tab close (`pagehide` without in-app Turbo visit), client sets `fitloop_workspace_tab_left_at` cookie; **>120s** after closing the tab without logout → expire bind on return with `workspace.tab_closed_expired`. Navigating within moduSLoop (planes, Mis pagos, paywall) does not start the timer. No idle expiry while the tab stays open.
 - **Foreign ID:** Unbound request for another project → `ActiveRecord::RecordNotFound` or redirect to `/empezar` with `workspace.expired`.
 - **Leave:** `HomeController` / `Workspace.discard!` destroys the project, cancels active nesting, clears session key.
 - **Abandoned:** `Workspace.purge_all_ephemeral!` removes orphan ephemeral rows (no session cookie).
@@ -496,7 +501,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **User workflow (post-job UI on `project#show`):**
 
-1. Orphan cards show badge + choice: leave **`pending`**, **Dividir con Fitloop** (`system_split`), or **Resolver manualmente** (`manual`). User may change mind before materializing.
+1. Orphan cards show badge + choice: leave **`pending`**, **Dividir con fiTLoop** (`system_split`), or **Resolver manualmente** (`manual`). User may change mind before materializing.
 2. **`system_split`:** enqueue split plan job → mandatory **preview** (inline SVG from engine geometry) → **Aceptar** / **Rechazar** / **Regenerar** per orphan. Accept materializes `DerivedPiece` rows and excludes the mother from nest input.
 3. **`manual`:** explicit copy—edit CAD off-app, remove mother geometry, upload corrected DXF; **“He actualizado mis DXF”** runs pre-flight; auto-`resolved` when mother no longer extracts.
 4. When all targeted splits are accepted (or user is ready), CTA **“Anidar con piezas actualizadas”** auto-enqueues a normal nest (not only generic re-nest).

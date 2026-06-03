@@ -14,6 +14,15 @@ RSpec.describe "App toolbar", "[REQ-FIT-UI-004] [REQ-FIT-AUTH-001]", type: :requ
       expect(body.index("locale-switcher")).to be < body.index("account-nav")
     end
 
+    it "[REQ-FIT-UI-004] renders the Home brand icon link" do
+      get root_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="toolbar-home"')
+      expect(response.body).to include('class="app-toolbar__home-link"')
+      expect(response.body).to include('/images/icono-modusloop.png')
+    end
+
     it "[REQ-FIT-UI-004] renders Mi taller link on other pages" do
       user = create_billing_user!
       sign_in user

@@ -29,8 +29,8 @@
 
 en:
   application:
-    name: "Fitloop"
-    dialog_title: "Fitloop"
+    name: "moduSLoop"
+    dialog_title: "moduSLoop"
     dialog_accept: "OK"
     dialog_cancel: "Cancel"
 
@@ -263,7 +263,7 @@ en:
       simulate_failure: "Payment failed"
       onvo_use_pay: "Live payments use ONVO. Use “Process payment” to start checkout."
       onvo:
-        fraud_monitoring_note: "Card payments are processed securely by ONVO. Fitloop does not store card details."
+        fraud_monitoring_note: "Card payments are processed securely by ONVO. fiTLoop does not store card details."
         card_fields_title: "Card details"
         card_holder_name: "Name on card"
         card_number: "Card number"
@@ -353,10 +353,12 @@ en:
         invalid: "Could not update your cart. Try again from the catalog."
 
   home:
-    index:
-      tagline: "DXF sheet nesting"
-      subtitle: "Cut optimization for architecture"
-      cta_start: "Start"
+    hub:
+      title: "Tools"
+      fitloop_tagline: "DXF sheet nesting"
+      syncloop_tagline: "Schedule synchronization"
+      coming_soon: "Coming soon"
+      open_tool: "Open tool"
 
   projects:
     status:
@@ -372,7 +374,7 @@ en:
     setup:
       missing_dxf: "Upload at least one DXF file before continuing."
       welcome:
-        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        intro: "fiTLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
         steps_title: "On this screen"
         steps:
           - "Add your sheets: width, height, and how many you have of each size. Leave quantity blank for unlimited sheets of that size."
@@ -387,7 +389,7 @@ en:
     show:
       session_title: "Your nesting"
       welcome:
-        intro: "FitLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
+        intro: "fiTLoop arranges your cut pieces (DXF files) on the sheets you define, respecting margins and spacing, so you use less material."
         steps_title: "On this screen"
         steps:
           - "Sheet inventory: add sizes and quantities; drag rows to set consumption priority."
@@ -539,21 +541,21 @@ en:
       unknown: "Review the DXF and sheet inventory, then re-nest."
     split:
       choose_pending: "Leave pending"
-      choose_system: "Split with Fitloop"
+      choose_system: "Split with fiTLoop"
       choose_manual: "Resolve manually"
       accept: "Accept"
       reject: "Reject"
       regenerate: "Regenerate"
       accepted: "Split accepted — ready to re-nest with updated pieces."
       accepted_pending_nest: "Split accepted. Child pieces are ready — use Nest with updated pieces in Actions."
-      not_feasible: "Fitloop could not split this piece to fit your sheet inventory. Try manual resolution or add larger sheets."
+      not_feasible: "fiTLoop could not split this piece to fit your sheet inventory. Try manual resolution or add larger sheets."
       not_feasible_accept: "This split preview is not feasible and cannot be accepted."
       manual_mother_still_present: "The original piece geometry is still in your DXF. Remove it in CAD, upload the updated file, then try again."
       manual:
         intro: "Fix this piece in your CAD, your way:"
         step_1: "Open the original DXF and replace or split piece %{piece_number} however works best for you."
         step_2: "Upload the updated file in DXF detail (above) and run nesting again."
-        no_dedup: "Fitloop does not edit your file for you — you make the changes in your design software."
+        no_dedup: "fiTLoop does not edit your file for you — you make the changes in your design software."
         confirm: "I updated my DXF"
         resolved: "Manual resolution confirmed — this orphan is resolved."
         not_manual_state: "This orphan is not in manual resolution."

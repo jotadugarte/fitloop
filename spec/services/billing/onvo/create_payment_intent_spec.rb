@@ -30,7 +30,7 @@ RSpec.describe Billing::Onvo::CreatePaymentIntent, "[REQ-FIT-BILL-001]", type: :
       expect(client).to receive(:create_payment_intent).with(
         amount: 113_000,
         currency: "CRC",
-        description: "Fitloop payment ##{payment.id}",
+        description: "fiTLoop payment ##{payment.id}",
         metadata: { payment_id: payment.id.to_s }
       ).and_return(
         id: "pi_test_123",

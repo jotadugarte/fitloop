@@ -1,7 +1,7 @@
 ---
 es_panic:
   application:
-    name: Fitloop
+    name: moduSLoop
     dialog_title: El Oráculo del Láser
     dialog_accept: Diay, a jugársela
     dialog_cancel: Mejor no
@@ -271,7 +271,7 @@ es_panic:
       simulate_failure: Pago fallido
       onvo_use_pay: Los pagos usan ONVO en vivo. Dale a «Procesar pago».
       onvo:
-        fraud_monitoring_note: Tarjeta = ONVO seguro. Fitloop no guarda la tarjeta.
+        fraud_monitoring_note: Tarjeta = ONVO seguro. fiTLoop no guarda la tarjeta.
         card_fields_title: Datos de la tarjeta
         card_holder_name: Nombre en la tarjeta
         card_number: Número de tarjeta
@@ -362,10 +362,12 @@ es_panic:
         line_unknown: Artículo desconocido
         invalid: No se pudo actualizar el carrito. Vuelve a intentarlo desde el catálogo.
   home:
-    index:
-      tagline: Tetris de supervivencia DXF
-      subtitle: Optimización de cortes para salvar la tanda y el presupuesto de la maqueta.
-      cta_start: Iniciar el caos
+    hub:
+      title: "Herramientas de tortura"
+      fitloop_tagline: "Tetris de supervivencia DXF"
+      syncloop_tagline: "Sincronización del caos"
+      coming_soon: "Próximamente (si sobrevivimos)"
+      open_tool: "Entrar al taller"
   projects:
     status:
       draft: En pañales (Borrador)
@@ -545,7 +547,7 @@ es_panic:
       unknown: Revise si cerró bien las líneas, no sea así.
     split:
       choose_pending: Dejar en el limbo
-      choose_system: Que Fitloop la machetee
+      choose_system: Que fiTLoop la machetee
       choose_manual: Yo lo arreglo en CAD
       accept: Va, córtelo así
       reject: No, qué asco de corte
@@ -559,7 +561,7 @@ es_panic:
         intro: 'Arregle su desastre en el CAD:'
         step_1: 1. Abra el CAD pesadísimo, busque la pieza %{piece_number} y divídala como mejor le parezca.
         step_2: 2. Suba el archivo actualizado en Detalle DXF y vuelva a invocar el anidado.
-        no_dedup: Fitloop no purga su AutoCAD por usted.
+        no_dedup: fiTLoop no purga su AutoCAD por usted.
         confirm: Ya arreglé mi CAD (mentira permitida)
         resolved: Manual resuelto — este huérfano ya no molesta.
         not_manual_state: Este huérfano no está en modo manual.

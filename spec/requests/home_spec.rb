@@ -12,7 +12,8 @@ RSpec.describe "Home", type: :request do
       get root_path
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Fitloop")
+      expect(response.body).to include("moduSLoop")
+      expect(response.body).to include("fiTLoop")
     end
 
     it "[REQ-FIT-APP-001] renders app logo from images/" do

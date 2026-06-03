@@ -68,7 +68,7 @@ RSpec.describe "Orphan auto split [REQ-FIT-SPLIT-001]", type: :system do
     project.update!(kerf_mm: 0, margin_mm: 0, status: :ready)
   end
 
-  it "[REQ-FIT-SPLIT-001] [REQ-FIT-UI-002] shows split preview after choosing Dividir con Fitloop" do
+  it "[REQ-FIT-SPLIT-001] [REQ-FIT-UI-002] shows split preview after choosing Dividir con fiTLoop" do
     visit start_project_path
     project = workspace_project_from_session
     attach_oversized_piece!(project)

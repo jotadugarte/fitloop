@@ -1,6 +1,6 @@
-# Project Roadmap — Fitloop
+# Project Roadmap — moduSLoop
 
-Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live progress, nested DXF + preview. Product requirements are locked in `docs/core/SPEC.md`; historical agent session logs live under `.agenticguild/completed_sessions/` (e.g. `task_dxf-nesting_2026-05-17.md`).
+moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects, ordered sheet inventory (finite + ∞), layer filter, Python nesting engine, live progress, nested DXF + preview). Product requirements are locked in `docs/core/SPEC.md`; historical agent session logs live under `.agenticguild/completed_sessions/` (e.g. `task_dxf-nesting_2026-05-17.md`).
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
@@ -42,6 +42,7 @@ Web app for DXF sheet nesting: ephemeral workspace sessions, multi-DXF projects,
 ## Done
 
 - [x] agentic:guild OS bootstrap (skills, governance docs, PR template) — 2026-05-16
+- [x] **moduSLoop Platform Rebrand & Tool Hub** — Rebranded application layouts, titles, Auth views, PWA manifest, and favicons to moduSLoop; designed the home landing page into a multi-tool hub dashboard displaying active (`fiTLoop` DXF nesting) and upcoming (`synCLoop` schedule sync) student tools; added navigation Home icon. — 2026-06-03 — Session: `task_modulusloop-platform.md`
 - [x] Fitloop DXF nesting — requirements exploration & spec lock (decisions D1–D27, implementation plan P0–P5) — 2026-05-16 — Session: `task_dxf-nesting_2026-05-17.md`
 - [x] **P0 — Anchors & toolchain** (items 1–5) — 2026-05-16
 - [x] **P1 — Domain & access** (items 6–8) — 2026-05-16
