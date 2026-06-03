@@ -72,7 +72,7 @@ export function fitloopAlert(message, title = null) {
 
   const titleEl = target("title")
   const messageEl = target("message")
-  if (titleEl) titleEl.textContent = title || dialog.dataset.defaultTitle || "Fitloop"
+  if (titleEl) titleEl.textContent = title || dialog.dataset.defaultTitle || "moduSLoop"
   if (messageEl) messageEl.textContent = message
 
   return new Promise((resolve) => {
@@ -98,7 +98,7 @@ export function fitloopConfirm(message, title = null, { acceptLabel = null, canc
   const messageEl = target("message")
   const cancelBtn = target("cancel")
   const acceptBtn = target("accept")
-  if (titleEl) titleEl.textContent = title || dialog.dataset.defaultTitle || "Fitloop"
+  if (titleEl) titleEl.textContent = title || dialog.dataset.defaultTitle || "moduSLoop"
   if (messageEl) messageEl.textContent = message
   if (cancelBtn) {
     cancelBtn.hidden = false

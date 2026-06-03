@@ -1,6 +1,9 @@
 <header class="app-main__toolbar">
   <div class="app-toolbar" data-testid="app-toolbar">
     <div class="app-toolbar__start">
+      <%= link_to root_path, class: "app-toolbar__home-link", title: t("nav.home"), data: { turbo: false, testid: "toolbar-home" } do %>
+        <%= image_tag "/images/icono-modusloop.png", alt: "Home", class: "app-toolbar__home-icon" %>
+      <% end %>
       <%= render "shared/locale_switcher" %>
     </div>
 

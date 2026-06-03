@@ -1,11 +1,29 @@
-<main class="page page--landing fitloop-home" data-testid="fitloop-home">
-  <%# Fitloop branding %>
-  <section class="landing-hero">
-    <%= image_tag "/images/logo.png", alt: t("application.name"), class: "landing-hero__logo" %>
-    <p class="landing-hero__tagline"><%= t(".tagline") %></p>
-    <p class="landing-hero__subtitle"><%= t(".subtitle") %></p>
-    <div class="landing-hero__actions">
-      <%= link_to t("home.index.cta_start"), start_project_path, class: "btn btn-primary" %>
+<main class="page page--landing tool-hub" data-testid="tool-hub">
+  <header class="tool-hub__header">
+    <%= image_tag "/images/logo-modusloop.png", alt: t("application.name"), class: "tool-hub__brand-logo" %>
+    <h1 class="tool-hub__title"><%= t("home.hub.title") %></h1>
+  </header>
+
+  <div class="tool-hub__grid">
+    <div class="tool-card tool-card--active" data-testid="tool-card-fitloop">
+      <div class="tool-card__logo-container">
+        <%= image_tag "/images/fitloop-logo.png", alt: "fiTLoop", class: "tool-card__logo" %>
+      </div>
+      <p class="tool-card__tagline"><%= t("home.hub.fitloop_tagline") %></p>
+      <%= link_to t("home.hub.open_tool"), workshop_path, class: "btn btn-primary tool-card__btn" %>
     </div>
-  </section>
+
+    <div class="tool-card tool-card--disabled" data-testid="tool-card-syncloop" aria-disabled="true">
+      <div class="tool-card__logo-container">
+        <%= image_tag "/images/logo-syncloop.png", alt: "synCLoop", class: "tool-card__logo" %>
+      </div>
+      <p class="tool-card__tagline"><%= t("home.hub.syncloop_tagline") %></p>
+      <span class="tool-card__badge"><%= t("home.hub.coming_soon") %></span>
+    </div>
+
+    <div class="tool-card tool-card--placeholder" data-testid="tool-card-placeholder">
+      <div class="tool-card__placeholder-icon">+</div>
+      <p class="tool-card__tagline"><%= t("home.hub.coming_soon") %></p>
+    </div>
+  </div>
 </main>

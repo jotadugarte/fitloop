@@ -1,7 +1,7 @@
 es:
   application:
-    name: "Fitloop"
-    dialog_title: "Fitloop"
+    name: "moduSLoop"
+    dialog_title: "moduSLoop"
     dialog_accept: "Aceptar"
     dialog_cancel: "Cancelar"
 
@@ -278,7 +278,7 @@ es:
       simulate_failure: "Pago fallido"
       onvo_use_pay: "Los pagos usan ONVO en vivo. Usa «Procesar pago» para iniciar el cobro."
       onvo:
-        fraud_monitoring_note: "Los pagos con tarjeta se procesan de forma segura con ONVO. Fitloop no almacena datos de tarjeta."
+        fraud_monitoring_note: "Los pagos con tarjeta se procesan de forma segura con ONVO. fiTLoop no almacena datos de tarjeta."
         card_fields_title: "Datos de la tarjeta"
         card_holder_name: "Nombre en la tarjeta"
         card_number: "Número de tarjeta"
@@ -368,10 +368,12 @@ es:
         invalid: "No se pudo actualizar el carrito. Vuelve a intentarlo desde el catálogo."
 
   home:
-    index:
-      tagline: "Distribución de láminas para corte"
-      subtitle: "Optimización de cortes para modelos, maquetas y proyectos manuales"
-      cta_start: "Empezar"
+    hub:
+      title: "Herramientas"
+      fitloop_tagline: "Distribución de láminas para corte"
+      syncloop_tagline: "Sincronización de horarios"
+      coming_soon: "Próximamente"
+      open_tool: "Abrir herramienta"
 
   projects:
     status:
@@ -387,7 +389,7 @@ es:
     setup:
       missing_dxf: "Sube al menos un archivo DXF antes de continuar."
       welcome:
-        intro: "FitLoop organiza tus piezas de corte (archivos DXF) dentro de las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        intro: "fiTLoop organiza tus piezas de corte (archivos DXF) dentro de las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
         steps_title: "En esta pantalla"
         steps:
           - "Inventario de láminas: añade tamaños y cantidades; reordena la prioridad de uso arrastrando filas. Si dejas la cantidad en blanco, ese tipo de lámina será ilimitado."
@@ -402,12 +404,12 @@ es:
     show:
       session_title: "Tu distribución"
       welcome:
-        intro: "FitLoop organiza tus piezas de corte (archivos DXF) dentro de las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
+        intro: "fiTLoop organiza tus piezas de corte (archivos DXF) dentro de las láminas que indiques, respetando márgenes y separación, para aprovechar mejor el material."
         steps_title: "En esta pantalla"
         steps:
           - "Inventario de láminas: añade tamaños y cantidades; reordena la prioridad de uso arrastrando filas. Si dejas la cantidad en blanco, ese tipo de lámina será ilimitado."
           - "Detalle DXF: sube archivos y elige la capa principal de corte y las auxiliares (grabado, marcado…)."
-          - "Vistas previas y piezas no colocadas: luego de la distribución, revisa cómo quedaron las piezas en cada lámina y cuáles no entraron en las láminas disponibles. Divide automáticamente con Fitloop o descarta la pieza."
+          - "Vistas previas y piezas no colocadas: luego de la distribución, revisa cómo quedaron las piezas en cada lámina y cuáles no entraron en las láminas disponibles. Divide automáticamente con fiTLoop o descarta la pieza."
           - "Acciones de distribución: inicia la distribución, vuelve a distribuir o cancela el proceso según el estado del proyecto."
           - "Parámetros de distribución: ajusta la separación entre piezas y el margen del borde de la lámina cuando lo necesites."
       nesting_parameters_title: "Parámetros de distribución"
@@ -554,21 +556,21 @@ es:
       unknown: "Revisa el DXF y el inventario de láminas, luego vuelve a distribuir."
     split:
       choose_pending: "Dejar pendiente"
-      choose_system: "Dividir con Fitloop"
+      choose_system: "Dividir con fiTLoop"
       choose_manual: "Resolver manualmente"
       accept: "Aceptar"
       reject: "Rechazar"
       regenerate: "Regenerar"
       accepted: "División aceptada — listo para re-distribuir con piezas actualizadas."
       accepted_pending_nest: "División aceptada. Las piezas hijas están listas; usa «Distribuir con piezas actualizadas» en Acciones de Distribución."
-      not_feasible: "Fitloop no pudo dividir esta pieza para que quepa en tu inventario de láminas. Prueba resolución manual o añade láminas más grandes."
+      not_feasible: "fiTLoop no pudo dividir esta pieza para que quepa en tu inventario de láminas. Prueba resolución manual o añade láminas más grandes."
       not_feasible_accept: "Esta vista previa de división no es viable y no se puede aceptar."
       manual_mother_still_present: "La geometría de la pieza original sigue en tu DXF. Quítala en el CAD, sube el archivo actualizado e inténtalo de nuevo."
       manual:
         intro: "Ajusta esta pieza en tu CAD, a tu manera:"
         step_1: "Abre el DXF original y sustituye o divide la pieza %{piece_number} como mejor te parezca."
         step_2: "Sube el archivo actualizado en Detalle DXF (más arriba) y vuelve a ejecutar la distribución."
-        no_dedup: "Fitloop no modifica tu archivo por ti: los cambios los haces en tu programa de diseño."
+        no_dedup: "fiTLoop no modifica tu archivo por ti: los cambios los haces en tu programa de diseño."
         confirm: "He actualizado mis DXF"
         resolved: "Resolución manual confirmada — este huérfano quedó resuelto."
         not_manual_state: "Este huérfano no está en resolución manual."
@@ -706,7 +708,7 @@ es:
       active_plan_warning: "Tienes un plan activo. Si eliminas la cuenta, perderás el beneficio restante del plan."
       aside:
         title: "Antes de continuar"
-        lead: "La eliminación es definitiva. Si solo quieres dejar de usar Fitloop por un tiempo, cierra sesión y vuelve cuando quieras."
+        lead: "La eliminación es definitiva. Si solo quieres dejar de usar fiTLoop por un tiempo, cierra sesión y vuelve cuando quieras."
         benefit_permanent: "Se borra el acceso a tu cuenta, taller en curso e historial de pagos."
         benefit_plan: "Con plan activo, pierdes las descargas y la cuota que aún no hayas usado."
         benefit_support: "Si tienes dudas, cancela y revisa Mis pagos o Mi cuenta."
@@ -742,7 +744,7 @@ es:
       active_plan_warning: "Tienes un plan activo. Si eliminas la cuenta, perderás el beneficio restante del plan."
       aside:
         title: "Antes de continuar"
-        lead: "La eliminación es definitiva. Si solo quieres dejar de usar Fitloop por un tiempo, cierra sesión y vuelve cuando quieras."
+        lead: "La eliminación es definitiva. Si solo quieres dejar de usar fiTLoop por un tiempo, cierra sesión y vuelve cuando quieras."
         benefit_permanent: "Se borra el acceso a tu cuenta, taller en curso e historial de pagos."
         benefit_plan: "Con plan activo, pierdes las descargas y la cuota que aún no hayas usado."
         benefit_support: "Si tienes dudas, cancela y revisa Mis pagos o Mi cuenta."
