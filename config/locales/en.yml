@@ -40,7 +40,7 @@ en:
     labels:
       en: "EN"
       es: "ES"
-      es_panic: "📐 PÁNICO"
+      es_panic: "PÁNICO"
 
   date:
     formats:
