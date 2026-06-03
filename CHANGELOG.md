@@ -1,11 +1,12 @@
 # Changelog
 
-All notable user-facing changes to Fitloop are documented here.
+All notable user-facing changes to moduSLoop are documented here.
 
 ## Unreleased
 
 ### Added
 
+- **moduSLoop Tool Hub:** Redesigned the home landing page into a multi-tool hub dashboard displaying active (`fiTLoop` DXF nesting) and upcoming (`synCLoop` schedule sync) student tools. Added a toolbar Home button (`/images/icono-modusloop.png`) to navigate back to the hub.
 - **Admin foundation:** Added the `admin` boolean attribute on `User`, automated promotion of admin email lists via boot initializer (`FITLOOP_ADMIN_EMAILS`), layout for admin dashboard, and a secure stealth access gate at `/admin/*` returning 404 for unauthorized requests (`REQ-FIT-ADMIN-001`).
 - **Unified Mi taller funnel:** EMPEZAR lands on `/taller` with contextual **setup mode** (láminas → nesting params → DXF; preview hidden until first nest) vs **taller mode** after first successful nest (`REQ-FIT-UI-001`, `REQ-FIT-UI-003`).
 - **Workshop autosave:** sheet inventory, debounced nesting parameters, and DXF layer selection persist without explicit Save/Apply buttons in setup mode.
@@ -33,6 +34,7 @@ All notable user-facing changes to Fitloop are documented here.
 
 ### Changed
 
+- **moduSLoop Platform Rebrand:** Rebranded the entire application wrapper (titles, layouts, authentication pages, PWA manifest, and favicons) to **moduSLoop**. Retained the **fiTLoop** brand for the specific DXF nesting tool within its workshop workspace and billing pages.
 - **Parámetros iniciales removed:** `/projects/new` and monolithic «Continuar» step eliminated; ephemeral funnel is Inicio → EMPEZAR → `/taller`.
 - **Mi taller panels:** setup mode opens sheet inventory and DXF detail; taller mode keeps panels collapsed by default; uploading DXF after a nest preserves the detail panel open.
 - **Billing internals:** services use typed value objects at boundaries (no checkout API or JSON shape change).
