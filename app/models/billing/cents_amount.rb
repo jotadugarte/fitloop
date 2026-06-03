@@ -32,7 +32,7 @@ module Billing
     alias eql? ==
 
     def hash
-      [@cents, @currency].hash
+      [ @cents, @currency ].hash
     end
   end
 end

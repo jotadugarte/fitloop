@@ -27,11 +27,11 @@ module Billing
         tier = coerce_tier_months(tier_months)
         case tier.to_i
         when 1
-          [plan_1_month_card_usd, plan_1_month_official_crc, plan_1_month_sinpe_crc]
+          [ plan_1_month_card_usd, plan_1_month_official_crc, plan_1_month_sinpe_crc ]
         when 2
-          [plan_2_months_card_usd, plan_2_months_official_crc, plan_2_months_sinpe_crc]
+          [ plan_2_months_card_usd, plan_2_months_official_crc, plan_2_months_sinpe_crc ]
         when 4
-          [plan_4_months_card_usd, plan_4_months_official_crc, plan_4_months_sinpe_crc]
+          [ plan_4_months_card_usd, plan_4_months_official_crc, plan_4_months_sinpe_crc ]
         else
           raise ArgumentError, "unknown plan tier_months: #{tier_months}"
         end

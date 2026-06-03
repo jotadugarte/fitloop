@@ -102,7 +102,7 @@ module Nesting
       end
 
       env = Dxf::Python.subprocess_env
-      command = [Dxf::Python.executable, DEFAULT_SCRIPT.to_s, config_path.to_s]
+      command = [ Dxf::Python.executable, DEFAULT_SCRIPT.to_s, config_path.to_s ]
 
       Open3.popen3(env, *command) do |_stdin, _stdout, _stderr, wait_thr|
         pid = wait_thr.pid
@@ -185,6 +185,5 @@ module Nesting
       )
       @project.update!(status: terminal_status)
     end
-
   end
 end

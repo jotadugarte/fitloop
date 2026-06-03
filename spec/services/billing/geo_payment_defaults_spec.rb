@@ -81,4 +81,3 @@ RSpec.describe Billing::GeoPaymentDefaults, "[REQ-FIT-BILL-001]" do
     end
   end
 end
-

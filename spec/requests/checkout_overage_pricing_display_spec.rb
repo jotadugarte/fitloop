@@ -41,4 +41,3 @@ RSpec.describe "Checkout overage pricing display", "[REQ-FIT-BILL-001]", type: :
     expect(response.body).not_to include('data-testid="checkout-overage-pricing"')
   end
 end
-

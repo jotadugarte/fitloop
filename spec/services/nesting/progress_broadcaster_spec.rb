@@ -44,7 +44,7 @@ RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
       project.update!(status: :partial, progress_percent: 100, progress_message: "done")
       project.nesting_runs.create!(
         status: "partial",
-        report_json: { "orphans" => [{ "piece_index" => 0, "reason" => "oversized_for_sheet" }] },
+        report_json: { "orphans" => [ { "piece_index" => 0, "reason" => "oversized_for_sheet" } ] },
         finished_at: Time.current
       )
       project.placements_json.attach(

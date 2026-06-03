@@ -8,7 +8,6 @@ RSpec.describe "Project source DXF detail", type: :request do
 
   describe "GET /projects/:id" do
     it "renders Detalle DXF without per-file SVG preview (same as setup)" do
-
       project.input_dxf.attach(
         io: File.open(sample_dxf),
         filename: "piece.dxf",

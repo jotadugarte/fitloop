@@ -37,7 +37,7 @@ RSpec.describe "Workshop telemetry instrumentation", "[REQ-FIT-ANALYTICS-001]", 
 
       expect {
         post project_input_dxf_files_path(project_id),
-             params: { files: [fixture_file] }
+             params: { files: [ fixture_file ] }
       }.to have_enqueued_job(TrackEventJob).with("first_dxf_uploaded", hash_including(
         "properties" => hash_including(
           "filename" => "sample_piece.dxf",

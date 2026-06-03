@@ -83,7 +83,7 @@ module MisPagosHelper
   end
 
   def mis_pagos_row_payment_details_line(row)
-    parts = [mis_pagos_row_reference(row), mis_pagos_row_payment_method(row)].compact
+    parts = [ mis_pagos_row_reference(row), mis_pagos_row_payment_method(row) ].compact
     return nil if parts.empty?
 
     safe_join(parts, tag.span(" · ", class: "mis-pagos-download-row__fact-sep", aria: { hidden: true }))

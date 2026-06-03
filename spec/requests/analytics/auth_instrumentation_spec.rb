@@ -17,7 +17,7 @@ RSpec.describe "Auth events telemetry", "[REQ-FIT-ANALYTICS-001]", type: :reques
     it "tracks user_logged_out on sign out" do
       # Sign in first
       post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
-      
+
       expect {
         delete destroy_user_session_path
       }.to have_enqueued_job(TrackEventJob).with("user_logged_out", anything)

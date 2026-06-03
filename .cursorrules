@@ -154,6 +154,7 @@
       80. `user_events.properties` hygiene: Never store blobs, DXF/SVG/geometry payloads, or client absolute file paths in `properties` JSONB — metadata only (filename, bytes, counts, snapshots).
       81. Admin event labels i18n: User bitácora and analytics CSV event labels use `admin.events.*` locale keys (Spanish primary; `es_panic` parity per rule 18) — no hardcoded event type strings in views.
       82. Admin helper specs: `spec/helpers/admin/*_spec.rb` use `RSpec.describe ClassName, "[REQ-FIT-ADMIN-001]"` on the outer describe (or the REQ for the admin domain under test), mirroring rule 66 for admin services.
+      83. El contenido de los documentos legales (Términos de Servicio y Política de Privacidad) debe residir como archivos Markdown dentro de `app/content/legal/` (por ejemplo, `terminos.md`, `privacidad.md`) y ser renderizado dinámicamente utilizando el helper `render_markdown`. Los bloques grandes de texto legal estático no deben almacenarse en los archivos de localización de traducción (como `es.yml` o `en.yml`).
     </rules>
   </project_rules>
 </agentic_guild_os>

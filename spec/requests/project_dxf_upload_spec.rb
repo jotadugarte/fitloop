@@ -17,7 +17,7 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     get start_project_path, headers: tab_headers
     follow_redirect!(headers: tab_headers)
     project = Workspace.find(session, tab_id: tab_id)
-    expect(session[Workspace::WORKSPACES_KEY].keys).to eq([tab_id])
+    expect(session[Workspace::WORKSPACES_KEY].keys).to eq([ tab_id ])
 
     post project_input_dxf_files_path(project),
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "piece.dxf", "application/dxf") ] },

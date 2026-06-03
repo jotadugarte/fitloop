@@ -32,7 +32,6 @@ RSpec.describe "Project nesting preview", type: :request do
 
   describe "GET /projects/:id [REQ-FIT-UI-002]" do
     it "renders piece outlines with holes when placements include rings" do
-
       payload = placements_payload.deep_dup
       payload[:sheets][0][:pieces] = [
         {
@@ -63,7 +62,6 @@ RSpec.describe "Project nesting preview", type: :request do
     end
 
     it "renders an SVG preview with one rect per sheet in placements.json" do
-
       project.placements_json.attach(
         io: StringIO.new(placements_payload.to_json),
         filename: "placements.json",
@@ -88,7 +86,6 @@ RSpec.describe "Project nesting preview", type: :request do
     end
 
     it "renders auxiliary decorations with layer colors in the nesting preview" do
-
       project.project_layers.create!(
         layer_name: "CORTE",
         included: true,

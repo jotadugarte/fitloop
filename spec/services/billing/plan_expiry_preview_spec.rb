@@ -16,4 +16,3 @@ RSpec.describe Billing::PlanExpiryPreview, "[REQ-FIT-BILL-002]" do
     end
   end
 end
-

@@ -17,4 +17,3 @@ RSpec.describe "Billing preferences in workspace", "[REQ-FIT-BILL-001]", type: :
     end
   end
 end
-

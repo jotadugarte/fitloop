@@ -30,4 +30,3 @@ module Billing
     end
   end
 end
-

@@ -32,4 +32,3 @@ RSpec.describe "Checkout geo-based payment methods", "[REQ-FIT-BILL-001]", type:
     end
   end
 end
-

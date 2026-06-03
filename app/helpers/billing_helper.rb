@@ -28,9 +28,9 @@ module BillingHelper
   # [REQ-FIT-BILL-001] Plan tiers for paywall catalog (months, i18n key).
   def paywall_plan_tiers
     [
-      [1, "tier_1"],
-      [2, "tier_2"],
-      [4, "tier_4"]
+      [ 1, "tier_1" ],
+      [ 2, "tier_2" ],
+      [ 4, "tier_4" ]
     ]
   end
 

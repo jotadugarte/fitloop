@@ -24,7 +24,7 @@ module Nesting
       return limit_at if elapsed_sec <= 0.0
 
       projected = started_at + (elapsed_sec / fraction).seconds
-      [projected, limit_at].min
+      [ projected, limit_at ].min
     end
   end
 end

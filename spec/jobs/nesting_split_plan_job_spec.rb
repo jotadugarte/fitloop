@@ -43,7 +43,7 @@ RSpec.describe Nesting::SplitPlanJob, type: :job do
     project.project_layers.create!(layer_name: "PIECES", included: true)
     project.nesting_runs.create!(
       status: "partial",
-      report_json: { "orphans" => [{ "piece_index" => 0, "reason" => "oversized_for_sheet" }] },
+      report_json: { "orphans" => [ { "piece_index" => 0, "reason" => "oversized_for_sheet" } ] },
       finished_at: Time.current
     )
     allow(Nesting::SplitPlannerRunner).to receive(:call).and_return(preview_payload)

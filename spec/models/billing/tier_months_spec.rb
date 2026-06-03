@@ -16,7 +16,7 @@ RSpec.describe Billing::TierMonths, "[REQ-FIT-BILL-002]" do
       expect(described_class.parse("4").to_i).to eq(4)
     end
 
-    [0, 3, 99, nil].each do |invalid|
+    [ 0, 3, 99, nil ].each do |invalid|
       it "[REQ-FIT-BILL-002] rejects invalid tier_months #{invalid.inspect}" do
         expect { described_class.parse(invalid) }.to raise_error(ArgumentError)
       end

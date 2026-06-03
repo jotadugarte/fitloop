@@ -43,4 +43,3 @@ RSpec.describe "Cart persistence across login", "[REQ-FIT-BILL-001]", type: :req
     expect(Cart.find_by(user_id: user.id)).to be_present
   end
 end
-

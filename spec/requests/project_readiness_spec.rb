@@ -8,7 +8,6 @@ RSpec.describe "Project pre-flight", type: :request do
 
   describe "GET /projects/:project_id/layers [REQ-FIT-VAL-001]" do
     it "shows i18n pre-flight errors when no layers are selected" do
-
       project.input_dxf.attach(
         io: File.open(sample_dxf),
         filename: "piece.dxf",

@@ -142,11 +142,11 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
       previous = keys.index_with { |key| ENV[key] }
       keys.each do |key|
         ENV[key] = case key
-                   when "ONVO_SECRET_KEY" then "onvo_test_secret_x"
-                   when "ONVO_PUBLISHABLE_KEY" then "onvo_test_pub_x"
-                   when "ONVO_MODE" then "test"
-                   when "ONVO_WEBHOOK_SECRET" then "whsec_x"
-                   end
+        when "ONVO_SECRET_KEY" then "onvo_test_secret_x"
+        when "ONVO_PUBLISHABLE_KEY" then "onvo_test_pub_x"
+        when "ONVO_MODE" then "test"
+        when "ONVO_WEBHOOK_SECRET" then "whsec_x"
+        end
       end
 
       env_client = described_class.from_env(transport: transport)
@@ -167,11 +167,11 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
     end
 
     def stub_post(path, status:, body:)
-      @stubs[["post", path]] = Response.new(status: status, body: body)
+      @stubs[[ "post", path ]] = Response.new(status: status, body: body)
     end
 
     def stub_get(path, status:, body:)
-      @stubs[["get", path]] = Response.new(status: status, body: body)
+      @stubs[[ "get", path ]] = Response.new(status: status, body: body)
     end
 
     def post(path, body)
@@ -187,7 +187,7 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
     private
 
     def fetch_stub(method, path)
-      @stubs[[method, path]] || raise(KeyError, "no stub for #{method.upcase} #{path}")
+      @stubs[[ method, path ]] || raise(KeyError, "no stub for #{method.upcase} #{path}")
     end
   end
 end

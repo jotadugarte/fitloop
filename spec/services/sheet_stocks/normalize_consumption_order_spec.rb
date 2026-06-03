@@ -19,8 +19,8 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
       project.reload
 
       ordered = project.sheet_stocks.order(:sort_order)
-      expect(ordered.map(&:quantity)).to eq([5, nil])
-      expect(ordered.map(&:sort_order)).to eq([0, 1])
+      expect(ordered.map(&:quantity)).to eq([ 5, nil ])
+      expect(ordered.map(&:sort_order)).to eq([ 0, 1 ])
     end
 
     it "preserves relative order among multiple finite stocks" do
@@ -39,7 +39,7 @@ RSpec.describe SheetStocks::NormalizeConsumptionOrder do
       project.reload
 
       finites = project.sheet_stocks.order(:sort_order).reject { |s| s.quantity.nil? }
-      expect(finites.map(&:quantity)).to eq([5, 2])
+      expect(finites.map(&:quantity)).to eq([ 5, 2 ])
       expect(project.sheet_stocks.order(:sort_order).last.quantity).to be_nil
     end
   end
