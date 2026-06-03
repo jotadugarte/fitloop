@@ -17,7 +17,7 @@ RSpec.describe "Locale switcher", type: :request do
       cookies[:fitloop_locale] = "es"
       get root_path
 
-      expect(response.body).to include("Anidado de láminas DXF")
+      expect(response.body).to include("Distribución de láminas para corte")
     end
 
     it "renders the EN/ES toggle in the layout" do
@@ -58,7 +58,7 @@ RSpec.describe "Locale switcher", type: :request do
       get root_path
 
       expect(response.body).to include("locale-switcher__btn--panic")
-      expect(response.body).to include("📐 PÁNICO")
+      expect(response.body).to include("PÁNICO")
       expect(response.body).not_to include("ES_PANIC")
     end
   end
@@ -70,7 +70,7 @@ RSpec.describe "Locale switcher", type: :request do
       expect(response).to redirect_to(root_url)
       expect(cookies[:fitloop_locale]).to eq("es")
       follow_redirect!
-      expect(response.body).to include("Anidado de láminas DXF")
+      expect(response.body).to include("Distribución de láminas para corte")
     end
 
     it "persists es_panic in cookie and session then redirects back" do

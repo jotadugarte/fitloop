@@ -23,7 +23,7 @@ RSpec.describe Nesting::StatusMapper do
     it "returns partial when exit is zero and report status is partial" do
       status = described_class.map(
         exit_status: 0,
-        report: { "status" => "partial", "orphans" => [{ "piece_index" => 0, "reason" => "oversized_for_sheet" }] },
+        report: { "status" => "partial", "orphans" => [ { "piece_index" => 0, "reason" => "oversized_for_sheet" } ] },
         work_dir: work_dir
       )
 

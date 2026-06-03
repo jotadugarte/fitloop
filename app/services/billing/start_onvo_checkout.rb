@@ -120,9 +120,9 @@ module Billing
     def snapshot_fields(breakdown)
       description = if @tier_months
                         "plan_#{@tier_months.to_i}_months"
-                      else
+      else
                         "single_download"
-                      end
+      end
 
       {
         purchaser_name: @user.name.to_s,

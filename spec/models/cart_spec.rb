@@ -66,4 +66,3 @@ RSpec.describe Cart, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-002]" do
     end
   end
 end
-

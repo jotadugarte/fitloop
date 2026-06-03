@@ -54,7 +54,7 @@ RSpec.describe "Project sheet inventory consumption order", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("show_actions_project_#{project.id}")
-      expect(quantities_by_consumption_rank(project)).to eq([3, nil])
+      expect(quantities_by_consumption_rank(project)).to eq([ 3, nil ])
     end
 
     it "[REQ-FIT-UI-001] drops sheet stocks omitted from the form submission" do

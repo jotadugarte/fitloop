@@ -34,7 +34,7 @@ RSpec.describe NestingJob, type: :job do
       snapshot = nesting_run.params_snapshot
       expect(snapshot).to include(
         "project_id" => project.id.to_s,
-        "included_layers" => ["PIECES"]
+        "included_layers" => [ "PIECES" ]
       )
       expect(snapshot.fetch("input_dxf_paths")).to all(be_a(String))
       expect(snapshot.fetch("sheet_stocks").first).to include("width_mm" => 1000.0)

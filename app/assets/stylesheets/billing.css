@@ -1081,6 +1081,12 @@
   margin-top: 0.45rem;
 }
 
+.sinpe-amount-emphasis {
+  font-size: 1.08em;
+  font-weight: 700;
+  color: var(--fit-navy);
+}
+
 .checkout-onvo__sinpe-fields .checkout-section-title {
   margin-top: 0;
 }

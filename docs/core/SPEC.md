@@ -18,7 +18,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 |------|------------|----------------|
 | **Project** | Ephemeral nesting workspace: title, parameters, inputs, sheet stocks, selected layers, job state | `Project` model (`ephemeral: true`) |
 | **Workspace** | Session-bound aggregate: ephemeral `Project`(s) per browser tab | `Workspace` service, `session[:workspaces]` hash (`tab_id` → `project_id`) |
-| **User** | Persistent account for login, verification, and billing; does **not** own `Project` rows in v1 | `User` model, Devise + OmniAuth |
+| **User** | Persistent account for login, verification, and billing; does **not** own `Project` rows in v1 | `User` model, Devise |
 | **DownloadGrant** | Entitlement to download one `NestingRun`'s nested DXF (plan quota or single purchase) | `DownloadGrant`, signed download token |
 | **SheetStock** | One sheet type: width × height (mm), quantity (integer or **∞**), consumption **sort_order** | `SheetStock` |
 | **ProjectLayer** | A DXF layer name per DXF file; `included` flag; optional `layer_role` (`primary` \| `auxiliary`) | `ProjectLayer` |
@@ -108,7 +108,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 ### W6 — Accounts, paywall, and simulated billing
 
 1. Anonymous user may upload, nest, and preview; **nested DXF download** requires login + verified email + grant or active plan.
-2. Register/login via OAuth (Google → Facebook → Apple → email) or email/password; terms checkbox; name required.
+2. Register/login via email/password; terms checkbox; name required (OAuth disabled for MVP).
 3. Paywall offers: pay this run (single), view `/planes`, or `/iniciar-sesion`.
 4. Simulated checkout: **Tarjeta (USD)** or **SINPE Móvil (CRC)** with success/fail demo buttons.
 5. Single purchase: auto-download + blob retained **24h** under user (`/mis-pagos`); plan downloads require live ephemeral project.
@@ -142,7 +142,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 | **REQ-FIT-UI-005** | Locale switcher: `en` / `es` / optional `es_panic` (easter egg); `set_locale`; cookie/session persistence | P4 |
 | **REQ-FIT-QA-001** | E2E golden DXF; deploy notes (Rails + Python venv on Linux VM) | P4 |
 | **REQ-FIT-SPLIT-001** | Opt-in auto-split for orphan pieces (ephemeral workspace; preview → accept → re-nest) | P5 |
-| **REQ-FIT-AUTH-002** | User accounts: Devise + OmniAuth, email verification, merge opt-in, account routes, delete account | P6 |
+| **REQ-FIT-AUTH-002** | User accounts: Devise, email verification, account routes, delete account | P6 |
 | **REQ-FIT-BILL-001** | Paywall on nested DXF only; `config/billing.yml` prices; country-driven CRC/USD + IVA (CR only); ONVO payment intents + webhook fulfillment (`BILLING_GATEWAY`) | P7 |
 | **REQ-FIT-BILL-002** | Plans 1/2/4 months; 50 downloads/month; overage 50%; `/mis-pagos`; plan extension from `ends_at` | P7 |
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
@@ -175,7 +175,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Scope:** Persistent `User` accounts orthogonal to ephemeral `Workspace` (ADR-0005). Projects are **not** saved per user.
 
-**Stack:** **Devise** (email/password, `:confirmable`, password minimum **12** characters, password reset) + **OmniAuth** (Google, Facebook, Apple — enabled only when credentials present). UI order: Google → Facebook → Apple → email.
+**Stack:** **Devise** (email/password, `:confirmable`, password minimum **12** characters, password reset).
 
 **Routes (Spanish, D41):**
 
@@ -189,9 +189,7 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 
 **Registration:**
 
-- **OAuth:** one-click create or sign-in; capture `name`, `email`; trusted-provider email may set `email_confirmed_at` when policy allows.
-- **Email/password:** `name` required; `terms_accepted_at` + `terms_version` required; confirmation link before billing actions.
-- **Email collision:** if email exists with another method → opt-in **merge** screen (no silent merge).
+- **Email/password:** `name` required; `terms_accepted_at` + `terms_version` required (TermsVersion `"2026-06-01"`); confirmation link before billing actions.
 - **Timezone:** `users.time_zone` captured via `Intl.DateTimeFormat().resolvedOptions().timeZone` on register/plan checkout (Stimulus `timezone_capture_controller`); required before plan purchase.
 
 **Gates:**
@@ -205,9 +203,9 @@ Branding assets (logo) live under `images/`. UI copy is internationalized (`en`,
 - Logout runs `Workspace.discard!` with confirmation when project active (D19).
 - Delete account: multi-step confirm; warn if active plan (D15).
 
-**Non-goals v1:** link additional OAuth providers from Mi cuenta (D12); age verification (D17).
+**Non-goals v1:** OAuth integration (Google, Apple, Facebook) or account merge opt-in (disabled for MVP; related fields in DB schema preserved for v2); age verification (D17).
 
-**Tests:** `test/spec/auth_billing_spec_doc_test.rb`; Devise/OmniAuth request specs (implementation plan P1).
+**Tests:** `test/spec/auth_billing_spec_doc_test.rb`; Devise request specs (implementation plan P1).
 
 ### REQ-FIT-ADMIN-001 (detail)
 

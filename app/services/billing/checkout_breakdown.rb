@@ -52,9 +52,9 @@ module Billing
       def plan_list_and_sinpe(currency:, tier_months:)
         card_usd, official_crc, sinpe_crc = Pricing.plan_price_triple(tier_months)
         if currency.to_sym == :usd
-          [card_usd, card_usd]
+          [ card_usd, card_usd ]
         else
-          [official_crc, sinpe_crc]
+          [ official_crc, sinpe_crc ]
         end
       end
 
@@ -88,7 +88,7 @@ module Billing
       def compute_sinpe_discount(list, sinpe, payment_method)
         return 0 unless payment_method.sinpe? && sinpe
 
-        [list.amount - sinpe.amount, 0].max
+        [ list.amount - sinpe.amount, 0 ].max
       end
 
       def compute_tax(net_subtotal, iva_applicable)

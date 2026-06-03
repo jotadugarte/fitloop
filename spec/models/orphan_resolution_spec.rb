@@ -90,7 +90,7 @@ RSpec.describe DerivedPiece, type: :model do
         project: project,
         parent_piece_key: "blob-1:piece-3",
         label: "Pieza-3a",
-        geometry_json: { "rings" => [[[0, 0], [100, 0], [100, 50], [0, 50], [0, 0]]] },
+        geometry_json: { "rings" => [ [ [ 0, 0 ], [ 100, 0 ], [ 100, 50 ], [ 0, 50 ], [ 0, 0 ] ] ] },
         sort_order: 0
       )
 

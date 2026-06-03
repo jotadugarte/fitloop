@@ -29,7 +29,7 @@ module Dxf
 
     def sync_attachment!(attachment)
       with_downloaded_path(attachment) do |path|
-        LayerNamesReader.catalog([path]).each do |entry|
+        LayerNamesReader.catalog([ path ]).each do |entry|
           layer = @project.project_layers.find_or_initialize_by(
             active_storage_attachment_id: attachment.id,
             layer_name: entry["name"]

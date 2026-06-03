@@ -78,7 +78,7 @@ module Nesting
       work_dir = Rails.root.join("tmp/nesting_runs", @nesting_run.id.to_s)
       report = load_report(work_dir).merge(
         "status" => "partial",
-        "warnings" => Array(report_warnings(work_dir)) + ["time_limit_reached"]
+        "warnings" => Array(report_warnings(work_dir)) + [ "time_limit_reached" ]
       )
       terminal_status = "partial"
       attach_outputs_if_present!(work_dir, terminal_status)

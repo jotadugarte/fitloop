@@ -19,7 +19,7 @@ module Nesting
       @nesting_run.update!(
         status: "failed",
         finished_at: Time.current,
-        report_json: { "status" => "failed", "warnings" => ["cancelled"] }
+        report_json: { "status" => "failed", "warnings" => [ "cancelled" ] }
       )
       @project.update!(
         status: :failed,

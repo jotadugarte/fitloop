@@ -50,4 +50,3 @@ RSpec.describe "Planes redirect when cart has item", "[REQ-FIT-BILL-001]", type:
     end
   end
 end
-

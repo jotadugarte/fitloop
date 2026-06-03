@@ -46,7 +46,7 @@ module Nesting
     alias eql? ==
 
     def hash
-      [@width_mm, @height_mm, @quantity, @sort_order].hash
+      [ @width_mm, @height_mm, @quantity, @sort_order ].hash
     end
   end
 end

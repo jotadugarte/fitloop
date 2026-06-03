@@ -151,4 +151,3 @@ RSpec.describe "Checkout from cart", "[REQ-FIT-BILL-001]", type: :request do
     expect(response.body).to include("₡9,999")
   end
 end
-

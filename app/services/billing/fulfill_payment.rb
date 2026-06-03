@@ -18,13 +18,13 @@ module Billing
       return :already_fulfilled if @payment.succeeded?
 
       res = case @payment.purpose
-            when "single_download"
+      when "single_download"
               fulfill_single_download!
-            when "plan_subscription"
+      when "plan_subscription"
               fulfill_plan_subscription!
-            else
+      else
               raise ArgumentError, "unsupported payment purpose: #{@payment.purpose}"
-            end
+      end
 
       Analytics::TrackEvent.call(
         "payment_succeeded",

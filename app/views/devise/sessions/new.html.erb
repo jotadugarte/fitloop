@@ -1,8 +1,4 @@
 <%= render "devise/shared/auth_page", title: t("auth.session.sign_in_title") do %>
-  <%= render "devise/shared/oauth_buttons" %>
-
-  <p class="auth-page__divider"><%= t("auth.shared.or_email") %></p>
-
   <section class="auth-page__email" data-testid="oauth-email">
     <%= form_for(resource, as: resource_name, url: session_path(resource_name),
           html: { class: "auth-page__form", data: { turbo: false } }) do |f| %>

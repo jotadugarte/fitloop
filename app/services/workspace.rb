@@ -169,7 +169,7 @@ class Workspace
       ids = workspaces_hash(session).keys
       return ids if ids.present?
 
-      session[SESSION_KEY].present? ? [DEFAULT_TAB_ID] : []
+      session[SESSION_KEY].present? ? [ DEFAULT_TAB_ID ] : []
     end
 
     def bound_project_id(session, tab_id:)

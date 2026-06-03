@@ -73,4 +73,3 @@ RSpec.describe "Checkout method-first flow", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-0
     expect(response.body).not_to include('data-testid="checkout-pay-card-usd"')
   end
 end
-

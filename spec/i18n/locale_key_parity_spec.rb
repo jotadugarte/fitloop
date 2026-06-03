@@ -8,7 +8,7 @@ RSpec.describe "Locale key parity for es_panic [REQ-FIT-UI-005]" do
     when Hash
       node.flat_map { |key, value| flatten_leaf_keys(value, prefix.empty? ? key.to_s : "#{prefix}.#{key}") }
     else
-      [prefix]
+      [ prefix ]
     end
   end
 

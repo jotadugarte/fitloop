@@ -40,7 +40,7 @@ en:
     labels:
       en: "EN"
       es: "ES"
-      es_panic: "📐 PÁNICO"
+      es_panic: "PÁNICO"
 
   date:
     formats:
@@ -709,17 +709,12 @@ en:
       invalid_password: "Password is incorrect."
       invalid_phrase: "Confirmation phrase does not match."
   legal:
-    placeholder_notice: "Placeholder text. Final legal copy will ship in a later update (FU-LEGAL-001)."
     terms:
       title: "Terms of service"
       link: "terms of service"
-      version: "Version: %{version}"
-      body: "These terms will describe how you may use Fitloop, downloads, plans, and user responsibilities. Replace this paragraph when legal approves the final document."
     privacy:
       title: "Privacy policy"
       link: "privacy policy"
-      version: "Version: %{version}"
-      body: "This policy will explain what data we collect, how we use it, and your rights. Replace this paragraph when legal approves the final document."
     account:
       title: "My account"
       submit: "Save changes"

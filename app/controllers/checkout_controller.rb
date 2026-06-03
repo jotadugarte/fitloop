@@ -341,11 +341,11 @@ class CheckoutController < ApplicationController
 
     breakdown = if @cart && params[:nesting_run_id].blank?
                   Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
-                elsif plan_checkout?
+    elsif plan_checkout?
                   Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
-                else
+    else
                   Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
-                end
+    end
 
     discount = breakdown.fetch(:discount_amount).to_f
     discount.positive? ? discount : nil

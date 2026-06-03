@@ -189,7 +189,7 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
     it "accepts TierMonths for plan_price_triple" do
       tier = Billing::TierMonths.parse(2)
       triple = described_class.plan_price_triple(tier)
-      expect(triple).to eq([11.5, 5300, 5000])
+      expect(triple).to eq([ 11.5, 5300, 5000 ])
     end
 
     it "accepts BillingMethod and TierMonths for plan price" do

@@ -4,15 +4,26 @@ require "rails_helper"
 
 RSpec.describe "App toolbar", "[REQ-FIT-UI-004] [REQ-FIT-AUTH-001]", type: :request do
   describe "GET / [REQ-FIT-UI-004]" do
-    it "[REQ-FIT-UI-004] places locale switcher before account actions and links Mi taller to /taller" do
+    it "[REQ-FIT-UI-004] places locale switcher before account actions and does not render Mi taller link on home page" do
       get root_path
+
+      expect(response).to have_http_status(:ok)
+      body = response.body
+      expect(body).not_to include('data-testid="toolbar-workshop"')
+      expect(body).not_to include(I18n.t("auth.nav.workshop"))
+      expect(body.index("locale-switcher")).to be < body.index("account-nav")
+    end
+
+    it "[REQ-FIT-UI-004] renders Mi taller link on other pages" do
+      user = create_billing_user!
+      sign_in user
+      get planes_path
 
       expect(response).to have_http_status(:ok)
       body = response.body
       expect(body).to include('data-testid="toolbar-workshop"')
       expect(body).to include(I18n.t("auth.nav.workshop"))
       expect(body).to include(workshop_path)
-      expect(body.index("locale-switcher")).to be < body.index("account-nav")
     end
   end
 

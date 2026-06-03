@@ -24,18 +24,13 @@ Rails.application.routes.draw do
     sessions: "users/sessions",
     registrations: "users/registrations",
     passwords: "users/passwords",
-    confirmations: "users/confirmations",
-    omniauth_callbacks: "users/omniauth_callbacks"
+    confirmations: "users/confirmations"
   }
 
   get "eliminar-cuenta", to: "accounts/deletions#new", as: :account_deletion
   post "eliminar-cuenta", to: "accounts/deletions#create"
   get "eliminar-cuenta/confirmar", to: "accounts/deletions#confirm", as: :confirm_account_deletion
   delete "eliminar-cuenta", to: "accounts/deletions#destroy"
-
-  get "fusionar-cuenta", to: "accounts/merges#new", as: :fusionar_cuenta
-  post "fusionar-cuenta", to: "accounts/merges#create"
-  delete "fusionar-cuenta", to: "accounts/merges#destroy", as: :cancel_fusionar_cuenta
 
   get "terminos", to: "legal#terms", as: :terminos
   get "privacidad", to: "legal#privacy", as: :privacidad
@@ -69,7 +64,7 @@ Rails.application.routes.draw do
 
   get "empezar", to: "projects#start", as: :start_project
 
-  resolve("Project") { [:workshop] }
+  resolve("Project") { [ :workshop ] }
 
   # Ephemeral workshop (session-bound); no project id in the browser URL.
   resource :workshop, path: "taller", controller: "projects", only: %i[show] do
@@ -136,4 +131,3 @@ Rails.application.routes.draw do
   get "taller/admin", to: redirect("/admin")
   get "mi-cuenta/admin", to: redirect("/admin")
 end
-

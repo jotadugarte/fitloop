@@ -87,7 +87,7 @@ class ProjectReadinessValidator
       next if layer_names.empty?
 
       total += with_downloaded_path(attachment) do |path|
-        Dxf::PieceCounter.count(paths: [path], layer_names: layer_names)
+        Dxf::PieceCounter.count(paths: [ path ], layer_names: layer_names)
       end
     end
     total

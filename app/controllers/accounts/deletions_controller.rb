@@ -43,7 +43,7 @@ module Accounts
 
       Workspace.discard!(session, request: request)
       user = current_user
-      
+
       Analytics::TrackEvent.call(
         "account_deleted",
         user_id: user.id,

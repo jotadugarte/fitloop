@@ -4,9 +4,15 @@ module ApplicationHelper
   include UiHelper
   include NestingPreviewHelper
 
-  def user_omniauth_authorize_path(provider)
-    public_send(Auth::OmniauthProviders.authorize_path_name(provider).to_sym)
+  def render_markdown(text)
+    return "" if text.blank?
+
+    renderer = Redcarpet::Render::HTML.new(hard_wrap: true)
+    markdown = Redcarpet::Markdown.new(renderer, autolink: true)
+    markdown.render(text).html_safe
   end
+
+
 
   def auth_back_path
     session[:workspace_return_to].presence || root_path

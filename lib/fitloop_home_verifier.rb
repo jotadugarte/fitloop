@@ -41,7 +41,7 @@ class FitloopHomeVerifier
   end
 
   def check_gemfile
-    return ["missing Gemfile"] unless file?("Gemfile")
+    return [ "missing Gemfile" ] unless file?("Gemfile")
 
     content = read("Gemfile")
     REQUIRED_GEMFILE_GEMS.filter_map do |gem_name|
@@ -50,16 +50,16 @@ class FitloopHomeVerifier
   end
 
   def check_active_storage
-    return ["missing config/storage.yml (Active Storage)"] unless file?("config/storage.yml")
+    return [ "missing config/storage.yml (Active Storage)" ] unless file?("config/storage.yml")
 
     []
   end
 
   def check_database
-    return ["missing config/database.yml"] unless file?("config/database.yml")
+    return [ "missing config/database.yml" ] unless file?("config/database.yml")
 
     content = read("config/database.yml")
-    return ["database.yml must use postgresql adapter"] unless content.match?(/adapter:\s*postgresql/)
+    return [ "database.yml must use postgresql adapter" ] unless content.match?(/adapter:\s*postgresql/)
 
     []
   end
@@ -106,7 +106,7 @@ class FitloopHomeVerifier
 
   def check_request_spec
     path = "spec/requests/home_spec.rb"
-    return ["missing #{path}"] unless file?(path)
+    return [ "missing #{path}" ] unless file?(path)
 
     content = read(path)
     errors = []

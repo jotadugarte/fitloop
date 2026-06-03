@@ -51,7 +51,7 @@ module Nesting
     alias eql? ==
 
     def hash
-      [@kerf, @margin, @curve_tolerance, @sheet_gap, @time_limit].hash
+      [ @kerf, @margin, @curve_tolerance, @sheet_gap, @time_limit ].hash
     end
   end
 end

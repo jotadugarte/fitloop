@@ -17,7 +17,7 @@
 | **File blobs** | **Active Storage** | Input DXFs, nested result DXF |
 | **Background jobs** | **Solid Queue** | `NestingJob` invokes Python CLI; cancel + time cap |
 | **i18n** | Rails I18n | `en`, `es` in v1; optional joke locale `es_panic` (easter egg, same key tree as `es`) |
-| **Auth** | **Devise** + **OmniAuth** | Email/password + optional Google, Facebook, Apple (ENV-gated). Spanish routes (`/iniciar-sesion`, `/crear-cuenta`, `/mi-cuenta`, …). See ADR-0005. |
+| **Auth** | **Devise** | Email/password only (OAuth removed for MVP). Spanish routes (`/iniciar-sesion`, `/crear-cuenta`, `/mi-cuenta`, …). See ADR-0005. |
 | **Billing (v1)** | Rails + `config/billing.yml` + **ONVO** (`BILLING_GATEWAY=onvo`) | Live **ONVO** Payment Intents + webhook (`ADR-0006`) or **simulated** checkout (`BILLING_GATEWAY=simulate`, ADR-0005). Paywall on **nested DXF** download; preview and `placements.json` remain free. |
 | **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
@@ -148,7 +148,7 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 
 | Layer | Module / service | Responsibility |
 |-------|------------------|----------------|
-| **Auth** | Devise + OmniAuth controllers under `app/controllers/users/` | Register, login, email confirmation, password reset, OAuth callbacks; account edit/delete |
+| **Auth** | Devise controllers under `app/controllers/users/` | Register, login, email confirmation, password reset; account edit/delete (OAuth callbacks removed for MVP) |
 | **Admin** | `BaseController`, `DashboardController`, `VentasController`, `promote_admins.rb`; `Admin::ReportingScope`, `VentasFilter` (optional `date_column: :paid_at` for Form 150), `VentasListing`, `DeclarationTotals`, `HaciendaSummaryRows`, `ExportPaymentsXlsx`, `ExportForm150Xlsx`, `VentasXlsxStyles`, `PaymentDisplayLabels` | `users.admin` promoted via `FITLOOP_ADMIN_EMAILS` on boot. `/admin/*` requires `admin?` else `RoutingError` (404). **Ventas:** read-only `Payment` reporting at `/admin/ventas`; excludes superseded rows; XLSX at `/admin/ventas/exportar` (detail + Hacienda summary) and `/admin/ventas/exportar-formulario-150` (soporte + Formulario 150 `SUMIFS` casillas) via **`caxlsx`** only (`require "axlsx"` — shared styles in `VentasXlsxStyles`; do not add `caxlsx_rails` without ADR). List filters use `created_at`; Form 150 export uses `paid_at`. No nesting or billing mutation in admin layer |
 | **Workspace** | `Workspace`, `SetsWorkspaceProject`, `ResolvesWorkspaceTab` | Ephemeral `Project` per browser tab (`session[:workspaces]`); tab cookie/header; 120s TTL after tab close (ADR-0004, extended in ADR-0005) |
 | **Paywall** | `DownloadPaywallController`, `RequiresNestedDownloadAuthorization` | Nested DXF only; catalog at `/taller/descarga-pago` with MEIC pricing; guests and unconfirmed users redirected; signed download token (~15 min) |

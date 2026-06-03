@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# [REQ-FIT-AUTH-002] Placeholder legal version until FU-LEGAL-001 copy ships.
+# [REQ-FIT-AUTH-002] Legal version for FU-LEGAL-001.
 class TermsVersion
-  CURRENT = "v1-placeholder"
+  CURRENT = "2026-06-01"
 
   def self.current
     CURRENT

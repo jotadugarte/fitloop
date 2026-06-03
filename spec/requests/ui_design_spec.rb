@@ -11,7 +11,7 @@ RSpec.describe "Architecture-studio UI", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("home.index.subtitle"))
-      expect(response.body).to include('class="app-sidebar"')
+      expect(response.body).not_to include('class="app-sidebar"')
       expect(response.body).to include('class="landing-hero"')
     end
   end
