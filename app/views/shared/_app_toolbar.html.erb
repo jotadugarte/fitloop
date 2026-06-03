@@ -5,10 +5,12 @@
     </div>
 
     <div class="app-toolbar__end" data-testid="app-toolbar-actions">
-      <%= link_to t("auth.nav.workshop"),
-                  toolbar_workshop_path,
-                  class: toolbar_workshop_button_class,
-                  data: { testid: "toolbar-workshop", turbo_frame: "_top" } %>
+      <% unless current_page?(root_path) %>
+        <%= link_to t("auth.nav.workshop"),
+                    toolbar_workshop_path,
+                    class: toolbar_workshop_button_class,
+                    data: { testid: "toolbar-workshop", turbo_frame: "_top" } %>
+      <% end %>
       <%= render "shared/account_nav" %>
     </div>
   </div>
