@@ -20,7 +20,7 @@ default: &default
   host: <%= ENV.fetch("PGHOST", "localhost") %>
   port: <%= ENV.fetch("PGPORT", "5432") %>
   username: <%= ENV.fetch("PGUSER", "postgres") %>
-  password: <%= ENV["PGPASSWORD"] %>
+  password: "<%= ENV['PGPASSWORD'] %>"
 
 
 development:
@@ -75,7 +75,7 @@ production:
     <<: *default
     database: fitloop_production
     username: fitloop
-    password: <%= ENV["FITLOOP_DATABASE_PASSWORD"] %>
+    password: "<%= ENV['FITLOOP_DATABASE_PASSWORD'] %>"
   cache:
     <<: *primary_production
     database: fitloop_production_cache
