@@ -1,72 +1,46 @@
 # Fitloop — deployment notes (v1)
 
 **Requirement:** [REQ-FIT-QA-001](core/SPEC.md)  
-**Deploy strategy:** [ADR-0007](core/ADRs/0007-production-vm-deploy.md) — **bare-metal Linux VM** (Rails + PostgreSQL + Python `.venv` on one host). **Not** the v1 path: Northflank, stock `Dockerfile`/Kamal without Python nesting.
+**Deploy strategy:** [ADR-0007](core/ADRs/0007-production-vm-deploy.md) — **Coolify Docker Deployment** (extended container including Rails 8, Thruster, and Python nesting engine). 
 
 ## Target topology
 
-Single host (VM or container) running:
+Single host (VM) running Coolify with:
 
 | Component | Role |
 |-----------|------|
-| **Rails 8** (Puma) | HTTP, workspace session access, Active Storage, Solid Queue worker |
-| **PostgreSQL** | Primary database |
-| **Python 3 venv** (`.venv`) | `nesting_engine` CLI invoked from `NestingJob` |
+| **Rails 8 Container** | HTTP (via Thruster on port 80), Active Storage, Solid Queue worker |
+| **PostgreSQL Database** | Primary database (managed by Coolify or external) |
+| **Python 3 venv** (built inside container) | `nesting_engine` CLI invoked from `NestingJob` |
 
-Rails and Python share the same filesystem so Active Storage blobs and temp work dirs are visible to both.
+Both Rails and the Python nesting engine run within the same container, sharing the container's filesystem so Active Storage blobs and temp work dirs are visible to both.
 
-## Prerequisites
+## Native nesting dependencies (Dockerized)
 
-- Ruby 3.x + Bundler (see `Gemfile`)
-- PostgreSQL 14+
-- Python 3.10+ with `pip install -r requirements.txt` inside `.venv` at repo root
+Production nesting uses **`python-libnest2d`** (imports `pynest2d`) per [ADR-0001](core/ADRs/0001-nesting-library.md). 
 
-## Native nesting dependencies (libnest2d)
+The application [Dockerfile](file:///home/jader/proyectos/fitloop/Dockerfile) handles all package installations:
+- Python 3 environment setup.
+- Compilation libraries (`cmake`, `libboost-dev`, `build-essential`) in the build stage.
+- Prebuilt or built-from-source installation of all pip packages in `requirements.txt` inside the container's virtual environment `/rails/.venv`.
 
-Production nesting uses **`python-libnest2d`** (imports `pynest2d`) per [ADR-0001](core/ADRs/0001-nesting-library.md). On **Linux x86_64**, pip installs a prebuilt wheel — no compiler required for the default path.
+### Smoke check inside the container
 
-### Ubuntu / Debian (apt)
-
-For **pip wheel install** (recommended):
-
-```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-venv python3-pip
-```
-
-If you must **build from source** (no matching wheel), also install:
+You can run the following to verify the environment inside the running Docker container:
 
 ```bash
-sudo apt-get install -y cmake build-essential libboost-dev
+docker exec -it <container-id> /rails/.venv/bin/python -c "from pynest2d import Box, nest; print('pynest2d OK')"
+docker exec -it <container-id> /rails/.venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; c = capabilities(); assert c.spike_only is False; print(c.library)"
 ```
 
-### Python venv (repo root)
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-`requirements.txt` pins `python-libnest2d==0.1.3`.
-
-### Smoke check (host / CI parity)
-
-```bash
-.venv/bin/python -c "from pynest2d import Box, nest; print('pynest2d OK')"
-.venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; c = capabilities(); assert c.spike_only is False; print(c.library)"
-.venv/bin/pytest nesting_engine/ -q
-```
-
-Expected: `pynest2d OK`, library name containing `libnest2d`, and all `nesting_engine` tests passing.
+Expected: `pynest2d OK` and the library name containing `libnest2d`.
 
 ### Troubleshooting
 
 | Symptom | Check |
 |---------|--------|
-| `ModuleNotFoundError: pynest2d` | Re-run `pip install -r requirements.txt` inside `.venv` |
-| pip builds from source and fails | Install `cmake`, `build-essential`, `libboost-dev`; use Python 3.10–3.12 on x86_64 |
-| Nesting works locally but not in CI | Match Python version; run the smoke check and `pytest nesting_engine/` on the host |
+| `ModuleNotFoundError: pynest2d` | Verify that the Dockerfile successfully completed the `pip install` step in build logs. |
+| Container fails to start | Check the Coolify application logs (`docker logs`). Ensure database credentials are correct. |
 
 ## Environment
 
@@ -216,142 +190,91 @@ If you see `relation "solid_queue_processes" does not exist`, run `bin/rails db:
 
 If `bin/dev` says a server is already running, stop the old process (`Ctrl+C` or remove `tmp/pids/server.pid` after stopping Puma) and start again.
 
-## Production VM go-live
+## Production VM Go-Live (Coolify + Docker)
 
-Normative checklist for a **bare-metal Linux VPS** ([ADR-0007](core/ADRs/0007-production-vm-deploy.md)). Adjust paths and service names for your provider.
+Normative checklist for deploying Fitloop on a Linux VPS using **Coolify** and **Docker** ([ADR-0007](core/ADRs/0007-production-vm-deploy.md)).
 
-### 1. Server provisioning
+### 1. Database Provisioning
+Through the Coolify panel, provision a **PostgreSQL** database service (or connect to an existing external one).
+- Create databases: `fitloop_production`, `fitloop_production_cache`, `fitloop_production_queue`, `fitloop_production_cable`.
+- Obtain the connection details (`Host`, `Port`, `Username`, `Password`).
 
-- Ubuntu 22.04+ or Debian 12+ on **x86_64**
-- Open ports: **80/443** (public); PostgreSQL **not** exposed publicly
-- Persistent volume for app root, especially `storage/` (Active Storage)
+### 2. Application Setup in Coolify
+Create two resources in Coolify from your git repository:
+1. **Production App:**
+   - **Branch:** `main`
+   - **Domains:** `http://modusloop.com, http://www.modusloop.com`
+   - **Build Pack:** `Dockerfile`
+2. **Development App:**
+   - **Branch:** `main` (or a staging/dev branch if preferred)
+   - **Domains:** `http://dev.modusloop.com`
+   - **Build Pack:** `Dockerfile`
 
-### 2. Install stack on the VM
+### 3. Persistent Volumes (Crucial for Active Storage)
+To prevent losing uploaded DXF files and nested output files when container restarts, you must configure a persistent volume mapping:
+- Go to the **Storages** tab of the application in Coolify.
+- Add a new persistent directory storage:
+  - **Volume Name:** `fitloop-storage`
+  - **Path inside container:** `/rails/storage`
 
-```bash
-# System packages (see Native nesting dependencies)
-sudo apt-get update
-sudo apt-get install -y postgresql postgresql-contrib \
-  ruby-full build-essential libpq-dev libvips42 \
-  python3 python3-venv python3-pip git
+### 4. Environment Variables
+In the **Environment Variables** tab of each app in Coolify, configure the following:
 
-# App deploy (example: /var/www/fitloop)
-git clone <repo> /var/www/fitloop && cd /var/www/fitloop
-bundle install --deployment
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-```
+| Variable | Production | Development / Staging |
+|----------|------------|-----------------------|
+| `RAILS_ENV` | `production` | `production` |
+| `RAILS_MASTER_KEY` | *From credentials key* | *From credentials key* |
+| `SECRET_KEY_BASE` | *Generate: bin/rails secret* | *Generate: bin/rails secret* |
+| `PGHOST` / `PGPORT` | *Postgres host & port* | *Postgres host & port* |
+| `PGUSER` / `PGPASSWORD` | *Database credentials* | *Database credentials* |
+| `FITLOOP_DATABASE_PASSWORD`| *Database user password*| *Database user password*|
+| `SOLID_QUEUE_IN_PUMA` | `1` | `1` |
+| `BILLING_GATEWAY` | `onvo` | `simulate` *(or `onvo` for test mode)* |
+| `ONVO_MODE` | `live` | `test` |
+| `ONVO_SECRET_KEY` | *Live ONVO key* | *Test ONVO key* |
+| `ONVO_PUBLISHABLE_KEY` | *Live ONVO key* | *Test ONVO key* |
+| `ONVO_WEBHOOK_SECRET` | *Live ONVO webhook secret* | *Test ONVO webhook secret* |
+| `APP_HOST` | `modusloop.com` | `dev.modusloop.com` |
 
-Create PostgreSQL role `fitloop` and databases: `fitloop_production`, `fitloop_production_cache`, `fitloop_production_queue`, `fitloop_production_cable`.
+> [!WARNING]
+> Do not set `FITLOOP_BILLING_COUNTRY_OVERRIDE` in production. For testing billing on the development site, you can set `FITLOOP_BILLING_COUNTRY_OVERRIDE=US` to simulate transactions from outside Costa Rica.
 
-### 3. Environment (host)
+### 5. Deployment & Migrations
+Click **Deploy** in the Coolify panel.
+Coolify builds the Docker image and executes `bin/docker-entrypoint` which automatically runs migrations (`bin/rails db:prepare`).
 
-| Variable | Notes |
-|----------|--------|
-| `RAILS_ENV=production` | |
-| `RAILS_MASTER_KEY` | From `config/master.key` |
-| `SECRET_KEY_BASE` | Generate: `bin/rails secret` |
-| `FITLOOP_DATABASE_PASSWORD` | PostgreSQL password for user `fitloop` |
-| `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` | Or per-DB URLs if using managed PG |
-| `SOLID_QUEUE_IN_PUMA=1` | Single-process deploy; or run `bin/jobs` separately |
-| `PORT=3000` | Behind reverse proxy |
-| `BILLING_GATEWAY=onvo` | Live billing |
-| `ONVO_MODE=live` | Production ONVO keys |
-| `ONVO_*` | See [Environment](#environment) |
-| `GEOLITE2_COUNTRY_MMDB_PATH` | Recommended fallback |
-| `REDIS_URL` | Optional; `config/cable.yml` uses Redis for Action Cable in production |
+Verify that the databases are successfully migrated and the app status is green.
 
-**Do not set** `FITLOOP_BILLING_COUNTRY_OVERRIDE` in production.
+### 6. Cloudflare Tunnel Configuration
+Ensure your Cloudflare Tunnel (`cloudflared`) is running on the host machine and has the following "Published application routes" configured:
+- `modusloop.com` -> `http://localhost:80`
+- `www.modusloop.com` -> `http://localhost:80`
+- `dev.modusloop.com` -> `http://localhost:80`
 
-### 4. Rails production config (before first boot)
+### 7. Securing the Development Environment
+Under Cloudflare Zero Trust:
+1. Go to **Access -> Applications** and add a **Self-hosted** application.
+2. Domain: `dev.modusloop.com`
+3. Add a policy (e.g. `Developers`) with the Action set to **Allow**.
+4. Create a rule under the policy with Selector **Emails** containing authorized development emails.
 
-Edit `config/environments/production.rb` for the live domain:
+### 8. ONVO Webhooks
+Register the webhook URLs in your ONVO dashboards:
+- **Live dashboard:** `https://modusloop.com/webhooks/onvo`
+- **Test dashboard:** `https://dev.modusloop.com/webhooks/onvo`
 
-- `config.action_mailer.default_url_options = { host: "your-domain.com", protocol: "https" }`
-- `config.hosts << "your-domain.com"` (and `www` if used)
-- `config.assume_ssl = true` and `config.force_ssl = true` when TLS terminates at Cloudflare/proxy
-
-Configure SMTP in credentials for Devise confirmation emails (required before checkout).
-
-### 5. Build and migrate
-
-```bash
-RAILS_ENV=production bin/rails assets:precompile
-RAILS_ENV=production bin/rails db:prepare
-RAILS_ENV=production bin/rails billing:geo:install_geolite2   # once, if using GeoLite2
-RAILS_ENV=production bin/rails billing:geo:check
-```
-
-### 6. Reverse proxy + Cloudflare
-
-1. Point DNS **A/AAAA** to the VM; enable Cloudflare **proxied** (orange cloud).
-2. Nginx/Caddy example: terminate TLS (or Flexible SSL via Cloudflare) and `proxy_pass` to `127.0.0.1:3000`.
-3. Health check: `GET /up` returns 200.
-
-### 7. Process manager (systemd example)
-
-**Web + Solid Queue in Puma** (`SOLID_QUEUE_IN_PUMA=1`):
-
-```ini
-# /etc/systemd/system/fitloop-web.service
-[Unit]
-Description=Fitloop Rails
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=fitloop
-WorkingDirectory=/var/www/fitloop
-EnvironmentFile=/var/www/fitloop/.env.production
-ExecStart=/bin/bash -lc 'bundle exec puma -C config/puma.rb'
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-If not using `SOLID_QUEUE_IN_PUMA`, add a second unit running `bin/jobs start`.
-
-### 8. ONVO production webhook
-
-Register `https://your-domain.com/webhooks/onvo` in ONVO live dashboard; match `ONVO_WEBHOOK_SECRET`.
-
-### 9. Smoke tests on the host
-
-```bash
-.venv/bin/python -c "from nesting_engine.nest_libnest2d import capabilities; print(capabilities())"
-curl -sf https://your-domain.com/up
-```
-
-Manual: upload golden DXF → nest completes → checkout (test/live per policy) → webhook → download. See `docs/QA_MANUAL_CHECKLIST.md` (**Production VM go-live**).
-
-## Production checklist (summary)
-
-1. `RAILS_ENV=production` with `SECRET_KEY_BASE` and `RAILS_MASTER_KEY`.
-2. **Billing geo:** Cloudflare proxy enabled; `CF-IPCountry` on billing routes; `GEOLITE2_COUNTRY_MMDB_PATH` set; `bin/rails billing:geo:check` passes; **`FITLOOP_BILLING_COUNTRY_OVERRIDE` unset** (see [Billing geo](#billing-geo-cloudflare--geolite2)).
-3. `bin/rails assets:precompile`.
-4. `bin/rails db:prepare` (primary + Solid Queue/cache/cable schemas).
-5. Run **Solid Queue** (`SOLID_QUEUE_IN_PUMA=1` or `bin/jobs`).
-6. Confirm nesting from the host shell (see [Native nesting dependencies](#native-nesting-dependencies-libnest2d)).
-7. Active Storage: `:local` with persistent `storage/` (or cloud per `config/storage.yml`).
-8. ONVO live webhook on production domain ([ONVO webhooks — Production](#production-onvo-live)).
-9. Mailer + `config.hosts` + SSL for public domain.
-
-## Process layout (example)
-
-- **Web:** `bundle exec puma -C config/puma.rb` (with `SOLID_QUEUE_IN_PUMA=1` optional)
-- **Jobs (if separate):** `bin/jobs start` or `bundle exec rake solid_queue:start`
-
-## Docker / Kamal (not v1 production path)
-
-The repo includes a `Dockerfile` (Rails + Thruster only, **no Python nesting**). It is **not** used for v1 go-live per [ADR-0007](core/ADRs/0007-production-vm-deploy.md). A future container deploy must add Python `.venv` + `nesting_engine` on a shared filesystem with Active Storage.
+### 9. Post-deployment Smoke Check
+1. Access `https://dev.modusloop.com` (log in via Cloudflare Access).
+2. Upload a sample DXF and trigger a nesting job.
+3. Verify the nesting finishes successfully and returns the download options (verifying Ruby-Python integration).
+4. Run:
+   ```bash
+   docker exec -it <container-id> bin/rails billing:geo:check
+   ```
+   Ensure GeoIP resolution resolves correctly.
 
 ## Automated E2E
-
-Golden DXF system spec: `spec/system/golden_nesting_e2e_spec.rb`  
-Fixture: `spec/fixtures/golden/sample_piece.dxf`
-
-Run with PostgreSQL available:
-
+To run system tests on the project repository:
 ```bash
 bundle exec rspec spec/system/golden_nesting_e2e_spec.rb
 ```
