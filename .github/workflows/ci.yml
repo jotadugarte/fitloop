@@ -87,6 +87,11 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
+      - name: Install system compilation dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-dev
+
       - name: Install nesting engine dependencies
         run: |
           python -m pip install --upgrade pip
