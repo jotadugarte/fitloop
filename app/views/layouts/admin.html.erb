@@ -41,6 +41,13 @@
     </header>
 
     <main class="admin-main">
+      <% if user_signed_in? && !current_user.confirmed? %>
+        <div class="unconfirmed-banner" style="background-color: var(--fit-alert-bg, #fff5f5); border-bottom: 1px solid var(--fit-alert-border, #c45c5c); padding: 0.75rem 1rem; text-align: center; color: var(--fit-text, #1a2332); font-size: 0.9rem;">
+          <span style="font-weight: 600; color: var(--fit-alert-border, #c45c5c);">Atención:</span>
+          Debes confirmar tu correo electrónico para poder realizar pagos y descargas.
+          <%= link_to "Reenviar correo", new_user_confirmation_path, style: "text-decoration: underline; font-weight: 500; margin-left: 0.5rem;" %>
+        </div>
+      <% end %>
       <%= render "shared/flash" %>
       <%= yield %>
     </main>
