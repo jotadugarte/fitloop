@@ -4,9 +4,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-31 — **Formulario 150 / IVA Hacienda** on branch `declaracion-iva` (REQ-FIT-ADMIN-001). **Admin Analytics + user bitácora** shipped (`user-analytics`, REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** on `main` (PR #19). **Production VM** deferred until pre-live polish complete.
+**Last audit:** 2026-06-06 — **Production VM deploy** completed on Coolify + Docker. **Solid Cable** integration configured, SSL trust behind Cloudflare (`assume_ssl`), and email confirmation global banner and logs fallbacks.
 
-**Next action:** **Deploy checklist (pre-live)** (Pending #3).
+**Next action:** Post-deployment monitoring and backlog items.
 
 ---
 
@@ -27,7 +27,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
 | Pre-live | T&C plan checkout, deploy checklist, admin IVA export | **Complete** (T&C and IVA export shipped) |
-| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #4) |
+| Go-live | Production VM + Cloudflare + ONVO live webhook | **Complete** |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -35,7 +35,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -139,6 +139,11 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV; gobernanza anti-drift A41 (REQ-FIT-ANALYTICS-001, ADR-0008) — 2026-05-31 — Session: `task_user-analytics-bitacora.md` — Branch: `user-analytics`
 - [x] **Declaración de IVA (formato Hacienda)** — `GET /admin/ventas/exportar-formulario-150` (Formulario 150 / IVA01): hojas «Soporte ventas» + «Formulario 150» con fórmulas `SUMIFS`, filtro `paid_at`, mismos filtros que ventas (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_hacienda-iva-declaration.md` — Branch: `declaracion-iva`
 
+### Production VM Go-Live (Coolify + Docker)
+
+- [x] **Production VM deploy** (REQ-FIT-QA-001, ADR-0007) — Configured and deployed on Coolify + Docker on a Linux VPS. Configured PostgreSQL database connections (primary, cache, queue, cable) using direct internal IP connectivity to bypass internal Docker DNS resolution issues. Configured SSL trust behind Cloudflare (`config.assume_ssl = true`) to fix CSRF 422 errors, and routed ActionCable via `solid_cable` adapter (removing Redis runtime requirements). — 2026-06-06
+- [x] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Hardened `docs/DEPLOY.md` to document webhook bypassing under Cloudflare Zero Trust (path `/webhooks/onvo`). Prefilled email field in Devise confirmation resends, added global notification banners for unconfirmed users, and configured Logger delivery fallback for emails to prevent registration crashes when SMTP is absent. — 2026-06-06
+
 ---
 
 ## In Progress
@@ -149,14 +154,7 @@ _(none)_
 
 ## Pending (by priority)
 
-Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
-
-### Pre-live (3–4)
-
-3. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
-### Go-live (4 — when ready)
-
-4. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
+_(none)_
 
 ---
 

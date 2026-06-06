@@ -266,6 +266,11 @@ Under Cloudflare Zero Trust:
 2. Domain: `dev.modusloop.com`
 3. Add a policy (e.g. `Developers`) with the Action set to **Allow**.
 4. Create a rule under the policy with Selector **Emails** containing authorized development emails.
+5. **Bypass authentication for webhooks:** Add a second policy with the Action set to **Bypass** (or create a separate application rule for the path `/webhooks/onvo`). Set the rule to:
+   - **Path:** `/webhooks/onvo`
+   - **Selector:** `Everyone`
+   *(This is necessary because ONVO is an external service and needs to send webhook notifications to your application without being blocked by Cloudflare's login page. The endpoint itself is secured via signature verification).*
+
 
 ### 8. ONVO Webhooks
 Register the webhook URLs in your ONVO dashboards:
