@@ -74,8 +74,8 @@ Rails.application.configure do
       enable_starttls_auto: true
     }
   else
-    # Fallback to printing emails in the logs if no SMTP server is configured
-    config.action_mailer.delivery_method = :logger
+    # Fallback to test method if no SMTP server is configured
+    config.action_mailer.delivery_method = :test
   end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
