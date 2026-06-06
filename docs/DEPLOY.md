@@ -245,6 +245,15 @@ Coolify builds the Docker image and executes `bin/docker-entrypoint` which autom
 
 Verify that the databases are successfully migrated and the app status is green.
 
+> [!IMPORTANT]
+> Since the databases in Coolify are pre-created (provisioned) before deployment, Rails' `db:prepare` will skip loading the database schemas for **Solid Queue** and **Solid Cable** because the databases already exist. You must run these schema load commands once from the Coolify application console/terminal:
+> ```bash
+> DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bin/rails db:schema:load:queue
+> DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bin/rails db:schema:load:cable
+> ```
+
+
+
 ### 6. Cloudflare Tunnel Configuration
 Ensure your Cloudflare Tunnel (`cloudflared`) is running on the host machine and has the following "Published application routes" configured:
 - `modusloop.com` -> `http://localhost:80`
@@ -257,6 +266,11 @@ Under Cloudflare Zero Trust:
 2. Domain: `dev.modusloop.com`
 3. Add a policy (e.g. `Developers`) with the Action set to **Allow**.
 4. Create a rule under the policy with Selector **Emails** containing authorized development emails.
+5. **Bypass authentication for webhooks:** Add a second policy with the Action set to **Bypass** (or create a separate application rule for the path `/webhooks/onvo`). Set the rule to:
+   - **Path:** `/webhooks/onvo`
+   - **Selector:** `Everyone`
+   *(This is necessary because ONVO is an external service and needs to send webhook notifications to your application without being blocked by Cloudflare's login page. The endpoint itself is secured via signature verification).*
+
 
 ### 8. ONVO Webhooks
 Register the webhook URLs in your ONVO dashboards:

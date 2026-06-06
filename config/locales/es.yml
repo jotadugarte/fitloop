@@ -782,7 +782,7 @@ es:
         signed_in: "Iniciaste sesión correctamente."
         signed_out: "Cerraste sesión correctamente."
     registrations:
-      signed_up: "¡Bienvenido! Te registraste correctamente."
+      signed_up: "¡Bienvenido! Te registraste correctamente. Se te ha enviado un email para confirmar tu cuenta. Recuerda que para realizar pagos y descargas debes confirmarlo primero."
       signed_up_but_unconfirmed: "Revisa tu correo para el enlace de confirmación."
       updated: "Tu cuenta se actualizó correctamente."
       user:

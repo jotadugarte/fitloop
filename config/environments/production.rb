@@ -25,7 +25,7 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
@@ -73,6 +73,9 @@ Rails.application.configure do
       authentication:       :plain,
       enable_starttls_auto: true
     }
+  else
+    # Fallback to test method if no SMTP server is configured
+    config.action_mailer.delivery_method = :test
   end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to

@@ -4,9 +4,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-05-31 — **Formulario 150 / IVA Hacienda** on branch `declaracion-iva` (REQ-FIT-ADMIN-001). **Admin Analytics + user bitácora** shipped (`user-analytics`, REQ-FIT-ANALYTICS-001). **ONVO live billing + SINPE pending lock** on `main` (PR #19). **Production VM** deferred until pre-live polish complete.
+**Last audit:** 2026-06-06 — **Production VM deploy** completed on Coolify + Docker. **Solid Cable** integration configured, SSL trust behind Cloudflare (`assume_ssl`), and email confirmation global banner and logs fallbacks.
 
-**Next action:** **Deploy checklist (pre-live)** (Pending #3).
+**Next action:** Post-deployment monitoring and backlog items.
 
 ---
 
@@ -27,7 +27,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 | Post-P7b | Billing cart + MEIC UX | **Complete** (PR #18) |
 | Post-P7c | ONVO live billing + SINPE pending lock | **Complete** (PR #19) |
 | Pre-live | T&C plan checkout, deploy checklist, admin IVA export | **Complete** (T&C and IVA export shipped) |
-| Go-live | Production VM + Cloudflare + ONVO live webhook | **Deferred** (Pending #4) |
+| Go-live | Production VM + Cloudflare + ONVO live webhook | **Complete** |
 
 **MVP v1 (REQ-FIT-APP-001 through REQ-FIT-QA-001, excluding UI-004/005):** merged to `main` via PR #1 (`exploring-task`, 2026-05-16).
 
@@ -35,7 +35,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Verified in codebase:** Rails 8 app, domain models + migrations, `Workspace` session bind (no PIN), multi-DXF + layers, `nesting_engine/` CLI, `NestingJob` + Turbo progress, preview SVG, re-nest history, golden E2E spec, `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md`, REQ-tagged RSpec + pytest suites; Devise + billing cart (PR #18) + ONVO Payment Intents + webhooks on `main` (`BILLING_GATEWAY=onvo`, ADR-0006, PR #19); SINPE pending workshop lock + pre-retention.
 
-**Not implemented:** deploy checklist/scripts; **production VM go-live**; optional FastAPI wrapper; hard file/piece caps.
+**Not implemented:** optional FastAPI wrapper; hard file/piece caps.
 
 ---
 
@@ -139,6 +139,11 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Admin Analytics (tarjeta «Estadísticas y Uso»)** — `user_events`, `Analytics::TrackEvent`, instrumentación taller + billing, `GET /admin/analytics` (KPIs, embudo, semáforo `config/analytics.yml`), `GET /admin/usuarios` + timeline, export CSV; gobernanza anti-drift A41 (REQ-FIT-ANALYTICS-001, ADR-0008) — 2026-05-31 — Session: `task_user-analytics-bitacora.md` — Branch: `user-analytics`
 - [x] **Declaración de IVA (formato Hacienda)** — `GET /admin/ventas/exportar-formulario-150` (Formulario 150 / IVA01): hojas «Soporte ventas» + «Formulario 150» con fórmulas `SUMIFS`, filtro `paid_at`, mismos filtros que ventas (REQ-FIT-ADMIN-001) — 2026-05-31 — Session: `task_hacienda-iva-declaration.md` — Branch: `declaracion-iva`
 
+### Production VM Go-Live (Coolify + Docker)
+
+- [x] **Production VM deploy** (REQ-FIT-QA-001, ADR-0007) — Configured and deployed on Coolify + Docker on a Linux VPS. Configured PostgreSQL database connections (primary, cache, queue, cable) using direct internal IP connectivity to bypass internal Docker DNS resolution issues. Configured SSL trust behind Cloudflare (`config.assume_ssl = true`) to fix CSRF 422 errors, and routed ActionCable via `solid_cable` adapter (removing Redis runtime requirements). — 2026-06-06
+- [x] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Hardened `docs/DEPLOY.md` to document webhook bypassing under Cloudflare Zero Trust (path `/webhooks/onvo`). Prefilled email field in Devise confirmation resends, added global notification banners for unconfirmed users, and configured Logger delivery fallback for emails to prevent registration crashes when SMTP is absent. — 2026-06-06
+
 ---
 
 ## In Progress
@@ -149,14 +154,39 @@ _(none)_
 
 ## Pending (by priority)
 
-Pre-live polish — **no production VM yet**. Validate locally with `bin/dev`, `BILLING_GATEWAY=simulate|onvo` (test), and optional ngrok for ONVO webhooks.
+### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
-### Pre-live (3–4)
+- [ ] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configurar GitHub Actions en `ci.yml` para levantar un servicio de base de datos PostgreSQL de prueba y ejecutar la suite completa de RSpec (specs unitarios, controladores, sistema y E2E) en cada PR y push.
+- [ ] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Instalar `SimpleCov` en la suite de RSpec, configurarlo para requerir cobertura total (100%) en el CI, y abrir una rama `refactor/test-coverage-100` para completar las pruebas de controladores, servicios y modelos que falten.
 
-3. [ ] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Harden `docs/DEPLOY.md` + `docs/QA_MANUAL_CHECKLIST.md` go-live section; optional deploy helper scripts; personal go-live day checklist; privacy note for analytics (FU-LEGAL-003); **no VPS provisioning** — Depends on: **Admin Analytics (tarjeta «Estadísticas y Uso»)**
-### Go-live (4 — when ready)
+### 2. Estabilidad, Seguridad & Hardening (Código)
 
-4. [ ] **Production VM deploy (bare metal)** (REQ-FIT-QA-001, [ADR-0007](core/ADRs/0007-production-vm-deploy.md)) — Linux VPS per `docs/DEPLOY.md#production-vm-go-live`: PostgreSQL (primary/cache/queue/cable), Ruby + repo-root `.venv` + `nesting_engine`/`pynest2d`, Puma + Solid Queue, reverse proxy + HTTPS, **Cloudflare** (`CF-IPCountry`), GeoLite2, persistent `storage/`; prod Rails config; **ONVO live webhook** on production domain; smoke: nest → pay → download — Depends on: **Deploy checklist (pre-live)** — **Not in scope:** Northflank, Docker/Kamal v1 (supersedes D-ONVO-13)
+- [ ] **Validación de DXF (Sanitización)** (REQ-FIT-VAL-001) — Implementar en Rails una validación de tamaño máximo de archivo y comprobación de integridad del formato DXF en los controladores de subida antes de guardarlo en Active Storage o procesarlo.
+- [ ] **Límite de Concurrencia de Anidado** (REQ-FIT-JOB-001) — Crear `config/solid_queue.yml` para restringir los trabajadores simultáneos de la cola de anidado. **Incluye fase de exploración:** Analizar las características físicas del hardware del servidor doméstico (CPU/RAM) para decidir científicamente cuántos trabajadores concurrentes (1, 2 o más) y cuántos trabajos activos admite simultáneamente sin degradar el rendimiento general.
+- [ ] **Timeout de OS robusto** (REQ-FIT-JOB-001) — Modificar `Nesting::JobRunner` y `Nesting::CliRunner` para asegurar que el proceso hijo de Python sea matado físicamente de forma explícita (`Process.kill`) en caso de exceder el tiempo límite de ejecución (45 s), previniendo procesos huérfanos activos.
+- [ ] **Filtrado estricto de logs (Compliance PCI-DSS)** — Configurar `filter_parameter_logging.rb` para enmascarar parámetros sensibles como `:card_number`, `:holder_name`, `:mobile_number` e `:identification` en todos los entornos.
+- [ ] **Rate Limiting** — Instalar y configurar la gema `rack-attack` para limitar peticiones ráfaga en endpoints sensibles de autenticación (login/registro) y pago.
+- [ ] **Limpieza inmediata de `/tmp`** — Modificar `Nesting::JobRunner` para que elimine de manera segura el directorio temporal `tmp/nesting_runs/:id/` inmediatamente al finalizar o fallar el proceso de anidado.
+- [ ] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Verificar y auditar que confirmaciones duplicadas de webhook (por reintentos de red) no generen duplicaciones en la activación de planes/descargas ni excepciones en base de datos.
+- [ ] **Modo de mantenimiento rápido** — Implementar un interruptor sencillo controlado por variable de entorno para poner la aplicación en modo mantenimiento mostrando una vista limpia con Hotwire.
+
+### 3. Monitoreo & Feedback del Usuario (Operaciones)
+
+- [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
+- [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
+- [ ] **Alertas de errores en producción** — Integrar Sentry o Honeybadger en el entorno de producción para notificar excepciones de servidor y errores 500 al instante.
+- [ ] **Botón de sugerencias (Feedback)** — Añadir un botón flotante o enlace simple en la barra de navegación del taller que abra un formulario para recibir ideas de mejoras de los usuarios y guardarlas en la base de datos.
+
+### 4. Configuración de Producción & DevOps (Fuera de código)
+
+- [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
+- [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
+- [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.
+- [ ] **Variables SMTP en Coolify** — Configurar las credenciales reales de envío de Brevo en la aplicación de producción.
+
+### 5. Resiliencia del Entorno Casero (Home Ops)
+
+- [ ] **Limpieza automática de Docker (Disk Purge)** — Configurar una tarea cron en el servidor o en Coolify para ejecutar semanalmente `docker system prune -f` y evitar el llenado del almacenamiento local por imágenes acumuladas.
 
 ---
 
