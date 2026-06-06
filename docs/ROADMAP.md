@@ -179,6 +179,7 @@ _(none)_
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
+- [ ] **Certificado SSL/TLS (conexión encriptada)** (REQ-FIT-QA-001) — Instalar certificado de origen en el VPS/Coolify (Cloudflare Origin Certificate o Let's Encrypt vía proxy de Coolify) y activar modo SSL **Full (strict)** en Cloudflare, asegurando cifrado end-to-end entre el edge y la aplicación. Complementa `config.assume_ssl` ya desplegado en Rails.
 - [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
 - [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
 - [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.
