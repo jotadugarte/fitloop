@@ -154,7 +154,39 @@ _(none)_
 
 ## Pending (by priority)
 
-_(none)_
+### 1. Pruebas, Calidad & Cobertura (CI/CD)
+
+- [ ] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configurar GitHub Actions en `ci.yml` para levantar un servicio de base de datos PostgreSQL de prueba y ejecutar la suite completa de RSpec (specs unitarios, controladores, sistema y E2E) en cada PR y push.
+- [ ] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Instalar `SimpleCov` en la suite de RSpec, configurarlo para requerir cobertura total (100%) en el CI, y abrir una rama `refactor/test-coverage-100` para completar las pruebas de controladores, servicios y modelos que falten.
+
+### 2. Estabilidad, Seguridad & Hardening (Código)
+
+- [ ] **Validación de DXF (Sanitización)** (REQ-FIT-VAL-001) — Implementar en Rails una validación de tamaño máximo de archivo y comprobación de integridad del formato DXF en los controladores de subida antes de guardarlo en Active Storage o procesarlo.
+- [ ] **Límite de Concurrencia de Anidado** (REQ-FIT-JOB-001) — Crear `config/solid_queue.yml` para restringir los trabajadores simultáneos de la cola de anidado. **Incluye fase de exploración:** Analizar las características físicas del hardware del servidor doméstico (CPU/RAM) para decidir científicamente cuántos trabajadores concurrentes (1, 2 o más) y cuántos trabajos activos admite simultáneamente sin degradar el rendimiento general.
+- [ ] **Timeout de OS robusto** (REQ-FIT-JOB-001) — Modificar `Nesting::JobRunner` y `Nesting::CliRunner` para asegurar que el proceso hijo de Python sea matado físicamente de forma explícita (`Process.kill`) en caso de exceder el tiempo límite de ejecución (45 s), previniendo procesos huérfanos activos.
+- [ ] **Filtrado estricto de logs (Compliance PCI-DSS)** — Configurar `filter_parameter_logging.rb` para enmascarar parámetros sensibles como `:card_number`, `:holder_name`, `:mobile_number` e `:identification` en todos los entornos.
+- [ ] **Rate Limiting** — Instalar y configurar la gema `rack-attack` para limitar peticiones ráfaga en endpoints sensibles de autenticación (login/registro) y pago.
+- [ ] **Limpieza inmediata de `/tmp`** — Modificar `Nesting::JobRunner` para que elimine de manera segura el directorio temporal `tmp/nesting_runs/:id/` inmediatamente al finalizar o fallar el proceso de anidado.
+- [ ] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Verificar y auditar que confirmaciones duplicadas de webhook (por reintentos de red) no generen duplicaciones en la activación de planes/descargas ni excepciones en base de datos.
+- [ ] **Modo de mantenimiento rápido** — Implementar un interruptor sencillo controlado por variable de entorno para poner la aplicación en modo mantenimiento mostrando una vista limpia con Hotwire.
+
+### 3. Monitoreo & Feedback del Usuario (Operaciones)
+
+- [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
+- [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
+- [ ] **Alertas de errores en producción** — Integrar Sentry o Honeybadger en el entorno de producción para notificar excepciones de servidor y errores 500 al instante.
+- [ ] **Botón de sugerencias (Feedback)** — Añadir un botón flotante o enlace simple en la barra de navegación del taller que abra un formulario para recibir ideas de mejoras de los usuarios y guardarlas en la base de datos.
+
+### 4. Configuración de Producción & DevOps (Fuera de código)
+
+- [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
+- [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
+- [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.
+- [ ] **Variables SMTP en Coolify** — Configurar las credenciales reales de envío de Brevo en la aplicación de producción.
+
+### 5. Resiliencia del Entorno Casero (Home Ops)
+
+- [ ] **Limpieza automática de Docker (Disk Purge)** — Configurar una tarea cron en el servidor o en Coolify para ejecutar semanalmente `docker system prune -f` y evitar el llenado del almacenamiento local por imágenes acumuladas.
 
 ---
 
