@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Este script sincroniza la rama 'prod' local con los últimos cambios en GitHub.
+echo "🔄 Sincronizando la rama prod con GitHub..."
+
+git checkout prod
+git pull origin prod
+git checkout main
+
+echo "✅ Sincronización completada. Estás de vuelta en la rama main."
