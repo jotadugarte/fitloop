@@ -73,9 +73,8 @@ test:
 production:
   primary: &primary_production
     <<: *default
+    url: <%= ENV['DATABASE_URL'] %>
     database: fitloop_production
-    username: fitloop
-    password: "<%= ENV['FITLOOP_DATABASE_PASSWORD'] %>"
   cache:
     <<: *primary_production
     database: fitloop_production_cache
