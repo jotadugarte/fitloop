@@ -3,11 +3,11 @@ default: &default
     - polling_interval: 1
       batch_size: 500
   workers:
-    - queues: "default,analytics"
+    - queues: [ default, analytics ]
       threads: 3
       processes: <%= ENV.fetch("JOB_CONCURRENCY", 1) %>
       polling_interval: 0.1
-    - queues: "nesting"
+    - queues: [ nesting ]
       threads: 1
       processes: 3
       polling_interval: 0.1
