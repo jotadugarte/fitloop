@@ -61,7 +61,6 @@ RSpec.describe "User registration", "[REQ-FIT-AUTH-002]", type: :request do
       expect(created.terms_accepted_at).to be_present
       expect(created.email_confirmed_at).to be_nil
     end
-
   end
 
   describe "checkout access before email confirmation [REQ-FIT-AUTH-002]" do

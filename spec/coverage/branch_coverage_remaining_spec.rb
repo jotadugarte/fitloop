@@ -1728,7 +1728,7 @@ RSpec.describe "Branch coverage remaining gaps" do
         resolution_state: :pending,
         reason: "oversized_for_sheet"
       )
-      orphan = Nesting::OrphansPresenter::Orphan.new(piece_key: "0", rings: [ [ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ] ] ] )
+      orphan = Nesting::OrphansPresenter::Orphan.new(piece_key: "0", rings: [ [ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ] ] ])
       allow(Nesting::OrphansPresenter).to receive(:for).and_return(instance_double(Nesting::OrphansPresenter, items: [ orphan ]))
       allow(ProjectReadinessValidator).to receive(:validate).and_return(
         ProjectReadinessValidator::Result.new(ok?: true, errors: [])
