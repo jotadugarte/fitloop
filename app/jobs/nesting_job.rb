@@ -2,7 +2,7 @@
 
 # [REQ-FIT-CLI-001] Solid Queue job that runs nesting_engine via Nesting::CliRunner.
 class NestingJob < ApplicationJob
-  queue_as :default
+  queue_as :nesting
 
   def perform(nesting_run_id)
     nesting_run = NestingRun.find_by(id: nesting_run_id)

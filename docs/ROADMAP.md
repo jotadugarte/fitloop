@@ -164,7 +164,8 @@ _(none)_
 
 ### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
-_(none)_
+- [ ] **Tests de arquitectura para colas de fondo** — Implementar pruebas automatizadas en RSpec que validen que `config/queue.yml` use sintaxis de arrays correcta para definir múltiples colas, y que cada job que hereda de `ApplicationJob` esté enrutado a una cola activa con workers configurados.
+- [ ] **Script de desarrollo con Solid Queue local** — Configurar una tarea o script para correr desarrollo local con Solid Queue (`ACTIVE_JOB_QUEUE_ADAPTER=solid_queue SOLID_QUEUE_IN_PUMA=1`) para poder reproducir y verificar configuraciones de colas de producción localmente.
 
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
