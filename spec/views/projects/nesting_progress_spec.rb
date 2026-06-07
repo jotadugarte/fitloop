@@ -19,6 +19,14 @@ RSpec.describe "projects/nesting_progress [REQ-FIT-JOB-001] [REQ-FIT-UI-003]", t
     )
   end
   let(:active_run) { project.nesting_runs.create!(status: "processing", params_snapshot: {}) }
+  around(:each) do |example|
+    old_locale = I18n.locale
+    I18n.locale = :en
+    example.run
+  ensure
+    I18n.locale = old_locale
+  end
+
   before do
     active_run
     I18n.backend.store_translations(

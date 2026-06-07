@@ -82,11 +82,19 @@ class NestingJob < ApplicationJob
   end
 
   def parse_sheets_used(nesting_run)
+    if nesting_run.report_json.is_a?(Hash) && nesting_run.report_json.key?("sheets_used")
+      return nesting_run.report_json["sheets_used"].to_i
+    end
+
     placements = parse_placements(nesting_run)
     placements&.dig("sheets")&.size || 0
   end
 
   def parse_pieces_count(nesting_run)
+    if nesting_run.report_json.is_a?(Hash) && nesting_run.report_json.key?("pieces_count")
+      return nesting_run.report_json["pieces_count"].to_i
+    end
+
     placements = parse_placements(nesting_run)
     placements&.dig("sheets")&.sum { |s| s["pieces"]&.size || 0 } || 0
   end
