@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "timeout"
+require "fileutils"
 
 module Nesting
   # [REQ-FIT-JOB-001] Orchestrates nesting with progress, cancel, and time limit.
@@ -13,6 +14,7 @@ module Nesting
     end
 
     def initialize(nesting_run:)
+      raise ArgumentError, "nesting_run must be present" if nesting_run.nil?
       @nesting_run = nesting_run
       @project = nesting_run.project
       @cancel_requested_at = nesting_run.cancel_requested_at
@@ -26,30 +28,37 @@ module Nesting
 
       update_progress!(percent: 12, message: I18n.t("nesting.phase.starting"))
 
+      work_dir = Rails.root.join("tmp/nesting_runs", @nesting_run.id.to_s)
       begin
-        Timeout.timeout(time_limit.to_i) do
-          raise CancelledError if cancel_requested?
+        begin
+          Timeout.timeout(time_limit.to_i) do
+            raise CancelledError if cancel_requested?
 
-          Nesting::CliRunner.call(
-            nesting_run: @nesting_run,
-            cancel_check: -> { cancel_requested? }
+            Nesting::CliRunner.call(
+              nesting_run: @nesting_run,
+              cancel_check: -> { cancel_requested? }
+            )
+          end
+        rescue Timeout::Error
+          handle_timeout!
+        rescue CancelledError
+          handle_cancelled!
+        rescue StandardError => error
+          handle_failure!(error)
+        else
+          return if handle_cancelled!
+
+          update_progress!(percent: 100, message: terminal_progress_message)
+          ProgressBroadcaster.call(
+            project: @project.reload,
+            eta_overrun: eta_overrun?,
+            time_limit_notice: false
           )
         end
-      rescue Timeout::Error
-        handle_timeout!
-      rescue CancelledError
-        handle_cancelled!
-      rescue StandardError => error
-        handle_failure!(error)
-      else
-        return if handle_cancelled!
-
-        update_progress!(percent: 100, message: terminal_progress_message)
-        ProgressBroadcaster.call(
-          project: @project.reload,
-          eta_overrun: eta_overrun?,
-          time_limit_notice: false
-        )
+      ensure
+        FileUtils.rm_rf(work_dir)
+        # Post-condition: workspace directory must be deleted
+        raise "Post-condition violation: workspace directory still exists" if File.exist?(work_dir)
       end
     end
 
@@ -101,21 +110,25 @@ module Nesting
 
       nested_path = Pathname(work_dir).join("output", "nested.dxf")
       if nested_path.file? && StatusMapper.attach_nested_output?(terminal_status: terminal_status, work_dir: work_dir)
-        @project.nested_dxf.attach(
-          io: File.open(nested_path),
-          filename: "nested.dxf",
-          content_type: "application/dxf"
-        )
+        File.open(nested_path) do |file|
+          @project.nested_dxf.attach(
+            io: file,
+            filename: "nested.dxf",
+            content_type: "application/dxf"
+          )
+        end
       end
 
       placements_path = Pathname(work_dir).join("output", "placements.json")
       return unless placements_path.file?
 
-      @project.placements_json.attach(
-        io: File.open(placements_path),
-        filename: "placements.json",
-        content_type: "application/json"
-      )
+      File.open(placements_path) do |file|
+        @project.placements_json.attach(
+          io: file,
+          filename: "placements.json",
+          content_type: "application/json"
+        )
+      end
     end
 
     def load_report(work_dir)
