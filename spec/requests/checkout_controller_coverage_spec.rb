@@ -386,7 +386,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :usd,
         payment_method: :card,
-        available_payment_methods: [:card],
+        available_payment_methods: [ :card ],
         iva_applicable: false
       )
       get checkout_path(nesting_run_id: run.id)
@@ -400,7 +400,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :crc,
         payment_method: :card,
-        available_payment_methods: [:card],
+        available_payment_methods: [ :card ],
         iva_applicable: true
       )
 
@@ -653,7 +653,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :crc,
         payment_method: :card,
-        available_payment_methods: [:card],
+        available_payment_methods: [ :card ],
         iva_applicable: true
       )
 
@@ -668,7 +668,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :crc,
         payment_method: :sinpe,
-        available_payment_methods: [:sinpe],
+        available_payment_methods: [ :sinpe ],
         iva_applicable: true
       )
 
@@ -858,7 +858,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :usd,
         payment_method: :card,
-        available_payment_methods: [:card],
+        available_payment_methods: [ :card ],
         iva_applicable: false
       )
 
@@ -952,7 +952,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       allow(Billing::PaymentSelection).to receive(:resolve).and_return(
         currency: :usd,
         payment_method: :card,
-        available_payment_methods: [:card],
+        available_payment_methods: [ :card ],
         iva_applicable: false
       )
 

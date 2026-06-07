@@ -119,7 +119,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     work_dir = Rails.root.join("tmp/nesting_runs", run.id.to_s, "output")
     FileUtils.mkdir_p(work_dir)
     File.write(work_dir.join("report.json"), "invalid json")
-    
+
     described_class.call(project: project)
     project.reload
     expect(project).to be_failed
@@ -133,7 +133,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     work_dir = Rails.root.join("tmp/nesting_runs", run.id.to_s, "output")
     FileUtils.mkdir_p(work_dir)
     File.write(work_dir.join("report.json"), { status: "processing" }.to_json)
-    
+
     described_class.call(project: project)
     project.reload
     expect(project).to be_failed
@@ -156,7 +156,7 @@ RSpec.describe Nesting::ProjectStatusSync do
       status: "failed",
       started_at: 2.seconds.ago,
       finished_at: Time.current,
-      report_json: { "status" => "failed", "warnings" => ["cancelled"] }
+      report_json: { "status" => "failed", "warnings" => [ "cancelled" ] }
     )
     described_class.call(project: project)
     project.reload
@@ -224,4 +224,3 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(run.reload.report_json).to be_present
   end
 end
-

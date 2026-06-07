@@ -63,4 +63,3 @@ RSpec.describe Admin::PaymentDisplayLabels, "[REQ-FIT-ADMIN-001]", type: :servic
     end
   end
 end
-

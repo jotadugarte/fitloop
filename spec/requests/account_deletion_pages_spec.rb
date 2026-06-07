@@ -126,4 +126,3 @@ RSpec.describe "Account deletion pages", "[REQ-FIT-AUTH-002]", type: :request do
     end
   end
 end
-

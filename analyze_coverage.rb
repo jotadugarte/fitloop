@@ -15,32 +15,32 @@ uncovered_files = []
 coverage_data.each do |filepath, filecov|
   # Skip non-app files or external files if any
   next unless filepath.include?('/app/')
-  
+
   lines = filecov['lines'] || []
   branches = filecov['branches'] || {}
-  
+
   executable_lines = []
   uncovered_lines = []
-  
+
   lines.each_with_index do |cov, idx|
     line_num = idx + 1
     next if cov.nil? # Nil means not executable
-    
+
     executable_lines << line_num
     uncovered_lines << line_num if cov == 0
   end
-  
+
   uncovered_branches = []
   branches.each do |branch_name, branch_cov|
     branch_cov.each do |cond, count|
       uncovered_branches << "#{branch_name} -> #{cond}" if count == 0
     end
   end
-  
+
   if uncovered_lines.any? || uncovered_branches.any?
     total_exec = executable_lines.size
     pct = total_exec > 0 ? ((total_exec - uncovered_lines.size).to_f / total_exec * 100).round(2) : 100.0
-    
+
     uncovered_files << {
       path: filepath.sub(File.expand_path(__dir__) + '/', ''),
       percentage: pct,

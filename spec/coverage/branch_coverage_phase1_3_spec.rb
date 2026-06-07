@@ -50,7 +50,7 @@ RSpec.describe "Branch coverage quick wins (phases 1–3)" do
       allow(Open3).to receive(:capture2).and_return([ "export failed", instance_double(Process::Status, success?: false) ])
 
       expect do
-        Dxf::OrphanPieceExporter.export(rings: [ [ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ] ] ])
+        Dxf::OrphanPieceExporter.export(rings: [ [ [ 0, 0 ], [ 1, 0 ], [ 1, 1 ] ] ] )
       end.to raise_error(Dxf::OrphanPieceExporter::Error, /export failed/)
     end
   end

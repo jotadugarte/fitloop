@@ -330,11 +330,12 @@ class CheckoutController < ApplicationController
       iva_applicable: billing_selection.fetch(:iva_applicable)
     }
 
-    breakdown = if @cart && params[:nesting_run_id].blank?
-                  Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
-                else
-                  Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
-                end
+    breakdown =
+      if @cart && params[:nesting_run_id].blank?
+        Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
+      else
+        Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
+      end
 
     discount = breakdown.fetch(:discount_amount).to_f
     discount.positive? ? discount : nil

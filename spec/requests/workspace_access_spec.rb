@@ -183,5 +183,3 @@ RSpec.describe "Workspace project access", "[REQ-FIT-AUTH-001] [REQ-FIT-UI-003] 
     end
   end
 end
-
-

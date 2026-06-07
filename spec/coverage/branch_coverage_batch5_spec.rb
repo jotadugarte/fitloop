@@ -312,7 +312,7 @@ RSpec.describe "Branch coverage batch 5" do
     it "raises CancelledError when cancel is requested during runner initialization inside timeout" do
       project = create_project_for_spec!(title: "Cancel inside timeout", bind_workspace: false)
       run = project.nesting_runs.create!(status: "processing")
-      
+
       allow_any_instance_of(described_class).to receive(:cancel_requested?).and_return(false, true)
       allow(Nesting::ApplyCancel).to receive(:call)
 
@@ -375,7 +375,7 @@ RSpec.describe "Branch coverage batch 5" do
     it "skips logout analytics when destroy is called while signed out" do
       user = create_billing_user!
       post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
-      
+
       allow(Analytics::TrackEvent).to receive(:call)
       allow_any_instance_of(Users::SessionsController).to receive(:user_signed_in?).and_return(false)
 

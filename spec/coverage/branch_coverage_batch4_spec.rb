@@ -549,7 +549,7 @@ RSpec.describe "Branch coverage batch 4" do
     it "skips logout analytics when destroy is called while signed out" do
       user = create_billing_user!
       post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
-      
+
       allow(Analytics::TrackEvent).to receive(:call)
       allow_any_instance_of(Users::SessionsController).to receive(:user_signed_in?).and_return(false)
 
