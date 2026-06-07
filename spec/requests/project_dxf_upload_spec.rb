@@ -50,6 +50,25 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     expect(response.body).to include('data-testid="source-dxf-detail"')
   end
 
+  it "returns unprocessable content when no files are posted" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project),
+         params: {},
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+  end
+
+  it "redirects HTML uploads without files back to the workshop with an alert" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project), params: {}
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("project_layers.upload.missing"))
+  end
+
   it "accepts turbo-stream upload with files param" do
     project = start_setup_session!
 

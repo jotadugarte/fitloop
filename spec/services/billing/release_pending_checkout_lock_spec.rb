@@ -49,6 +49,15 @@ RSpec.describe Billing::ReleasePendingCheckoutLock, "[REQ-FIT-BILL-001]", type: 
       expect(Billing::PendingCheckoutLock.new(payment: payment).active?).to be(false)
     end
 
+    it "[REQ-FIT-BILL-001] rejects payments that do not belong to the caller" do
+      payment = pending_sinpe_payment!
+      other_user = create_billing_user!(email: "other-release-lock@example.com")
+
+      expect do
+        described_class.call(payment: payment, user: other_user)
+      end.to raise_error(ArgumentError, /payment does not belong to user/)
+    end
+
     it "[REQ-FIT-BILL-001] is idempotent when lock was already released" do
       payment = pending_sinpe_payment!(
         checkout_abandoned_at: 2.minutes.ago,

@@ -217,5 +217,292 @@ RSpec.describe Billing::Pricing, "[REQ-FIT-BILL-001]" do
         )
       end.to raise_error(ArgumentError, /sinpe requires crc/)
     end
+
+    it "prices plan tiers across currency and payment-method resolvers" do
+      expect(
+        described_class.price(product: :plan, currency: :crc, payment_method: :card, overage: false, tier_months: 1)
+      ).to eq(3250)
+      expect(
+        described_class.price(product: :plan, currency: :crc, payment_method: :sinpe, overage: false, tier_months: 2)
+      ).to eq(5000)
+      expect(
+        described_class.price(product: :plan, currency: :usd, payment_method: :card, overage: false, tier_months: 4)
+      ).to eq(18.0)
+    end
+
+    it "rejects unsupported products and unknown plan tiers at price resolution" do
+      expect do
+        described_class.price(product: :bundle, currency: :usd, payment_method: :card, overage: false)
+      end.to raise_error(ArgumentError, /unsupported product/)
+
+      expect do
+        described_class.price(product: :plan, currency: :usd, payment_method: :card, overage: false, tier_months: 3)
+      end.to raise_error(ArgumentError, /invalid tier_months/)
+    end
+
+    it "exposes config key presence and non-hash sections safely" do
+      expect(described_class.send(:has_key?, "plan_1_month_card_usd")).to be(true)
+
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write("misc: plain-string\nsingle_download_usd: 2.00\n")
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect(described_class.config_section(:misc)).to eq({})
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+  end
+
+  describe "validate_price_args! and config edge branches [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] rejects non-symbol products and raw boundary types" do
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: "single_download",
+          currency: :crc,
+          payment_method: :card,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /product must be a Symbol/)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: "crc",
+          payment_method: "card",
+          overage: false,
+          tier_months: nil
+        )
+      end.not_to raise_error
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: :eur,
+          payment_method: :card,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /invalid currency: eur/)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: :crc,
+          payment_method: :paypal,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /invalid billing_method: paypal/)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: :crc,
+          payment_method: :card,
+          overage: nil,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /overage must be boolean/)
+    end
+
+    it "[REQ-FIT-BILL-001] requires tier_months and rejects plan overage" do
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :plan,
+          currency: :crc,
+          payment_method: :card,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /tier_months required/)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :plan,
+          currency: :crc,
+          payment_method: :card,
+          overage: true,
+          tier_months: 1
+        )
+      end.to raise_error(ArgumentError, /plan overage is not supported/)
+    end
+
+    it "[REQ-FIT-BILL-001] rejects unsupported resolver combinations and non-positive amounts" do
+      singleton = described_class.singleton_class
+      original = singleton.const_get(:PRICE_KEY_RESOLVERS)
+      singleton.send(:remove_const, :PRICE_KEY_RESOLVERS)
+      singleton.const_set(:PRICE_KEY_RESOLVERS, {}.freeze)
+
+      expect do
+        described_class.price(product: :single_download, currency: :crc, payment_method: :card, overage: false)
+      end.to raise_error(ArgumentError, /unsupported currency\/payment_method combination/)
+    ensure
+      singleton.send(:remove_const, :PRICE_KEY_RESOLVERS)
+      singleton.const_set(:PRICE_KEY_RESOLVERS, original)
+    end
+
+    it "[REQ-FIT-BILL-001] rejects non-positive price amounts from fetch" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write("single_download_official_crc: 0\n")
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect do
+        described_class.price(product: :single_download, currency: :crc, payment_method: :card, overage: false)
+      end.to raise_error(ArgumentError, /must be positive/)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+
+    it "[REQ-FIT-BILL-001] rejects malformed billing.yml structures and missing nested keys" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write("not-a-hash\n")
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect { described_class.single_download_usd }.to raise_error(ArgumentError, /billing.yml must be a Hash/)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+
+    it "[REQ-FIT-BILL-001] rejects non-hash products section and missing dig paths" do
+      expect do
+        described_class.send(:normalize_data, { "products" => "invalid" })
+      end.to raise_error(ArgumentError, /products must be a Hash/)
+    end
+
+    it "[REQ-FIT-BILL-001] raises when nested product pricing paths are incomplete" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write(<<~YAML)
+        products:
+          single_download:
+            official:
+              crc: 1200
+            sinpe:
+              crc: 1000
+      YAML
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect { described_class.single_download_official_usd }.to raise_error(ArgumentError, /billing.yml missing/)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+
+    it "[REQ-FIT-BILL-001] rejects zero values loaded directly through fetch" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write("single_download_usd: 0\n")
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect { described_class.single_download_usd }.to raise_error(ArgumentError, /single_download_usd must be positive/)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+
+    it "[REQ-FIT-BILL-001] resolves overage and plan tier branches across resolvers" do
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :card, overage: true)
+      ).to eq(600)
+      expect(
+        described_class.price(product: :single_download, currency: :crc, payment_method: :sinpe, overage: true)
+      ).to eq(500)
+      expect(
+        described_class.price(product: :single_download, currency: :usd, payment_method: :card, overage: true)
+      ).to eq(1.25)
+      expect(
+        described_class.price(product: :plan, currency: :crc, payment_method: :card, overage: false, tier_months: 2)
+      ).to eq(5300)
+      expect(
+        described_class.price(product: :plan, currency: :usd, payment_method: :card, overage: false, tier_months: 4)
+      ).to eq(18.0)
+      expect(described_class.plan_price_triple(1).first).to eq(7.0)
+      expect(described_class.plan_price_triple(4).last).to eq(8000)
+    end
+
+    it "[REQ-FIT-BILL-001] rejects non-positive CRC amounts during validation" do
+      temp = Tempfile.new([ "billing", ".yml" ])
+      temp.write("single_download_official_crc: 0\n")
+      temp.flush
+      stub_const("#{described_class}::CONFIG_PATH", Pathname(temp.path))
+      described_class.reset_cache!
+
+      expect do
+        described_class.send(:validate_price_amount!, 0, "single_download_official_crc", :crc)
+      end.to raise_error(ArgumentError, /amount must be positive/)
+    ensure
+      temp&.close
+      temp&.unlink
+      described_class.reset_cache!
+    end
+
+    it "[REQ-FIT-BILL-001] raises for unknown plan tiers in helpers" do
+      invalid_tier = double(to_i: 3)
+      allow(described_class).to receive(:coerce_tier_months).and_return(invalid_tier)
+
+      expect { described_class.plan_price_triple(3) }.to raise_error(ArgumentError, /unknown plan tier_months/)
+      expect do
+        described_class.send(:plan_key_prefix, invalid_tier)
+      end.to raise_error(ArgumentError, /unknown plan tier_months/)
+      expect do
+        described_class.send(:price_key_for_official_crc, product: :bundle, overage: false, tier_months: nil)
+      end.to raise_error(ArgumentError, /unsupported product/)
+    end
+
+    it "[REQ-FIT-BILL-001] validates coerced domain objects at the boundary" do
+      bad_currency = double("bad currency")
+      allow(bad_currency).to receive(:is_a?).with(Billing::Currency).and_return(true)
+      allow(bad_currency).to receive(:to_sym).and_return(:eur)
+      bad_method = double("bad method")
+      allow(bad_method).to receive(:is_a?).with(Billing::BillingMethod).and_return(true)
+      allow(bad_method).to receive(:to_sym).and_return(:paypal)
+      allow(bad_method).to receive(:compatible_with_currency?).and_return(true)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: bad_currency,
+          payment_method: :card,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /currency must be :usd or :crc/)
+
+      expect do
+        described_class.send(
+          :validate_price_args!,
+          product: :single_download,
+          currency: :crc,
+          payment_method: bad_method,
+          overage: false,
+          tier_months: nil
+        )
+      end.to raise_error(ArgumentError, /payment_method must be :card or :sinpe/)
+    end
   end
 end

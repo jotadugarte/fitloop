@@ -128,6 +128,9 @@ jobs:
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: password
+      ONVO_SECRET_KEY: onvo_test_secret_dummy
+      ONVO_PUBLISHABLE_KEY: onvo_test_publishable_dummy
+      ONVO_WEBHOOK_SECRET: whsec_test_onvo_dummy
 
     steps:
       - name: Checkout code

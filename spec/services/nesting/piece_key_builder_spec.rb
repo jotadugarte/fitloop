@@ -99,4 +99,32 @@ RSpec.describe Nesting::PieceKeyBuilder do
       expect(shifted).not_to eq(baseline)
     end
   end
+
+  describe "validation branches [REQ-FIT-SPLIT-001]" do
+    it "requires attachment and blob id" do
+      builder = described_class.new
+
+      expect { builder.build_from_index(attachment: nil, piece_index: 0) }
+        .to raise_error(ArgumentError, /attachment is required/)
+
+      attachment = instance_double(ActiveStorage::Attachment, blob_id: nil)
+      expect { builder.build_from_index(attachment: attachment, piece_index: 0) }
+        .to raise_error(ArgumentError, /attachment blob is required/)
+    end
+
+    it "rejects negative piece indexes and malformed ring points" do
+      attachment = attach_dxf!
+
+      expect { described_class.call(attachment: attachment, piece_index: -1) }
+        .to raise_error(ArgumentError, /non-negative/)
+
+      expect do
+        described_class.from_geometry(
+          attachment: attachment,
+          layer_name: "CUT",
+          rings: [ [ [ 1.0 ] ] ]
+        )
+      end.to raise_error(ArgumentError, /ring point must have x and y/)
+    end
+  end
 end

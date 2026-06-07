@@ -160,4 +160,49 @@ RSpec.describe "Nested DXF download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-BILL-
       expect(response).to redirect_to(email_confirmation_pending_path)
     end
   end
+
+  describe "GET /projects/:id/nested_dxf with download_token" do
+    it "serves nested DXF when token is valid" do
+      user = create_billing_user!
+      project = begin_workspace_session!
+      run = attach_nested_output!(project)
+      token = Billing::DownloadToken.issue(user: user, nesting_run: run)
+      sign_in_user! user
+
+      get nested_dxf_project_path(project), params: { download_token: token }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("NESTED DXF CONTENT")
+    end
+
+    it "redirects to paywall when token is invalid or expired" do
+      user = create_billing_user!
+      project = begin_workspace_session!
+      run = attach_nested_output!(project)
+      sign_in_user! user
+
+      get nested_dxf_project_path(project), params: { download_token: "invalid_token_string" }
+
+      expect(response).to redirect_to(paywall_path_for(project))
+    end
+  end
+
+  describe "GET /projects/:id/nested_dxf when nesting run is missing" do
+    it "redirects to workshop path with an alert" do
+      user = create_billing_user!
+      project = begin_workspace_session!
+      project.update!(status: :completed)
+      project.nested_dxf.attach(
+        io: StringIO.new("NESTED DXF CONTENT"),
+        filename: "nested.dxf",
+        content_type: "application/dxf"
+      )
+      sign_in_user! user
+
+      get nested_dxf_project_path(project)
+
+      expect(response).to redirect_to(workshop_path)
+      expect(flash[:alert]).to eq(I18n.t("projects.show.nested_dxf_unavailable"))
+    end
+  end
 end

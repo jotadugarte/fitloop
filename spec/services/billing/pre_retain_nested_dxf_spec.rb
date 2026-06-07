@@ -52,5 +52,40 @@ RSpec.describe Billing::PreRetainNestedDxf, "[REQ-FIT-BILL-001] [REQ-FIT-BILL-00
         described_class.call(user: user, nesting_run: bare_run)
       end.to raise_error(ArgumentError, /nested_dxf missing/)
     end
+
+    it "[REQ-FIT-BILL-001] rejects nil user or nesting_run" do
+      expect { described_class.call(user: nil, nesting_run: run) }
+        .to raise_error(ArgumentError, /user required/)
+      expect { described_class.call(user: user, nesting_run: nil) }
+        .to raise_error(ArgumentError, /nesting_run required/)
+    end
+
+    it "[REQ-FIT-BILL-001] preserves retained_until when retention is already committed" do
+      retained_until = 1.day.from_now
+      grant = DownloadGrant.create!(
+        user: user,
+        nesting_run: run,
+        kind: "single_purchase",
+        retained_until: retained_until
+      )
+
+      result = described_class.call(user: user, nesting_run: run)
+
+      expect(result.id).to eq(grant.id)
+      expect(result.retained_until).to be_within(1.second).of(retained_until)
+    end
+
+    it "[REQ-FIT-BILL-001] purges an existing staging blob before attaching" do
+      grant = DownloadGrant.create!(user: user, nesting_run: run, kind: "single_purchase", retained_until: nil)
+      grant.retained_nested_dxf.attach(
+        io: StringIO.new("OLD"),
+        filename: "old.dxf",
+        content_type: "application/dxf"
+      )
+
+      described_class.call(user: user, nesting_run: run)
+
+      expect(grant.reload.retained_nested_dxf.download).to include("PRE-RETAINED BLOB")
+    end
   end
 end

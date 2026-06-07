@@ -195,5 +195,13 @@ RSpec.describe "ONVO webhooks", "[REQ-FIT-BILL-001]", type: :request do
       expect(response).to have_http_status(:ok)
       expect(DownloadGrant.where(user_id: ctx[:payment].user_id, nesting_run_id: ctx[:run].id).count).to eq(1)
     end
+
+    it "[REQ-FIT-BILL-001] returns 404 when payment intent id is not found" do
+      payload = { type: "payment-intent.succeeded", data: { id: "pi_non_existent", status: "succeeded" } }
+
+      post_onvo_webhook!(payload)
+
+      expect(response).to have_http_status(:not_found)
+    end
   end
 end

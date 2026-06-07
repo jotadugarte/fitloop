@@ -48,5 +48,30 @@ RSpec.describe Billing::PaymentSelection, "[REQ-FIT-BILL-001]" do
       expect(selection.fetch(:currency)).to eq(:crc)
       expect(selection.fetch(:iva_applicable)).to be(true)
     end
+
+    it "raises ArgumentError when session does not respond to []" do
+      request = instance_double(ActionDispatch::Request)
+      expect {
+        described_class.resolve(request: request, session: Object.new, user: nil)
+      }.to raise_error(ArgumentError, /session must support \[\]/)
+    end
+  end
+
+  describe ".parse_currency" do
+    it "returns :usd for usd string/symbol" do
+      expect(described_class.parse_currency("usd")).to eq(:usd)
+      expect(described_class.parse_currency(:usd)).to eq(:usd)
+    end
+
+    it "returns :crc for crc string/symbol" do
+      expect(described_class.parse_currency("crc")).to eq(:crc)
+      expect(described_class.parse_currency(:crc)).to eq(:crc)
+    end
+
+    it "returns nil for other values" do
+      expect(described_class.parse_currency("eur")).to be_nil
+      expect(described_class.parse_currency(nil)).to be_nil
+    end
   end
 end
+

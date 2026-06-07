@@ -58,6 +58,10 @@ RSpec.describe Billing::TierMonths, "[REQ-FIT-BILL-002]" do
 
       expect { described_class.from_cart(cart) }.to raise_error(ArgumentError)
     end
+
+    it "[REQ-FIT-BILL-002] rejects nil cart" do
+      expect { described_class.from_cart(nil) }.to raise_error(ArgumentError, /cart required/)
+    end
   end
 
   describe ".from_record" do
@@ -72,9 +76,13 @@ RSpec.describe Billing::TierMonths, "[REQ-FIT-BILL-002]" do
 
       expect(described_class.from_record(subscription).to_i).to eq(2)
     end
+
+    it "[REQ-FIT-BILL-002] rejects nil record" do
+      expect { described_class.from_record(nil) }.to raise_error(ArgumentError, /record required/)
+    end
   end
 
-  describe "equality" do
+  describe "equality and hashing" do
     it "[REQ-FIT-BILL-002] treats equal values as equal" do
       one = described_class.parse(1)
       also_one = described_class.parse("1")
@@ -85,6 +93,13 @@ RSpec.describe Billing::TierMonths, "[REQ-FIT-BILL-002]" do
 
     it "[REQ-FIT-BILL-002] treats different values as unequal" do
       expect(described_class.parse(1)).not_to eq(described_class.parse(2))
+    end
+
+    it "[REQ-FIT-BILL-002] implements hash function based on value" do
+      one = described_class.parse(1)
+      also_one = described_class.parse("1")
+
+      expect(one.hash).to eq(also_one.hash)
     end
   end
 end

@@ -191,6 +191,85 @@ RSpec.describe "Workshop pending payment lock", "[REQ-FIT-BILL-001]", type: :req
     expect(flash[:alert]).not_to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
   end
 
+  it "[REQ-FIT-BILL-001] blocks project layer nest updates while payment pending" do
+    attachment = project.input_dxf_attachments.first!
+    cut = project.project_layers.find_by!(
+      layer_name: "PIECES",
+      active_storage_attachment_id: attachment.id
+    )
+
+    patch project_layers_path(project),
+          params: {
+            project_layers: {
+              attachment.id.to_s => {
+                primary_layer_id: cut.id.to_s
+              }
+            }
+          }
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(project.nesting_runs.where(status: "processing").count).to eq(0)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks split proposal regeneration while payment pending" do
+    resolution = project.orphan_resolutions.create!(
+      piece_key: "0",
+      resolution_state: :system_split,
+      reason: "oversized_for_sheet"
+    )
+    resolution.split_proposals.create!(
+      status: :draft,
+      version: 1,
+      feasible: true,
+      child_piece_geometries: [ { "label" => "a", "rings" => [] } ],
+      cut_segments: [],
+      labels: [ "a" ]
+    )
+
+    post regenerate_orphan_split_proposal_workshop_path(piece_key: resolution.piece_key)
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(resolution.split_proposals.draft.count).to eq(1)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks split proposal rejection while payment pending" do
+    resolution = project.orphan_resolutions.create!(
+      piece_key: "0",
+      resolution_state: :system_split,
+      reason: "oversized_for_sheet"
+    )
+    resolution.split_proposals.create!(
+      status: :draft,
+      version: 1,
+      feasible: true,
+      child_piece_geometries: [ { "label" => "a", "rings" => [] } ],
+      cut_segments: [],
+      labels: [ "a" ]
+    )
+
+    post reject_orphan_split_proposal_workshop_path(piece_key: resolution.piece_key)
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(resolution.split_proposals.draft.count).to eq(1)
+  end
+
+  it "[REQ-FIT-BILL-001] blocks manual orphan confirmation while payment pending" do
+    resolution = project.orphan_resolutions.create!(
+      piece_key: "0",
+      resolution_state: :manual,
+      reason: "oversized_for_sheet"
+    )
+
+    post confirm_manual_workshop_orphan_resolution_path(piece_key: resolution.piece_key)
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("billing.checkout.pending_workshop_lock.message"))
+    expect(resolution.reload.resolution_state).to eq("manual")
+  end
+
   it "[REQ-FIT-BILL-001] blocks orphan resolution updates while payment pending" do
     project.orphan_resolutions.create!(
       piece_key: "0",

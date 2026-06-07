@@ -136,4 +136,42 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       expect(result.errors).to be_empty
     end
   end
+
+  describe "extractable piece counting branches [REQ-FIT-VAL-001]" do
+    it "returns zero extractable pieces when union layer names are empty" do
+      attach_sample_dxf!
+      project.project_layers.find_by!(layer_name: "PIECES").update!(included: true)
+      allow(Dxf::PieceCounter).to receive(:layer_names_for_count).and_return([])
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(false)
+      expect(result.errors).to include(I18n.t("project_readiness.no_extractable_pieces"))
+    end
+
+    it "returns zero when downloaded DXF paths are blank in union mode" do
+      attach_sample_dxf!
+      project.project_layers.find_by!(layer_name: "PIECES").update!(included: true)
+      validator = described_class.new(project)
+      allow(validator).to receive(:with_downloaded_dxf_paths).and_yield([])
+
+      expect(validator.send(:extractable_piece_count)).to eq(0)
+    end
+
+    it "skips per-file attachments with no selected layer names" do
+      composite_fixture = Rails.root.join("nesting_engine/tests/fixtures/composite-piece-count.dxf")
+      project.input_dxf.attach(
+        io: File.open(composite_fixture),
+        filename: "composite-piece-count.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      project.project_layers.update_all(included: false)
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(false)
+      expect(result.errors).to include(I18n.t("project_readiness.no_layers_selected"))
+    end
+  end
 end

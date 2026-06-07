@@ -46,6 +46,17 @@ RSpec.describe Nesting::StatusMapper do
       expect(status).to eq("failed")
     end
 
+    it "returns failed when partial artifacts have corrupt report.json" do
+      output_dir = work_dir.join("output")
+      FileUtils.mkdir_p(output_dir)
+      File.write(output_dir.join("nested.dxf"), "partial nest")
+      File.write(output_dir.join("report.json"), "not-json")
+
+      status = described_class.map(exit_status: 2, report: {}, work_dir: work_dir)
+
+      expect(status).to eq("failed")
+    end
+
     it "returns partial when exit is non-zero but partial artifacts exist" do
       output_dir = work_dir.join("output")
       FileUtils.mkdir_p(output_dir)

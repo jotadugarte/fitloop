@@ -52,6 +52,15 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
     end
   end
 
+  describe "constructor validation [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] requires config and transport" do
+      expect { described_class.new(config: nil, transport: transport) }
+        .to raise_error(ArgumentError, /config required/)
+      expect { described_class.new(config: config, transport: nil) }
+        .to raise_error(ArgumentError, /transport required/)
+    end
+  end
+
   describe "#get_payment_intent [REQ-FIT-BILL-001]" do
     it "[REQ-FIT-BILL-001] GETs payment intent by id" do
       transport.stub_get(
@@ -64,6 +73,10 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
 
       expect(transport.calls.last).to eq(method: :get, path: "/payment-intents/pi_abc", body: nil)
       expect(result.fetch(:status)).to eq("succeeded")
+    end
+
+    it "[REQ-FIT-BILL-001] rejects blank payment intent ids" do
+      expect { client.get_payment_intent("  ") }.to raise_error(ArgumentError, /payment_intent_id required/)
     end
   end
 
@@ -120,6 +133,24 @@ RSpec.describe Billing::Onvo::Client, "[REQ-FIT-BILL-001]" do
         paymentMethodId: "pm_card",
         returnUrl: "https://example.com/checkout/retorno"
       )
+    end
+
+    it "[REQ-FIT-BILL-001] rejects blank payment intent or method ids" do
+      expect do
+        client.confirm_payment_intent("", payment_method_id: "pm_card")
+      end.to raise_error(ArgumentError, /payment_intent_id required/)
+
+      expect do
+        client.confirm_payment_intent("pi_abc", payment_method_id: "")
+      end.to raise_error(ArgumentError, /payment_method_id required/)
+    end
+  end
+
+  describe "#deep_symbolize [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] symbolizes array payloads recursively" do
+      result = client.send(:deep_symbolize, [ { "id" => "pi_1" } ])
+
+      expect(result).to eq([ { id: "pi_1" } ])
     end
   end
 

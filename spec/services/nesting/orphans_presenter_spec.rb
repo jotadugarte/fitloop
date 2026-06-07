@@ -5,6 +5,15 @@ require "rails_helper"
 RSpec.describe Nesting::OrphansPresenter do
   let(:project) { create_project_for_spec!(title: "Orphans bench") }
 
+  describe "Orphan value object [REQ-FIT-SPLIT-001]" do
+    it "treats a nil split proposal as not feasible" do
+      orphan = described_class::Orphan.new(split_proposal: nil)
+
+      expect(orphan.split_not_feasible?).to be_nil
+      expect(orphan.split_plan_failed?).to be_nil
+    end
+  end
+
   describe ".for [REQ-FIT-NEST-003]" do
     it "builds preview data from placements.json orphan geometry" do
       project.nesting_runs.create!(
@@ -54,6 +63,20 @@ RSpec.describe Nesting::OrphansPresenter do
       expect(presenter.items.first.display_number).to eq(1)
       expect(presenter.items.first.preview_available?).to be(true)
       expect(presenter.items.first.view_width).to eq(816.0)
+      expect(presenter.entries).to contain_exactly(
+        { "piece_index" => 0, "reason" => "oversized_for_sheet" },
+        { "piece_index" => 4, "reason" => "oversized_for_sheet" }
+      )
+    end
+
+    it "returns nil placements data when placements.json is invalid JSON" do
+      project.placements_json.attach(
+        io: StringIO.new("not-json"),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+
+      expect(described_class.for(project).items).to eq([])
     end
   end
 

@@ -59,6 +59,16 @@ RSpec.describe Billing::GeoPaymentDefaults, "[REQ-FIT-BILL-001]" do
       expect(defaults.fetch(:default_payment_method)).to eq(:sinpe)
     end
 
+    it "[REQ-FIT-BILL-001] ignores non-Costa Rica user time zones when geo is unavailable (D16)" do
+      request = instance_double(ActionDispatch::Request, headers: {}, remote_ip: "127.0.0.1")
+      allow(request).to receive(:get_header).and_return(nil)
+      user = instance_double(User, time_zone: "America/New_York")
+
+      defaults = described_class.from_request(request, user: user)
+
+      expect(defaults.fetch(:country_code)).to be_nil
+    end
+
     it "[REQ-FIT-BILL-001] infers CR from user time_zone when geo is unavailable (D16)" do
       request = instance_double(ActionDispatch::Request, headers: {}, remote_ip: "127.0.0.1")
       allow(request).to receive(:get_header).and_return(nil)

@@ -76,5 +76,14 @@ RSpec.describe "Project orphan DXF download", type: :request do
       expect(response).to redirect_to(start_project_path)
       expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
     end
+
+    it "returns unprocessable content if exporter fails" do
+      attach_orphan_placements!
+      allow(Dxf::OrphanPieceExporter).to receive(:export).and_raise(Dxf::OrphanPieceExporter::Error, "dxf error")
+
+      get orphan_dxf_project_path(project, piece_index: 0)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
   end
 end

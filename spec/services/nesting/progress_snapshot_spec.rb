@@ -55,6 +55,22 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot.message).to eq("Custom label")
     end
 
+    it "returns nil when percent is negative or above 100" do
+      expect(
+        described_class.from_hash(
+          { "version" => 1, "phase_id" => "fill", "percent" => -1 },
+          last_percent: 0
+        )
+      ).to be_nil
+
+      expect(
+        described_class.from_hash(
+          { "version" => 1, "phase_id" => "fill", "percent" => 101 },
+          last_percent: 0
+        )
+      ).to be_nil
+    end
+
     it "returns nil when percent regresses" do
       snapshot = described_class.from_hash(
         { "version" => 1, "phase_id" => "fill", "percent" => 30 },
@@ -71,6 +87,22 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       )
 
       expect(snapshot).to be_nil
+    end
+
+    it "ignores non-integer piece counters" do
+      snapshot = described_class.from_hash(
+        {
+          "version" => 1,
+          "phase_id" => "fill",
+          "percent" => 10,
+          "pieces_total" => "many",
+          "pieces_placed" => "few"
+        },
+        last_percent: 0
+      )
+
+      expect(snapshot.pieces_total).to be_nil
+      expect(snapshot.pieces_placed).to be_nil
     end
 
     it "returns nil for unknown phase_id" do

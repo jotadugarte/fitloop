@@ -76,5 +76,17 @@ RSpec.describe Nesting::PreviewPresenter do
       expect(piece.decorations.size).to eq(1)
       expect(piece.decorations.first.layer_name).to eq("GRABADO")
     end
+
+    it "falls back to deterministic HSL colors for unknown layers" do
+      project.placements_json.attach(
+        io: StringIO.new({ sheets: [ { offset_x_mm: 0, width_mm: 100, height_mm: 50, pieces: [] } ] }.to_json),
+        filename: "placements.json",
+        content_type: "application/json"
+      )
+
+      color = described_class.for(project).color_for_layer("UNKNOWN_LAYER")
+
+      expect(color).to match(/\Ahsl\(\d+ 62% 46%\)\z/)
+    end
   end
 end
