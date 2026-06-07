@@ -22,13 +22,13 @@ RSpec.describe Nesting::ReconcileFailedJob, "[REQ-FIT-JOB-001]" do
     job
   end
 
-  it "returns false when the nesting run is not processing" do
+  it "returns false when the nesting run is not processing [REQ-FIT-JOB-001]" do
     nesting_run.update!(status: "completed")
 
     expect(described_class.call(nesting_run: nesting_run)).to be(false)
   end
 
-  it "fails the run when Solid Queue recorded a failed NestingJob for this run" do
+  it "fails the run when Solid Queue recorded a failed NestingJob for this run [REQ-FIT-JOB-001]" do
     create_failed_nesting_job!(nesting_run_id: nesting_run.id)
 
     expect(described_class.call(nesting_run: nesting_run)).to be(true)
@@ -40,7 +40,7 @@ RSpec.describe Nesting::ReconcileFailedJob, "[REQ-FIT-JOB-001]" do
     expect(project.progress_message).to eq(I18n.t("nesting.failed"))
   end
 
-  it "ignores failed NestingJob rows that target a different nesting run" do
+  it "ignores failed NestingJob rows that target a different nesting run [REQ-FIT-JOB-001]" do
     nesting_run.update!(started_at: 30.seconds.ago)
     other_run = project.nesting_runs.create!(status: "processing", started_at: 30.seconds.ago)
     create_failed_nesting_job!(nesting_run_id: other_run.id)
@@ -49,7 +49,7 @@ RSpec.describe Nesting::ReconcileFailedJob, "[REQ-FIT-JOB-001]" do
     expect(nesting_run.reload.status).to eq("processing")
   end
 
-  it "fails the run when processing was abandoned without work_dir output" do
+  it "fails the run when processing was abandoned without work_dir output [REQ-FIT-JOB-001]" do
     nesting_run.update!(started_at: 3.minutes.ago)
 
     expect(described_class.call(nesting_run: nesting_run)).to be(true)
@@ -58,14 +58,14 @@ RSpec.describe Nesting::ReconcileFailedJob, "[REQ-FIT-JOB-001]" do
     expect(nesting_run.status).to eq("failed")
   end
 
-  it "returns false for a recent processing run that still has no work_dir" do
+  it "returns false for a recent processing run that still has no work_dir [REQ-FIT-JOB-001]" do
     nesting_run.update!(started_at: 30.seconds.ago)
 
     expect(described_class.call(nesting_run: nesting_run)).to be(false)
     expect(nesting_run.reload.status).to eq("processing")
   end
 
-  it "returns false when work_dir already contains report.json" do
+  it "returns false when work_dir already contains report.json [REQ-FIT-JOB-001]" do
     nesting_run.update!(started_at: 3.minutes.ago)
     output_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s, "output")
     FileUtils.mkdir_p(output_dir)
@@ -77,21 +77,21 @@ RSpec.describe Nesting::ReconcileFailedJob, "[REQ-FIT-JOB-001]" do
     FileUtils.rm_rf(Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s))
   end
 
-  it "parses nesting_run_id from hash job arguments" do
+  it "parses nesting_run_id from hash job arguments [REQ-FIT-JOB-001]" do
     service = described_class.new(nesting_run: nesting_run)
     job = instance_double(SolidQueue::Job, arguments: { "arguments" => [ nesting_run.id ] })
 
     expect(service.send(:nesting_run_id_from_job, job)).to eq(nesting_run.id)
   end
 
-  it "returns nil when job arguments are not valid JSON" do
+  it "returns nil when job arguments are not valid JSON [REQ-FIT-JOB-001]" do
     service = described_class.new(nesting_run: nesting_run)
     job = instance_double(SolidQueue::Job, arguments: "not-json")
 
     expect(service.send(:nesting_run_id_from_job, job)).to be_nil
   end
 
-  it "returns false when Solid Queue tables are unavailable" do
+  it "returns false when Solid Queue tables are unavailable [REQ-FIT-JOB-001]" do
     create_failed_nesting_job!(nesting_run_id: nesting_run.id)
     connection = instance_double(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
     allow(ActiveRecord::Base).to receive(:connection).and_return(connection)

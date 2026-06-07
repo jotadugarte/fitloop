@@ -15,7 +15,7 @@ RSpec.describe Nesting::CliRunner do
   let(:nesting_run) { project.nesting_runs.create!(status: "processing", params_snapshot: {}) }
 
   describe ".call [REQ-FIT-CLI-001]" do
-    it "maps non-zero CLI exit to failed status" do
+    it "maps non-zero CLI exit to failed status [REQ-FIT-CLI-001]" do
       mock_invoke = ->(_work_dir, _config_path) { 1 }
 
       described_class.call(nesting_run: nesting_run, invoke: mock_invoke)
@@ -63,7 +63,7 @@ RSpec.describe Nesting::CliRunner do
       expect(project.progress_message).to eq("nesting.phase.fill")
     end
 
-    it "kills the Open3 child process when cancellation is requested during CLI execution" do
+    it "kills the Open3 child process when cancellation is requested during CLI execution [REQ-FIT-CLI-001]" do
       wait_thr = double("Open3 wait thread", pid: 99_999)
       checks = 0
       allow(wait_thr).to receive(:join).with(0.2).and_return(false, true)
@@ -84,7 +84,7 @@ RSpec.describe Nesting::CliRunner do
       expect(Process).to have_received(:kill).with("TERM", 99_999)
     end
 
-    it "raises CancelledError when cancel_check is true during invoke polling" do
+    it "raises CancelledError when cancel_check is true during invoke polling [REQ-FIT-CLI-001]" do
       checks = 0
       cancel_check = lambda do
         checks += 1
@@ -105,19 +105,19 @@ RSpec.describe Nesting::CliRunner do
       end.to raise_error(Nesting::CancelledError)
     end
 
-    it "runs invoke without a cancel_check callback" do
+    it "runs invoke without a cancel_check callback [REQ-FIT-CLI-001]" do
       described_class.call(nesting_run: nesting_run, invoke: ->(_work_dir, _config_path) { 0 })
 
       expect(nesting_run.reload.status).to eq("failed")
     end
 
-    it "skips nested output attachment when nested.dxf is absent" do
+    it "skips nested output attachment when nested.dxf is absent [REQ-FIT-CLI-001]" do
       described_class.call(nesting_run: nesting_run, invoke: ->(_work_dir, _config_path) { 0 })
 
       expect(project.reload.nested_dxf).not_to be_attached
     end
 
-    it "does not finalize runs that already left processing" do
+    it "does not finalize runs that already left processing [REQ-FIT-CLI-001]" do
       nesting_run.update!(status: "completed", finished_at: Time.current)
 
       described_class.call(nesting_run: nesting_run, invoke: ->(_work_dir, _config_path) { 0 })
@@ -127,11 +127,11 @@ RSpec.describe Nesting::CliRunner do
   end
 
   describe ".finalize_from_work_dir! [REQ-FIT-CLI-001]" do
-    it "returns false when the work directory is missing" do
+    it "returns false when the work directory is missing [REQ-FIT-CLI-001]" do
       expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(false)
     end
 
-    it "returns false when report.json is empty" do
+    it "returns false when report.json is empty [REQ-FIT-CLI-001]" do
       work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
       FileUtils.mkdir_p(work_dir.join("output"))
 

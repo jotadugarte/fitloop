@@ -16,7 +16,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
   end
 
   describe ".from_hash" do
-    it "parses schema v1 and maps phase_id to i18n message" do
+    it "parses schema v1 and maps phase_id to i18n message [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
         {
           "version" => 1,
@@ -38,7 +38,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot.message).to eq(I18n.t("nesting.phase.fill"))
     end
 
-    it "uses message_key override when present" do
+    it "uses message_key override when present [REQ-FIT-JOB-001]" do
       I18n.backend.store_translations(:en, nesting: { custom: { progress: "Custom label" } })
 
       snapshot = described_class.from_hash(
@@ -55,7 +55,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot.message).to eq("Custom label")
     end
 
-    it "returns nil when percent is negative or above 100" do
+    it "returns nil when percent is negative or above 100 [REQ-FIT-JOB-001]" do
       expect(
         described_class.from_hash(
           { "version" => 1, "phase_id" => "fill", "percent" => -1 },
@@ -71,7 +71,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       ).to be_nil
     end
 
-    it "returns nil when percent regresses" do
+    it "returns nil when percent regresses [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
         { "version" => 1, "phase_id" => "fill", "percent" => 30 },
         last_percent: 40
@@ -80,7 +80,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot).to be_nil
     end
 
-    it "returns nil for unsupported schema version" do
+    it "returns nil for unsupported schema version [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
         { "version" => 2, "phase_id" => "fill", "percent" => 10 },
         last_percent: 0
@@ -89,7 +89,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot).to be_nil
     end
 
-    it "ignores non-integer piece counters" do
+    it "ignores non-integer piece counters [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
         {
           "version" => 1,
@@ -105,7 +105,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       expect(snapshot.pieces_placed).to be_nil
     end
 
-    it "returns nil for unknown phase_id" do
+    it "returns nil for unknown phase_id [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
         { "version" => 1, "phase_id" => "unknown", "percent" => 10 },
         last_percent: 0
@@ -123,7 +123,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       )
     end
 
-    it "reads progress.json from work dir output" do
+    it "reads progress.json from work dir output [REQ-FIT-JOB-001]" do
       write_progress(
         version: 1,
         phase_id: "extracting",
@@ -140,11 +140,11 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
       )
     end
 
-    it "returns nil when progress.json is missing" do
+    it "returns nil when progress.json is missing [REQ-FIT-JOB-001]" do
       expect(described_class.read(work_dir, last_percent: 0)).to be_nil
     end
 
-    it "returns nil when progress.json is corrupt" do
+    it "returns nil when progress.json is corrupt [REQ-FIT-JOB-001]" do
       FileUtils.mkdir_p(progress_path.dirname)
       progress_path.write("{ not json")
 

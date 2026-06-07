@@ -6,7 +6,7 @@ RSpec.describe Nesting::OrphansPresenter do
   let(:project) { create_project_for_spec!(title: "Orphans bench") }
 
   describe "Orphan value object [REQ-FIT-SPLIT-001]" do
-    it "treats a nil split proposal as not feasible" do
+    it "treats a nil split proposal as not feasible [REQ-FIT-SPLIT-001]" do
       orphan = described_class::Orphan.new(split_proposal: nil)
 
       expect(orphan.split_not_feasible?).to be_nil
@@ -15,7 +15,7 @@ RSpec.describe Nesting::OrphansPresenter do
   end
 
   describe ".for [REQ-FIT-NEST-003]" do
-    it "builds preview data from placements.json orphan geometry" do
+    it "builds preview data from placements.json orphan geometry [REQ-FIT-NEST-003]" do
       project.nesting_runs.create!(
         status: "partial",
         report_json: {
@@ -69,7 +69,7 @@ RSpec.describe Nesting::OrphansPresenter do
       )
     end
 
-    it "returns nil placements data when placements.json is invalid JSON" do
+    it "returns nil placements data when placements.json is invalid JSON [REQ-FIT-NEST-003]" do
       project.placements_json.attach(
         io: StringIO.new("not-json"),
         filename: "placements.json",

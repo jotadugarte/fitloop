@@ -13,7 +13,7 @@ RSpec.describe Nesting::LocalizedProgressMessage, "[REQ-FIT-UI-005]" do
     )
   end
 
-  it "renders completed copy in the active locale even when DB stores another locale" do
+  it "renders completed copy in the active locale even when DB stores another locale [REQ-FIT-UI-005]" do
     project.update!(progress_message: I18n.t("nesting.completed", locale: :es_panic))
 
     I18n.with_locale(:en) do
@@ -25,13 +25,13 @@ RSpec.describe Nesting::LocalizedProgressMessage, "[REQ-FIT-UI-005]" do
     end
   end
 
-  it "returns empty text for blank progress on in-flight projects" do
+  it "returns empty text for blank progress on in-flight projects [REQ-FIT-UI-005]" do
     project.update!(status: :processing, progress_message: "")
 
     expect(described_class.for(project)).to eq("")
   end
 
-  it "translates stored i18n keys during processing" do
+  it "translates stored i18n keys during processing [REQ-FIT-UI-005]" do
     project.update!(status: :processing, progress_message: "nesting.phase.fill")
 
     I18n.with_locale(:es) do
@@ -39,7 +39,7 @@ RSpec.describe Nesting::LocalizedProgressMessage, "[REQ-FIT-UI-005]" do
     end
   end
 
-  it "maps failed runs to cancelled or missing-input terminal copy" do
+  it "maps failed runs to cancelled or missing-input terminal copy [REQ-FIT-UI-005]" do
     project.update!(status: :failed, progress_message: "nesting.cancelled")
 
     expect(described_class.for(project)).to eq(I18n.t("nesting.cancelled"))
@@ -48,7 +48,7 @@ RSpec.describe Nesting::LocalizedProgressMessage, "[REQ-FIT-UI-005]" do
     expect(described_class.for(project)).to eq(I18n.t("nesting.input_file_missing"))
   end
 
-  it "detects cancelled and missing-input messages from legacy locale text" do
+  it "detects cancelled and missing-input messages from legacy locale text [REQ-FIT-UI-005]" do
     project.update!(status: :failed, progress_message: I18n.t("nesting.cancelled", locale: :es))
 
     expect(described_class.for(project)).to eq(I18n.t("nesting.cancelled"))
@@ -57,13 +57,13 @@ RSpec.describe Nesting::LocalizedProgressMessage, "[REQ-FIT-UI-005]" do
     expect(described_class.for(project)).to eq(I18n.t("nesting.input_file_missing"))
   end
 
-  it "returns false when locale matching receives blank text" do
+  it "returns false when locale matching receives blank text [REQ-FIT-UI-005]" do
     message = described_class.new(project)
 
     expect(message.send(:matches_any_locale?, "nesting.completed", "")).to be(false)
   end
 
-  it "detects time limit notice from legacy translated text" do
+  it "detects time limit notice from legacy translated text [REQ-FIT-UI-005]" do
     project.update!(
       status: :partial,
       progress_message: I18n.t("nesting.time_limit_notice", locale: :es_panic)

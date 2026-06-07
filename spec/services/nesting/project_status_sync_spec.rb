@@ -25,7 +25,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project.progress_message).to eq("nesting.completed")
   end
 
-  it "leaves the project unchanged while the nesting run is still processing" do
+  it "leaves the project unchanged while the nesting run is still processing [REQ-FIT-JOB-001]" do
     project.nesting_runs.create!(status: "processing", started_at: Time.current)
 
     described_class.call(project: project)
@@ -102,16 +102,16 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project.progress_percent).to eq(100)
   end
 
-  it "returns nil if project is not persisted" do
+  it "returns nil if project is not persisted [REQ-FIT-JOB-001]" do
     expect(described_class.call(project: Project.new)).to be_nil
   end
 
-  it "returns nil if reload raises RecordNotFound" do
+  it "returns nil if reload raises RecordNotFound [REQ-FIT-JOB-001]" do
     allow(project).to receive(:reload).and_raise(ActiveRecord::RecordNotFound)
     expect(described_class.call(project: project)).to be_nil
   end
 
-  it "handles JSON parser error in report file" do
+  it "handles JSON parser error in report file [REQ-FIT-JOB-001]" do
     allow(Nesting::CliRunner).to receive(:finalize_from_work_dir!).and_return(false)
     allow(Nesting::ApplyCancel).to receive(:call).and_return(false)
     allow(Nesting::ReconcileFailedJob).to receive(:call).and_return(false)
@@ -125,7 +125,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project).to be_failed
   end
 
-  it "returns nil for terminal_report if status is not terminal" do
+  it "returns nil for terminal_report if status is not terminal [REQ-FIT-JOB-001]" do
     allow(Nesting::CliRunner).to receive(:finalize_from_work_dir!).and_return(false)
     allow(Nesting::ApplyCancel).to receive(:call).and_return(false)
     allow(Nesting::ReconcileFailedJob).to receive(:call).and_return(false)
@@ -139,7 +139,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project).to be_failed
   end
 
-  it "sets progress message to nesting.partial for partial run" do
+  it "sets progress message to nesting.partial for partial run [REQ-FIT-JOB-001]" do
     project.nesting_runs.create!(
       status: "partial",
       started_at: 2.seconds.ago,
@@ -151,7 +151,7 @@ RSpec.describe Nesting::ProjectStatusSync do
     expect(project.progress_message).to eq("nesting.partial")
   end
 
-  it "reconciles a run with warning cancelled" do
+  it "reconciles a run with warning cancelled [REQ-FIT-JOB-001]" do
     project.nesting_runs.create!(
       status: "failed",
       started_at: 2.seconds.ago,

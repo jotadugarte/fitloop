@@ -17,7 +17,7 @@ RSpec.describe Nesting::ProgressLocals, "[REQ-FIT-JOB-001]" do
   end
 
   describe ".for" do
-    it "returns active_run and eta_overrun for processing projects" do
+    it "returns active_run and eta_overrun for processing projects [REQ-FIT-JOB-001]" do
       active_run = project.nesting_runs.create!(status: "processing", params_snapshot: {})
 
       locals = described_class.for(project)

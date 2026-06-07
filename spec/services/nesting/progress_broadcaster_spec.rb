@@ -6,7 +6,7 @@ RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
   let(:project) { create_project_for_spec!(title: "Broadcast bench") }
 
   describe ".call" do
-    it "broadcasts nesting progress and, when not processing, actions and preview" do
+    it "broadcasts nesting progress and, when not processing, actions and preview [REQ-FIT-JOB-001]" do
       allow(project).to receive(:processing?).and_return(false)
       allow(project).to receive(:broadcast_replace_to)
       preview = instance_double(Nesting::PreviewPresenter)
@@ -40,7 +40,7 @@ RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
       )
     end
 
-    it "renders preview zone with orphans when project is partial" do
+    it "renders preview zone with orphans when project is partial [REQ-FIT-JOB-001]" do
       project.update!(status: :partial, progress_percent: 100, progress_message: "done")
       project.nesting_runs.create!(
         status: "partial",
@@ -83,7 +83,7 @@ RSpec.describe Nesting::ProgressBroadcaster, "[REQ-FIT-JOB-001]" do
       expect(html).to match(/Pieza 1|Piece 1/)
     end
 
-    it "broadcasts nesting progress and status badge while processing" do
+    it "broadcasts nesting progress and status badge while processing [REQ-FIT-JOB-001]" do
       allow(project).to receive(:processing?).and_return(true)
       allow(project).to receive(:broadcast_replace_to)
 

@@ -10,7 +10,7 @@ RSpec.describe Nesting::StatusMapper do
   end
 
   describe ".map [REQ-FIT-NEST-003]" do
-    it "returns completed when exit is zero and report status is completed" do
+    it "returns completed when exit is zero and report status is completed [REQ-FIT-NEST-003]" do
       status = described_class.map(
         exit_status: 0,
         report: { "status" => "completed" },
@@ -20,7 +20,7 @@ RSpec.describe Nesting::StatusMapper do
       expect(status).to eq("completed")
     end
 
-    it "returns partial when exit is zero and report status is partial" do
+    it "returns partial when exit is zero and report status is partial [REQ-FIT-NEST-003]" do
       status = described_class.map(
         exit_status: 0,
         report: { "status" => "partial", "orphans" => [ { "piece_index" => 0, "reason" => "oversized_for_sheet" } ] },
@@ -30,7 +30,7 @@ RSpec.describe Nesting::StatusMapper do
       expect(status).to eq("partial")
     end
 
-    it "returns failed when exit is zero and report status is failed" do
+    it "returns failed when exit is zero and report status is failed [REQ-FIT-NEST-003]" do
       status = described_class.map(
         exit_status: 0,
         report: { "status" => "failed" },
@@ -40,13 +40,13 @@ RSpec.describe Nesting::StatusMapper do
       expect(status).to eq("failed")
     end
 
-    it "returns failed when exit is non-zero and partial artifacts are missing" do
+    it "returns failed when exit is non-zero and partial artifacts are missing [REQ-FIT-NEST-003]" do
       status = described_class.map(exit_status: 1, report: {}, work_dir: work_dir)
 
       expect(status).to eq("failed")
     end
 
-    it "returns failed when partial artifacts have corrupt report.json" do
+    it "returns failed when partial artifacts have corrupt report.json [REQ-FIT-NEST-003]" do
       output_dir = work_dir.join("output")
       FileUtils.mkdir_p(output_dir)
       File.write(output_dir.join("nested.dxf"), "partial nest")
@@ -57,7 +57,7 @@ RSpec.describe Nesting::StatusMapper do
       expect(status).to eq("failed")
     end
 
-    it "returns partial when exit is non-zero but partial artifacts exist" do
+    it "returns partial when exit is non-zero but partial artifacts exist [REQ-FIT-NEST-003]" do
       output_dir = work_dir.join("output")
       FileUtils.mkdir_p(output_dir)
       File.write(output_dir.join("nested.dxf"), "partial nest")
@@ -70,7 +70,7 @@ RSpec.describe Nesting::StatusMapper do
   end
 
   describe ".attach_nested_output? [REQ-FIT-NEST-003]" do
-    it "allows attach for completed and partial when nested.dxf exists" do
+    it "allows attach for completed and partial when nested.dxf exists [REQ-FIT-NEST-003]" do
       output_dir = work_dir.join("output")
       FileUtils.mkdir_p(output_dir)
       File.write(output_dir.join("nested.dxf"), "nested")

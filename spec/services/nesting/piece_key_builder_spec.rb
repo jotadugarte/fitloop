@@ -101,7 +101,7 @@ RSpec.describe Nesting::PieceKeyBuilder do
   end
 
   describe "validation branches [REQ-FIT-SPLIT-001]" do
-    it "requires attachment and blob id" do
+    it "requires attachment and blob id [REQ-FIT-SPLIT-001]" do
       builder = described_class.new
 
       expect { builder.build_from_index(attachment: nil, piece_index: 0) }
@@ -112,7 +112,7 @@ RSpec.describe Nesting::PieceKeyBuilder do
         .to raise_error(ArgumentError, /attachment blob is required/)
     end
 
-    it "rejects negative piece indexes and malformed ring points" do
+    it "rejects negative piece indexes and malformed ring points [REQ-FIT-SPLIT-001]" do
       attachment = attach_dxf!
 
       expect { described_class.call(attachment: attachment, piece_index: -1) }

@@ -42,7 +42,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
   end
 
   describe ".call" do
-    it "updates project progress from snapshot and broadcasts when changed" do
+    it "updates project progress from snapshot and broadcasts when changed [REQ-FIT-JOB-001]" do
       allow(Nesting::ProgressBroadcaster).to receive(:call)
 
       changed = described_class.call(
@@ -62,7 +62,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
       )
     end
 
-    it "computes estimated_finished_at from pieces ratio and elapsed time" do
+    it "computes estimated_finished_at from pieces ratio and elapsed time [REQ-FIT-JOB-001]" do
       started_at = 100.seconds.ago
       nesting_run.update!(started_at: started_at)
 
@@ -77,7 +77,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
       expect(project.estimated_finished_at).to be_within(2.seconds).of(started_at + 200.seconds)
     end
 
-    it "does not raise project percent above snapshot percent" do
+    it "does not raise project percent above snapshot percent [REQ-FIT-JOB-001]" do
       project.update!(progress_percent: 60)
 
       described_class.call(
@@ -90,7 +90,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
       expect(project.reload.progress_percent).to eq(42)
     end
 
-    it "skips update and broadcast when snapshot is nil" do
+    it "skips update and broadcast when snapshot is nil [REQ-FIT-JOB-001]" do
       allow(Nesting::ProgressBroadcaster).to receive(:call)
 
       changed = described_class.call(project: project, snapshot: nil, nesting_run: nesting_run)
@@ -100,7 +100,7 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
       expect(project.reload.progress_percent).to eq(15)
     end
 
-    it "skips broadcast when progress fields are unchanged" do
+    it "skips broadcast when progress fields are unchanged [REQ-FIT-JOB-001]" do
       project.update!(
         progress_percent: 42,
         progress_message: "nesting.phase.fill",

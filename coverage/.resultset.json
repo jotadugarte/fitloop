@@ -224,20 +224,20 @@
           null,
           null,
           1,
-          2724,
-          2724,
+          2725,
+          2725,
           null,
           791,
           null,
           null,
           1,
-          1874,
+          1875,
           null,
           null,
           null,
           1,
-          2726,
-          2726,
+          2727,
+          2727,
           null,
           2581,
           null,
@@ -330,23 +330,23 @@
           },
           "[:unless, 15, 69, 4, 69, 26]": {
             "[:else, 16, 69, 4, 69, 26]": 791,
-            "[:then, 17, 69, 4, 69, 14]": 1933
+            "[:then, 17, 69, 4, 69, 14]": 1934
           },
           "[:\"&.\", 18, 75, 4, 75, 43]": {
             "[:then, 19, 75, 4, 75, 43]": 14,
-            "[:else, 20, 75, 4, 75, 43]": 1860
+            "[:else, 20, 75, 4, 75, 43]": 1861
           },
           "[:\"&.\", 21, 80, 10, 80, 22]": {
-            "[:then, 22, 80, 10, 80, 22]": 2725,
+            "[:then, 22, 80, 10, 80, 22]": 2726,
             "[:else, 23, 80, 10, 80, 22]": 1
           },
           "[:\"&.\", 24, 81, 22, 81, 41]": {
-            "[:then, 25, 81, 22, 81, 41]": 2724,
+            "[:then, 25, 81, 22, 81, 41]": 2725,
             "[:else, 26, 81, 22, 81, 41]": 2
           },
           "[:unless, 27, 81, 4, 81, 41]": {
             "[:else, 28, 81, 4, 81, 41]": 2581,
-            "[:then, 29, 81, 4, 81, 14]": 145
+            "[:then, 29, 81, 4, 81, 14]": 146
           },
           "[:\"&.\", 30, 83, 4, 83, 23]": {
             "[:then, 31, 83, 4, 83, 23]": 2580,
@@ -416,13 +416,13 @@
           null,
           null,
           1,
-          535,
+          536,
           null,
           null,
           1,
-          110,
-          110,
-          110,
+          111,
+          111,
+          111,
           null,
           null,
           1,
@@ -457,7 +457,7 @@
             "[:else, 2, 48, 24, 48, 34]": 1
           },
           "[:\"&.\", 3, 58, 24, 58, 31]": {
-            "[:then, 4, 58, 24, 58, 31]": 108,
+            "[:then, 4, 58, 24, 58, 31]": 109,
             "[:else, 5, 58, 24, 58, 31]": 1
           }
         }
@@ -514,11 +514,11 @@
           null,
           null,
           1,
-          587,
+          588,
           null,
           null,
           1,
-          587,
+          588,
           null,
           null,
           1,
@@ -3142,27 +3142,27 @@
           1,
           null,
           1,
-          70,
-          70,
+          60,
+          60,
           null,
-          23,
-          null,
-          1,
-          null,
+          24,
           null,
           1,
+          null,
+          null,
+          1,
+          44,
+          44,
+          null,
           43,
           43,
           null,
           42,
           42,
+          40,
           null,
-          41,
-          41,
-          39,
-          null,
-          36,
-          36,
+          37,
+          37,
           null,
           null,
           null,
@@ -3172,11 +3172,11 @@
           null,
           null,
           1,
-          36,
-          36,
-          36,
-          36,
-          36,
+          37,
+          37,
+          37,
+          37,
+          37,
           null,
           null,
           1,
@@ -3184,9 +3184,9 @@
           null,
           null,
           1,
-          72,
+          74,
           null,
-          42,
+          43,
           null,
           2,
           null,
@@ -3196,28 +3196,28 @@
         ],
         "branches": {
           "[:unless, 0, 21, 6, 21, 34]": {
-            "[:else, 1, 21, 6, 21, 34]": 23,
-            "[:then, 2, 21, 6, 21, 16]": 47
+            "[:else, 1, 21, 6, 21, 34]": 24,
+            "[:then, 2, 21, 6, 21, 16]": 36
           },
           "[:unless, 3, 30, 6, 30, 57]": {
-            "[:else, 4, 30, 6, 30, 57]": 42,
+            "[:else, 4, 30, 6, 30, 57]": 43,
             "[:then, 5, 30, 6, 30, 16]": 1
           },
           "[:unless, 6, 33, 6, 33, 54]": {
-            "[:else, 7, 33, 6, 33, 54]": 41,
+            "[:else, 7, 33, 6, 33, 54]": 42,
             "[:then, 8, 33, 6, 33, 16]": 1
           },
           "[:if, 9, 36, 6, 36, 54]": {
             "[:then, 10, 36, 6, 36, 16]": 2,
-            "[:else, 11, 36, 6, 36, 54]": 39
+            "[:else, 11, 36, 6, 36, 54]": 40
           },
           "[:if, 12, 37, 6, 37, 42]": {
             "[:then, 13, 37, 6, 37, 16]": 3,
-            "[:else, 14, 37, 6, 37, 42]": 36
+            "[:else, 14, 37, 6, 37, 42]": 37
           },
           "[:if, 15, 62, 6, 62, 30]": {
-            "[:then, 16, 62, 6, 62, 16]": 30,
-            "[:else, 17, 62, 6, 62, 30]": 42
+            "[:then, 16, 62, 6, 62, 16]": 31,
+            "[:else, 17, 62, 6, 62, 30]": 43
           }
         }
       },
@@ -3821,12 +3821,12 @@
           null,
           null,
           null,
-          35,
+          36,
           null,
-          33,
-          33,
-          33,
-          33,
+          34,
+          34,
+          34,
+          34,
           null,
           14,
           14,
@@ -3841,11 +3841,11 @@
         "branches": {
           "[:if, 0, 15, 6, 15, 37]": {
             "[:then, 1, 15, 6, 15, 16]": 2,
-            "[:else, 2, 15, 6, 15, 37]": 33
+            "[:else, 2, 15, 6, 15, 37]": 34
           },
           "[:unless, 3, 20, 6, 20, 64]": {
             "[:else, 4, 20, 6, 20, 64]": 14,
-            "[:then, 5, 20, 6, 20, 21]": 19
+            "[:then, 5, 20, 6, 20, 21]": 20
           },
           "[:if, 6, 24, 6, 24, 43]": {
             "[:then, 7, 24, 6, 24, 21]": 1,
@@ -5131,7 +5131,7 @@
           22,
           7,
           14,
-          23,
+          24,
           null,
           null,
           15,
@@ -5140,9 +5140,9 @@
           15,
           15,
           15,
-          51,
+          40,
           14,
-          37,
+          26,
           1,
           1,
           null,
@@ -5152,20 +5152,20 @@
           null,
           1,
           22,
-          68,
+          58,
           null,
-          67,
-          67,
-          66,
+          57,
+          57,
+          56,
           null,
           null,
           null,
           1,
-          67,
-          67,
+          57,
+          57,
           null,
-          21,
-          21,
+          22,
+          22,
           null,
           null,
           1,
@@ -5244,35 +5244,35 @@
           },
           "[:if, 15, 101, 51, 101, 87]": {
             "[:then, 16, 101, 70, 101, 81]": 6,
-            "[:else, 17, 101, 84, 101, 87]": 10
+            "[:else, 17, 101, 84, 101, 87]": 11
           },
           "[:if, 18, 110, 10, 115, 13]": {
             "[:then, 19, 111, 12, 111, 37]": 14,
-            "[:else, 20, 112, 10, 115, 13]": 37
+            "[:else, 20, 112, 10, 115, 13]": 26
           },
           "[:\"&.\", 21, 112, 16, 112, 35]": {
-            "[:then, 22, 112, 16, 112, 35]": 36,
+            "[:then, 22, 112, 16, 112, 35]": 25,
             "[:else, 23, 112, 16, 112, 35]": 1
           },
           "[:if, 24, 112, 10, 115, 13]": {
             "[:then, 25, 113, 12, 114, 32]": 1,
-            "[:else, 26, 112, 10, 115, 13]": 36
+            "[:else, 26, 112, 10, 115, 13]": 25
           },
           "[:\"&.\", 27, 122, 32, 122, 51]": {
-            "[:then, 28, 122, 32, 122, 51]": 59,
+            "[:then, 28, 122, 32, 122, 51]": 49,
             "[:else, 29, 122, 32, 122, 51]": 9
           },
           "[:if, 30, 122, 8, 122, 51]": {
             "[:then, 31, 122, 8, 122, 28]": 1,
-            "[:else, 32, 122, 8, 122, 51]": 67
+            "[:else, 32, 122, 8, 122, 51]": 57
           },
           "[:unless, 33, 126, 8, 126, 50]": {
-            "[:else, 34, 126, 8, 126, 50]": 46,
+            "[:else, 34, 126, 8, 126, 50]": 36,
             "[:then, 35, 126, 8, 126, 26]": 20
           },
           "[:unless, 36, 132, 6, 132, 28]": {
-            "[:else, 37, 132, 6, 132, 28]": 21,
-            "[:then, 38, 132, 6, 132, 12]": 46
+            "[:else, 37, 132, 6, 132, 28]": 22,
+            "[:then, 38, 132, 6, 132, 12]": 35
           },
           "[:if, 39, 139, 6, 139, 126]": {
             "[:then, 40, 139, 6, 139, 34]": 13,
@@ -5508,7 +5508,7 @@
           null,
           27,
           null,
-          146,
+          125,
           null,
           null,
           null,
@@ -5532,8 +5532,8 @@
           1,
           null,
           1,
-          230,
-          230,
+          209,
+          209,
           null,
           null,
           1,
@@ -5621,11 +5621,11 @@
           null,
           null,
           1,
-          230,
-          230,
+          209,
+          209,
           null,
-          29,
-          29,
+          26,
+          26,
           null,
           null,
           1,
@@ -5680,8 +5680,8 @@
             "[:then, 29, 123, 6, 123, 15]": 1
           },
           "[:if, 30, 149, 6, 149, 69]": {
-            "[:then, 31, 149, 6, 149, 12]": 201,
-            "[:else, 32, 149, 6, 149, 69]": 29
+            "[:then, 31, 149, 6, 149, 12]": 183,
+            "[:else, 32, 149, 6, 149, 69]": 26
           },
           "[:case, 33, 156, 6, 160, 9]": {
             "[:when, 34, 157, 28, 157, 47]": 12,
@@ -5783,19 +5783,19 @@
           null,
           null,
           1,
-          552,
+          553,
           null,
           null,
           1,
-          552,
+          553,
           null,
           null,
           1,
-          159,
+          160,
           null,
           null,
           1,
-          195,
+          196,
           null,
           null,
           null,
@@ -5816,16 +5816,16 @@
           1,
           null,
           1,
-          158,
+          159,
           null,
-          158,
+          159,
           29,
           null,
-          129,
+          130,
           null,
           null,
-          158,
-          190,
+          159,
+          191,
           null,
           null,
           1,
@@ -5855,7 +5855,7 @@
           null,
           null,
           1,
-          158,
+          159,
           null,
           64,
           null,
@@ -5863,7 +5863,7 @@
           null,
           null,
           1,
-          129,
+          130,
           null,
           null,
           1,
@@ -5899,14 +5899,14 @@
           },
           "[:\"&.\", 18, 125, 29, 125, 67]": {
             "[:then, 19, 125, 29, 125, 67]": 63,
-            "[:else, 20, 125, 29, 125, 67]": 95
+            "[:else, 20, 125, 29, 125, 67]": 96
           },
           "[:if, 21, 127, 8, 131, 11]": {
             "[:then, 22, 128, 10, 128, 24]": 29,
-            "[:else, 23, 130, 10, 130, 53]": 129
+            "[:else, 23, 130, 10, 130, 53]": 130
           },
           "[:\"&.\", 24, 130, 16, 130, 52]": {
-            "[:then, 25, 130, 16, 130, 52]": 114,
+            "[:then, 25, 130, 16, 130, 52]": 115,
             "[:else, 26, 130, 16, 130, 52]": 15
           },
           "[:\"&.\", 27, 141, 16, 141, 37]": {
@@ -5935,7 +5935,7 @@
           },
           "[:unless, 45, 164, 6, 164, 54]": {
             "[:else, 46, 164, 6, 164, 54]": 64,
-            "[:then, 47, 164, 6, 164, 12]": 94
+            "[:then, 47, 164, 6, 164, 12]": 95
           }
         }
       },
@@ -11414,22 +11414,22 @@
           1,
           null,
           1,
+          133,
+          null,
           132,
           null,
-          131,
+          null,
+          1,
+          126,
           null,
           null,
           1,
-          125,
+          132,
+          132,
           null,
           null,
           1,
-          131,
-          131,
-          null,
-          null,
-          1,
-          117,
+          118,
           null,
           null,
           1,
@@ -11447,10 +11447,10 @@
         "branches": {
           "[:if, 0, 9, 6, 9, 72]": {
             "[:then, 1, 9, 6, 9, 60]": 1,
-            "[:else, 2, 9, 6, 9, 72]": 131
+            "[:else, 2, 9, 6, 9, 72]": 132
           },
           "[:unless, 3, 20, 6, 20, 92]": {
-            "[:else, 4, 20, 6, 20, 92]": 129,
+            "[:else, 4, 20, 6, 20, 92]": 130,
             "[:then, 5, 20, 6, 20, 68]": 2
           }
         }
@@ -11593,7 +11593,7 @@
           null,
           1685,
           null,
-          3849,
+          3811,
           null,
           1,
           1,
@@ -11622,7 +11622,7 @@
           null,
           null,
           1,
-          541,
+          542,
           null,
           null,
           null,
@@ -11654,9 +11654,9 @@
           null,
           null,
           1,
-          2146,
-          3545,
-          2146,
+          2147,
+          3547,
+          2147,
           null,
           1,
           null,
@@ -11668,7 +11668,7 @@
             "[:else, 2, 64, 4, 64, 65]": 1
           },
           "[:if, 3, 73, 4, 73, 34]": {
-            "[:then, 4, 73, 4, 73, 10]": 2145,
+            "[:then, 4, 73, 4, 73, 10]": 2146,
             "[:else, 5, 73, 4, 73, 34]": 1
           }
         }
@@ -14656,16 +14656,16 @@
           null,
           null,
           1,
-          534,
+          535,
           null,
           null,
           1,
-          534,
-          534,
+          535,
+          535,
           null,
           null,
           1,
-          135,
+          136,
           null,
           null,
           1,
@@ -14673,7 +14673,7 @@
           null,
           null,
           1,
-          285,
+          286,
           null,
           null,
           1,
@@ -14714,16 +14714,16 @@
           null,
           null,
           1,
-          534,
+          535,
           null,
           49,
           null,
           null,
           1,
-          172,
-          137,
+          173,
+          138,
           null,
-          137,
+          138,
           35,
           35,
           35,
@@ -14779,11 +14779,11 @@
           },
           "[:unless, 9, 82, 6, 82, 54]": {
             "[:else, 10, 82, 6, 82, 54]": 49,
-            "[:then, 11, 82, 6, 82, 12]": 485
+            "[:then, 11, 82, 6, 82, 12]": 486
           },
           "[:\"&.\", 12, 88, 19, 88, 45]": {
             "[:then, 13, 88, 19, 88, 45]": 48,
-            "[:else, 14, 88, 19, 88, 45]": 89
+            "[:else, 14, 88, 19, 88, 45]": 90
           }
         }
       },
@@ -14795,40 +14795,31 @@
           null,
           1,
           1,
-          142,
+          143,
           null,
           null,
           1,
-          142,
-          142,
-          142,
+          143,
+          143,
+          143,
           null,
           null,
           1,
-          142,
-          142,
-          142,
+          143,
+          143,
+          143,
           null,
-          93,
-          93,
-          null,
-          null,
-          1,
-          null,
-          1,
-          142,
-          null,
-          null,
-          142,
-          null,
-          null,
-          null,
-          null,
-          null,
+          94,
+          94,
           null,
           null,
           1,
-          142,
+          null,
+          1,
+          143,
+          null,
+          null,
+          143,
           null,
           null,
           null,
@@ -14837,7 +14828,7 @@
           null,
           null,
           1,
-          93,
+          143,
           null,
           null,
           null,
@@ -14846,9 +14837,18 @@
           null,
           null,
           1,
-          93,
-          93,
-          93,
+          94,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          94,
+          94,
+          94,
           null,
           null,
           null,
@@ -14861,7 +14861,7 @@
         "branches": {
           "[:if, 0, 19, 6, 19, 36]": {
             "[:then, 1, 19, 6, 19, 12]": 49,
-            "[:else, 2, 19, 6, 19, 36]": 93
+            "[:else, 2, 19, 6, 19, 36]": 94
           }
         }
       },
@@ -14876,7 +14876,7 @@
           null,
           1,
           null,
-          194,
+          195,
           null,
           null,
           null,
@@ -14884,11 +14884,11 @@
           null,
           null,
           1,
-          194,
+          195,
           null,
           null,
           1,
-          194,
+          195,
           null,
           null,
           null
@@ -14903,56 +14903,56 @@
           null,
           1,
           1,
+          29,
+          null,
+          null,
+          1,
+          29,
+          29,
+          29,
+          29,
+          null,
+          null,
+          1,
+          29,
+          null,
+          28,
+          28,
+          null,
+          26,
+          26,
+          26,
+          null,
+          null,
+          1,
+          null,
+          1,
+          null,
+          28,
+          null,
+          null,
+          null,
+          28,
+          28,
+          null,
+          null,
+          null,
+          null,
+          null,
+          28,
           28,
           null,
           null,
           1,
           28,
-          28,
-          28,
-          28,
           null,
           null,
           1,
-          28,
-          null,
-          27,
-          27,
-          null,
-          25,
-          25,
-          25,
+          72,
           null,
           null,
           1,
-          null,
-          1,
-          null,
-          27,
-          null,
-          null,
-          null,
-          27,
-          27,
-          null,
-          null,
-          null,
-          null,
-          null,
-          27,
-          27,
-          null,
-          null,
-          1,
-          27,
-          null,
-          null,
-          1,
-          69,
-          null,
-          null,
-          1,
-          22,
+          23,
           null,
           null,
           null,
@@ -14960,7 +14960,7 @@
           null,
           null,
           1,
-          22,
+          23,
           null,
           null,
           null
@@ -14968,22 +14968,22 @@
         "branches": {
           "[:if, 0, 18, 6, 18, 36]": {
             "[:then, 1, 18, 6, 18, 18]": 1,
-            "[:else, 2, 18, 6, 18, 36]": 27
+            "[:else, 2, 18, 6, 18, 36]": 28
           },
           "[:unless, 3, 21, 6, 21, 47]": {
-            "[:else, 4, 21, 6, 21, 47]": 25,
+            "[:else, 4, 21, 6, 21, 47]": 26,
             "[:then, 5, 21, 6, 21, 18]": 2
           },
           "[:if, 6, 24, 6, 24, 39]": {
-            "[:then, 7, 24, 6, 24, 25]": 22,
+            "[:then, 7, 24, 6, 24, 25]": 23,
             "[:else, 8, 24, 6, 24, 39]": 3
           },
           "[:if, 9, 43, 6, 43, 57]": {
-            "[:then, 10, 43, 6, 43, 41]": 25,
+            "[:then, 10, 43, 6, 43, 41]": 26,
             "[:else, 11, 43, 6, 43, 57]": 2
           },
           "[:\"&.\", 12, 48, 6, 48, 30]": {
-            "[:then, 13, 48, 6, 48, 30]": 26,
+            "[:then, 13, 48, 6, 48, 30]": 27,
             "[:else, 14, 48, 6, 48, 30]": 1
           }
         }
@@ -15766,8 +15766,8 @@
           1,
           22,
           22,
-          18,
-          18,
+          5,
+          5,
           null,
           22,
           22,
@@ -16688,71 +16688,63 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/controllers/admin/users_controller.rb": {
+      "/home/jader/proyectos/fitloop/app/services/sheet_stocks/invalidate_nesting_outputs.rb": {
         "lines": [
           null,
           null,
           1,
-          1,
-          1,
-          4,
-          4,
-          4,
-          2,
-          2,
-          null,
-          null,
-          null,
-          null,
-          4,
-          null,
           null,
           1,
           1,
+          16,
+          null,
+          null,
           1,
+          16,
+          null,
+          null,
+          1,
+          16,
+          16,
+          null,
+          8,
+          8,
+          8,
+          8,
+          null,
+          null,
+          1,
+          null,
+          1,
+          8,
+          null,
+          null,
+          1,
+          6,
           null,
           null,
           null
         ],
         "branches": {
-          "[:if, 0, 8, 6, 14, 9]": {
-            "[:then, 1, 9, 8, 13, 9]": 2,
-            "[:else, 2, 8, 6, 14, 9]": 2
+          "[:unless, 0, 16, 6, 16, 37]": {
+            "[:else, 1, 16, 6, 16, 37]": 8,
+            "[:then, 2, 16, 6, 16, 18]": 8
+          },
+          "[:if, 3, 18, 6, 18, 64]": {
+            "[:then, 4, 18, 6, 18, 31]": 7,
+            "[:else, 5, 18, 6, 18, 64]": 1
+          },
+          "[:if, 6, 19, 6, 19, 74]": {
+            "[:then, 7, 19, 6, 19, 36]": 2,
+            "[:else, 8, 19, 6, 19, 74]": 6
+          },
+          "[:if, 9, 20, 6, 20, 56]": {
+            "[:then, 10, 20, 6, 20, 28]": 6,
+            "[:else, 11, 20, 6, 20, 56]": 2
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/controllers/admin/base_controller.rb": {
-        "lines": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          1,
-          1,
-          1,
-          1,
-          null,
-          1,
-          null,
-          1,
-          54,
-          null,
-          null,
-          1,
-          54,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:unless, 0, 14, 6, 14, 74]": {
-            "[:else, 1, 14, 6, 14, 74]": 40,
-            "[:then, 2, 14, 6, 14, 55]": 14
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/purge_expired_retained_downloads.rb": {
+      "/home/jader/proyectos/fitloop/app/services/sheet_stocks/invalidate_split_previews.rb": {
         "lines": [
           null,
           null,
@@ -16760,15 +16752,10 @@
           null,
           1,
           1,
-          1,
+          18,
           null,
           null,
-          1,
-          1,
           null,
-          null,
-          1,
-          1,
           null,
           null,
           null
@@ -16881,72 +16868,286 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/services/sheet_stocks/invalidate_nesting_outputs.rb": {
+      "/home/jader/proyectos/fitloop/app/controllers/nesting_runs_controller.rb": {
+        "lines": [
+          null,
+          null,
+          null,
+          1,
+          1,
+          1,
+          1,
+          null,
+          1,
+          null,
+          1,
+          17,
+          null,
+          16,
+          16,
+          16,
+          16,
+          16,
+          1,
+          1,
+          null,
+          null,
+          15,
+          15,
+          1,
+          1,
+          null,
+          null,
+          14,
+          14,
+          null,
+          null,
+          1,
+          1,
+          1,
+          1,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 12, 4, 12, 58]": {
+            "[:then, 1, 12, 4, 12, 10]": 1,
+            "[:else, 2, 12, 4, 12, 58]": 16
+          },
+          "[:unless, 3, 18, 4, 21, 7]": {
+            "[:else, 4, 18, 4, 21, 7]": 15,
+            "[:then, 5, 19, 6, 20, 12]": 1
+          },
+          "[:if, 6, 24, 4, 27, 7]": {
+            "[:then, 7, 25, 6, 26, 12]": 1,
+            "[:else, 8, 24, 4, 27, 7]": 14
+          }
+        }
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/home_controller.rb": {
         "lines": [
           null,
           null,
           1,
+          1,
+          21,
+          21,
+          null,
+          null
+        ],
+        "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/services/billing/onvo/webhook_event.rb": {
+        "lines": [
+          null,
           null,
           1,
           1,
+          null,
+          1,
+          1,
+          null,
+          1,
+          17,
+          null,
+          16,
+          16,
+          16,
           16,
           null,
-          null,
-          1,
-          16,
-          null,
-          null,
-          1,
-          16,
-          16,
-          null,
-          8,
-          8,
-          8,
-          8,
-          null,
-          null,
-          1,
-          null,
-          1,
-          8,
-          null,
-          null,
-          1,
-          6,
           null,
           null,
           null
         ],
         "branches": {
-          "[:unless, 0, 16, 6, 16, 37]": {
-            "[:else, 1, 16, 6, 16, 37]": 8,
-            "[:then, 2, 16, 6, 16, 18]": 8
-          },
-          "[:if, 3, 18, 6, 18, 64]": {
-            "[:then, 4, 18, 6, 18, 31]": 7,
-            "[:else, 5, 18, 6, 18, 64]": 1
-          },
-          "[:if, 6, 19, 6, 19, 74]": {
-            "[:then, 7, 19, 6, 19, 36]": 2,
-            "[:else, 8, 19, 6, 19, 74]": 6
-          },
-          "[:if, 9, 20, 6, 20, 56]": {
-            "[:then, 10, 20, 6, 20, 28]": 6,
-            "[:else, 11, 20, 6, 20, 56]": 2
+          "[:if, 0, 10, 8, 10, 63]": {
+            "[:then, 1, 10, 8, 10, 47]": 1,
+            "[:else, 2, 10, 8, 10, 63]": 16
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/services/nesting/cancelled_error.rb": {
+      "/home/jader/proyectos/fitloop/app/services/billing/onvo/config.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          1,
+          null,
+          1,
+          1,
+          null,
+          1,
+          null,
+          1,
+          10,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          27,
+          null,
+          26,
+          26,
+          26,
+          26,
+          null,
+          null,
+          1,
+          2,
+          null,
+          null,
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 21, 8, 21, 82]": {
+            "[:then, 1, 21, 8, 21, 50]": 1,
+            "[:else, 2, 21, 8, 21, 82]": 26
+          }
+        }
+      },
+      "/home/jader/proyectos/fitloop/app/services/admin/ventas_xlsx_styles.rb": {
         "lines": [
           null,
           null,
           1,
           null,
           1,
+          1,
+          1,
+          1,
+          null,
+          1,
+          null,
+          18,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
           null
         ],
         "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/services/billing/retained_download.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
+          1,
+          1,
+          null,
+          1,
+          9,
+          null,
+          null,
+          1,
+          9,
+          9,
+          null,
+          null,
+          1,
+          9,
+          8,
+          8,
+          null,
+          null,
+          7,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:unless, 0, 19, 6, 19, 56]": {
+            "[:else, 1, 19, 6, 19, 56]": 8,
+            "[:then, 2, 19, 6, 19, 19]": 1
+          },
+          "[:unless, 3, 21, 6, 21, 51]": {
+            "[:else, 4, 21, 6, 21, 51]": 7,
+            "[:then, 5, 21, 6, 21, 23]": 1
+          }
+        }
+      },
+      "/home/jader/proyectos/fitloop/app/services/billing/onvo/test_sinpe_mobile_numbers.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          1,
+          null,
+          1,
+          1,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          null,
+          1,
+          8,
+          null,
+          null,
+          1,
+          9,
+          9,
+          null,
+          8,
+          null,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 22, 8, 22, 49]": {
+            "[:then, 1, 22, 8, 22, 28]": 1,
+            "[:else, 2, 22, 8, 22, 49]": 8
+          }
+        }
       },
       "/home/jader/proyectos/fitloop/app/services/billing/entitlement.rb": {
         "lines": [
@@ -17050,44 +17251,48 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/controllers/users/confirmations_controller.rb": {
+      "/home/jader/proyectos/fitloop/app/controllers/admin/dashboard_controller.rb": {
         "lines": [
           null,
           null,
           1,
-          null,
           1,
           1,
-          3,
-          3,
-          null,
-          null,
-          1,
-          3,
-          3,
-          2,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
           null,
           null,
           null,
           null
         ],
+        "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/admin/base_controller.rb": {
+        "lines": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          1,
+          1,
+          1,
+          null,
+          1,
+          null,
+          1,
+          54,
+          null,
+          null,
+          1,
+          54,
+          null,
+          null,
+          null
+        ],
         "branches": {
-          "[:if, 0, 8, 6, 8, 60]": {
-            "[:then, 1, 8, 6, 8, 41]": 2,
-            "[:else, 2, 8, 6, 8, 60]": 1
-          },
-          "[:if, 3, 13, 8, 23, 11]": {
-            "[:then, 4, 14, 10, 22, 11]": 2,
-            "[:else, 5, 13, 8, 23, 11]": 1
+          "[:unless, 0, 14, 6, 14, 74]": {
+            "[:else, 1, 14, 6, 14, 74]": 40,
+            "[:then, 2, 14, 6, 14, 55]": 14
           }
         }
       },
@@ -17133,445 +17338,53 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/services/admin/ventas_xlsx_styles.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          null,
-          1,
-          1,
-          1,
-          1,
-          null,
-          1,
-          null,
-          18,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {}
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/onvo/config.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          1,
-          null,
-          1,
-          1,
-          null,
-          1,
-          null,
-          1,
-          10,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          1,
-          27,
-          null,
-          26,
-          26,
-          26,
-          26,
-          null,
-          null,
-          1,
-          2,
-          null,
-          null,
-          1,
-          1,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 21, 8, 21, 82]": {
-            "[:then, 1, 21, 8, 21, 50]": 1,
-            "[:else, 2, 21, 8, 21, 82]": 26
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/controllers/home_controller.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          1,
-          21,
-          21,
-          null,
-          null
-        ],
-        "branches": {}
-      },
-      "/home/jader/proyectos/fitloop/app/services/sheet_stocks/invalidate_split_previews.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          null,
-          1,
-          1,
-          18,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {}
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/retained_download.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          null,
-          1,
-          1,
-          1,
-          null,
-          1,
-          9,
-          null,
-          null,
-          1,
-          9,
-          9,
-          null,
-          null,
-          1,
-          9,
-          8,
-          8,
-          null,
-          null,
-          7,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:unless, 0, 19, 6, 19, 56]": {
-            "[:else, 1, 19, 6, 19, 56]": 8,
-            "[:then, 2, 19, 6, 19, 19]": 1
-          },
-          "[:unless, 3, 21, 6, 21, 51]": {
-            "[:else, 4, 21, 6, 21, 51]": 7,
-            "[:then, 5, 21, 6, 21, 23]": 1
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/onvo/verify_webhook.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          1,
-          null,
-          1,
-          1,
-          10,
-          null,
-          null,
-          1,
-          10,
-          10,
-          null,
-          null,
-          1,
-          10,
-          10,
-          10,
-          null,
-          8,
-          null,
-          null,
-          1,
-          null,
-          1,
-          10,
-          null,
-          null,
-          1,
-          8,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 19, 8, 19, 58]": {
-            "[:then, 1, 19, 8, 19, 20]": 2,
-            "[:else, 2, 19, 8, 19, 58]": 8
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/onvo/webhook_event.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          1,
-          null,
-          1,
-          1,
-          null,
-          1,
-          17,
-          null,
-          16,
-          16,
-          16,
-          16,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 10, 8, 10, 63]": {
-            "[:then, 1, 10, 8, 10, 47]": 1,
-            "[:else, 2, 10, 8, 10, 63]": 16
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/controllers/nesting_runs_controller.rb": {
+      "/home/jader/proyectos/fitloop/app/controllers/project_orphan_dxf_downloads_controller.rb": {
         "lines": [
           null,
           null,
           null,
           1,
           1,
-          1,
-          1,
           null,
           1,
           null,
           1,
-          17,
+          3,
+          3,
           null,
-          16,
-          16,
-          16,
-          16,
-          16,
-          1,
-          1,
-          null,
-          null,
-          15,
-          15,
-          1,
-          1,
-          null,
-          null,
-          14,
-          14,
-          null,
-          null,
-          1,
-          1,
-          1,
-          1,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 12, 4, 12, 58]": {
-            "[:then, 1, 12, 4, 12, 10]": 1,
-            "[:else, 2, 12, 4, 12, 58]": 16
-          },
-          "[:unless, 3, 18, 4, 21, 7]": {
-            "[:else, 4, 18, 4, 21, 7]": 15,
-            "[:then, 5, 19, 6, 20, 12]": 1
-          },
-          "[:if, 6, 24, 4, 27, 7]": {
-            "[:then, 7, 25, 6, 26, 12]": 1,
-            "[:else, 8, 24, 4, 27, 7]": 14
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/services/billing/onvo/test_sinpe_mobile_numbers.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          1,
-          null,
-          1,
-          1,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          1,
-          null,
-          1,
-          8,
-          null,
-          null,
-          1,
-          9,
-          9,
-          null,
-          8,
-          null,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 22, 8, 22, 49]": {
-            "[:then, 1, 22, 8, 22, 28]": 1,
-            "[:else, 2, 22, 8, 22, 49]": 8
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/controllers/accounts/deletions_controller.rb": {
-        "lines": [
-          null,
-          null,
-          1,
-          null,
-          1,
-          1,
-          null,
-          1,
-          1,
-          null,
-          null,
-          1,
-          5,
-          5,
-          null,
-          null,
-          1,
           2,
           1,
           1,
           null,
           null,
-          1,
+          null,
+          null,
           null,
           null,
           1,
-          5,
-          1,
-          1,
-          null,
-          null,
-          4,
-          1,
-          1,
-          1,
-          null,
           null,
           3,
-          1,
-          1,
-          1,
-          null,
-          null,
-          2,
-          2,
-          null,
-          2,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          2,
-          2,
-          2,
-          2,
           null,
           null,
           1,
           null,
           1,
-          7,
+          3,
           null,
+          null,
+          1,
+          1,
           null,
           null
         ],
         "branches": {
-          "[:unless, 0, 18, 6, 21, 9]": {
-            "[:else, 1, 18, 6, 21, 9]": 1,
-            "[:then, 2, 19, 8, 20, 14]": 1
+          "[:if, 0, 24, 4, 24, 96]": {
+            "[:then, 1, 24, 4, 24, 28]": 1,
+            "[:else, 2, 24, 4, 24, 96]": 2
           },
-          "[:unless, 3, 27, 6, 30, 9]": {
-            "[:else, 4, 27, 6, 30, 9]": 4,
-            "[:then, 5, 28, 8, 29, 14]": 1
-          },
-          "[:unless, 6, 32, 6, 36, 9]": {
-            "[:else, 7, 32, 6, 36, 9]": 3,
-            "[:then, 8, 33, 8, 35, 61]": 1
-          },
-          "[:unless, 9, 38, 6, 42, 9]": {
-            "[:else, 10, 38, 6, 42, 9]": 2,
-            "[:then, 11, 39, 8, 41, 61]": 1
+          "[:if, 3, 11, 4, 11, 65]": {
+            "[:then, 4, 11, 4, 11, 27]": 1,
+            "[:else, 5, 11, 4, 11, 65]": 2
           }
         }
       },
@@ -17628,174 +17441,51 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/services/nesting/materialize_split_proposal.rb": {
+      "/home/jader/proyectos/fitloop/app/services/billing/onvo/verify_webhook.rb": {
         "lines": [
           null,
           null,
           1,
-          null,
           1,
-          1,
-          7,
-          null,
-          null,
-          1,
-          7,
-          7,
-          7,
-          null,
-          null,
-          1,
-          7,
-          null,
-          6,
-          6,
-          6,
-          6,
-          6,
-          null,
-          null,
-          null,
-          1,
-          null,
-          1,
-          6,
-          6,
-          null,
-          6,
-          12,
-          12,
-          12,
-          null,
-          12,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          1,
-          6,
-          null,
-          null,
-          null,
-          null,
-          null,
-          1,
-          12,
-          12,
-          null,
-          null,
-          1,
-          6,
-          6,
-          null,
-          null,
-          null,
-          null,
-          null,
-          6,
-          null,
-          null,
-          null,
-          null,
-          null,
-          6,
-          null,
-          null,
-          null
-        ],
-        "branches": {
-          "[:if, 0, 17, 6, 17, 101]": {
-            "[:then, 1, 17, 6, 17, 68]": 1,
-            "[:else, 2, 17, 6, 17, 101]": 6
-          },
-          "[:if, 3, 36, 8, 36, 85]": {
-            "[:then, 4, 36, 8, 36, 59]": 2,
-            "[:else, 5, 36, 8, 36, 85]": 10
-          },
-          "[:\"&.\", 6, 49, 37, 52, 19]": {
-            "[:then, 7, 49, 37, 52, 19]": 1,
-            "[:else, 8, 49, 37, 52, 19]": 5
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/controllers/locales_controller.rb": {
-        "lines": [
-          null,
-          null,
           null,
           1,
           1,
           10,
+          null,
+          null,
+          1,
           10,
+          10,
+          null,
+          null,
           1,
-          1,
+          10,
+          10,
+          10,
           null,
-          null,
-          9,
-          null,
-          null,
-          null,
-          null,
-          9,
-          null,
-          null,
-          null,
-          null,
-          9,
-          9,
-          null,
-          null
-        ],
-        "branches": {
-          "[:unless, 0, 7, 4, 10, 7]": {
-            "[:else, 1, 7, 4, 10, 7]": 9,
-            "[:then, 2, 8, 6, 9, 12]": 1
-          }
-        }
-      },
-      "/home/jader/proyectos/fitloop/app/controllers/users/passwords_controller.rb": {
-        "lines": [
+          8,
           null,
           null,
           1,
           null,
           1,
-          1,
-          2,
-          null,
-          2,
-          1,
-          null,
-          1,
-          null,
+          10,
           null,
           null,
           1,
-          2,
+          8,
           null,
-          2,
-          1,
           null,
-          1,
-          1,
+          null,
           null,
           null,
           null,
           null
         ],
         "branches": {
-          "[:if, 0, 9, 6, 13, 9]": {
-            "[:then, 1, 10, 8, 10, 80]": 1,
-            "[:else, 2, 12, 8, 12, 50]": 1
-          },
-          "[:if, 3, 19, 6, 24, 9]": {
-            "[:then, 4, 20, 8, 20, 77]": 1,
-            "[:else, 5, 22, 8, 23, 51]": 1
+          "[:if, 0, 19, 8, 19, 58]": {
+            "[:then, 1, 19, 8, 19, 20]": 2,
+            "[:else, 2, 19, 8, 19, 58]": 8
           }
         }
       },
@@ -17955,69 +17645,167 @@
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/controllers/project_orphan_dxf_downloads_controller.rb": {
+      "/home/jader/proyectos/fitloop/app/controllers/admin/users_controller.rb": {
         "lines": [
           null,
           null,
-          null,
           1,
           1,
-          null,
           1,
-          null,
-          1,
-          3,
-          3,
-          null,
+          4,
+          4,
+          4,
           2,
-          1,
-          1,
+          2,
           null,
           null,
           null,
           null,
-          null,
-          null,
-          1,
-          null,
-          3,
-          null,
-          null,
-          1,
-          null,
-          1,
-          3,
+          4,
           null,
           null,
           1,
           1,
+          1,
+          null,
           null,
           null
         ],
         "branches": {
-          "[:if, 0, 24, 4, 24, 96]": {
-            "[:then, 1, 24, 4, 24, 28]": 1,
-            "[:else, 2, 24, 4, 24, 96]": 2
-          },
-          "[:if, 3, 11, 4, 11, 65]": {
-            "[:then, 4, 11, 4, 11, 27]": 1,
-            "[:else, 5, 11, 4, 11, 65]": 2
+          "[:if, 0, 8, 6, 14, 9]": {
+            "[:then, 1, 9, 8, 13, 9]": 2,
+            "[:else, 2, 8, 6, 14, 9]": 2
           }
         }
       },
-      "/home/jader/proyectos/fitloop/app/controllers/admin/dashboard_controller.rb": {
+      "/home/jader/proyectos/fitloop/app/services/nesting/cancelled_error.rb": {
         "lines": [
           null,
           null,
           1,
+          null,
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/services/billing/purge_expired_retained_downloads.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
           1,
           1,
           null,
+          null,
+          1,
+          1,
+          null,
+          null,
+          1,
+          1,
           null,
           null,
           null
         ],
         "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/services/nesting/materialize_split_proposal.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
+          1,
+          7,
+          null,
+          null,
+          1,
+          7,
+          7,
+          7,
+          null,
+          null,
+          1,
+          7,
+          null,
+          6,
+          6,
+          6,
+          6,
+          6,
+          null,
+          null,
+          null,
+          1,
+          null,
+          1,
+          6,
+          6,
+          null,
+          6,
+          12,
+          12,
+          12,
+          null,
+          12,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          12,
+          12,
+          null,
+          null,
+          1,
+          6,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          6,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 17, 6, 17, 101]": {
+            "[:then, 1, 17, 6, 17, 68]": 1,
+            "[:else, 2, 17, 6, 17, 101]": 6
+          },
+          "[:if, 3, 36, 8, 36, 85]": {
+            "[:then, 4, 36, 8, 36, 59]": 2,
+            "[:else, 5, 36, 8, 36, 85]": 10
+          },
+          "[:\"&.\", 6, 49, 37, 52, 19]": {
+            "[:then, 7, 49, 37, 52, 19]": 1,
+            "[:else, 8, 49, 37, 52, 19]": 5
+          }
+        }
       },
       "/home/jader/proyectos/fitloop/app/controllers/legal_controller.rb": {
         "lines": [
@@ -18037,6 +17825,183 @@
           null
         ],
         "branches": {}
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/users/confirmations_controller.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
+          1,
+          3,
+          3,
+          null,
+          null,
+          1,
+          3,
+          3,
+          2,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 8, 6, 8, 60]": {
+            "[:then, 1, 8, 6, 8, 41]": 2,
+            "[:else, 2, 8, 6, 8, 60]": 1
+          },
+          "[:if, 3, 13, 8, 23, 11]": {
+            "[:then, 4, 14, 10, 22, 11]": 2,
+            "[:else, 5, 13, 8, 23, 11]": 1
+          }
+        }
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/accounts/deletions_controller.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
+          1,
+          null,
+          1,
+          1,
+          null,
+          null,
+          1,
+          5,
+          5,
+          null,
+          null,
+          1,
+          2,
+          1,
+          1,
+          null,
+          null,
+          1,
+          null,
+          null,
+          1,
+          5,
+          1,
+          1,
+          null,
+          null,
+          4,
+          1,
+          1,
+          1,
+          null,
+          null,
+          3,
+          1,
+          1,
+          1,
+          null,
+          null,
+          2,
+          2,
+          null,
+          2,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          2,
+          2,
+          2,
+          2,
+          null,
+          null,
+          1,
+          null,
+          1,
+          7,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:unless, 0, 18, 6, 21, 9]": {
+            "[:else, 1, 18, 6, 21, 9]": 1,
+            "[:then, 2, 19, 8, 20, 14]": 1
+          },
+          "[:unless, 3, 27, 6, 30, 9]": {
+            "[:else, 4, 27, 6, 30, 9]": 4,
+            "[:then, 5, 28, 8, 29, 14]": 1
+          },
+          "[:unless, 6, 32, 6, 36, 9]": {
+            "[:else, 7, 32, 6, 36, 9]": 3,
+            "[:then, 8, 33, 8, 35, 61]": 1
+          },
+          "[:unless, 9, 38, 6, 42, 9]": {
+            "[:else, 10, 38, 6, 42, 9]": 2,
+            "[:then, 11, 39, 8, 41, 61]": 1
+          }
+        }
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/users/passwords_controller.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          null,
+          1,
+          1,
+          2,
+          null,
+          2,
+          1,
+          null,
+          1,
+          null,
+          null,
+          null,
+          1,
+          2,
+          null,
+          2,
+          1,
+          null,
+          1,
+          1,
+          null,
+          null,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 9, 6, 13, 9]": {
+            "[:then, 1, 10, 8, 10, 80]": 1,
+            "[:else, 2, 12, 8, 12, 50]": 1
+          },
+          "[:if, 3, 19, 6, 24, 9]": {
+            "[:then, 4, 20, 8, 20, 77]": 1,
+            "[:else, 5, 22, 8, 23, 51]": 1
+          }
+        }
       },
       "/home/jader/proyectos/fitloop/app/controllers/admin/ventas_controller.rb": {
         "lines": [
@@ -18139,8 +18104,43 @@
             "[:else, 5, 75, 44, 75, 50]": 22
           }
         }
+      },
+      "/home/jader/proyectos/fitloop/app/controllers/locales_controller.rb": {
+        "lines": [
+          null,
+          null,
+          null,
+          1,
+          1,
+          10,
+          10,
+          1,
+          1,
+          null,
+          null,
+          9,
+          null,
+          null,
+          null,
+          null,
+          9,
+          null,
+          null,
+          null,
+          null,
+          9,
+          9,
+          null,
+          null
+        ],
+        "branches": {
+          "[:unless, 0, 7, 4, 10, 7]": {
+            "[:else, 1, 7, 4, 10, 7]": 9,
+            "[:then, 2, 8, 6, 9, 12]": 1
+          }
+        }
       }
     },
-    "timestamp": 1780811979
+    "timestamp": 1780847604
   }
 }

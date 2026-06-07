@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Nesting::ProgressEta, "[REQ-FIT-JOB-001]" do
-  it "returns the deadline when only pieces_total is positive" do
+  it "returns the deadline when only pieces_total is positive [REQ-FIT-JOB-001]" do
     started = 2.minutes.ago
 
     eta = described_class.estimate(
@@ -16,7 +16,7 @@ RSpec.describe Nesting::ProgressEta, "[REQ-FIT-JOB-001]" do
     expect(eta).to be_within(1.second).of(started + 90.seconds)
   end
 
-  it "returns the deadline when elapsed time is zero" do
+  it "returns the deadline when elapsed time is zero [REQ-FIT-JOB-001]" do
     started = Time.zone.parse("2026-06-06 12:00:00")
 
     eta = described_class.estimate(
