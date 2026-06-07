@@ -69,7 +69,7 @@ RSpec.describe Nesting::CliRunner do
       allow(wait_thr).to receive(:join).with(0.2).and_return(false, true)
       allow(wait_thr).to receive(:value).and_return(instance_double(Process::Status, exitstatus: 0))
       allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
-      
+
       killed = false
       allow(Process).to receive(:kill) do |sig, pid|
         if pid == 99_999
@@ -98,7 +98,7 @@ RSpec.describe Nesting::CliRunner do
     it "kills the Open3 child process on Timeout::Error or other external interruption [REQ-FIT-CLI-001]" do
       wait_thr = double("Open3 wait thread", pid: 99_999)
       allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
-      
+
       killed = false
       allow(Process).to receive(:kill) do |sig, pid|
         if pid == 99_999
@@ -281,7 +281,7 @@ RSpec.describe Nesting::CliRunner do
       work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
       FileUtils.mkdir_p(work_dir.join("output"))
       File.write(work_dir.join("output/report.json"), { "status" => "completed" }.to_json)
-      File.write(work_dir.join("output/placements.json"), { "sheets" => [{ "pieces" => nil }] }.to_json)
+      File.write(work_dir.join("output/placements.json"), { "sheets" => [ { "pieces" => nil } ] }.to_json)
 
       expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(true)
       expect(nesting_run.reload.report_json["sheets_used"]).to eq(1)
