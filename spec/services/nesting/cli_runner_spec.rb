@@ -6,7 +6,7 @@ RSpec.describe Nesting::CliRunner do
   let(:project) do
     Project.create!(
       title: "CLI runner bench",
-        ephemeral: true,
+      ephemeral: true,
       sheet_stocks_attributes: {
         "0" => { width_mm: 500, height_mm: 500, quantity: nil, sort_order: 0 }
       }
@@ -69,7 +69,18 @@ RSpec.describe Nesting::CliRunner do
       allow(wait_thr).to receive(:join).with(0.2).and_return(false, true)
       allow(wait_thr).to receive(:value).and_return(instance_double(Process::Status, exitstatus: 0))
       allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
-      allow(Process).to receive(:kill)
+
+      killed = false
+      allow(Process).to receive(:kill) do |sig, pid|
+        if pid == 99_999
+          if sig == 0 || sig == "0"
+            raise Errno::ESRCH if killed
+          elsif sig.to_s == "TERM"
+            killed = true
+          end
+        end
+        0
+      end
 
       expect do
         described_class.call(
@@ -82,6 +93,119 @@ RSpec.describe Nesting::CliRunner do
       end.to raise_error(Nesting::CancelledError)
 
       expect(Process).to have_received(:kill).with("TERM", 99_999)
+    end
+
+    it "kills the Open3 child process on Timeout::Error or other external interruption [REQ-FIT-CLI-001]" do
+      wait_thr = double("Open3 wait thread", pid: 99_999)
+      allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
+
+      killed = false
+      allow(Process).to receive(:kill) do |sig, pid|
+        if pid == 99_999
+          if sig == 0 || sig == "0"
+            raise Errno::ESRCH if killed
+          elsif sig.to_s == "KILL"
+            killed = true
+          end
+        end
+        0
+      end
+
+      allow(described_class).to receive(:new).and_wrap_original do |original_method, *args, **kwargs|
+        runner = original_method.call(*args, **kwargs)
+        allow(runner).to receive(:wait_with_progress_poll).and_raise(Timeout::Error)
+        allow(runner).to receive(:sleep)
+        runner
+      end
+
+      expect do
+        described_class.call(nesting_run: nesting_run)
+      end.to raise_error(Timeout::Error)
+
+      expect(Process).to have_received(:kill).with("TERM", 99_999)
+      expect(Process).to have_received(:kill).with("KILL", 99_999)
+    end
+
+    it "kills with TERM and skips KILL fallback if the process exits [REQ-FIT-CLI-001]" do
+      wait_thr = double("Open3 wait thread", pid: 99_998)
+      allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
+
+      call_count = 0
+      allow(Process).to receive(:kill) do |signal, pid|
+        if pid == 99_998
+          if signal == 0
+            call_count += 1
+            raise Errno::ESRCH if call_count > 1
+          end
+        end
+        0
+      end
+
+      allow(described_class).to receive(:new).and_wrap_original do |original_method, *args, **kwargs|
+        runner = original_method.call(*args, **kwargs)
+        allow(runner).to receive(:wait_with_progress_poll).and_raise(Timeout::Error)
+        allow(runner).to receive(:sleep)
+        runner
+      end
+
+      expect do
+        described_class.call(nesting_run: nesting_run)
+      end.to raise_error(Timeout::Error)
+
+      expect(Process).to have_received(:kill).with("TERM", 99_998)
+      expect(Process).not_to have_received(:kill).with("KILL", 99_998)
+    end
+
+    it "raises Post-condition violation if process cannot be killed [REQ-FIT-CLI-001]" do
+      wait_thr = double("Open3 wait thread", pid: 99_997)
+      allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
+
+      # Process is always alive
+      allow(Process).to receive(:kill).with(any_args).and_return(0)
+
+      allow(described_class).to receive(:new).and_wrap_original do |original_method, *args, **kwargs|
+        runner = original_method.call(*args, **kwargs)
+        allow(runner).to receive(:wait_with_progress_poll).and_raise(Timeout::Error)
+        allow(runner).to receive(:sleep)
+        runner
+      end
+
+      expect do
+        described_class.call(nesting_run: nesting_run)
+      end.to raise_error(RuntimeError, /Post-condition violation: spawned process is still alive/)
+    end
+
+    it "rescues Errno::ESRCH if process dies right before sending TERM [REQ-FIT-CLI-001]" do
+      wait_thr = double("Open3 wait thread", pid: 99_996)
+      allow(Open3).to receive(:popen3).and_yield(nil, nil, nil, wait_thr)
+
+      first_check = true
+      allow(Process).to receive(:kill) do |sig, pid|
+        if pid == 99_996
+          if sig == 0
+            if first_check
+              first_check = false
+              0
+            else
+              raise Errno::ESRCH
+            end
+          elsif sig.to_s == "TERM"
+            raise Errno::ESRCH
+          end
+        end
+        0
+      end
+
+      allow(described_class).to receive(:new).and_wrap_original do |original_method, *args, **kwargs|
+        runner = original_method.call(*args, **kwargs)
+        allow(runner).to receive(:wait_with_progress_poll).and_raise(Timeout::Error)
+        allow(runner).to receive(:sleep)
+        runner
+      end
+
+      expect do
+        described_class.call(nesting_run: nesting_run)
+      end.to raise_error(Timeout::Error)
     end
 
     it "raises CancelledError when cancel_check is true during invoke polling [REQ-FIT-CLI-001]" do
@@ -138,6 +262,80 @@ RSpec.describe Nesting::CliRunner do
       expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(false)
     ensure
       FileUtils.rm_rf(work_dir)
+    end
+
+    it "handles nil sheets in placements.json when finalizing [REQ-FIT-CLI-001]" do
+      work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
+      FileUtils.mkdir_p(work_dir.join("output"))
+      File.write(work_dir.join("output/report.json"), { "status" => "completed" }.to_json)
+      File.write(work_dir.join("output/placements.json"), { "sheets" => nil }.to_json)
+
+      expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(true)
+      expect(nesting_run.reload.report_json["sheets_used"]).to eq(0)
+      expect(nesting_run.reload.report_json["pieces_count"]).to eq(0)
+    ensure
+      FileUtils.rm_rf(work_dir)
+    end
+
+    it "handles nil pieces in placements.json when finalizing [REQ-FIT-CLI-001]" do
+      work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
+      FileUtils.mkdir_p(work_dir.join("output"))
+      File.write(work_dir.join("output/report.json"), { "status" => "completed" }.to_json)
+      File.write(work_dir.join("output/placements.json"), { "sheets" => [ { "pieces" => nil } ] }.to_json)
+
+      expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(true)
+      expect(nesting_run.reload.report_json["sheets_used"]).to eq(1)
+      expect(nesting_run.reload.report_json["pieces_count"]).to eq(0)
+    ensure
+      FileUtils.rm_rf(work_dir)
+    end
+
+    it "handles missing sheets in placements.json when finalizing [REQ-FIT-CLI-001]" do
+      work_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s)
+      FileUtils.mkdir_p(work_dir.join("output"))
+      File.write(work_dir.join("output/report.json"), { "status" => "completed" }.to_json)
+      File.write(work_dir.join("output/placements.json"), {}.to_json)
+
+      expect(described_class.finalize_from_work_dir!(nesting_run: nesting_run)).to be(true)
+      expect(nesting_run.reload.report_json["sheets_used"]).to eq(0)
+      expect(nesting_run.reload.report_json["pieces_count"]).to eq(0)
+    ensure
+      FileUtils.rm_rf(work_dir)
+    end
+  end
+
+  describe "#process_alive? [REQ-FIT-CLI-001]" do
+    let(:runner) { described_class.new(nesting_run: nesting_run) }
+
+    it "raises ArgumentError for invalid PIDs [REQ-FIT-CLI-001]" do
+      expect { runner.send(:process_alive?, nil) }.to raise_error(ArgumentError, "Invalid PID")
+      expect { runner.send(:process_alive?, -5) }.to raise_error(ArgumentError, "Invalid PID")
+      expect { runner.send(:process_alive?, "abc") }.to raise_error(ArgumentError, "Invalid PID")
+    end
+
+    it "returns true if process is alive and we have permission [REQ-FIT-CLI-001]" do
+      allow(Process).to receive(:kill).with(0, 12345).and_return(1)
+      expect(runner.send(:process_alive?, 12345)).to be(true)
+    end
+
+    it "returns false if process does not exist [REQ-FIT-CLI-001]" do
+      allow(Process).to receive(:kill).with(0, 12345).and_raise(Errno::ESRCH)
+      expect(runner.send(:process_alive?, 12345)).to be(false)
+    end
+
+    it "returns true if process exists but we lack permission [REQ-FIT-CLI-001]" do
+      allow(Process).to receive(:kill).with(0, 12345).and_raise(Errno::EPERM)
+      expect(runner.send(:process_alive?, 12345)).to be(true)
+    end
+  end
+
+  describe "#run_cli! [REQ-FIT-CLI-001]" do
+    let(:runner) { described_class.new(nesting_run: nesting_run) }
+
+    it "raises ArgumentError if work_dir is not a directory [REQ-FIT-CLI-001]" do
+      expect do
+        runner.send(:run_cli!, Rails.root.join("non_existent_directory"))
+      end.to raise_error(ArgumentError, "work_dir must exist")
     end
   end
 end

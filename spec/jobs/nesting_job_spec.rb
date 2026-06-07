@@ -112,5 +112,38 @@ RSpec.describe NestingJob, type: :job do
     ensure
       FileUtils.rm_rf(Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s))
     end
+
+    it "returns correct sheet and piece counts from placements.json when present on disk [REQ-FIT-ANALYTICS-001]" do
+      output_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s, "output")
+      FileUtils.mkdir_p(output_dir)
+      File.write(
+        output_dir.join("placements.json"),
+        {
+          "sheets" => [
+            { "pieces" => [ { "label" => "1" }, { "label" => "2" } ] },
+            { "pieces" => [ { "label" => "3" } ] }
+          ]
+        }.to_json
+      )
+      job = described_class.new
+
+      expect(job.send(:parse_sheets_used, nesting_run)).to eq(2)
+      expect(job.send(:parse_pieces_count, nesting_run)).to eq(3)
+    ensure
+      FileUtils.rm_rf(Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s))
+    end
+
+    it "returns sheets and pieces from report_json when present [REQ-FIT-ANALYTICS-001]" do
+      nesting_run.update!(
+        report_json: {
+          "sheets_used" => 5,
+          "pieces_count" => 10
+        }
+      )
+      job = described_class.new
+
+      expect(job.send(:parse_sheets_used, nesting_run)).to eq(5)
+      expect(job.send(:parse_pieces_count, nesting_run)).to eq(10)
+    end
   end
 end

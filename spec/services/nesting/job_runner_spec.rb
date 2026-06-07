@@ -230,5 +230,69 @@ RSpec.describe Nesting::JobRunner do
       expect { described_class.call(nesting_run: nesting_run) }.not_to raise_error
       expect(nesting_run.reload.status).to eq("failed")
     end
+
+    describe "workspace cleanup [REQ-FIT-JOB-001]" do
+      let(:work_dir) { Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s) }
+
+      before do
+        FileUtils.mkdir_p(work_dir)
+        File.write(work_dir.join("temp_file.txt"), "some content")
+      end
+
+      after do
+        FileUtils.rm_rf(work_dir)
+      end
+
+      it "cleans up the workspace directory on success [REQ-FIT-JOB-001]" do
+        allow(Nesting::CliRunner).to receive(:call)
+
+        described_class.call(nesting_run: nesting_run)
+
+        expect(File.exist?(work_dir)).to be(false)
+      end
+
+      it "cleans up the workspace directory on Timeout::Error [REQ-FIT-JOB-001]" do
+        allow(Timeout).to receive(:timeout).and_raise(Timeout::Error)
+
+        described_class.call(nesting_run: nesting_run)
+
+        expect(File.exist?(work_dir)).to be(false)
+      end
+
+      it "cleans up the workspace directory on CancelledError [REQ-FIT-JOB-001]" do
+        allow(Nesting::CliRunner).to receive(:call).and_raise(Nesting::CancelledError)
+
+        described_class.call(nesting_run: nesting_run)
+
+        expect(File.exist?(work_dir)).to be(false)
+      end
+
+      it "cleans up the workspace directory on StandardError [REQ-FIT-JOB-001]" do
+        allow(Nesting::CliRunner).to receive(:call).and_raise(StandardError, "forced error")
+
+        described_class.call(nesting_run: nesting_run)
+
+        expect(File.exist?(work_dir)).to be(false)
+      end
+    end
+
+    it "raises ArgumentError when nesting_run is nil [REQ-FIT-JOB-001]" do
+      expect { described_class.new(nesting_run: nil) }.to raise_error(ArgumentError, "nesting_run must be present")
+    end
+
+    it "raises Post-condition violation if workspace directory cannot be deleted [REQ-FIT-JOB-001]" do
+      allow(Nesting::CliRunner).to receive(:call)
+      allow(File).to receive(:exist?).and_wrap_original do |original_method, path|
+        if path.to_s.include?("tmp/nesting_runs")
+          true
+        else
+          original_method.call(path)
+        end
+      end
+
+      expect do
+        described_class.call(nesting_run: nesting_run)
+      end.to raise_error(RuntimeError, /Post-condition violation: workspace directory still exists/)
+    end
   end
 end

@@ -39,7 +39,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
     end
 
     it "uses message_key override when present [REQ-FIT-JOB-001]" do
-      I18n.backend.store_translations(:en, nesting: { custom: { progress: "Custom label" } })
+      I18n.backend.store_translations(I18n.locale, nesting: { custom: { progress: "Custom label" } })
 
       snapshot = described_class.from_hash(
         {
@@ -118,7 +118,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
   describe ".read" do
     before do
       I18n.backend.store_translations(
-        :en,
+        I18n.locale,
         nesting: { phase: { extracting: "Extracting geometry" } }
       )
     end

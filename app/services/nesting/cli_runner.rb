@@ -90,6 +90,9 @@ module Nesting
     end
 
     def run_cli!(work_dir)
+      # Pre-condition: work_dir must be a directory
+      raise ArgumentError, "work_dir must exist" unless File.directory?(work_dir)
+
       config_path = work_dir.join("config.json")
       raise CancelledError if @cancel_check&.call
 
@@ -98,23 +101,57 @@ module Nesting
       if @invoke
         exit_status = nil
         worker = Thread.new { exit_status = @invoke.call(work_dir, config_path) }
-        return wait_with_progress_poll(work_dir) { worker.join(0.2) ? exit_status : nil }
+        begin
+          return wait_with_progress_poll(work_dir) { worker.join(0.2) ? exit_status : nil }
+        ensure
+          worker.kill if worker.alive?
+        end
       end
 
       env = Dxf::Python.subprocess_env
       command = [ Dxf::Python.executable, DEFAULT_SCRIPT.to_s, config_path.to_s ]
 
-      Open3.popen3(env, *command) do |_stdin, _stdout, _stderr, wait_thr|
-        pid = wait_thr.pid
-        wait_with_progress_poll(work_dir) do
-          if wait_thr.join(0.2)
-            wait_thr.value.exitstatus
-          elsif @cancel_check&.call
-            Process.kill("TERM", pid)
-            raise CancelledError
+      pid = nil
+      begin
+        Open3.popen3(env, *command) do |_stdin, _stdout, _stderr, wait_thr|
+          pid = wait_thr.pid
+          wait_with_progress_poll(work_dir) do
+            if wait_thr.join(0.2)
+              wait_thr.value.exitstatus
+            elsif @cancel_check&.call
+              Process.kill("TERM", pid)
+              raise CancelledError
+            end
           end
         end
+      ensure
+        # REQ-FIT-CLI-001: Ensure active subprocess is killed on interruption
+        if pid && process_alive?(pid)
+          begin
+            Process.kill("TERM", pid)
+            3.times do
+              break unless process_alive?(pid)
+              sleep 0.1
+            end
+            Process.kill("KILL", pid) if process_alive?(pid)
+          rescue Errno::ESRCH
+            # Process exited on its own
+          end
+        end
+        # Post-condition: process must be dead
+        raise "Post-condition violation: spawned process is still alive" if pid && process_alive?(pid)
       end
+    end
+
+    def process_alive?(pid)
+      raise ArgumentError, "Invalid PID" unless pid.is_a?(Integer) && pid.positive?
+
+      Process.kill(0, pid)
+      true
+    rescue Errno::ESRCH
+      false
+    rescue Errno::EPERM
+      true
     end
 
     def wait_with_progress_poll(work_dir)
@@ -150,22 +187,26 @@ module Nesting
       nested_path = work_dir.join("output", "nested.dxf")
       return unless nested_path.file?
 
-      @project.nested_dxf.attach(
-        io: File.open(nested_path),
-        filename: "nested.dxf",
-        content_type: "application/dxf"
-      )
+      File.open(nested_path) do |file|
+        @project.nested_dxf.attach(
+          io: file,
+          filename: "nested.dxf",
+          content_type: "application/dxf"
+        )
+      end
     end
 
     def attach_placements_json!(work_dir)
       placements_path = work_dir.join("output", "placements.json")
       return unless placements_path.file?
 
-      @project.placements_json.attach(
-        io: File.open(placements_path),
-        filename: "placements.json",
-        content_type: "application/json"
-      )
+      File.open(placements_path) do |file|
+        @project.placements_json.attach(
+          io: file,
+          filename: "placements.json",
+          content_type: "application/json"
+        )
+      end
     end
 
     def load_report(work_dir)
@@ -177,6 +218,19 @@ module Nesting
 
     def finalize_run!(terminal_status:, report:)
       return unless @nesting_run.reload.status == "processing"
+
+      placements_path = work_dir_path.join("output", "placements.json")
+      if placements_path.file?
+        begin
+          placements = JSON.parse(placements_path.read)
+          report = report.merge(
+            "sheets_used" => placements["sheets"]&.size || 0,
+            "pieces_count" => placements["sheets"]&.sum { |s| s["pieces"]&.size || 0 } || 0
+          )
+        rescue StandardError
+          # ignore
+        end
+      end
 
       @nesting_run.update!(
         status: terminal_status,

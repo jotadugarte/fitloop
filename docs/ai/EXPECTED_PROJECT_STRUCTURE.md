@@ -50,6 +50,10 @@ The `sync-docs` skill keeps docs in sync with both the branch diff and task memo
 | `docs/core/DATA_FLOW_MAP.md` | Entity lifecycles or side-effects changed |
 | `docs/core/ADRs/` | New architectural decisions |
 | `docs/core/SYSTEM_ARCHITECTURE.md` | Stack, boundaries, or forbidden libs changed |
+| `docs/core/ANALYTICS_AND_REPORTING_CONTRACT.md` | Analytics event catalog, thresholds, or priorities changed |
+| `docs/core/PR_SPLIT_GUIDANCE.md` | Pull request splitting strategy or boundary guidelines changed |
+| `docs/core/TESTING_STRATEGY_MATRIX.md` | Testing guidelines, mocks, or coverage requirements changed |
+| `docs/core/deterministic_coding_standards.md` | Coding standards or mathematical complexity rules changed |
 | `.cursorrules` | Conventions, patterns, or project rules changed (from diff or session) |
 
 **To add more docs:** Update this table in `docs/ai/EXPECTED_PROJECT_STRUCTURE.md`. Add the path and the condition that triggers an update. The sync-docs skill reads this list.
