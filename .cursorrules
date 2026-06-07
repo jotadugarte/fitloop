@@ -160,6 +160,8 @@
       86. Code Style & Linting: Proactively prevent RuboCop offenses. Do not introduce trailing whitespaces, enforce proper spacing within array literal brackets (e.g. `[ 1, 2 ]`), do not leave spaces inside parentheses, and keep block layouts properly aligned (e.g., `else` and `end`).
       87. LF Line Endings: All files must use LF (`\n`) line endings instead of CRLF (`\r\n`). Ensure every source file has exactly one trailing blank line at EOF.
       88. Test Coverage Rules: Any new code, bugfix, or feature must not only be covered by TDD unit/request tests but must also be integrated into the line and branch coverage specs (e.g., branch_coverage spec files) to maintain a strict 100.0% line and branch coverage requirement.
+      89. Subprocess Timeout & Termination Management: When spawning external subprocesses (such as with `Open3.popen3`), always wrap the execution block in a `begin...ensure` structure. On interruption (e.g., `Timeout::Error` or user-cancellation), gracefully send `TERM` to the process PID, poll its liveness up to 3 times with `sleep 0.1` intervals, and fallback to `KILL` if it remains active. Enforce process death with a post-condition validation.
+      90. Job Workspace Cleanup Policy: Temporary directories created on disk during background jobs (e.g., `tmp/nesting_runs/:id/`) must be removed in an outer `ensure` block at the entry point of the job runner (e.g., `JobRunner#call`), only after all database commits and Active Storage attachment uploads have fully completed. Enforce directory deletion with a post-condition check.
     </rules>
   </project_rules>
 </agentic_guild_os>
