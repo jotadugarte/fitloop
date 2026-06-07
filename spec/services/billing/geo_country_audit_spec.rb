@@ -55,5 +55,79 @@ RSpec.describe Billing::GeoCountryAudit, "[REQ-FIT-BILL-001]", type: :service do
         source: :geolite2
       )
     end
+
+    it "[REQ-FIT-BILL-001] does not warn on non-billing paths" do
+      allow(request).to receive(:path).and_return("/taller")
+
+      expect(Rails.logger).not_to receive(:warn)
+
+      described_class.record_resolution!(
+        request: request,
+        country_code: "US",
+        source: :geolite2
+      )
+    end
+
+    it "[REQ-FIT-BILL-001] does not warn when a billing country override is active" do
+      allow(Billing::GeoPaymentDefaults).to receive(:country_override).and_return("CR")
+
+      expect(Rails.logger).not_to receive(:warn)
+
+      described_class.record_resolution!(
+        request: request,
+        country_code: "CR",
+        source: :override
+      )
+    end
+
+    it "[REQ-FIT-BILL-001] throttles duplicate warnings within the TTL window" do
+      allow(Rails.cache).to receive(:read).and_return(true)
+
+      expect(Rails.logger).not_to receive(:warn)
+
+      described_class.record_resolution!(
+        request: request,
+        country_code: "US",
+        source: :geolite2
+      )
+    end
+
+    %i[override cloudflare user_time_zone session].each do |source|
+      it "[REQ-FIT-BILL-001] labels #{source} in the missing Cloudflare warning" do
+        label = described_class.send(:source_label, source)
+
+        expect(Rails.logger).to receive(:warn).with(/#{Regexp.escape(label)}/)
+
+        described_class.record_resolution!(
+          request: request,
+          country_code: "US",
+          source: source
+        )
+      end
+    end
+
+    it "[REQ-FIT-BILL-001] labels unknown sources as the international USD default" do
+      expect(Rails.logger).to receive(:warn).with(/default \(international USD\)/)
+
+      described_class.record_resolution!(
+        request: request,
+        country_code: "US",
+        source: :unknown
+      )
+    end
+
+    it "[REQ-FIT-BILL-001] omits GeoLite2 install guidance when the MMDB is available" do
+      allow(Billing::GeoLite2).to receive(:available?).and_return(true)
+
+      expect(Rails.logger).to receive(:warn) do |message|
+        expect(message).not_to include("Install GeoLite2")
+      end
+
+      described_class.record_resolution!(
+        request: request,
+        country_code: "US",
+        source: :session
+      )
+    end
   end
 end

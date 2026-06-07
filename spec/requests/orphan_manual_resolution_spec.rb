@@ -157,6 +157,15 @@ RSpec.describe "Orphan manual resolution", "[REQ-FIT-SPLIT-001]", type: :request
       expect(resolution.reload.resolution_state).to eq("manual")
     end
 
+    it "[REQ-FIT-SPLIT-001] redirects when the orphan is not in manual state" do
+      resolution.update!(resolution_state: :system_split)
+
+      post confirm_manual_project_orphan_resolution_path(project, resolution.piece_key)
+
+      expect(response).to redirect_to(project_path(project))
+      expect(flash[:alert]).to eq(I18n.t("nesting.split.manual.not_manual_state"))
+    end
+
     it "[REQ-FIT-VAL-001] blocks confirm when project fails readiness" do
       post confirm_manual_project_orphan_resolution_path(project, resolution.piece_key)
 

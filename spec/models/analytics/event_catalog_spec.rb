@@ -28,4 +28,17 @@ RSpec.describe Analytics::EventCatalog, "[REQ-FIT-ANALYTICS-001]" do
       expect(described_class.required_properties_for("payment_succeeded")).to eq([])
     end
   end
+
+  describe ".load_catalog when file does not exist" do
+    after do
+      # Restore original catalog state by clearing memoization
+      described_class.instance_variable_set(:@catalog, nil)
+    end
+
+    it "returns an empty hash if the file does not exist" do
+      allow(File).to receive(:file?).with(described_class::CATALOG_PATH).and_return(false)
+      described_class.instance_variable_set(:@catalog, nil)
+      expect(described_class.catalog).to eq({})
+    end
+  end
 end

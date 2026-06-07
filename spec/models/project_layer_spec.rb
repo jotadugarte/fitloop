@@ -85,7 +85,7 @@ RSpec.describe ProjectLayer, type: :model do
           layer_role: :primary
         )
 
-        ProjectLayer::SetPrimary.call(cut)
+        described_class.set_primary!(cut)
 
         expect(cut.reload).to have_attributes(layer_role: "primary")
         expect(outline.reload.layer_role).to be_nil

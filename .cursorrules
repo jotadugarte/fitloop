@@ -157,6 +157,9 @@
       83. El contenido de los documentos legales (Términos de Servicio y Política de Privacidad) debe residir como archivos Markdown dentro de `app/content/legal/` (por ejemplo, `terminos.md`, `privacidad.md`) y ser renderizado dinámicamente utilizando el helper `render_markdown`. Los bloques grandes de texto legal estático no deben almacenarse en los archivos de localización de traducción (como `es.yml` o `en.yml`).
       84. Platform and Tool Branding: moduSLoop is the platform name, used for global authentication, layout shells, favicons, page titles, and user profile management. Specific tools must use their dedicated branding (e.g., fiTLoop for the DXF nesting tool, synCLoop for the schedule synchronizer) in their tool-specific workspaces (e.g., the taller grid/cards and workshop UI).
       85. Multi-Tool Hub Navigation: The root page (/) is the central tool hub displaying all active and upcoming tools. The application toolbar must always render a Home brand icon link (`/images/icono-modusloop.png`) pointing to the root path to enable seamless navigation back to the tool hub from any part of the application.
+      86. Code Style & Linting: Proactively prevent RuboCop offenses. Do not introduce trailing whitespaces, enforce proper spacing within array literal brackets (e.g. `[ 1, 2 ]`), do not leave spaces inside parentheses, and keep block layouts properly aligned (e.g., `else` and `end`).
+      87. LF Line Endings: All files must use LF (`\n`) line endings instead of CRLF (`\r\n`). Ensure every source file has exactly one trailing blank line at EOF.
+      88. Test Coverage Rules: Any new code, bugfix, or feature must not only be covered by TDD unit/request tests but must also be integrated into the line and branch coverage specs (e.g., branch_coverage spec files) to maintain a strict 100.0% line and branch coverage requirement.
     </rules>
   </project_rules>
 </agentic_guild_os>

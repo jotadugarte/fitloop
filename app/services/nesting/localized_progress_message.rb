@@ -78,11 +78,15 @@ module Nesting
     end
 
     def cancelled_message?
-      message_key?("nesting.cancelled") || matches_any_locale?("nesting.cancelled", @stored)
+      stored_matches_message_key?("nesting.cancelled")
     end
 
     def input_file_missing_message?
-      message_key?("nesting.input_file_missing") || matches_any_locale?("nesting.input_file_missing", @stored)
+      stored_matches_message_key?("nesting.input_file_missing")
+    end
+
+    def stored_matches_message_key?(key)
+      @stored == key || matches_any_locale?(key, @stored)
     end
 
     def message_key?(value)

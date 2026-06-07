@@ -41,5 +41,13 @@ RSpec.describe Billing::Onvo::MoneyMinorUnits, "[REQ-FIT-BILL-001]" do
         described_class.from_breakdown(currency: :eur, total_amount: 10)
       end.to raise_error(ArgumentError, /unsupported currency/)
     end
+
+    it "[REQ-FIT-BILL-001] rejects unsupported symbols in minor-unit conversion" do
+      minor = described_class.new({ currency: :usd, total_amount: 10 })
+
+      expect do
+        minor.send(:to_minor_units, 10, :eur)
+      end.to raise_error(ArgumentError, /unsupported currency/)
+    end
   end
 end

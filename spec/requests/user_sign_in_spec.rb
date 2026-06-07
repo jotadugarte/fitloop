@@ -43,4 +43,32 @@ RSpec.describe "User sign in", "[REQ-FIT-AUTH-002]", type: :request do
       end
     end
   end
+
+  describe "after sign in workspace redirection [REQ-FIT-AUTH-002]" do
+    it "redirects to home if no workspace is active" do
+      post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+      expect(response).to redirect_to(root_path)
+    end
+
+    it "redirects to workshop if a project is bound to the workspace" do
+      # Start a project (binds it to the session)
+      get start_project_path
+      follow_redirect!
+
+      # Sign in
+      post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+      expect(response).to redirect_to(workshop_path)
+    end
+
+    it "redirects to workspace_return_to if present in session" do
+      # Emulate workspace return to set in session
+      get start_project_path
+      follow_redirect!
+      get new_user_session_path
+
+      # Sign in
+      post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
+      expect(response).to redirect_to(workshop_path)
+    end
+  end
 end

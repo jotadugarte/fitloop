@@ -44,5 +44,73 @@ RSpec.describe NestingJob, type: :job do
       expect(project.status).to eq("completed")
       expect(project.nested_dxf).to be_attached
     end
+
+    it "no-ops when the nesting run no longer exists" do
+      expect do
+        described_class.perform_now(-1)
+      end.not_to raise_error
+    end
+
+    it "marks the run failed when the project was removed" do
+      orphan_run = nesting_run
+      allow(NestingRun).to receive(:find_by).with(id: nesting_run.id).and_return(orphan_run)
+      allow(orphan_run).to receive(:project).and_return(nil)
+
+      described_class.perform_now(nesting_run.id)
+
+      orphan_run.reload
+      expect(orphan_run.status).to eq("failed")
+      expect(orphan_run.report_json).to include("warnings" => [ "project_missing" ])
+    end
+
+    it "fails the run when JobRunner raises" do
+      allow(Nesting::JobRunner).to receive(:call).and_raise(StandardError, "cli boom")
+
+      described_class.perform_now(nesting_run.id)
+
+      nesting_run.reload
+      expect(nesting_run.status).to eq("failed")
+    end
+  end
+
+  describe "failure and telemetry branches [REQ-FIT-ANALYTICS-001]" do
+    it "skips FailRun when the run is no longer processing after an error" do
+      allow(Nesting::JobRunner).to receive(:call).and_raise(StandardError, "late failure")
+      completed_run = nesting_run
+      allow(NestingRun).to receive(:find_by).with(id: nesting_run.id).and_return(completed_run)
+      allow(completed_run).to receive(:status).and_return("completed")
+
+      expect(Nesting::FailRun).not_to receive(:call)
+
+      described_class.perform_now(nesting_run.id)
+    end
+
+    it "computes duration from started_at when finished_at is present" do
+      nesting_run.update!(started_at: 2.seconds.ago, finished_at: Time.current, status: "completed")
+      job = described_class.new
+
+      expect(job.send(:compute_duration_ms, nesting_run)).to be > 0
+    end
+
+    it "returns an empty orphan reason map when report has no orphans" do
+      nesting_run.update!(report_json: { "status" => "completed" })
+      job = described_class.new
+
+      expect(job.send(:parse_orphans_by_reason, nesting_run)).to eq({})
+    end
+  end
+
+  describe "telemetry helpers [REQ-FIT-ANALYTICS-001]" do
+    it "returns zero sheet and piece counts when placements.json cannot be parsed" do
+      output_dir = Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s, "output")
+      FileUtils.mkdir_p(output_dir)
+      File.write(output_dir.join("placements.json"), "not-json")
+      job = described_class.new
+
+      expect(job.send(:parse_sheets_used, nesting_run)).to eq(0)
+      expect(job.send(:parse_pieces_count, nesting_run)).to eq(0)
+    ensure
+      FileUtils.rm_rf(Rails.root.join("tmp/nesting_runs", nesting_run.id.to_s))
+    end
   end
 end

@@ -55,6 +55,38 @@ RSpec.describe "Mis pagos retained download", "[REQ-FIT-BILL-003]", type: :reque
       expect(response.body).to include(I18n.t("billing.download.retention_expired"))
     end
 
+    it "[REQ-FIT-BILL-003] returns not found when the retained blob is missing" do
+      grant = purchase_and_discard!(user: user)
+      grant.purge_retained_blob! if grant.retained_nested_dxf.attached?
+
+      get mis_pagos_download_path(grant)
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it "[REQ-FIT-BILL-003] redirects suspended users away from downloads" do
+      grant = purchase_and_discard!(user: user)
+      user.update!(suspended_at: Time.current)
+
+      get mis_pagos_download_path(grant)
+
+      expect(response).to redirect_to(edit_user_registration_path)
+      expect(flash[:alert]).to eq(I18n.t("billing.suspended"))
+    end
+
+    it "[REQ-FIT-BILL-003] records nil project_id when the grant has no nesting run" do
+      grant = purchase_and_discard!(user: user)
+      grant.update_column(:nesting_run_id, nil)
+      allow(Analytics::TrackEvent).to receive(:call)
+
+      get mis_pagos_download_path(grant)
+
+      expect(Analytics::TrackEvent).to have_received(:call).with(
+        "download_completed",
+        hash_including(project_id: nil, nesting_run_id: nil)
+      )
+    end
+
     it "[REQ-FIT-BILL-003] forbids download for another user's grant" do
       grant = purchase_and_discard!(user: user)
       sign_out user

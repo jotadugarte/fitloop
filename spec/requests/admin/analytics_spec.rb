@@ -35,6 +35,43 @@ RSpec.describe "Admin::AnalyticsController", "[REQ-FIT-ANALYTICS-001]", type: :r
     end
   end
 
+  it "falls back to default date bounds when filters are invalid" do
+    get "/admin/analytics", params: { start_date: "bad-date", end_date: "also-bad" }
+
+    expect(response).to have_http_status(:ok)
+  end
+
+  it "filters events by locale, payment method, and currency" do
+    UserEvent.create!(
+      event_type: "paywall_viewed",
+      occurred_at: Time.current,
+      locale: "es",
+      priority: "low",
+      properties: { payment_method: "sinpe_crc", currency: "crc" }
+    )
+    UserEvent.create!(
+      event_type: "paywall_viewed",
+      occurred_at: Time.current,
+      locale: "en",
+      priority: "low",
+      properties: { payment_method: "card_usd", currency: "usd" }
+    )
+
+    get "/admin/analytics", params: { locale: "es", payment_method: "sinpe_crc", currency: "crc" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("paywall_viewed")
+  end
+
+  it "reports zero conversion when no paywall views exist" do
+    UserEvent.where(event_type: "paywall_viewed").delete_all
+
+    get "/admin/analytics"
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("0.0")
+  end
+
   context "when conversion is healthy" do
     before do
       # 3 payment_succeeded (3/5 = 60%, assuming min threshold is 20%)

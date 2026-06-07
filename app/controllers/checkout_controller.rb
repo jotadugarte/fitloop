@@ -29,11 +29,6 @@ class CheckoutController < ApplicationController
   end
 
   def pay
-    unless Billing::Gateway.onvo?
-      head :not_found
-      return
-    end
-
     selection = billing_selection
     @available_payment_methods = selection.fetch(:available_payment_methods)
     payment_method = resolve_selected_payment_method(selection: selection)
@@ -270,10 +265,6 @@ class CheckoutController < ApplicationController
       return Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
     end
 
-    if plan_checkout?
-      return Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
-    end
-
     Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
   end
 
@@ -339,13 +330,12 @@ class CheckoutController < ApplicationController
       iva_applicable: billing_selection.fetch(:iva_applicable)
     }
 
-    breakdown = if @cart && params[:nesting_run_id].blank?
-                  Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
-    elsif plan_checkout?
-                  Billing::CheckoutBreakdown.for_plan(tier_months: @tier_months, billing_context: billing_context)
-    else
-                  Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
-    end
+    breakdown =
+      if @cart && params[:nesting_run_id].blank?
+        Billing::CheckoutBreakdown.for_cart(cart: @cart, billing_context: billing_context)
+      else
+        Billing::CheckoutBreakdown.for_single_download(billing_context: billing_context, overage: false)
+      end
 
     discount = breakdown.fetch(:discount_amount).to_f
     discount.positive? ? discount : nil

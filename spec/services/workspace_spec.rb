@@ -195,6 +195,36 @@ RSpec.describe Workspace, "[REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
       expect(Project.exists?(project.id)).to be(true)
     end
 
+    it "[REQ-FIT-AUTH-001] resets a tab bind by discarding and creating a fresh project" do
+      project = Project.create!(ephemeral: true, title: "Old", status: :draft)
+      session = {}
+      described_class.bind!(session, project, tab_id: tab_id)
+      old_id = project.id
+
+      new_project = described_class.reset!(session, tab_id: tab_id)
+
+      expect(Project.exists?(old_id)).to be(false)
+      expect(new_project).to be_persisted
+      expect(described_class.find(session, tab_id: tab_id)).to eq(new_project)
+    end
+
+    it "[REQ-FIT-AUTH-001] cancels active nesting when discarding a tab with a processing run" do
+      project = Project.create!(ephemeral: true, title: "Processing", status: :processing)
+      run = project.nesting_runs.create!(status: "processing")
+      described_class.bind!(session, project, tab_id: tab_id)
+
+      expect(Nesting::ApplyCancel).to receive(:call).with(nesting_run: run).and_wrap_original do |method, **kwargs|
+        method.call(**kwargs)
+        expect(run.reload.status).to eq("failed")
+        expect(project.reload.progress_message).to eq("nesting.cancelled")
+      end
+
+      described_class.discard!(session, tab_id: tab_id)
+
+      expect(Project.exists?(project.id)).to be(false)
+      expect(NestingRun.exists?(run.id)).to be(false)
+    end
+
     it "[REQ-FIT-AUTH-001] expires tab bind via expire_tab_after_closure! (D20)" do
       project = Project.create!(ephemeral: true, title: "Leave", status: :draft)
       described_class.bind!(session, project, tab_id: tab_id)
@@ -203,6 +233,141 @@ RSpec.describe Workspace, "[REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
 
       expect(Project.exists?(project.id)).to be(false)
       expect(session.dig(described_class::WORKSPACES_KEY, tab_id)).to be_nil
+    end
+  end
+
+  describe "branch coverage helpers [REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
+    let(:session) { {} }
+
+    it "[REQ-FIT-AUTH-001] scans later tabs when an earlier bind is stale" do
+      tab_a = "tab-stale"
+      tab_b = "tab-live"
+      live = Project.create!(ephemeral: true, title: "Live", status: :draft)
+      session[described_class::WORKSPACES_KEY] = { tab_a => 999_999, tab_b => live.id }
+
+      expect(described_class.any_bound_project(session)).to eq(live)
+    end
+
+    it "[REQ-FIT-AUTH-001] returns the preferred tab project when present" do
+      tab_a = "tab-preferred"
+      project = Project.create!(ephemeral: true, title: "Preferred", status: :draft)
+      session[described_class::WORKSPACES_KEY] = { tab_a => project.id }
+
+      expect(described_class.any_bound_project(session, prefer_tab_id: tab_a)).to eq(project)
+    end
+
+    it "[REQ-FIT-AUTH-001] returns the tab id for a bound project" do
+      tab_id = "lookup-tab"
+      project = Project.create!(ephemeral: true, title: "Lookup", status: :draft)
+      described_class.bind!(session, project, tab_id: tab_id)
+
+      expect(described_class.tab_id_for_project(session, project.id)).to eq(tab_id)
+    end
+
+    it "[REQ-FIT-AUTH-001] returns nil from tab_id_for_project when the project is not bound" do
+      project = Project.create!(ephemeral: true, title: "Unbound", status: :draft)
+
+      expect(described_class.tab_id_for_project(session, project.id)).to be_nil
+    end
+
+    it "[REQ-FIT-DOM-001] skips purge_nesting_run_dirs! when the work dir is absent" do
+      nesting_dir = described_class::NESTING_RUNS_DIR
+      backup = nesting_dir.directory? ? nesting_dir.children.map(&:to_s) : []
+      FileUtils.rm_rf(nesting_dir)
+
+      expect(described_class.purge_nesting_run_dirs!).to eq(0)
+    ensure
+      FileUtils.mkdir_p(nesting_dir) unless nesting_dir.directory?
+    end
+
+    it "[REQ-FIT-AUTH-001] syncs legacy session key for the default tab bind" do
+      project = Project.create!(ephemeral: true, title: "Default tab", status: :draft)
+      session[described_class::WORKSPACES_KEY] = { described_class::DEFAULT_TAB_ID => project.id }
+
+      described_class.send(:sync_legacy_session_key!, session)
+
+      expect(session[described_class::SESSION_KEY]).to eq(project.id)
+    end
+
+    it "[REQ-FIT-DOM-001] discards every bound tab when tab_id is omitted" do
+      tab_a = "tab-a"
+      tab_b = "tab-b"
+      project_a = Project.create!(ephemeral: true, title: "Tab A", status: :draft)
+      project_b = Project.create!(ephemeral: true, title: "Tab B", status: :draft)
+      described_class.bind!(session, project_a, tab_id: tab_a)
+      described_class.bind!(session, project_b, tab_id: tab_b)
+
+      described_class.discard!(session)
+
+      expect(Project.exists?(project_a.id)).to be(false)
+      expect(Project.exists?(project_b.id)).to be(false)
+      expect(session[described_class::WORKSPACES_KEY]).to be_nil
+      expect(session[described_class::SESSION_KEY]).to be_nil
+    end
+
+    it "[REQ-FIT-AUTH-001] expires a project with request telemetry context" do
+      tab_id = "expire-with-request"
+      user = User.create!(
+        email: "workspace-expire@example.com",
+        password: "securepassword12",
+        password_confirmation: "securepassword12",
+        name: "Workspace Expire",
+        terms_accepted_at: Time.current,
+        terms_version: "v1-placeholder",
+        time_zone: "America/Costa_Rica",
+        confirmed_at: Time.current
+      )
+      project = Project.create!(ephemeral: true, title: "Expire me", status: :draft)
+      described_class.bind!(session, project, tab_id: tab_id)
+      request = ActionDispatch::TestRequest.create
+      request.env["warden"] = double(user: user)
+
+      expect do
+        described_class.send(:expire_project!, session, project, tab_id: tab_id, request: request)
+      end.to change(UserEvent, :count).by(1)
+
+      expect(Project.exists?(project.id)).to be(false)
+      expect(session.dig(described_class::WORKSPACES_KEY, tab_id)).to be_nil
+    end
+
+    it "[REQ-FIT-AUTH-001] tracks workspace_started with a signed-in request" do
+      user = User.create!(
+        email: "workspace-create@example.com",
+        password: "securepassword12",
+        password_confirmation: "securepassword12",
+        name: "Workspace Create",
+        terms_accepted_at: Time.current,
+        terms_version: "v1-placeholder",
+        time_zone: "America/Costa_Rica",
+        confirmed_at: Time.current
+      )
+      request = ActionDispatch::TestRequest.create
+      request.env["warden"] = double(user: user)
+      session[:anonymous_session_key] = SecureRandom.hex(16)
+
+      expect(Analytics::TrackEvent).to receive(:call).with(
+        "workspace_started",
+        hash_including(
+          user_id: user.id,
+          tab_id: "create-tab",
+          project_id: kind_of(Integer)
+        )
+      )
+
+      described_class.create!(session, tab_id: "create-tab", request: request)
+    end
+
+    it "[REQ-FIT-AUTH-001] does not reset cancel_requested_at when already set" do
+      tab_id = "cancel-requested"
+      project = Project.create!(ephemeral: true, title: "Processing", status: :processing)
+      run = project.nesting_runs.create!(
+        status: "processing",
+        cancel_requested_at: 2.minutes.ago
+      )
+      expect(run).not_to receive(:update!)
+      allow(Nesting::ApplyCancel).to receive(:call).with(nesting_run: run)
+
+      described_class.send(:cancel_active_nesting!, project)
     end
   end
 end

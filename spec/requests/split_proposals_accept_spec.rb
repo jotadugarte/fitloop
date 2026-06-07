@@ -178,4 +178,97 @@ RSpec.describe "Split proposal accept [REQ-FIT-SPLIT-001]", type: :request do
       expect(response.body).to include('data-testid="orphan-derived-dimensions"')
     end
   end
+
+  describe "POST reject [REQ-FIT-SPLIT-001]" do
+    let(:project) { start_ephemeral_workspace! }
+    let(:orphan_resolution) do
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :system_split
+      )
+    end
+    let!(:proposal) do
+      SplitProposal.create!(
+        orphan_resolution: orphan_resolution,
+        status: :draft,
+        version: 1,
+        labels: %w[a b],
+        cut_segments: [ [ [ 100.0, 0.0 ], [ 100.0, 50.0 ] ] ],
+        child_piece_geometries: []
+      )
+    end
+
+    it "rejects the proposal and redirects" do
+      post reject_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+
+      expect(response).to redirect_to(project_path(project))
+      expect(proposal.reload.status).to eq("rejected")
+      expect(project.reload.session_workflow_log.last["event"]).to eq("split_rejected")
+    end
+  end
+
+  describe "POST regenerate [REQ-FIT-SPLIT-001]" do
+    let(:project) { start_ephemeral_workspace! }
+    let(:orphan_resolution) do
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :system_split
+      )
+    end
+    let!(:proposal) do
+      SplitProposal.create!(
+        orphan_resolution: orphan_resolution,
+        status: :draft,
+        version: 1,
+        labels: %w[a b],
+        cut_segments: [ [ [ 100.0, 0.0 ], [ 100.0, 50.0 ] ] ],
+        child_piece_geometries: []
+      )
+    end
+
+    it "deletes draft proposals and queues SplitPlanJob" do
+      ActiveJob::Base.queue_adapter = :test
+      expect {
+        post regenerate_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      }.to have_enqueued_job(Nesting::SplitPlanJob).with(orphan_resolution.id)
+
+      expect(response).to redirect_to(project_path(project))
+      expect(orphan_resolution.split_proposals.draft.count).to eq(0)
+      expect(project.reload.session_workflow_log.last["event"]).to eq("split_regenerate_requested")
+    end
+  end
+
+  describe "GET/POST when workspace is not ephemeral" do
+    let(:project) { start_ephemeral_workspace! }
+    let(:orphan_resolution) do
+      OrphanResolution.create!(
+        project: project,
+        piece_key: "0",
+        reason: "oversized_for_sheet",
+        resolution_state: :system_split
+      )
+    end
+    let!(:proposal) do
+      SplitProposal.create!(
+        orphan_resolution: orphan_resolution,
+        status: :draft,
+        version: 1,
+        labels: %w[a b],
+        cut_segments: [ [ [ 100.0, 0.0 ], [ 100.0, 50.0 ] ] ],
+        child_piece_geometries: []
+      )
+    end
+
+    it "returns 403 forbidden" do
+      project.update!(ephemeral: false)
+      allow(Workspace).to receive(:find).and_return(project)
+
+      post accept_project_orphan_split_proposal_path(project, orphan_resolution.piece_key)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

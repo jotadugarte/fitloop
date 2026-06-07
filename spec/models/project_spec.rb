@@ -74,4 +74,20 @@ RSpec.describe Project, type: :model do
       expect(project).to be_ephemeral
     end
   end
+
+  describe "validations [REQ-FIT-DOM-001]" do
+    it "requires sheet stocks for non-ephemeral projects" do
+      project = described_class.new(title: "Non-ephemeral", ephemeral: false)
+      expect(project).not_to be_valid
+      expect(project.errors[:base]).to include(
+        I18n.t("activerecord.errors.models.project.attributes.base.no_sheet_stocks")
+      )
+    end
+
+    it "allows non-ephemeral project with a sheet stock" do
+      project = described_class.new(title: "Non-ephemeral", ephemeral: false)
+      project.sheet_stocks.build(width_mm: 1000, height_mm: 1000, quantity: 1)
+      expect(project).to be_valid
+    end
+  end
 end

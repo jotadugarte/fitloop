@@ -143,6 +143,8 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 - [x] **Production VM deploy** (REQ-FIT-QA-001, ADR-0007) — Configured and deployed on Coolify + Docker on a Linux VPS. Configured PostgreSQL database connections (primary, cache, queue, cable) using direct internal IP connectivity to bypass internal Docker DNS resolution issues. Configured SSL trust behind Cloudflare (`config.assume_ssl = true`) to fix CSRF 422 errors, and routed ActionCable via `solid_cable` adapter (removing Redis runtime requirements). — 2026-06-06
 - [x] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Hardened `docs/DEPLOY.md` to document webhook bypassing under Cloudflare Zero Trust (path `/webhooks/onvo`). Prefilled email field in Devise confirmation resends, added global notification banners for unconfirmed users, and configured Logger delivery fallback for emails to prevent registration crashes when SMTP is absent. — 2026-06-06
+- [x] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configured GitHub Actions in `ci.yml` to spin up a PostgreSQL test service and run the full RSpec suite (unit, controllers, request, system/E2E specs) on every PR and push. — 2026-06-07 — Branch: `refactor/test-coverage-100`
+- [x] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Integrated SimpleCov in the RSpec suite, set strict line (100.0%) and branch (100.0%) coverage minimums, and fixed all uncovered paths in controllers, models, and services. — 2026-06-07 — Branch: `refactor/test-coverage-100`
 
 ---
 
@@ -156,8 +158,7 @@ _(none)_
 
 ### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
-- [ ] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configurar GitHub Actions en `ci.yml` para levantar un servicio de base de datos PostgreSQL de prueba y ejecutar la suite completa de RSpec (specs unitarios, controladores, sistema y E2E) en cada PR y push.
-- [ ] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Instalar `SimpleCov` en la suite de RSpec, configurarlo para requerir cobertura total (100%) en el CI, y abrir una rama `refactor/test-coverage-100` para completar las pruebas de controladores, servicios y modelos que falten.
+_(none)_
 
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
@@ -179,6 +180,7 @@ _(none)_
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
+- [ ] **Certificado SSL/TLS (conexión encriptada)** (REQ-FIT-QA-001) — Instalar certificado de origen en el VPS/Coolify (Cloudflare Origin Certificate o Let's Encrypt vía proxy de Coolify) y activar modo SSL **Full (strict)** en Cloudflare, asegurando cifrado end-to-end entre el edge y la aplicación. Complementa `config.assume_ssl` ya desplegado en Rails.
 - [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
 - [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
 - [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.

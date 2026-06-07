@@ -42,4 +42,28 @@ RSpec.describe Billing::CheckoutContext, "[REQ-FIT-BILL-001]" do
       expect(ctx.to_h).to eq(currency: :usd, payment_method: :card, country_code: nil, iva_applicable: false)
     end
   end
+
+  describe "payment method resolution" do
+    it "accepts PaymentMethod value objects" do
+      payment_method = Billing::PaymentMethod.parse("card_usd")
+
+      ctx = described_class.new(currency: :usd, payment_method: payment_method, iva_applicable: false)
+
+      expect(ctx.payment_method.to_sym).to eq(:card)
+    end
+
+    it "rejects BillingMethod objects at the boundary" do
+      billing_method = Billing::BillingMethod.parse(:card)
+
+      expect do
+        described_class.new(currency: :usd, payment_method: billing_method, iva_applicable: false)
+      end.to raise_error(ArgumentError, /use PaymentMethod or symbol/)
+    end
+
+    it "rejects unsupported payment_method types" do
+      expect do
+        described_class.new(currency: :usd, payment_method: 123, iva_applicable: false)
+      end.to raise_error(ArgumentError, /invalid payment_method type/)
+    end
+  end
 end

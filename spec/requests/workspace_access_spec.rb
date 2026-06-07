@@ -76,4 +76,110 @@ RSpec.describe "Workspace project access", "[REQ-FIT-AUTH-001] [REQ-FIT-UI-003] 
       expect(response).to redirect_to(download_paywall_project_path(project))
     end
   end
+
+  describe "SetsWorkspaceProject concern edge cases" do
+    let(:tab_a) { "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }
+
+    it "creates a workspace project when session is completely empty" do
+      get workshop_path
+      expect(response).to have_http_status(:ok)
+      project = Workspace.find(session, tab_id: Workspace::DEFAULT_TAB_ID)
+      expect(project).to be_present
+      expect(project.ephemeral?).to be(true)
+    end
+
+    it "uses params[:project_id] if present" do
+      project = start_workspace_for_tab!(tab_a)
+      post cart_path, params: { project_id: project.id, kind: "plan", tier_months: "4" }, headers: tab_headers(tab_a)
+      expect(response).to redirect_to(checkout_path)
+    end
+
+    it "recovers workspace project when project does not exist" do
+      post cart_path, params: { project_id: 999999, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    end
+
+    it "clears stale workspace binds for non-existent project" do
+      allow(Workspace).to receive(:resolve!).and_raise(ActiveRecord::RecordNotFound)
+      fake_session = { Workspace::WORKSPACES_KEY => { "tab-1" => 999999 }, Workspace::SESSION_KEY => 999999 }
+      allow_any_instance_of(ApplicationController).to receive(:session).and_return(fake_session)
+
+      post cart_path, params: { project_id: 999999, kind: "plan", tier_months: "4" }
+      expect(fake_session[Workspace::WORKSPACES_KEY]).to eq({})
+      expect(fake_session[Workspace::SESSION_KEY]).to be_nil
+    end
+
+    it "returns false when project is not bound to the session" do
+      project = Project.create!(ephemeral: true, title: "Unbound Project")
+      allow(Workspace).to receive(:resolve!).and_raise(ActiveRecord::RecordNotFound)
+      fake_session = { Workspace::WORKSPACES_KEY => { "tab-1" => 111111 } }
+      allow_any_instance_of(ApplicationController).to receive(:session).and_return(fake_session)
+
+      post cart_path, params: { project_id: project.id, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(start_project_path)
+    end
+
+    it "returns false if the project is already the active project for the current tab" do
+      project = Project.create!(ephemeral: true, title: "Active Project")
+      allow(Workspace).to receive(:resolve!).and_raise(ActiveRecord::RecordNotFound)
+      allow(Workspace).to receive(:bound_to_project?).and_return(true)
+      allow(Workspace).to receive(:find).with(anything, tab_id: "tab-1").and_return(project)
+      allow_any_instance_of(ApplicationController).to receive(:workspace_tab_id).and_return("tab-1")
+
+      post cart_path, params: { project_id: project.id, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(start_project_path)
+    end
+
+    it "returns false when project is owned by another tab and the current tab already has an active project" do
+      project1 = Project.create!(ephemeral: true, title: "P1")
+      project2 = Project.create!(ephemeral: true, title: "P2")
+      allow(Workspace).to receive(:resolve!).and_raise(ActiveRecord::RecordNotFound)
+      allow(Workspace).to receive(:bound_to_project?).and_return(true)
+      allow(Workspace).to receive(:tab_id_for_project).and_return("tab-1")
+      allow(Workspace).to receive(:find).with(anything, tab_id: "tab-2").and_return(project2)
+      allow_any_instance_of(ApplicationController).to receive(:workspace_tab_id).and_return("tab-2")
+
+      post cart_path, params: { project_id: project1.id, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(start_project_path)
+    end
+
+    it "binds the project to the current tab and returns true" do
+      project = Project.create!(ephemeral: true, title: "P3")
+      allow(Workspace).to receive(:resolve!).and_raise(ActiveRecord::RecordNotFound)
+      allow(Workspace).to receive(:bound_to_project?).and_return(true)
+      allow(Workspace).to receive(:tab_id_for_project).and_return(nil)
+      allow(Workspace).to receive(:find).with(anything, tab_id: "tab-1").and_return(nil)
+      allow_any_instance_of(ApplicationController).to receive(:workspace_tab_id).and_return("tab-1")
+
+      expect(Workspace).to receive(:bind!).with(anything, project, tab_id: "tab-1")
+
+      post cart_path, params: { project_id: project.id, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(checkout_path)
+    end
+
+    it "expires project everywhere when param_id is present and tab is expired" do
+      project = Project.create!(ephemeral: true, title: "P4")
+      allow_any_instance_of(CartController).to receive(:tab_return_expired?).and_return(true)
+      allow(Workspace).to receive(:bound_to_project?).and_return(true)
+
+      expect(Workspace).to receive(:expire_project_everywhere!).with(anything, project, anything)
+
+      post cart_path, params: { project_id: project.id, kind: "plan", tier_months: "4" }
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.tab_closed_expired"))
+    end
+
+    it "expires tab after closure when project is nil and tab is expired" do
+      allow_any_instance_of(ProjectsController).to receive(:tab_return_expired?).and_return(true)
+      allow(Workspace).to receive(:find).and_return(nil)
+      allow(Workspace).to receive(:any_bound_project).and_return(nil)
+
+      expect(Workspace).to receive(:expire_tab_after_closure!).with(anything, tab_id: anything, request: anything)
+
+      get workshop_path
+      expect(response).to redirect_to(start_project_path)
+      expect(flash[:alert]).to eq(I18n.t("workspace.tab_closed_expired"))
+    end
+  end
 end

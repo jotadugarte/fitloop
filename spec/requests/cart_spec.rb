@@ -115,6 +115,48 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect(response).to redirect_to("/carrito/reemplazar")
     end
 
+    it "[REQ-FIT-BILL-001] redirects guests with a cart token to checkout (D6)" do
+      project = begin_workspace_session!
+      run = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run.id }, headers: { "CF-IPCountry" => "CR" }
+
+      get "/carrito"
+
+      expect(response).to redirect_to("/checkout")
+    end
+
+    it "[REQ-FIT-BILL-001] clears invalid pending replace payloads from the session (D6)" do
+      user = create_billing_user!
+      sign_in_user! user
+      session[:pending_cart] = { "kind" => "invalid", "currency_mode" => "crc" }
+
+      get "/carrito/reemplazar"
+
+      expect(response).to redirect_to("/taller/descarga-pago")
+      expect(session[:pending_cart]).to be_nil
+    end
+
+    it "[REQ-FIT-BILL-001] redirects to paywall when replace confirmation fails validation (D6)" do
+      user = create_billing_user!
+      project = begin_workspace_session!
+      run1 = project.nesting_runs.create!(status: "completed")
+      run2 = project.nesting_runs.create!(status: "completed")
+      project.update!(status: :completed)
+      sign_in_user! user
+
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run1.id }, headers: { "CF-IPCountry" => "CR" }
+      post "/carrito", params: { kind: "single_download", nesting_run_id: run2.id }, headers: { "CF-IPCountry" => "CR" }
+      allow(Billing::CartUpsert).to receive(:call).and_raise(ArgumentError, "invalid cart")
+
+      patch "/carrito"
+
+      expect(response).to redirect_to("/taller/descarga-pago")
+      expect(flash[:alert]).to eq(I18n.t("billing.cart.replace.invalid"))
+      expect(session[:pending_cart]).to be_nil
+    end
+
     it "[REQ-FIT-BILL-001] clears pending replace on cancel (D6)" do
       user = create_billing_user!
       project = begin_workspace_session!
@@ -147,6 +189,16 @@ RSpec.describe "Cart (single-item) flow", "[REQ-FIT-BILL-001]", type: :request d
       expect do
         delete "/carrito"
       end.to change(Cart, :count).by(-1)
+
+      expect(response).to redirect_to("/taller/descarga-pago")
+    end
+  end
+
+  describe "DELETE /carrito without an existing line [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] still redirects to paywall when the cart is empty" do
+      begin_workspace_session!
+
+      delete "/carrito"
 
       expect(response).to redirect_to("/taller/descarga-pago")
     end

@@ -18,5 +18,19 @@ RSpec.describe Billing::CentsAmount, "[REQ-FIT-BILL-001]" do
     it "rejects negative cents" do
       expect { described_class.parse(-1, currency: :usd) }.to raise_error(ArgumentError)
     end
+
+    it "rejects nil cents" do
+      expect { described_class.parse(nil, currency: :usd) }.to raise_error(ArgumentError, "cents required")
+    end
+
+    it "implements value object equality" do
+      a = described_class.parse(100, currency: :usd)
+      b = described_class.parse(100, currency: :usd)
+      c = described_class.parse(200, currency: :usd)
+
+      expect(a).to eq(b)
+      expect(a).not_to eq(c)
+      expect(a.hash).to eq(b.hash)
+    end
   end
 end

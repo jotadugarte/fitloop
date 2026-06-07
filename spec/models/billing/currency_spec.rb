@@ -9,6 +9,12 @@ RSpec.describe Billing::Currency, "[REQ-FIT-BILL-001]" do
       expect(described_class.parse("crc").to_sym).to eq(:crc)
     end
 
+    it "returns existing Currency value objects unchanged" do
+      currency = described_class.parse(:usd)
+
+      expect(described_class.parse(currency)).to equal(currency)
+    end
+
     it "rejects unknown currencies" do
       expect { described_class.parse("eur") }.to raise_error(ArgumentError)
       expect { described_class.parse(nil) }.to raise_error(ArgumentError)

@@ -34,6 +34,32 @@ RSpec.describe Nesting::SheetStockRow, "[REQ-FIT-NEST-002]" do
       expect(row.to_config_hash[:quantity]).to be_nil
     end
 
+    it "builds from sheet stock rows with unlimited quantity" do
+      stock = project.sheet_stocks.first!
+      stock.update!(quantity: nil)
+
+      row = described_class.from_sheet_stock(stock)
+
+      expect(row.quantity).to be_nil
+    end
+
+    it "supports value equality and hashing" do
+      left = described_class.new(width_mm: 500, height_mm: 800, quantity: 2, sort_order: 0)
+      right = described_class.new(width_mm: 500, height_mm: 800, quantity: 2, sort_order: 0)
+      different = described_class.new(width_mm: 501, height_mm: 800, quantity: 2, sort_order: 0)
+
+      expect(left).to eq(right)
+      expect(left.eql?(right)).to be(true)
+      expect(left.hash).to eq(right.hash)
+      expect(left).not_to eq(different)
+    end
+
+    it "rejects negative sort_order" do
+      expect do
+        described_class.new(width_mm: 500, height_mm: 800, quantity: 1, sort_order: -1)
+      end.to raise_error(ArgumentError, /sort_order/)
+    end
+
     it "rejects non-positive dimensions and invalid quantity" do
       expect do
         described_class.new(width_mm: 0, height_mm: 800, quantity: 1, sort_order: 0)
