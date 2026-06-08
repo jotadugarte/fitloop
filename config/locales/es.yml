@@ -1,4 +1,7 @@
 es:
+  maintenance:
+    title: "Modo de Mantenimiento"
+    message: "Nuestro servicio no está disponible temporalmente por mantenimiento. Por favor, vuelve pronto."
   application:
     name: "moduSLoop"
     dialog_title: "moduSLoop"

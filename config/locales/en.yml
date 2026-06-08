@@ -28,6 +28,9 @@
 #       enabled: "ON"
 
 en:
+  maintenance:
+    title: "Maintenance Mode"
+    message: "Our service is temporarily unavailable for maintenance. Please check back soon."
   application:
     name: "moduSLoop"
     dialog_title: "moduSLoop"

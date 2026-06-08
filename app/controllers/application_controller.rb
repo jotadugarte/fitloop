@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  before_action :check_maintenance_mode
   before_action :set_anonymous_session_key
 
   def after_sign_in_path_for(resource)
@@ -32,5 +33,18 @@ class ApplicationController < ActionController::Base
 
   def layout_for_controller
     devise_controller? ? "minimal" : "application"
+  end
+
+  # [REQ-FIT-QA-001] Checks if maintenance mode is enabled and intercepts requests unless bypassed
+  def check_maintenance_mode
+    return unless ENV["MAINTENANCE_MODE"] == "true"
+
+    # Bypass conditions
+    return if request.path == "/up"
+    return if request.path.start_with?("/assets/") || request.path.start_with?("/rails/active_storage/")
+    return if devise_controller?
+    return if current_user&.admin?
+
+    render template: "errors/maintenance", layout: "minimal", status: :service_unavailable
   end
 end

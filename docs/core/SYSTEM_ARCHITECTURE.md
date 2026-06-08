@@ -19,6 +19,7 @@
 | **i18n** | Rails I18n | `en`, `es` in v1; optional joke locale `es_panic` (easter egg, same key tree as `es`) |
 | **Auth** | **Devise** | Email/password only (OAuth removed for MVP). Spanish routes (`/iniciar-sesion`, `/crear-cuenta`, `/mi-cuenta`, …). See ADR-0005. |
 | **Billing (v1)** | Rails + `config/billing.yml` + **ONVO** (`BILLING_GATEWAY=onvo`) | Live **ONVO** Payment Intents + webhook (`ADR-0006`) or **simulated** checkout (`BILLING_GATEWAY=simulate`, ADR-0005). Paywall on **nested DXF** download; preview and `placements.json` remain free. |
+| **Rate Limiting** | **Rack::Attack** (`rack-attack` gem) | Enabled in all environments except test. Throttles authentication and payment routes to 5 requests per minute per IP. Uses `ActiveSupport::Cache::MemoryStore` cache for rate limit states to remain environment-agnostic. |
 | **Nesting engine** | Python package `nesting_engine/` | **v1 production:** `nest_libnest2d.nest_multi_bin` (fill → intra-sheet repack ×2 → consolidate → inter-sheet search) with libnest2d full-sheet batch (`nest_sheet`, `nest_sheet_with_obstacles`, ≤128 pieces) and Shapely fallback/scoring (`nest_placement.py`). ezdxf + Shapely. See ADR-0001. |
 | **Bridge (v1)** | CLI | Rails writes `config.json` + paths → Python returns `nested.dxf`, `placements.json`, `report.json` |
 
@@ -155,6 +156,8 @@ Rails orchestrates subprocess I/O only; no split geometry or composite clipping 
 | **Cart** | `Cart`, `CartController`, `Billing::CartUpsert`, `Billing::CartMergeOnLogin`, `Billing::PendingCart` | Single-item DB cart (guest or user); price snapshot at add; replace-confirm; merge on login (user wins) |
 | **Billing** | `Billing::Pricing`, `Billing::CheckoutBreakdown`, `Billing::CheckoutPaymentMethod`, `Billing::Onvo::*`, `Billing::FulfillPayment`, `Billing::Simulate*`, `config/billing.yml` | **ONVO** card (CRC/USD) and SINPE (CRC) when `BILLING_GATEWAY=onvo`; simulated fallback; MEIC list vs SINPE discount; IVA CR only at checkout; webhook at `POST /webhooks/onvo`; plans 1/2/4 months; monthly quota; payment snapshots; 24h retention on `DownloadGrant` |
 | **Account UI** | `/mis-pagos`, `/planes`, `/carrito`, `/checkout` | Plan purchase and retained download after workspace loss; cart is internal redirect to checkout |
+| **Rate Limiting** | `Rack::Attack` | Throttles brute-force attempts on `/iniciar-sesion`, `/crear-cuenta`, `/checkout/pagar`, `/checkout/pagos/*/sinpe`, and `/checkout/pagos/*/tarjeta` to 5 requests per minute per IP. Bypassed in tests. |
+| **Log Filtering** | `config/initializers/filter_parameter_logging.rb` | Masks sensitive credit card, CVV, holder names, Sinpe mobile numbers/identities, and generic variants from application log trails to preserve PCI-DSS compliance in production. |
 
 Projects remain **ephemeral** — `User` does not own saved projects. Persisted billing rows (`payments`, `subscriptions`, `download_grants`) are the system of record for monetization.
 

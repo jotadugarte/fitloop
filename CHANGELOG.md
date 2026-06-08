@@ -6,6 +6,10 @@ All notable user-facing changes to moduSLoop are documented here.
 
 ### Added
 
+- **Security Hardening & Stability:**
+  - Added **Log Parameter Filtering** to strictly mask credit card, Sinpe mobile number, Sinpe identification, CVV, and holder name credentials in production logs (PCI-DSS compliance).
+  - Configured **Rack::Attack Rate Limiting** to throttle brute-force attempts to login (`/iniciar-sesion`), registration (`/crear-cuenta`), checkout pay, and SINPE/card confirmation endpoints to 5 requests per minute per IP.
+  - Implemented **Maintenance Mode** controlled by environment variable (`MAINTENANCE_MODE=true`), rendering a glassmorphic 503 error page while bypassing admins, health checks (`/up`), and assets.
 - **moduSLoop Tool Hub:** Redesigned the home landing page into a multi-tool hub dashboard displaying active (`fiTLoop` DXF nesting) and upcoming (`synCLoop` schedule sync) student tools. Added a toolbar Home button (`/images/icono-modusloop.png`) to navigate back to the hub.
 - **Admin foundation:** Added the `admin` boolean attribute on `User`, automated promotion of admin email lists via boot initializer (`FITLOOP_ADMIN_EMAILS`), layout for admin dashboard, and a secure stealth access gate at `/admin/*` returning 404 for unauthorized requests (`REQ-FIT-ADMIN-001`).
 - **Unified Mi taller funnel:** EMPEZAR lands on `/taller` with contextual **setup mode** (láminas → nesting params → DXF; preview hidden until first nest) vs **taller mode** after first successful nest (`REQ-FIT-UI-001`, `REQ-FIT-UI-003`).
