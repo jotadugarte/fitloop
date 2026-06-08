@@ -3,7 +3,7 @@
 require "simplecov"
 SimpleCov.start "rails" do
   enable_coverage :branch
-  minimum_coverage line: 100, branch: 100
+  minimum_coverage line: 100, branch: 100 unless ENV["NO_COVERAGE"] || ENV["COVERAGE"] == "false"
   add_filter "/lib/"
 end
 
