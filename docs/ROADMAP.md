@@ -151,6 +151,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Hardened `docs/DEPLOY.md` to document webhook bypassing under Cloudflare Zero Trust (path `/webhooks/onvo`). Prefilled email field in Devise confirmation resends, added global notification banners for unconfirmed users, and configured Logger delivery fallback for emails to prevent registration crashes when SMTP is absent. — 2026-06-06
 - [x] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configured GitHub Actions in `ci.yml` to spin up a PostgreSQL test service and run the full RSpec suite (unit, controllers, request, system/E2E specs) on every PR and push. — 2026-06-07 — Branch: `refactor/test-coverage-100`
 - [x] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Integrated SimpleCov in the RSpec suite, set strict line (100.0%) and branch (100.0%) coverage minimums, and fixed all uncovered paths in controllers, models, and services. — 2026-06-07 — Branch: `refactor/test-coverage-100`
+- [x] **Script de desarrollo con Solid Queue local** (REQ-FIT-QA-001) — Configured `bin/dev` to run with Solid Queue and Puma integrated supervisor using the `--solid` flag or `USE_SOLID_QUEUE=true` environment variable, aligning development environment closely with production/Coolify background queue adapter. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_local-solid-queue-development.md`
 
 ---
 
@@ -165,7 +166,6 @@ _(none)_
 ### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
 - [ ] **Tests de arquitectura para colas de fondo** — Implementar pruebas automatizadas en RSpec que validen que `config/queue.yml` use sintaxis de arrays correcta para definir múltiples colas, y que cada job que hereda de `ApplicationJob` esté enrutado a una cola activa con workers configurados.
-- [ ] **Script de desarrollo con Solid Queue local** — Configurar una tarea o script para correr desarrollo local con Solid Queue (`ACTIVE_JOB_QUEUE_ADAPTER=solid_queue SOLID_QUEUE_IN_PUMA=1`) para poder reproducir y verificar configuraciones de colas de producción localmente.
 
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
