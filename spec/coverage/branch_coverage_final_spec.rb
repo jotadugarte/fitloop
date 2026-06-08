@@ -21,7 +21,7 @@ RSpec.describe "Branch coverage final gaps" do
     it "uses record id when the attachment is present" do
       project = create_project_for_spec!(title: "URL record", bind_workspace: false)
       project.input_dxf.attach(
-        io: StringIO.new("dxf"),
+        io: StringIO.new("SECTION"),
         filename: "piece.dxf",
         content_type: "application/dxf"
       )

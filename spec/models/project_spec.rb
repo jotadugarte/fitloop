@@ -51,6 +51,11 @@ RSpec.describe Project, type: :model do
 
       expect(project).not_to be_workshop_setup_mode
     end
+
+    it "is false when status is not draft" do
+      project.status = "completed"
+      expect(project).not_to be_workshop_setup_mode
+    end
   end
 
   describe "ephemeral workspace [REQ-FIT-AUTH-001] [REQ-FIT-DOM-001]" do
