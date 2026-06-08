@@ -25,15 +25,18 @@ export FITLOOP_BILLING_COUNTRY_OVERRIDE="${FITLOOP_BILLING_COUNTRY_OVERRIDE:-CR}
 
 USE_SOLID_QUEUE="${USE_SOLID_QUEUE:-false}"
 for arg in "$@"; do
-  if [[ "$arg" == "--solid" ]]; then
-    USE_SOLID_QUEUE="true"
-  fi
+  case "$arg" in
+    --solid)
+      USE_SOLID_QUEUE="true"
+      ;;
+  esac
 done
 
 if [[ "${USE_SOLID_QUEUE}" == "true" || "${USE_SOLID_QUEUE}" == "1" ]]; then
   export ACTIVE_JOB_QUEUE_ADAPTER=solid_queue
   export SOLID_QUEUE_IN_PUMA=1
   echo "Fitloop development -> http://localhost:${PORT} (Active Job :solid_queue, Puma integrated supervisor)"
+  echo "Tip: Make sure to run 'bin/rails db:prepare' if you encounter database errors when using Solid Queue."
 else
   echo "Fitloop development -> http://localhost:${PORT} (Active Job :async, in-process)"
 fi
