@@ -9,7 +9,7 @@
   <implementation_plan>
     <step id="1" status="complete">Correr las pruebas existentes (RSpec) para establecer una línea base verde (green baseline) [REQ-FIT-QA-001]</step>
     <step id="2" status="complete">Agregar soporte en `bin/dev` para correr con Solid Queue y Puma integrado usando un flag `--solid` o la variable de entorno `USE_SOLID_QUEUE` [REQ-FIT-QA-001]</step>
-    <step id="3" status="pending">Verificar que `config/environments/development.rb` y `config/puma.rb` se activen correctamente cuando se especifica el flag [REQ-FIT-QA-001]</step>
+    <step id="3" status="complete">Verificar que `config/environments/development.rb` y `config/puma.rb` se activen correctamente cuando se especifica el flag [REQ-FIT-QA-001]</step>
     <step id="4" status="pending">Asegurar la inicialización correcta de las tablas de Solid Queue en el entorno de desarrollo local mediante `bin/rails db:prepare` si es necesario [REQ-FIT-QA-001]</step>
     <step id="5" status="pending">Probar el flujo de anidado de DXF localmente usando Solid Queue en Puma para validar que los trabajos se ejecuten correctamente de forma asíncrona [REQ-FIT-QA-001]</step>
     <step id="6" status="pending">Ejecutar la suite de pruebas completa nuevamente para asegurar que el cambio no haya introducido regresiones [REQ-FIT-QA-001]</step>
