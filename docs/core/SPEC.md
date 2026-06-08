@@ -175,12 +175,15 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 - **Not v1 path:** Northflank, stock `Dockerfile`/Kamal without Python nesting.
 - **ONVO webhooks:** local test via ngrok; production via `https://<domain>/webhooks/onvo` on the VM.
 - **Manual QA:** `docs/QA_MANUAL_CHECKLIST.md` (includes **Production VM go-live** section).
+- **Maintenance Mode:** Quick switch activated via `MAINTENANCE_MODE=true` env variable. Bypasses admin users, health check (`/up`), asset paths (`/assets/` and `/rails/active_storage/`), and Devise routes to allow admin login, and renders `errors/maintenance` view with status `503 Service Unavailable`.
 
 ### REQ-FIT-AUTH-002 (detail)
 
 **Scope:** Persistent `User` accounts orthogonal to ephemeral `Workspace` (ADR-0005). Projects are **not** saved per user.
 
-**Stack:** **Devise** (email/password, `:confirmable`, password minimum **12** characters, password reset).
+**Stack:** **Devise** (email/password, `:confirmable`, password minimum **12** characters, password reset; **OmniAuth** integration placeholders preserved for v2).
+
+- **Authentication Rate Limiting:** Throttles attempts to `/iniciar-sesion` and `/crear-cuenta` to 5 requests per minute per IP via Rack::Attack.
 
 **Routes (Spanish, D41):**
 
@@ -305,6 +308,9 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 - `Billing::SimulateSingleDownload` / `Billing::SimulatePlanPurchase` call the same **`Billing::FulfillPayment`** / **`Billing::FailPayment`** services on success/failure.
 
 **Paywall UX (D42):** Catalog at `/taller/descarga-pago` with inline plans + “Añadir al carrito”; paths to checkout (after login), `/iniciar-sesion`.
+
+- **Log Filtering (PCI-DSS compliance):** Configure `config/initializers/filter_parameter_logging.rb` to strictly mask sensitive checkout and payment fields (`:card_number`, `:holder_name`, `:card_holder_name`, `:mobile_number`, `:sinpe_mobile_number`, `:identification`, `:sinpe_identification`, `:card_cvv`) from application logs in all environments.
+- **Payment Rate Limiting:** Throttles payment checkout endpoints (`POST /checkout/pagar`, `POST /checkout/pagos/*/sinpe`, `POST /checkout/pagos/*/tarjeta`) to 5 requests per minute per IP using Rack::Attack, bypassing `/webhooks/onvo` to avoid blocking live webhook fulfillment delivery.
 
 **Tests:** billing doc verifier (`AuthBillingSpecDocVerifier` + ADR-0006); cart, checkout, webhook, and paywall request specs.
 

@@ -131,6 +131,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Límite de Concurrencia de Anidado** (REQ-FIT-JOB-001) — Created `config/queue.yml` to partition queue workers: limited the CPU-intensive `nesting` queue to exactly 3 concurrent workers (threads: 1, processes: 3) to match physical host i7 CPU cores and prevent starvation of Puma/Postgres. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
 - [x] **Timeout de OS robusto** (REQ-FIT-JOB-001) — Modified `Nesting::CliRunner` and `Nesting::JobRunner` to ensure child process is forcefully killed on thread timeout or cancellation with a TERM-to-KILL signal fallback and post-condition checks. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
 - [x] **Limpieza inmediata de `/tmp`** (REQ-FIT-JOB-001) — Modified `Nesting::JobRunner` to ensure immediate removal of the workspace directory `tmp/nesting_runs/:id/` inside an `ensure` block after file uploads finish. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
+- [x] **Filtrado estricto de logs (Compliance PCI-DSS)** (REQ-FIT-BILL-001) — Configured `filter_parameter_logging.rb` to mask card credentials, CVV, holder names, Sinpe numbers/identifications, and their generic variants in application logs. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Rate Limiting (Rack::Attack)** (REQ-FIT-AUTH-002, REQ-FIT-BILL-001) — Installed and configured the `rack-attack` gem to throttle authentication and payment endpoints to 5 requests per minute per IP using an environment-agnostic in-memory state store. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Modo de mantenimiento rápido** (REQ-FIT-QA-001) — Implemented environment-controlled maintenance mode (`MAINTENANCE_MODE=true`) rendering a customized 503 error page with responsive glassmorphism styles, while bypassing health checks, assets, admin users, and Devise login routes. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
 
 ### Pre-live polish (branch `merge-setup-into-workshop`)
 
@@ -170,10 +173,7 @@ _(none)_
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
 - [ ] **Validación de DXF (Sanitización)** (REQ-FIT-VAL-001) — Implementar en Rails una validación de tamaño máximo de archivo y comprobación de integridad del formato DXF en los controladores de subida antes de guardarlo en Active Storage o procesarlo.
-- [ ] **Filtrado estricto de logs (Compliance PCI-DSS)** — Configurar `filter_parameter_logging.rb` para enmascarar parámetros sensibles como `:card_number`, `:holder_name`, `:mobile_number` e `:identification` en todos los entornos.
-- [ ] **Rate Limiting** — Instalar y configurar la gema `rack-attack` para limitar peticiones ráfaga en endpoints sensibles de autenticación (login/registro) y pago.
 - [ ] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Verificar y auditar que confirmaciones duplicadas de webhook (por reintentos de red) no generen duplicaciones en la activación de planes/descargas ni excepciones en base de datos.
-- [ ] **Modo de mantenimiento rápido** — Implementar un interruptor sencillo controlado por variable de entorno para poner la aplicación en modo mantenimiento mostrando una vista limpia con Hotwire.
 
 ### 3. Monitoreo & Feedback del Usuario (Operaciones)
 
