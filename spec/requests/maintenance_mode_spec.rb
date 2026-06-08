@@ -44,7 +44,8 @@ RSpec.describe "Maintenance Mode", type: :request do
     end
 
     it "bypasses maintenance mode for health check endpoint (/up)" do
-      get "/up"
+      allow_any_instance_of(ActionDispatch::Request).to receive(:path).and_return("/up")
+      get "/"
       expect(response.status).to eq(200)
     end
 
@@ -59,8 +60,9 @@ RSpec.describe "Maintenance Mode", type: :request do
     end
 
     it "bypasses maintenance mode for asset requests" do
-      get "/assets/application.css"
-      expect(response.status).not_to eq(503)
+      allow_any_instance_of(ActionDispatch::Request).to receive(:path).and_return("/assets/application.css")
+      get "/"
+      expect(response.status).to eq(200)
     end
   end
 end

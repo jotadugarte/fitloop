@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class Rack::Attack
+  # Disable in test mode by default to prevent throttling other specs
+  Rack::Attack.enabled = !Rails.env.test?
+
   # Use an in-memory store for rate limit states.
   # This makes it environment-agnostic (no external Redis dependency required for simple limits).
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new

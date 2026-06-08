@@ -42,8 +42,6 @@ class ApplicationController < ActionController::Base
     return if request.path == "/up"
     return if request.path.start_with?("/assets/")
     return if devise_controller?
-    return if request.path.start_with?("/iniciar-sesion")
-    return if request.path.start_with?("/cerrar-sesion")
     return if current_user&.admin?
 
     render template: "errors/maintenance", layout: "minimal", status: :service_unavailable
