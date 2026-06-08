@@ -1,5 +1,7 @@
----
 es_panic:
+  maintenance:
+    title: "El Taller Está Cerrado (Mantenimiento)"
+    message: "El láser digital está en mantenimiento programado. Vaya por un café y vuelva más tarde."
   application:
     name: moduSLoop
     dialog_title: El Oráculo del Láser
