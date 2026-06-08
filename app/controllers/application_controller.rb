@@ -35,12 +35,13 @@ class ApplicationController < ActionController::Base
     devise_controller? ? "minimal" : "application"
   end
 
+  # [REQ-FIT-QA-001] Checks if maintenance mode is enabled and intercepts requests unless bypassed
   def check_maintenance_mode
     return unless ENV["MAINTENANCE_MODE"] == "true"
 
     # Bypass conditions
     return if request.path == "/up"
-    return if request.path.start_with?("/assets/")
+    return if request.path.start_with?("/assets/") || request.path.start_with?("/rails/active_storage/")
     return if devise_controller?
     return if current_user&.admin?
 

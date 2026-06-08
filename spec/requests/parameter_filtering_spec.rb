@@ -2,12 +2,13 @@
 
 require "rails_helper"
 
+# [REQ-FIT-BILL-001]
 RSpec.describe "Parameter Filtering", type: :request do
   let(:parameter_filter) do
     ActiveSupport::ParameterFilter.new(Rails.application.config.filter_parameters)
   end
 
-  it "filters sensitive payment and identification parameters" do
+  it "[REQ-FIT-BILL-001] filters sensitive payment and identification parameters" do
     sensitive_params = {
       card_number: "1234567812345678",
       holder_name: "Juan Perez",

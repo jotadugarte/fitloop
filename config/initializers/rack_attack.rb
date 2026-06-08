@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# [REQ-FIT-AUTH-002] [REQ-FIT-BILL-001]
 class Rack::Attack
   # Disable in test mode by default to prevent throttling other specs
   Rack::Attack.enabled = !Rails.env.test?
@@ -37,7 +38,7 @@ class Rack::Attack
     [
       429,
       { "Content-Type" => "text/plain" },
-      ["Retry later\n"]
+      [ "Retry later\n" ]
     ]
   end
 end
