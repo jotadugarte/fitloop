@@ -134,6 +134,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Filtrado estricto de logs (Compliance PCI-DSS)** (REQ-FIT-BILL-001) — Configured `filter_parameter_logging.rb` to mask card credentials, CVV, holder names, Sinpe numbers/identifications, and their generic variants in application logs. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
 - [x] **Rate Limiting (Rack::Attack)** (REQ-FIT-AUTH-002, REQ-FIT-BILL-001) — Installed and configured the `rack-attack` gem to throttle authentication and payment endpoints to 5 requests per minute per IP using an environment-agnostic in-memory state store. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
 - [x] **Modo de mantenimiento rápido** (REQ-FIT-QA-001) — Implemented environment-controlled maintenance mode (`MAINTENANCE_MODE=true`) rendering a customized 503 error page with responsive glassmorphism styles, while bypassing health checks, assets, admin users, and Devise login routes. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Tests de arquitectura para colas de fondo** (REQ-FIT-APP-001) — Validated Solid Queue array config and ApplicationJob class queue routing. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
+- [x] **Validación de DXF (Sanitización)** (REQ-FIT-DXF-001) — Implemented DXF upload size (10MB), extension, and SECTION marker validations in controllers and models. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
+- [x] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Guarded webhook duplicate fulfillments and concurrent payloads using database pessimistic locking on the payment record. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
 
 ### Pre-live polish (branch `merge-setup-into-workshop`)
 
@@ -168,12 +171,11 @@ _(none)_
 
 ### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
-- [ ] **Tests de arquitectura para colas de fondo** — Implementar pruebas automatizadas en RSpec que validen que `config/queue.yml` use sintaxis de arrays correcta para definir múltiples colas, y que cada job que hereda de `ApplicationJob` esté enrutado a una cola activa con workers configurados.
+_(none)_
 
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
-- [ ] **Validación de DXF (Sanitización)** (REQ-FIT-VAL-001) — Implementar en Rails una validación de tamaño máximo de archivo y comprobación de integridad del formato DXF en los controladores de subida antes de guardarlo en Active Storage o procesarlo.
-- [ ] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Verificar y auditar que confirmaciones duplicadas de webhook (por reintentos de red) no generen duplicaciones en la activación de planes/descargas ni excepciones en base de datos.
+_(none)_
 
 ### 3. Monitoreo & Feedback del Usuario (Operaciones)
 

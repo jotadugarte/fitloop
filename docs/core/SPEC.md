@@ -284,7 +284,7 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 - **Start pay:** Server creates `Payment` `pending`, calls ONVO to create **payment intent** (`metadata` includes internal `payment_id`), stores `onvo_payment_intent_id`.
 - **Card:** SDK `onvo.pay` with `ONVO_PUBLISHABLE_KEY`; 3DS return **`/checkout/retorno`**.
 - **SINPE:** Collect transferente **cédula** + **teléfono móvil**; create `mobile_number` payment method; show destination number and exact amount from intent.
-- **Webhook (authoritative):** `POST /webhooks/onvo` — verify `X-Webhook-Secret` against `ONVO_WEBHOOK_SECRET`; handle `payment-intent.succeeded` \| `payment-intent.failed`. Delegate to **`Billing::FulfillPayment`** / **`Billing::FailPayment`** (idempotent; no double `DownloadGrant`).
+- **Webhook (authoritative):** `POST /webhooks/onvo` — verify `X-Webhook-Secret` against `ONVO_WEBHOOK_SECRET`; handle `payment-intent.succeeded` \| `payment-intent.failed`. Delegate to **`Billing::FulfillPayment`** / **`Billing::FailPayment`**. Both services use database pessimistic locking (`@payment.lock!`) inside a transaction to ensure idempotency and prevent double `DownloadGrant` creation under concurrency. Concurrent duplicate calls return `:already_fulfilled` or `:already_terminal` statuses. The webhook controller renders `{ status: :already_fulfilled }` for `:already_fulfilled` with status `:ok`.
 - **Client UX:** `onSuccess` → processing screen (poll `GET /checkout/pagos/:payment_id/estado` every 2–3s, max ~60s); do **not** grant on client callback alone.
 - **ENV:** `ONVO_MODE`, `ONVO_SECRET_KEY`, `ONVO_PUBLISHABLE_KEY`, `ONVO_WEBHOOK_SECRET`.
 
@@ -370,6 +370,11 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 
 - Multiple DXF per project; layer names unioned across files.
 - Checkbox **layer filter** persists `ProjectLayer.included`.
+- **DXF Upload Validation and Sanitization:**
+  - **Max File Size:** Files exceeding 10 MB are rejected.
+  - **Extension Constraint:** Files must end with a `.dxf` extension (case-insensitive).
+  - **Format Integrity:** Uploaded files must contain the `"SECTION"` string marker in their content.
+  - **Double-Layer Checking:** These rules are enforced both in `ProjectInputDxfFilesController` before attachment creation and in the `Project` model validation (`validate_input_dxf_files`) on unsaved and persisted files.
 
 ### REQ-FIT-DXF-002 (detail)
 
