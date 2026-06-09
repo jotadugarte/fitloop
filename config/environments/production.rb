@@ -66,10 +66,10 @@ Rails.application.configure do
     config.action_mailer.delivery_method = :smtp
     config.action_mailer.raise_delivery_errors = true
     config.action_mailer.smtp_settings = {
-      address:              ENV.fetch("SMTP_ADDRESS"),
+      address:              ENV["SMTP_ADDRESS"],
       port:                 ENV.fetch("SMTP_PORT", "587").to_i,
-      user_name:            ENV.fetch("SMTP_USER"),
-      password:             ENV.fetch("SMTP_PASSWORD"),
+      user_name:            ENV["SMTP_USER"],
+      password:             ENV.fetch("SMTP_PASSWORD", nil),
       authentication:       :plain,
       enable_starttls_auto: true
     }

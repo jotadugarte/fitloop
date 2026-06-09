@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-# check=error=true
 
 # Extended Rails image (Thruster + Python nesting engine). 
 # Used for containerized deploy on Coolify (Option A).
