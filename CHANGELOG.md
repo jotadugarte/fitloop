@@ -6,6 +6,10 @@ All notable user-facing changes to moduSLoop are documented here.
 
 ### Added
 
+- **Background Job queue validation:** Added specs to validate the syntax of `config/queue.yml` and ensure all jobs inheriting from `ApplicationJob` use a configured queue.
+- **DXF upload validation:** Added file size limits (10MB), extension constraints, and format integrity checks (checking for `SECTION` string) on both Project model and controller upload layers.
+- **ONVO Webhook idempotency:** Protected against concurrent payment webhook callbacks by utilizing pessimistic database locking (`lock!`) on the Payment record during FulfillPayment and FailPayment workflows.
+
 - **Security Hardening & Stability:**
   - Added **Log Parameter Filtering** to strictly mask credit card, Sinpe mobile number, Sinpe identification, CVV, and holder name credentials in production logs (PCI-DSS compliance).
   - Configured **Rack::Attack Rate Limiting** to throttle brute-force attempts to login (`/iniciar-sesion`), registration (`/crear-cuenta`), checkout pay, and SINPE/card confirmation endpoints to 5 requests per minute per IP.

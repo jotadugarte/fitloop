@@ -13,6 +13,10 @@ Rails.application.routes.draw do
 
   root "home#index"
 
+  devise_scope :user do
+    post "crear-cuenta", to: "users/registrations#create"
+  end
+
   devise_for :users, path: "", path_names: {
     sign_in: "iniciar-sesion",
     sign_out: "cerrar-sesion",

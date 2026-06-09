@@ -597,6 +597,9 @@ es_panic:
       created: CAD trepado al servidor.
       removed: Archivo mandado al infierno de la papelera.
       missing: Se le olvidó seleccionar el archivo.
+      too_large: "El archivo %{filename} es gigante (máximo 10 MB), va a fundir el láser."
+      invalid_extension: "El archivo %{filename} no es un bendito .dxf."
+      corrupt_dxf: "El archivo %{filename} está corrupto o el AutoCAD lloró al cargarlo."
       legend: Tire sus archivos pesados aquí
       label: Seleccionar CAD (.dxf)
       submit: Subir a la nube

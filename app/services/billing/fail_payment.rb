@@ -16,19 +16,25 @@ module Billing
     end
 
     def call
-      return :already_terminal if @payment.failed?
-
+      already_terminal = false
       res = nil
       ActiveRecord::Base.transaction do
-        @payment.update!(
-          status: :failed,
-          gateway_status: "failed",
-          failure_code: @failure_code,
-          failure_message: @failure_message
-        )
-        purge_staging_pre_retention!
-        res = :failed
+        @payment.lock!
+        if @payment.failed?
+          already_terminal = true
+        else
+          @payment.update!(
+            status: :failed,
+            gateway_status: "failed",
+            failure_code: @failure_code,
+            failure_message: @failure_message
+          )
+          purge_staging_pre_retention!
+          res = :failed
+        end
       end
+
+      return :already_terminal if already_terminal
 
       Analytics::TrackEvent.call(
         "payment_failed",

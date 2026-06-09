@@ -15,6 +15,12 @@ class ProjectInputDxfFilesController < ApplicationController
       return
     end
 
+    validation_errors = validate_uploaded_files(files)
+    if validation_errors.any?
+      respond_to_validation_errors(validation_errors)
+      return
+    end
+
     attachment_ids_before = @project.input_dxf_attachments.map(&:id)
     files.each { |file| @project.input_dxf.attach(file) }
     Dxf::LayerSyncPerFile.call(@project)
@@ -68,7 +74,7 @@ class ProjectInputDxfFilesController < ApplicationController
   def dxf_files_param
     list = params[:files]
     list = params[:"files[]"] if list.blank?
-    Array(list).compact
+    Array(list).flatten.compact
   end
 
   def respond_to_missing_files
@@ -107,5 +113,35 @@ class ProjectInputDxfFilesController < ApplicationController
 
   def dom_id(record, prefix = nil)
     ActionView::RecordIdentifier.dom_id(record, prefix)
+  end
+
+  def validate_uploaded_files(files)
+    errors = []
+    files.each do |file|
+      if file.size > 10.megabytes
+        errors << t("project_layers.upload.too_large", filename: file.original_filename)
+      elsif !file.original_filename.to_s.downcase.end_with?(".dxf")
+        errors << t("project_layers.upload.invalid_extension", filename: file.original_filename)
+      else
+        content = File.binread(file.tempfile.path, 1024) || ""
+        unless content.include?("SECTION")
+          errors << t("project_layers.upload.corrupt_dxf", filename: file.original_filename)
+        end
+      end
+    end
+    errors
+  end
+
+  def respond_to_validation_errors(errors)
+    msg = errors.join(" ")
+    respond_to do |format|
+      format.turbo_stream do
+        flash[:alert] = msg
+        redirect_to workshop_path, status: :see_other
+      end
+      format.html do
+        redirect_to workshop_path, alert: msg
+      end
+    end
   end
 end

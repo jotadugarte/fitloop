@@ -45,7 +45,7 @@ Browser (project#show)
 | Stage | Trigger | DB / storage changes |
 |-------|---------|----------------------|
 | Create | `Workspace.create!` / `find_or_create!` via `ProjectsController#start` / `#new` | `Project(ephemeral: true)` row; `session[:workspaces][tab_id]` via `Workspace.bind!(session, project, tab_id:)` |
-| Draft | Default after create | `status: draft`; may have `input_dxf` attachments |
+| Draft | Default after create | `status: draft`; may have `input_dxf` attachments (subject to upload validations: size ≤ 10MB, case-insensitive `.dxf` extension, and presence of the `"SECTION"` format marker). |
 | Ready | Layers selected + pieces extractable (implicit or explicit) | User can start nesting when `ProjectReadinessValidator` passes |
 | Processing | `NestingRunsController#create` | `status: processing`; progress fields updated by `JobRunner` |
 | Completed / Partial / Failed | `JobRunner` terminal path | `status` set; `nested_dxf` / `placements_json` attached on success paths |
@@ -247,8 +247,8 @@ BILLING_GATEWAY=onvo (live)
        → card: POST /checkout/pagos/:id/tarjeta → confirm intent (3DS → GET /checkout/retorno)
        → sinpe: POST /checkout/pagos/:id/sinpe → transfer instructions → /checkout/procesando/:id (poll)
   → POST /webhooks/onvo (X-Webhook-Secret)
-       → payment-intent.succeeded → FulfillPayment (idempotent)
-       → payment-intent.failed → FailPayment (purge SINPE pre-retention staging when applicable)
+       → payment-intent.succeeded → FulfillPayment (idempotent, locking payment with @payment.lock! inside transaction; subsequent duplicates return :already_fulfilled)
+       → payment-intent.failed → FailPayment (locking payment with @payment.lock! inside transaction; subsequent duplicates return :already_terminal; purges SINPE pre-retention staging when applicable)
   → GET /checkout/pagos/:id/estado (poll; client must not grant alone)
 
 SINPE pending checkout (v1.2)
