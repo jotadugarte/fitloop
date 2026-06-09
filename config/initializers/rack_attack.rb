@@ -12,7 +12,7 @@ class Rack::Attack
   # Throttle authentication routes (sign in and sign up)
   # Limit to 5 requests per minute per IP.
   throttle("auth/ip", limit: 5, period: 1.minute) do |req|
-    if req.path == "/iniciar-sesion" || req.path == "/crear-cuenta"
+    if req.path == "/iniciar-sesion" || req.path == "/crear-cuenta" || req.path == "/"
       if req.post?
         req.ip
       end
