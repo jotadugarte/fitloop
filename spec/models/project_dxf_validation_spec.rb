@@ -2,11 +2,11 @@
 
 require "rails_helper"
 
-RSpec.describe Project, "DXF validation", type: :model do
+RSpec.describe Project, "DXF validation [REQ-FIT-DXF-001]", type: :model do
   let(:project) { Project.create!(title: "Validation test", ephemeral: true) }
 
   def with_temp_file(filename, content)
-    tempfile = Tempfile.new([File.basename(filename, ".*"), File.extname(filename)])
+    tempfile = Tempfile.new([ File.basename(filename, ".*"), File.extname(filename) ])
     File.binwrite(tempfile.path, content)
     tempfile.rewind
     yield tempfile
@@ -97,7 +97,7 @@ RSpec.describe Project, "DXF validation", type: :model do
         project.input_dxf.attach(io: tempfile, filename: "valid.dxf", content_type: "application/dxf")
         project.save!
       end
-      
+
       project.reload
       allow_any_instance_of(ActiveStorage::Blob).to receive(:open).and_raise(ActiveStorage::FileNotFoundError)
       expect(project).not_to be_valid
@@ -108,7 +108,7 @@ RSpec.describe Project, "DXF validation", type: :model do
       puts "DEBUG: project.input_dxf = #{project.input_dxf.inspect}"
       # 1. Attachable does not match Hash, tempfile, or download
       dummy_attachable = Object.new
-      changes_mock = double(attachables: [dummy_attachable], attachments: [])
+      changes_mock = double(attachables: [ dummy_attachable ], attachments: [])
       allow(project).to receive(:attachment_changes).and_return({ "input_dxf" => changes_mock })
       expect(project).to be_valid
 
@@ -118,8 +118,8 @@ RSpec.describe Project, "DXF validation", type: :model do
       allow(blob_mock).to receive(:respond_to?).with(:download).and_return(true)
       allow(blob_mock).to receive(:download).and_raise(ActiveStorage::FileNotFoundError)
       allow(blob_mock).to receive(:filename).and_return("missing.dxf")
-      
-      changes_mock2 = double(attachables: [blob_mock], attachments: [])
+
+      changes_mock2 = double(attachables: [ blob_mock ], attachments: [])
       allow(project).to receive(:attachment_changes).and_return({ "input_dxf" => changes_mock2 })
       expect(project).not_to be_valid
 
@@ -128,7 +128,7 @@ RSpec.describe Project, "DXF validation", type: :model do
       allow(io_length_only).to receive(:length).and_return(100)
       allow(io_length_only).to receive(:read).and_return("SECTION")
 
-      changes_mock3 = double(attachables: [{ io: io_length_only, filename: "length_only.dxf" }], attachments: [])
+      changes_mock3 = double(attachables: [ { io: io_length_only, filename: "length_only.dxf" } ], attachments: [])
       allow(project).to receive(:attachment_changes).and_return({ "input_dxf" => changes_mock3 })
       expect(project).to be_valid
 
@@ -136,7 +136,7 @@ RSpec.describe Project, "DXF validation", type: :model do
       io_neither = double
       allow(io_neither).to receive(:read).and_return("SECTION")
 
-      changes_mock4 = double(attachables: [{ io: io_neither, filename: "neither.dxf" }], attachments: [])
+      changes_mock4 = double(attachables: [ { io: io_neither, filename: "neither.dxf" } ], attachments: [])
       allow(project).to receive(:attachment_changes).and_return({ "input_dxf" => changes_mock4 })
       expect(project).to be_valid
 
@@ -144,7 +144,7 @@ RSpec.describe Project, "DXF validation", type: :model do
       changes_mock5 = double(attachables: [], attachments: [])
       allow(project).to receive(:attachment_changes).and_return({ "input_dxf" => changes_mock5 })
       attachment_with_nil_blob = double(blob: nil)
-      allow(project.input_dxf).to receive(:attachments).and_return([attachment_with_nil_blob])
+      allow(project.input_dxf).to receive(:attachments).and_return([ attachment_with_nil_blob ])
       expect(project).to be_valid
     end
   end

@@ -154,9 +154,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     let(:project) { start_setup_session! }
 
     it "rejects file larger than 10MB via HTML upload" do
-      large_file = Tempfile.new(["large", ".dxf"])
+      large_file = Tempfile.new([ "large", ".dxf" ])
       File.binwrite(large_file.path, "SECTION\n" + ("X" * (10.megabytes + 1)))
-      
+
       post project_input_dxf_files_path(project),
            params: { files: [ fixture_file_upload(large_file.path, "large.dxf", "application/dxf") ] }
 
@@ -169,9 +169,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     end
 
     it "rejects file without .dxf extension via HTML upload" do
-      txt_file = Tempfile.new(["valid", ".txt"])
+      txt_file = Tempfile.new([ "valid", ".txt" ])
       File.binwrite(txt_file.path, "  0\nSECTION\n  2\nHEADER\n  0\nENDSEC")
-      
+
       post project_input_dxf_files_path(project),
            params: { files: [ fixture_file_upload(txt_file.path, "valid.txt", "text/plain") ] }
 
@@ -184,9 +184,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     end
 
     it "rejects file without SECTION marker via HTML upload" do
-      corrupt_file = Tempfile.new(["corrupt", ".dxf"])
+      corrupt_file = Tempfile.new([ "corrupt", ".dxf" ])
       File.binwrite(corrupt_file.path, "  0\nINVALID\n  0\nENDSEC")
-      
+
       post project_input_dxf_files_path(project),
            params: { files: [ fixture_file_upload(corrupt_file.path, "corrupt.dxf", "application/dxf") ] }
 
@@ -199,9 +199,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     end
 
     it "rejects file without SECTION marker via Turbo Stream upload" do
-      corrupt_file = Tempfile.new(["corrupt", ".dxf"])
+      corrupt_file = Tempfile.new([ "corrupt", ".dxf" ])
       File.binwrite(corrupt_file.path, "  0\nINVALID\n  0\nENDSEC")
-      
+
       post project_input_dxf_files_path(project),
            params: { files: [ fixture_file_upload(corrupt_file.path, "corrupt.dxf", "application/dxf") ] },
            headers: { "Accept" => "text/vnd.turbo-stream.html" }

@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe "ONVO webhook concurrency and idempotency", type: :request do
+RSpec.describe "ONVO webhook concurrency and idempotency", "[REQ-FIT-BILL-001]", type: :request do
   let(:webhook_secret) { "whsec_test_onvo" }
 
   before do
@@ -54,7 +54,7 @@ RSpec.describe "ONVO webhook concurrency and idempotency", type: :request do
     # Stub fulfill_single_download! to sleep, holding the database lock
     # on the payment record for the first request thread.
     original_fulfill = Billing::FulfillPayment.instance_method(:fulfill_single_download!)
-    
+
     # We use a thread-safe counter/barrier to only sleep on the first execution
     call_count = Concurrent::AtomicFixnum.new(0)
 
@@ -111,7 +111,7 @@ RSpec.describe "ONVO webhook concurrency and idempotency", type: :request do
     # Verify response statuses and bodies
     # One request should be :ok (empty body or success), and the other should be :already_fulfilled
     expect(responses.size).to eq(2)
-    
+
     ok_resp = responses.find { |r| r[:status] == 200 && r[:body].blank? }
     dup_resp = responses.find { |r| r[:status] == 200 && r[:body].include?("already_fulfilled") }
 
