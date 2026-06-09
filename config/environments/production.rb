@@ -69,7 +69,7 @@ Rails.application.configure do
       address:              ENV["SMTP_ADDRESS"],
       port:                 ENV.fetch("SMTP_PORT", "587").to_i,
       user_name:            ENV["SMTP_USER"],
-      password:             ENV["SMTP_PASSWORD"],
+      password:             ENV.fetch("SMTP_PASSWORD", nil),
       authentication:       :plain,
       enable_starttls_auto: true
     }
