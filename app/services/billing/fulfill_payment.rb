@@ -15,16 +15,27 @@ module Billing
 
     def call
       raise ArgumentError, "payment required" if @payment.nil?
-      return :already_fulfilled if @payment.succeeded?
 
-      res = case @payment.purpose
-      when "single_download"
-              fulfill_single_download!
-      when "plan_subscription"
-              fulfill_plan_subscription!
-      else
-              raise ArgumentError, "unsupported payment purpose: #{@payment.purpose}"
+      already_fulfilled = false
+      res = nil
+
+      ActiveRecord::Base.transaction do
+        @payment.lock!
+        if @payment.succeeded?
+          already_fulfilled = true
+        else
+          res = case @payment.purpose
+          when "single_download"
+                  fulfill_single_download!
+          when "plan_subscription"
+                  fulfill_plan_subscription!
+          else
+                  raise ArgumentError, "unsupported payment purpose: #{@payment.purpose}"
+          end
+        end
       end
+
+      return :already_fulfilled if already_fulfilled
 
       Analytics::TrackEvent.call(
         "payment_succeeded",

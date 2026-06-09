@@ -96,6 +96,27 @@ RSpec.describe Analytics::TrackEvent, "[REQ-FIT-ANALYTICS-001]" do
           described_class.call("payment_succeeded", **attrs)
         }.not_to change(UserEvent, :count)
       end
+
+      it "drops duplicate critical events when the database raises RecordNotUnique" do
+        allow(UserEvent).to receive(:create!).and_raise(ActiveRecord::RecordNotUnique)
+
+        expect(Rails.logger).to receive(:info).with(/Duplicate critical event dropped via unique idempotency_key/)
+
+        expect {
+          described_class.call("payment_succeeded", idempotency_key: "dup-db-key")
+        }.not_to raise_error
+      end
+
+      it "re-raises RecordInvalid errors that are unrelated to idempotency keys" do
+        invalid_event = UserEvent.new
+        invalid_event.errors.add(:event_type, "is invalid")
+        error = ActiveRecord::RecordInvalid.new(invalid_event)
+        allow(UserEvent).to receive(:create!).and_raise(error)
+
+        expect {
+          described_class.call("payment_succeeded")
+        }.to raise_error(ActiveRecord::RecordInvalid)
+      end
     end
 
     context "rate limiting for low-priority events" do
@@ -120,6 +141,50 @@ RSpec.describe Analytics::TrackEvent, "[REQ-FIT-ANALYTICS-001]" do
         expect {
           described_class.call(low_event, anonymous_session_key: "session-rate-2")
         }.not_to have_enqueued_job(TrackEventJob)
+      end
+
+      it "rate limits low-priority events scoped to user_id only" do
+        300.times do |i|
+          UserEvent.create!(
+            event_type: low_event,
+            priority: "low",
+            user_id: user.id,
+            occurred_at: Time.current - i.seconds
+          )
+        end
+
+        expect {
+          described_class.call(low_event, user_id: user.id)
+        }.not_to have_enqueued_job(TrackEventJob)
+      end
+
+      it "rate limits low-priority events scoped to anonymous_session_key only" do
+        300.times do |i|
+          UserEvent.create!(
+            event_type: low_event,
+            priority: "low",
+            anonymous_session_key: "anon-only",
+            occurred_at: Time.current - i.seconds
+          )
+        end
+
+        expect {
+          described_class.call(low_event, anonymous_session_key: "anon-only")
+        }.not_to have_enqueued_job(TrackEventJob)
+      end
+
+      it "does not rate limit when neither user_id nor anonymous_session_key is present" do
+        300.times do |i|
+          UserEvent.create!(
+            event_type: low_event,
+            priority: "low",
+            occurred_at: Time.current - i.seconds
+          )
+        end
+
+        expect {
+          described_class.call(low_event)
+        }.to have_enqueued_job(TrackEventJob)
       end
 
       it "does not rate limit critical events even if threshold is breached" do

@@ -3,7 +3,7 @@
 module Nesting
   # [REQ-FIT-SPLIT-001] Runs split plan CLI and stores a draft SplitProposal for preview.
   class SplitPlanJob < ApplicationJob
-    queue_as :default
+    queue_as :nesting
 
     def perform(orphan_resolution_id)
       orphan_resolution = OrphanResolution.find_by(id: orphan_resolution_id)

@@ -8,6 +8,12 @@ RSpec.describe Nesting::FailRun do
   end
   let(:nesting_run) { project.nesting_runs.create!(status: "processing", params_snapshot: {}) }
 
+  it "no-ops when the nesting run has no project [REQ-FIT-JOB-001]" do
+    run = instance_double(NestingRun, status: "processing", project: nil)
+
+    expect(described_class.call(nesting_run: run)).to be(false)
+  end
+
   it "marks the run and project failed with a missing-file message [REQ-FIT-JOB-001]" do
     described_class.call(
       nesting_run: nesting_run,

@@ -19,6 +19,7 @@ gem "jbuilder"
 
 gem "bcrypt", "~> 3.1.7"
 gem "devise", ">= 5.0.4"
+gem "rack-attack"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -45,6 +46,7 @@ group :development, :test do
   gem "dotenv-rails", "~> 3.1"
   gem "minitest", "~> 5.25"
   gem "rspec-rails", "~> 7.1"
+  gem "simplecov", require: false
 
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

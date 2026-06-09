@@ -18,6 +18,20 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
     run
   end
 
+  it "[REQ-FIT-BILL-001] records nil user_id for guest paywall views" do
+    project = begin_workspace_session!
+    attach_nested_output!(project)
+    sign_out :user if respond_to?(:sign_out)
+    allow(Analytics::TrackEvent).to receive(:call)
+
+    get download_paywall_project_path(project)
+
+    expect(Analytics::TrackEvent).to have_received(:call).with(
+      "paywall_viewed",
+      hash_including(user_id: nil)
+    )
+  end
+
   it "[REQ-FIT-BILL-001] omits duplicate sign-in buttons (header only)" do
     project = begin_workspace_session!
     attach_nested_output!(project)
@@ -79,6 +93,19 @@ RSpec.describe "Download paywall", "[REQ-FIT-BILL-001] [REQ-FIT-AUTH-002]", type
     post user_session_path, params: { user: { email: user.email, password: "securepassword12" } }
 
     expect(response).to redirect_to(download_paywall_project_path(project))
+  end
+
+  it "[REQ-FIT-AUTH-001] redirects to start when tab binds exist without a workspace tab header" do
+    tab_id = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+    headers = { "X-Workspace-Tab-Id" => tab_id }
+    get start_project_path, headers: headers
+    follow_redirect!(headers: headers)
+    attach_nested_output!(Workspace.find(session, tab_id: tab_id))
+
+    get download_paywall_workshop_path
+
+    expect(response).to redirect_to(start_project_path)
+    expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
   end
 
   it "[REQ-FIT-BILL-001] hides single-download actions when no downloadable nesting run exists (D9)" do

@@ -68,6 +68,9 @@ xf-test-temp/
 !.agenticguild/completed_sessions/
 !.agenticguild/completed_sessions/**
 
+# SimpleCov Coverage Reports
+/coverage/
+
 
 
 

@@ -126,6 +126,18 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **ONVO QA docs** — `docs/QA_MANUAL_CHECKLIST.md` ONVO section; `docs/QA_ONVO_SINPE.md`; DEPLOY ONVO webhook notes (ngrok dev + production VM) — 2026-05-30
 - [x] **SINPE pending checkout lock + pre-retention** — 15-min workshop lock (`sinpe_crc` only); manual abandon without `FailPayment`; pre-retain nested DXF at checkout; late webhook fulfill; Mis pagos pending/expired rows; `BlocksWorkshopDuringPendingPayment` (REQ-FIT-BILL-001, REQ-FIT-BILL-003) — 2026-05-30 — Session: `task_onvo-sinpe-pending-lock_2026-05-30.md`
 
+### Hardening, timeouts, and cleanup (this task)
+
+- [x] **Límite de Concurrencia de Anidado** (REQ-FIT-JOB-001) — Created `config/queue.yml` to partition queue workers: limited the CPU-intensive `nesting` queue to exactly 3 concurrent workers (threads: 1, processes: 3) to match physical host i7 CPU cores and prevent starvation of Puma/Postgres. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
+- [x] **Timeout de OS robusto** (REQ-FIT-JOB-001) — Modified `Nesting::CliRunner` and `Nesting::JobRunner` to ensure child process is forcefully killed on thread timeout or cancellation with a TERM-to-KILL signal fallback and post-condition checks. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
+- [x] **Limpieza inmediata de `/tmp`** (REQ-FIT-JOB-001) — Modified `Nesting::JobRunner` to ensure immediate removal of the workspace directory `tmp/nesting_runs/:id/` inside an `ensure` block after file uploads finish. — 2026-06-07 — Session: `task_nesting-resource-hardening.md`
+- [x] **Filtrado estricto de logs (Compliance PCI-DSS)** (REQ-FIT-BILL-001) — Configured `filter_parameter_logging.rb` to mask card credentials, CVV, holder names, Sinpe numbers/identifications, and their generic variants in application logs. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Rate Limiting (Rack::Attack)** (REQ-FIT-AUTH-002, REQ-FIT-BILL-001) — Installed and configured the `rack-attack` gem to throttle authentication and payment endpoints to 5 requests per minute per IP using an environment-agnostic in-memory state store. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Modo de mantenimiento rápido** (REQ-FIT-QA-001) — Implemented environment-controlled maintenance mode (`MAINTENANCE_MODE=true`) rendering a customized 503 error page with responsive glassmorphism styles, while bypassing health checks, assets, admin users, and Devise login routes. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_security-hardening.md`
+- [x] **Tests de arquitectura para colas de fondo** (REQ-FIT-APP-001) — Validated Solid Queue array config and ApplicationJob class queue routing. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
+- [x] **Validación de DXF (Sanitización)** (REQ-FIT-DXF-001) — Implemented DXF upload size (10MB), extension, and SECTION marker validations in controllers and models. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
+- [x] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Guarded webhook duplicate fulfillments and concurrent payloads using database pessimistic locking on the payment record. — 2026-06-08 — Session: `task_hardening-grupo-1.md`
+
 ### Pre-live polish (branch `merge-setup-into-workshop`)
 
 - [x] **Billing domain types (CbC refactor)** — typed value objects at billing service boundaries (`TierMonths`, `PaymentMethod`, `Money`, `CountryCode`, etc.); no HTTP/JSON shape change (REQ-FIT-BILL-001, ADR-0005) — 2026-05-30 — Session: `task_merge-setup-into-workshop.md`
@@ -143,6 +155,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 - [x] **Production VM deploy** (REQ-FIT-QA-001, ADR-0007) — Configured and deployed on Coolify + Docker on a Linux VPS. Configured PostgreSQL database connections (primary, cache, queue, cable) using direct internal IP connectivity to bypass internal Docker DNS resolution issues. Configured SSL trust behind Cloudflare (`config.assume_ssl = true`) to fix CSRF 422 errors, and routed ActionCable via `solid_cable` adapter (removing Redis runtime requirements). — 2026-06-06
 - [x] **Deploy checklist (pre-live)** (REQ-FIT-QA-001) — Hardened `docs/DEPLOY.md` to document webhook bypassing under Cloudflare Zero Trust (path `/webhooks/onvo`). Prefilled email field in Devise confirmation resends, added global notification banners for unconfirmed users, and configured Logger delivery fallback for emails to prevent registration crashes when SMTP is absent. — 2026-06-06
+- [x] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configured GitHub Actions in `ci.yml` to spin up a PostgreSQL test service and run the full RSpec suite (unit, controllers, request, system/E2E specs) on every PR and push. — 2026-06-07 — Branch: `refactor/test-coverage-100`
+- [x] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Integrated SimpleCov in the RSpec suite, set strict line (100.0%) and branch (100.0%) coverage minimums, and fixed all uncovered paths in controllers, models, and services. — 2026-06-07 — Branch: `refactor/test-coverage-100`
+- [x] **Script de desarrollo con Solid Queue local** (REQ-FIT-QA-001) — Configured `bin/dev` to run with Solid Queue and Puma integrated supervisor using the `--solid` flag or `USE_SOLID_QUEUE=true` environment variable, aligning development environment closely with production/Coolify background queue adapter. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_local-solid-queue-development.md`
 
 ---
 
@@ -156,19 +171,11 @@ _(none)_
 
 ### 1. Pruebas, Calidad & Cobertura (CI/CD)
 
-- [ ] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configurar GitHub Actions en `ci.yml` para levantar un servicio de base de datos PostgreSQL de prueba y ejecutar la suite completa de RSpec (specs unitarios, controladores, sistema y E2E) en cada PR y push.
-- [ ] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Instalar `SimpleCov` en la suite de RSpec, configurarlo para requerir cobertura total (100%) en el CI, y abrir una rama `refactor/test-coverage-100` para completar las pruebas de controladores, servicios y modelos que falten.
+_(none)_
 
 ### 2. Estabilidad, Seguridad & Hardening (Código)
 
-- [ ] **Validación de DXF (Sanitización)** (REQ-FIT-VAL-001) — Implementar en Rails una validación de tamaño máximo de archivo y comprobación de integridad del formato DXF en los controladores de subida antes de guardarlo en Active Storage o procesarlo.
-- [ ] **Límite de Concurrencia de Anidado** (REQ-FIT-JOB-001) — Crear `config/solid_queue.yml` para restringir los trabajadores simultáneos de la cola de anidado. **Incluye fase de exploración:** Analizar las características físicas del hardware del servidor doméstico (CPU/RAM) para decidir científicamente cuántos trabajadores concurrentes (1, 2 o más) y cuántos trabajos activos admite simultáneamente sin degradar el rendimiento general.
-- [ ] **Timeout de OS robusto** (REQ-FIT-JOB-001) — Modificar `Nesting::JobRunner` y `Nesting::CliRunner` para asegurar que el proceso hijo de Python sea matado físicamente de forma explícita (`Process.kill`) en caso de exceder el tiempo límite de ejecución (45 s), previniendo procesos huérfanos activos.
-- [ ] **Filtrado estricto de logs (Compliance PCI-DSS)** — Configurar `filter_parameter_logging.rb` para enmascarar parámetros sensibles como `:card_number`, `:holder_name`, `:mobile_number` e `:identification` en todos los entornos.
-- [ ] **Rate Limiting** — Instalar y configurar la gema `rack-attack` para limitar peticiones ráfaga en endpoints sensibles de autenticación (login/registro) y pago.
-- [ ] **Limpieza inmediata de `/tmp`** — Modificar `Nesting::JobRunner` para que elimine de manera segura el directorio temporal `tmp/nesting_runs/:id/` inmediatamente al finalizar o fallar el proceso de anidado.
-- [ ] **Idempotencia de ONVO Webhooks** (REQ-FIT-BILL-001) — Verificar y auditar que confirmaciones duplicadas de webhook (por reintentos de red) no generen duplicaciones en la activación de planes/descargas ni excepciones en base de datos.
-- [ ] **Modo de mantenimiento rápido** — Implementar un interruptor sencillo controlado por variable de entorno para poner la aplicación en modo mantenimiento mostrando una vista limpia con Hotwire.
+_(none)_
 
 ### 3. Monitoreo & Feedback del Usuario (Operaciones)
 
@@ -179,6 +186,7 @@ _(none)_
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
+- [ ] **Certificado SSL/TLS (conexión encriptada)** (REQ-FIT-QA-001) — Instalar certificado de origen en el VPS/Coolify (Cloudflare Origin Certificate o Let's Encrypt vía proxy de Coolify) y activar modo SSL **Full (strict)** en Cloudflare, asegurando cifrado end-to-end entre el edge y la aplicación. Complementa `config.assume_ssl` ya desplegado en Rails.
 - [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
 - [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
 - [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.

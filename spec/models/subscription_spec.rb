@@ -44,4 +44,22 @@ RSpec.describe Subscription, "[REQ-FIT-BILL-002]" do
       expect(subscription.errors).to be_of_kind(:ends_at, :greater_than)
     end
   end
+
+  describe "active_at? and active_at scope [REQ-FIT-BILL-002]" do
+    it "[REQ-FIT-BILL-002] checks if subscription is active at a given time" do
+      subscription = described_class.create!(
+        user: user,
+        tier_months: 1,
+        starts_at: 1.day.ago,
+        ends_at: 1.day.from_now
+      )
+
+      expect(subscription.active_at?(Time.current)).to be true
+      expect(subscription.active_at?(2.days.ago)).to be false
+      expect(subscription.active_at?(2.days.from_now)).to be false
+
+      expect(described_class.active_at(Time.current)).to include(subscription)
+      expect(described_class.active_at(2.days.ago)).not_to include(subscription)
+    end
+  end
 end

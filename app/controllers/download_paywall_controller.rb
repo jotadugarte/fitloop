@@ -13,10 +13,10 @@ class DownloadPaywallController < ApplicationController
     @billing_geo_defaults = Billing::GeoPaymentDefaults.from_request(request, session: session, user: current_user)
     @available_payment_methods = @billing_geo_defaults.fetch(:available_payment_methods)
     @billing_selection = Billing::PaymentSelection.resolve(request: request, session: session, user: current_user)
-    @nesting_run = @project.nesting_runs
-                           .where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
-                           .order(id: :desc)
-                           .first
+    @nesting_run = @project&.nesting_runs
+                           &.where(status: Nesting::StatusMapper::DOWNLOADABLE_RUN_STATUSES)
+                           &.order(id: :desc)
+                           &.first
     @plan_download_included = Billing::PlanDownloadAvailability.plan_included?(user: current_user)
     @single_download_checkout_allowed =
       Billing::PlanDownloadAvailability.single_download_checkout_allowed?(user: current_user)
@@ -48,8 +48,6 @@ class DownloadPaywallController < ApplicationController
     end
 
     @project = Workspace.find_or_create!(session, tab_id: workspace_tab_id, request: request)
-
-    nil if performed?
   end
 
   def store_guest_paywall_return_to!

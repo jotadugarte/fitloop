@@ -39,7 +39,7 @@ RSpec.describe Nesting::ConfigBuilder, "[REQ-FIT-CLI-001]" do
       [ project, payload.fetch(:input_files).first ]
     end
 
-    it "emits primary_layer and auxiliary_layers when primary is configured" do
+    it "emits primary_layer and auxiliary_layers when primary is configured [REQ-FIT-CLI-001]" do
       project = Project.create!(
         ephemeral: true,
         status: :ready,
@@ -85,7 +85,7 @@ RSpec.describe Nesting::ConfigBuilder, "[REQ-FIT-CLI-001]" do
       expect(file_entry).not_to have_key(:included_layers)
     end
 
-    it "emits included_layers when no primary is set on the file" do
+    it "emits included_layers when no primary is set on the file [REQ-FIT-CLI-001]" do
       project = Project.create!(
         ephemeral: true,
         status: :ready,

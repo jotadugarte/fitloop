@@ -1,4 +1,7 @@
 es:
+  maintenance:
+    title: "Modo de Mantenimiento"
+    message: "Nuestro servicio no está disponible temporalmente por mantenimiento. Por favor, vuelve pronto."
   application:
     name: "moduSLoop"
     dialog_title: "moduSLoop"
@@ -606,6 +609,9 @@ es:
       created: "Archivos DXF subidos."
       removed: "Archivo DXF eliminado."
       missing: "Elige al menos un archivo DXF."
+      too_large: "%{filename} es demasiado grande (máximo 10 MB)."
+      invalid_extension: "%{filename} tiene una extensión inválida (solo se permiten archivos .dxf)."
+      corrupt_dxf: "%{filename} está corrupto o no contiene una estructura DXF válida."
       legend: "Subir archivos DXF"
       label: "Archivos DXF"
       submit: "Subir"

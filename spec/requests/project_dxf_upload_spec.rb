@@ -50,6 +50,25 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     expect(response.body).to include('data-testid="source-dxf-detail"')
   end
 
+  it "returns unprocessable content when no files are posted" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project),
+         params: {},
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:unprocessable_content)
+  end
+
+  it "redirects HTML uploads without files back to the workshop with an alert" do
+    project = start_setup_session!
+
+    post project_input_dxf_files_path(project), params: {}
+
+    expect(response).to redirect_to(workshop_path)
+    expect(flash[:alert]).to eq(I18n.t("project_layers.upload.missing"))
+  end
+
   it "accepts turbo-stream upload with files param" do
     project = start_setup_session!
 
@@ -129,5 +148,71 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
     expect(response.body).to include("source_dxf_detail_project_#{project.id}")
     expect(response.body).to include('data-testid="dxf-upload-show-hint"')
     expect(project.reload.input_dxf_attachments.count).to eq(2)
+  end
+
+  describe "invalid file uploads" do
+    let(:project) { start_setup_session! }
+
+    it "rejects file larger than 10MB via HTML upload" do
+      large_file = Tempfile.new([ "large", ".dxf" ])
+      File.binwrite(large_file.path, "SECTION\n" + ("X" * (10.megabytes + 1)))
+
+      post project_input_dxf_files_path(project),
+           params: { files: [ fixture_file_upload(large_file.path, "large.dxf", "application/dxf") ] }
+
+      expect(response).to redirect_to(workshop_path)
+      expect(flash[:alert]).to include("too large")
+      expect(project.reload.input_dxf).not_to be_attached
+    ensure
+      large_file.close
+      large_file.unlink
+    end
+
+    it "rejects file without .dxf extension via HTML upload" do
+      txt_file = Tempfile.new([ "valid", ".txt" ])
+      File.binwrite(txt_file.path, "  0\nSECTION\n  2\nHEADER\n  0\nENDSEC")
+
+      post project_input_dxf_files_path(project),
+           params: { files: [ fixture_file_upload(txt_file.path, "valid.txt", "text/plain") ] }
+
+      expect(response).to redirect_to(workshop_path)
+      expect(flash[:alert]).to include("extension")
+      expect(project.reload.input_dxf).not_to be_attached
+    ensure
+      txt_file.close
+      txt_file.unlink
+    end
+
+    it "rejects file without SECTION marker via HTML upload" do
+      corrupt_file = Tempfile.new([ "corrupt", ".dxf" ])
+      File.binwrite(corrupt_file.path, "  0\nINVALID\n  0\nENDSEC")
+
+      post project_input_dxf_files_path(project),
+           params: { files: [ fixture_file_upload(corrupt_file.path, "corrupt.dxf", "application/dxf") ] }
+
+      expect(response).to redirect_to(workshop_path)
+      expect(flash[:alert]).to include("corrupt")
+      expect(project.reload.input_dxf).not_to be_attached
+    ensure
+      corrupt_file.close
+      corrupt_file.unlink
+    end
+
+    it "rejects file without SECTION marker via Turbo Stream upload" do
+      corrupt_file = Tempfile.new([ "corrupt", ".dxf" ])
+      File.binwrite(corrupt_file.path, "  0\nINVALID\n  0\nENDSEC")
+
+      post project_input_dxf_files_path(project),
+           params: { files: [ fixture_file_upload(corrupt_file.path, "corrupt.dxf", "application/dxf") ] },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response).to redirect_to(workshop_path)
+      expect(response).to have_http_status(:see_other)
+      expect(flash[:alert]).to include("corrupt")
+      expect(project.reload.input_dxf).not_to be_attached
+    ensure
+      corrupt_file.close
+      corrupt_file.unlink
+    end
   end
 end

@@ -8,6 +8,8 @@ module Billing
     attr_reader :value
 
     def self.parse(raw)
+      return raw if raw.is_a?(Currency)
+
       raise ArgumentError, "currency required" if raw.nil?
 
       new(raw)

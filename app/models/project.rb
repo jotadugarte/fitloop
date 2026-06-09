@@ -33,6 +33,7 @@ class Project < ApplicationRecord
   validates :curve_tolerance_mm, numericality: { greater_than: 0 }
   validate :must_have_sheet_stocks, unless: :ephemeral?
   validate :at_most_one_unlimited_sheet_stock
+  validate :validate_input_dxf_files
 
   # [REQ-FIT-SPLIT-001] Show dedicated re-nest CTA after accepted splits materialize derived pieces.
   def nest_with_updated_pieces_available?
@@ -73,5 +74,92 @@ class Project < ApplicationRecord
     return if unlimited_count <= 1
 
     errors.add(:base, :multiple_unlimited_sheet_stocks)
+  end
+
+  def validate_input_dxf_files
+    validate_unsaved_input_dxf_files
+    validate_persisted_input_dxf_files
+  end
+
+  def validate_unsaved_input_dxf_files
+    changes = attachment_changes["input_dxf"]
+    return unless changes
+
+    changes.attachables.each do |attachable|
+      io, filename = extract_attachable_io_and_filename(attachable)
+      next unless io
+
+      validate_dxf_io(io, filename)
+    end
+  end
+
+  def validate_persisted_input_dxf_files
+    input_dxf.attachments.each do |attachment|
+      blob = attachment.blob
+      next if !blob || blob.new_record?
+
+      validate_dxf_blob(blob)
+    end
+  end
+
+  def extract_attachable_io_and_filename(attachable)
+    if attachable.is_a?(Hash)
+      [ attachable[:io], attachable[:filename] || "file.dxf" ]
+    elsif attachable.respond_to?(:tempfile)
+      [ attachable.tempfile, attachable.original_filename ]
+    elsif attachable.respond_to?(:download)
+      begin
+        [ StringIO.new(attachable.download), attachable.filename.to_s ]
+      rescue ActiveStorage::FileNotFoundError
+        [ StringIO.new(""), attachable.filename.to_s ]
+      end
+    else
+      [ nil, "file.dxf" ]
+    end
+  end
+
+  def validate_dxf_io(io, filename)
+    size = io.respond_to?(:size) ? io.size : (io.respond_to?(:length) ? io.length : 0)
+    if size > 10.megabytes
+      errors.add(:input_dxf, :too_large, message: I18n.t("project_layers.upload.too_large", filename: filename.to_s))
+    end
+
+    unless filename.to_s.downcase.end_with?(".dxf")
+      errors.add(:input_dxf, :invalid_extension, message: I18n.t("project_layers.upload.invalid_extension", filename: filename.to_s))
+    end
+
+    if size <= 10.megabytes
+      io.rewind if io.respond_to?(:rewind)
+      content = io.read(1024) || ""
+      io.rewind if io.respond_to?(:rewind)
+      unless content.include?("SECTION")
+        errors.add(:input_dxf, :corrupt_dxf, message: I18n.t("project_layers.upload.corrupt_dxf", filename: filename.to_s))
+      end
+    end
+  end
+
+  def validate_dxf_blob(blob)
+    if blob.byte_size > 10.megabytes
+      errors.add(:input_dxf, :too_large, message: I18n.t("project_layers.upload.too_large", filename: blob.filename.to_s))
+    end
+
+    unless blob.filename.to_s.downcase.end_with?(".dxf")
+      errors.add(:input_dxf, :invalid_extension, message: I18n.t("project_layers.upload.invalid_extension", filename: blob.filename.to_s))
+    end
+
+    if blob.byte_size <= 10.megabytes
+      begin
+        has_section = false
+        blob.open do |tempfile|
+          content = tempfile.read(1024) || ""
+          has_section = content.include?("SECTION")
+        end
+        unless has_section
+          errors.add(:input_dxf, :corrupt_dxf, message: I18n.t("project_layers.upload.corrupt_dxf", filename: blob.filename.to_s))
+        end
+      rescue ActiveStorage::FileNotFoundError
+        errors.add(:input_dxf, :corrupt_dxf, message: I18n.t("project_layers.upload.corrupt_dxf", filename: blob.filename.to_s))
+      end
+    end
   end
 end

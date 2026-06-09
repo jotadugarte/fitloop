@@ -57,6 +57,24 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="checkout-pay-card-usd"')
     end
+
+    it "[REQ-FIT-BILL-002] redirects to start when project_id does not exist" do
+      get planes_path(project_id: 9_999_999)
+
+      expect(response).to redirect_to(start_project_path)
+      follow_redirect!
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    end
+
+    it "[REQ-FIT-BILL-002] redirects to start when project_id is not bound to the session" do
+      orphan = ProjectSpecFactory.create!(title: "Unbound plan project")
+
+      get planes_path(project_id: orphan.id)
+
+      expect(response).to redirect_to(start_project_path)
+      follow_redirect!
+      expect(flash[:alert]).to eq(I18n.t("workspace.expired"))
+    end
   end
 
   describe "POST /planes/simular [REQ-FIT-BILL-002]" do
@@ -168,6 +186,20 @@ RSpec.describe "Simulated plan checkout", "[REQ-FIT-AUTH-002] [REQ-FIT-BILL-002]
 
       expect(response).to redirect_to("/mi-cuenta")
       expect(flash[:alert]).to be_present
+    end
+
+    it "[REQ-FIT-BILL-002] redirects with checkout failure when simulate params are invalid" do
+      post planes_simulate_path,
+           params: {
+             tier_months: 3,
+             payment_method: "card_usd",
+             outcome: "success",
+             project_id: project.id
+           }
+
+      expect(response).to redirect_to(planes_path(project_id: project.id))
+      follow_redirect!
+      expect(flash[:alert]).to eq(I18n.t("billing.checkout.failure"))
     end
 
     it "[REQ-FIT-BILL-002] records snapshot fields on failed plan payments (D20, D24)" do

@@ -49,6 +49,27 @@ RSpec.describe "Re-nesting", type: :request do
     end
   end
 
+  describe "POST /projects/:project_id/nesting_runs/:id/cancel" do
+    it "sets cancel_requested_at and redirects to project" do
+      run = project.nesting_runs.create!(status: "processing")
+      post cancel_workshop_nesting_run_path(run)
+
+      expect(run.reload.cancel_requested_at).to be_present
+      expect(response).to redirect_to(project_path(project))
+      expect(flash[:notice]).to eq(I18n.t("nesting.cancelling"))
+    end
+  end
+
+  describe "POST /projects/:project_id/nesting_runs when not ready" do
+    it "redirects with alert message" do
+      project.sheet_stocks.destroy_all
+      post project_nesting_runs_path(project)
+
+      expect(response).to redirect_to(project_path(project))
+      expect(flash[:alert]).to include(I18n.t("project_readiness.no_sheet_stocks"))
+    end
+  end
+
   describe "GET /projects/:id [REQ-FIT-NEST-004]" do
     it "shows download link and re-nest button when a nested DXF exists" do
       get project_path(project)

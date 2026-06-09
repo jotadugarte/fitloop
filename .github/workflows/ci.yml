@@ -104,3 +104,69 @@ jobs:
 
       - name: Run nesting_engine pytest suite
         run: pytest nesting_engine/ -q
+
+  rspec:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: fitloop_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: password
+      ONVO_SECRET_KEY: onvo_test_secret_dummy
+      ONVO_PUBLISHABLE_KEY: onvo_test_publishable_dummy
+      ONVO_WEBHOOK_SECRET: whsec_test_onvo_dummy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make bin/ scripts executable
+        run: chmod +x bin/*
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system compilation dependencies for nesting engine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libboost-dev
+
+      - name: Create Python virtual environment and install requirements
+        run: |
+          python -m venv nesting_engine/.venv
+          nesting_engine/.venv/bin/pip install --upgrade pip
+          nesting_engine/.venv/bin/pip install -r requirements.txt
+          ln -s nesting_engine/.venv .venv
+
+      - name: Set up database schema
+        run: |
+          bin/rails db:prepare
+
+      - name: Run RSpec test suite
+        run: |
+          bundle exec rspec

@@ -11,8 +11,12 @@ module Webhooks
         return
       end
 
-      Billing::Onvo::HandleWebhookEvent.call(payload: webhook_payload, request: request)
-      head :ok
+      res = Billing::Onvo::HandleWebhookEvent.call(payload: webhook_payload, request: request)
+      if res == :already_fulfilled
+        render json: { status: :already_fulfilled }, status: :ok
+      else
+        head :ok
+      end
     rescue Billing::Onvo::HandleWebhookEvent::PaymentNotFound
       head :not_found
     end

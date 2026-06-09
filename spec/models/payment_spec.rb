@@ -443,4 +443,82 @@ RSpec.describe Payment, "[REQ-FIT-BILL-001]" do
       expect(first.incomplete_card_checkout_attempt?).to be(true)
     end
   end
+
+  describe "additional edge cases for coverage [REQ-FIT-BILL-001]" do
+    let(:project) { Project.create!(ephemeral: true, title: "Edge cases project", status: :completed) }
+    let(:run) { project.nesting_runs.create!(status: "completed") }
+
+    it "covers sinpe_checkout_resumable? helper" do
+      payment = described_class.new(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1000,
+        purpose: "single_download"
+      )
+      expect(payment.sinpe_checkout_resumable?).to be(true)
+
+      payment.status = "succeeded"
+      expect(payment.sinpe_checkout_resumable?).to be(false)
+
+      payment.status = "pending"
+      payment.payment_method = "card_crc"
+      expect(payment.sinpe_checkout_resumable?).to be(false)
+
+      payment.payment_method = "sinpe_crc"
+      payment.superseded_at = Time.current
+      expect(payment.sinpe_checkout_resumable?).to be(false)
+    end
+
+    it "covers checkout_lock_active? when checkout_abandoned_at is set but lock is not released" do
+      payment = described_class.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1000,
+        purpose: "single_download",
+        checkout_abandoned_at: 1.minute.ago
+      )
+      expect(payment.checkout_lock_active?).to be(false)
+    end
+
+    it "covers awaiting_gateway_confirmation? for plan subscriptions" do
+      payment = described_class.new(
+        user: user,
+        status: "pending",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 5000,
+        purpose: "plan_subscription"
+      )
+      expect(payment.awaiting_gateway_confirmation?).to be(false)
+    end
+
+    it "covers downloadable_grant_for_run? when nesting_run_id is blank" do
+      payment = described_class.new(user: user, nesting_run_id: nil)
+      expect(payment.downloadable_grant_for_run?).to be(false)
+    end
+
+    it "covers incomplete_card_checkout_attempt? edge cases" do
+      payment = described_class.new(
+        user: user,
+        status: "succeeded",
+        payment_method: "card_crc",
+        currency: "crc",
+        amount: 1000,
+        purpose: "single_download"
+      )
+      # succeeded is false
+      expect(payment.incomplete_card_checkout_attempt?).to be(false)
+
+      # nesting_run_id is blank in superseded_by_later_successful_checkout?
+      payment.status = "failed"
+      allow(payment).to receive(:downloadable_grant_for_run?).and_return(true)
+      expect(payment.incomplete_card_checkout_attempt?).to be(false)
+    end
+  end
 end

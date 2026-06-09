@@ -6,7 +6,7 @@ RSpec.describe Nesting::SplitWorkflowBroadcaster, "[REQ-FIT-SPLIT-001]" do
   let(:project) { create_project_for_spec!(title: "Split broadcast") }
 
   describe ".call" do
-    it "renders show_actions without Warden (Turbo broadcast context)" do
+    it "renders show_actions without Warden (Turbo broadcast context) [REQ-FIT-SPLIT-001]" do
       expect do
         ApplicationController.render(
           partial: "projects/show_actions",
@@ -15,7 +15,7 @@ RSpec.describe Nesting::SplitWorkflowBroadcaster, "[REQ-FIT-SPLIT-001]" do
       end.not_to raise_error
     end
 
-    it "broadcasts orphan frame and show_actions" do
+    it "broadcasts orphan frame and show_actions [REQ-FIT-SPLIT-001]" do
       allow(project).to receive(:broadcast_replace_to)
       orphans = instance_double(Nesting::OrphansPresenter)
       allow(Nesting::OrphansPresenter).to receive(:for).with(project).and_return(orphans)

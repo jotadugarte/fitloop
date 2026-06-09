@@ -7,6 +7,14 @@ RSpec.describe "Project layers", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:project_id/layers [REQ-FIT-DXF-001]" do
+    it "renders an empty checklist when no DXF files are attached" do
+      get project_layers_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="layer-checklist"')
+      expect(project.project_layers).to be_empty
+    end
+
     it "shows a layer checklist built from union of uploaded DXF layer names" do
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -23,6 +31,27 @@ RSpec.describe "Project layers", type: :request do
   end
 
   describe "PATCH /projects/:project_id/layers [REQ-FIT-DXF-001]" do
+    it "uses legacy LayerSync when multiple DXFs have no per-file attachment ids" do
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece_a.dxf",
+        content_type: "application/dxf"
+      )
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece_b.dxf",
+        content_type: "application/dxf"
+      )
+      project.project_layers.delete_all
+
+      expect(Dxf::LayerSync).to receive(:call).with(project).and_call_original
+
+      get project_layers_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(project.project_layers.find_by!(layer_name: "PIECES")).to be_present
+    end
+
     it "saves layer selection, starts nesting, and redirects to the project progress page" do
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -192,6 +221,53 @@ RSpec.describe "Project layers", type: :request do
 
       expect(response).to redirect_to(project_path(project))
       expect(project.reload.input_dxf.count).to eq(2)
+    end
+  end
+
+  describe "PATCH /projects/:project_id/layers with active pending payment lock [REQ-FIT-BILL-001]" do
+    let(:user) { create_billing_user!(email: "lock-layers@example.com") }
+
+    before do
+      sign_in user
+    end
+
+    it "blocks layer mutation and redirects to workshop when payment is pending" do
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSync.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      run = project.nesting_runs.create!(status: "completed")
+
+      # Create active pending SINPE payment
+      Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "sinpe_crc",
+        currency: "crc",
+        amount: 1130,
+        total_amount: 1130,
+        purpose: "single_download",
+        gateway_provider: "onvo",
+        onvo_payment_intent_id: "pi_lock_layers_test",
+        onvo_mode: "test",
+        gateway_status: "processing",
+        created_at: 1.minute.ago
+      )
+
+      # Bind workspace to session/user
+      get workshop_path, headers: { "HTTP_X_WORKSPACE_TAB_ID" => Workspace::DEFAULT_TAB_ID }
+
+      patch project_layers_path(project), params: {
+        project_layers: { layer.id.to_s => { included: "1" } }
+      }
+
+      expect(response).to redirect_to(workshop_path)
+      expect(flash[:alert]).to be_present
+      expect(layer.reload).not_to be_included
     end
   end
 end

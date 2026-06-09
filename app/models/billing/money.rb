@@ -12,7 +12,7 @@ module Billing
     def self.from_major(amount, currency)
       raise ArgumentError, "amount required" if amount.nil?
 
-      curr = currency.is_a?(Currency) ? currency : Currency.parse(currency)
+      curr = Currency.parse(currency)
       decimal = BigDecimal(amount.to_s)
       raise ArgumentError, "amount must be non-negative" if decimal.negative?
 
@@ -27,7 +27,7 @@ module Billing
 
     def initialize(amount, currency)
       @amount = BigDecimal(amount.to_s)
-      @currency = currency.is_a?(Currency) ? currency : Currency.parse(currency)
+      @currency = Currency.parse(currency)
       raise ArgumentError, "amount must be non-negative" if @amount.negative?
     end
 

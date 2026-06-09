@@ -4,6 +4,7 @@ require "rails_helper"
 
 RSpec.describe "Billing telemetry", "[REQ-FIT-ANALYTICS-001]", type: :request do
   include ActiveJob::TestHelper
+  include ActiveSupport::Testing::TimeHelpers
 
   let(:user) { create_billing_user! }
   let(:project) { begin_workspace_session! }
@@ -85,10 +86,12 @@ RSpec.describe "Billing telemetry", "[REQ-FIT-ANALYTICS-001]", type: :request do
       end
 
       it "is idempotent on quick double requests" do
-        expect {
-          get nested_dxf_project_path(project)
-          get nested_dxf_project_path(project)
-        }.to change(UserEvent.where(event_type: "download_completed"), :count).by(1)
+        travel_to Time.zone.parse("2026-06-06 12:00:00") do
+          expect {
+            get nested_dxf_project_path(project)
+            get nested_dxf_project_path(project)
+          }.to change(UserEvent.where(event_type: "download_completed"), :count).by(1)
+        end
       end
     end
 
@@ -120,10 +123,15 @@ RSpec.describe "Billing telemetry", "[REQ-FIT-ANALYTICS-001]", type: :request do
       end
 
       it "is idempotent on quick double requests" do
-        expect {
-          get mis_pagos_download_path(grant)
-          get mis_pagos_download_path(grant)
-        }.to change(UserEvent.where(event_type: "download_completed"), :count).by(1)
+        travel_to Time.zone.parse("2026-06-06 12:00:00") do
+          expected_key =
+            "download_completed_grant_#{user.id}_#{run.id}_#{Time.current.to_i / 10}"
+
+          expect {
+            get mis_pagos_download_path(grant)
+            get mis_pagos_download_path(grant)
+          }.to change(UserEvent.where(idempotency_key: expected_key), :count).by(1)
+        end
       end
     end
   end

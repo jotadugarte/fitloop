@@ -28,6 +28,9 @@
 #       enabled: "ON"
 
 en:
+  maintenance:
+    title: "Maintenance Mode"
+    message: "Our service is temporarily unavailable for maintenance. Please check back soon."
   application:
     name: "moduSLoop"
     dialog_title: "moduSLoop"
@@ -591,6 +594,9 @@ en:
       created: "DXF files uploaded."
       removed: "DXF file removed."
       missing: "Choose at least one DXF file."
+      too_large: "%{filename} is too large (max 10 MB)."
+      invalid_extension: "%{filename} has an invalid extension (only .dxf is allowed)."
+      corrupt_dxf: "%{filename} is corrupt or does not contain a valid DXF structure."
       legend: "Upload DXF files"
       label: "DXF files"
       submit: "Upload"

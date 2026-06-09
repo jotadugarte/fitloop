@@ -24,6 +24,12 @@ RSpec.describe "Password recovery", "[REQ-FIT-AUTH-002]", type: :request do
   end
 
   describe "POST /contrasena [REQ-FIT-AUTH-002]" do
+    it "[REQ-FIT-AUTH-002] re-renders the form when the email is blank" do
+      post user_password_path, params: { user: { email: "" } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
     it "[REQ-FIT-AUTH-002] sends reset instructions email" do
       user = create_confirmed_user!
 

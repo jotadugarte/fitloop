@@ -51,7 +51,9 @@ module Nesting
       end
 
       def split_not_feasible?
-        split_proposal&.split_not_feasible?
+        return nil if split_proposal.nil?
+
+        split_proposal.split_not_feasible?
       end
 
       def split_accepted?

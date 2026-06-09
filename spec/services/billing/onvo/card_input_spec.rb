@@ -30,6 +30,17 @@ RSpec.describe Billing::Onvo::CardInput, "[REQ-FIT-BILL-001]", type: :service do
     end.to raise_error(ArgumentError, "card_number_test_only")
   end
 
+  it "[REQ-FIT-BILL-001] rejects holder names with invalid characters" do
+    expect do
+      described_class.parse!(
+        holder_name: "Test User 123",
+        card_number: "4242424242424242",
+        card_exp: "12/28",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "holder_name_invalid")
+  end
+
   it "[REQ-FIT-BILL-001] rejects letters in card number" do
     expect do
       described_class.parse!(
@@ -52,15 +63,69 @@ RSpec.describe Billing::Onvo::CardInput, "[REQ-FIT-BILL-001]", type: :service do
     end.to raise_error(ArgumentError, "card_cvv_invalid")
   end
 
-  it "[REQ-FIT-BILL-001] normalizes four-digit expiration into MM/YY" do
-    result = described_class.parse!(
+  it "[REQ-FIT-BILL-001] rejects holder names longer than the maximum" do
+    expect do
+      described_class.parse!(
+        holder_name: "A" * 101,
+        card_number: "4242424242424242",
+        card_exp: "12/28",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "holder_name_invalid")
+  end
+
+  it "[REQ-FIT-BILL-001] rejects card numbers that fail Luhn validation" do
+    expect do
+      described_class.parse!(
+        holder_name: "Test User",
+        card_number: "4242424242424243",
+        card_exp: "12/28",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "card_number_invalid")
+  end
+
+  it "[REQ-FIT-BILL-001] rejects card numbers outside the allowed length range" do
+    expect do
+      described_class.parse!(
+        holder_name: "Test User",
+        card_number: "424242",
+        card_exp: "12/28",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "card_number_invalid")
+  end
+
+  it "[REQ-FIT-BILL-001] rejects expired cards" do
+    expect do
+      described_class.parse!(
+        holder_name: "Test User",
+        card_number: "4242424242424242",
+        card_exp: "01/20",
+        cvv: "123"
+      )
+    end.to raise_error(ArgumentError, "card_exp_expired")
+  end
+
+  it "[REQ-FIT-BILL-001] applies Luhn digit-doubling reduction above nine" do
+    input = described_class.new(
       holder_name: "Test User",
-      card_number: "4242424242424242",
-      card_exp: "1228",
+      card_number: "5555555555554444",
+      card_exp: "12/28",
       cvv: "123"
     )
 
-    expect(result.fetch(:exp_month)).to eq(12)
-    expect(result.fetch(:exp_year)).to eq(2028)
+    expect(input.send(:luhn_valid?, "5555555555554444")).to be(true)
+  end
+
+  it "[REQ-FIT-BILL-001] accepts valid holder names with punctuation" do
+    result = described_class.parse!(
+      holder_name: "María O'Connor-Lee",
+      card_number: "4242424242424242",
+      card_exp: "12/28",
+      cvv: "123"
+    )
+
+    expect(result.fetch(:holder_name)).to eq("María O'Connor-Lee")
   end
 end

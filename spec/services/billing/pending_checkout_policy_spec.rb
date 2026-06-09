@@ -54,5 +54,66 @@ RSpec.describe Billing::PendingCheckoutPolicy, "[REQ-FIT-BILL-001]", type: :serv
 
       expect(described_class.lock_active?(payment)).to be(false)
     end
+
+    it "[REQ-FIT-BILL-001] is false when the checkout lock was already released" do
+      payment = pending_sinpe_payment!(
+        created_at: 1.minute.ago,
+        checkout_lock_released_at: Time.current,
+        checkout_lock_reason: Billing::CheckoutLockReason::TIMEOUT
+      )
+
+      expect(described_class.lock_active?(payment)).to be(false)
+    end
+  end
+
+  describe ".workshop_lock_minutes fallback [REQ-FIT-BILL-001]" do
+    after do
+      Billing::Pricing.send(:remove_instance_variable, :@config) if Billing::Pricing.instance_variable_defined?(:@config)
+    end
+
+    it "[REQ-FIT-BILL-001] falls back to the default when config minutes are non-positive" do
+      allow(Billing::Pricing).to receive(:config_section).with("onvo_pending_checkout").and_return(
+        "workshop_lock_minutes" => 0
+      )
+
+      expect(described_class.workshop_lock_minutes).to eq(15)
+    end
+  end
+
+  describe ".release_expired_lock! [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] persists timeout release for expired SINPE pending payments" do
+      payment = pending_sinpe_payment!(created_at: 20.minutes.ago)
+
+      released = described_class.release_expired_lock!(payment)
+
+      expect(released.checkout_lock_released_at).to be_present
+      expect(released.checkout_lock_reason).to eq(Billing::CheckoutLockReason::TIMEOUT)
+    end
+
+    it "[REQ-FIT-BILL-001] no-ops for card pending payments" do
+      payment = Payment.create!(
+        user: user,
+        nesting_run: run,
+        status: "pending",
+        payment_method: "card_usd",
+        currency: "usd",
+        amount: 2.5,
+        total_amount: 2.5,
+        purpose: "single_download",
+        created_at: 20.minutes.ago
+      )
+
+      expect(described_class.release_expired_lock!(payment)).to eq(payment)
+      expect(payment.reload.checkout_lock_released_at).to be_nil
+    end
+  end
+
+  describe "assert_payment! [REQ-FIT-BILL-001]" do
+    it "[REQ-FIT-BILL-001] rejects nil and unpersisted payments" do
+      expect { described_class.lock_active?(nil) }.to raise_error(ArgumentError, /payment required/)
+
+      draft = Payment.new(user: user, nesting_run: run, status: "pending", payment_method: "sinpe_crc", currency: "crc", amount: 1, total_amount: 1, purpose: "single_download")
+      expect { described_class.lock_active?(draft) }.to raise_error(ArgumentError, /must be persisted/)
+    end
   end
 end

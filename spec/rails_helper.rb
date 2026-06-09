@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+require "simplecov"
+SimpleCov.start "rails" do
+  enable_coverage :branch
+  minimum_coverage line: 100, branch: 100 unless ENV["NO_COVERAGE"] || ENV["COVERAGE"] == "false"
+  add_filter "/lib/"
+end
+
 require "spec_helper"
 ENV["RAILS_ENV"] ||= "test"
 
@@ -11,6 +18,9 @@ require_relative "../config/environment"
 # Isolate test billing from developer .env (ONVO keys, geo override). Specs use CF-IPCountry / ENV stubs.
 ENV["BILLING_GATEWAY"] = Billing::Gateway::SIMULATE
 ENV.delete("FITLOOP_BILLING_COUNTRY_OVERRIDE")
+ENV["ONVO_SECRET_KEY"] = "onvo_test_secret_dummy" if ENV["ONVO_SECRET_KEY"].to_s.strip.empty?
+ENV["ONVO_PUBLISHABLE_KEY"] = "onvo_test_publishable_dummy" if ENV["ONVO_PUBLISHABLE_KEY"].to_s.strip.empty?
+ENV["ONVO_WEBHOOK_SECRET"] = "whsec_test_onvo_dummy" if ENV["ONVO_WEBHOOK_SECRET"].to_s.strip.empty?
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"

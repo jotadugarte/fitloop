@@ -13,11 +13,11 @@ module MisPagos
 
       Analytics::TrackEvent.call(
         "download_completed",
-        user_id: current_user&.id,
+        user_id: current_user.id,
         anonymous_session_key: session[:anonymous_session_key],
         project_id: @grant.nesting_run&.project_id,
         nesting_run_id: @grant.nesting_run_id,
-        idempotency_key: "download_completed_grant_#{@grant.id}_#{Time.current.to_i / 10}",
+        idempotency_key: "download_completed_grant_#{current_user.id}_#{@grant.nesting_run_id}_#{Time.current.to_i / 10}",
         ip: request.remote_ip,
         user_agent: request.user_agent,
         country_code: Analytics::ResolveCountry.call(request),
@@ -46,7 +46,7 @@ module MisPagos
 
     def set_grant
       @grant = DownloadGrant.single_purchase.find_by(id: params[:id])
-      head :forbidden unless @grant&.user_id == current_user.id
+      head(:forbidden) unless @grant&.user_id == current_user.id
     end
   end
 end

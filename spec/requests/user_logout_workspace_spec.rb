@@ -57,6 +57,15 @@ RSpec.describe "User logout discards workspace", "[REQ-FIT-AUTH-002]", type: :re
     end
 
     context "without workspace bind" do
+      it "[REQ-FIT-AUTH-002] skips logout analytics when destroy is called while signed out" do
+        allow(Analytics::TrackEvent).to receive(:call)
+        sign_out :user if respond_to?(:sign_out)
+
+        delete destroy_user_session_path
+
+        expect(Analytics::TrackEvent).not_to have_received(:call).with("user_logged_out", anything)
+      end
+
       it "[REQ-FIT-AUTH-002] signs out immediately without confirmation" do
         user = create_confirmed_user!
         sign_in_user! user
