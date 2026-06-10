@@ -4,9 +4,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-06-06 — **Production VM deploy** completed on Coolify + Docker. **Solid Cable** integration configured, SSL trust behind Cloudflare (`assume_ssl`), and email confirmation global banner and logs fallbacks.
+**Last audit:** 2026-06-09 — **Feedback (REQ-FIT-OPS-001)** verified end-to-end on Coolify **Development** (`dev.modusloop.com`): FAB submit → DB → email + Discord → `/admin/feedbacks`. `SMTP_*` and `DISCORD_WEBHOOK_URL` confirmed in Coolify env.
 
-**Next action:** Post-deployment monitoring and backlog items.
+**Next action:** Merge `monitoring-feedback` to `main`, prod deploy + smoke test; Honeybadger ops on prod.
 
 ---
 
@@ -161,8 +161,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 ### Monitoreo & feedback (branch `monitoring-feedback`)
 
-- [x] **Botón de sugerencias (Feedback)** — FAB + dialog, persistencia en DB, notificaciones email/Discord, panel admin `/admin/feedbacks`, mejoras UI hub/paywall/preview pan-zoom (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md` — Branch: `monitoring-feedback`
+- [x] **Botón de sugerencias (Feedback)** — FAB + dialog, persistencia en DB, notificaciones email/Discord, panel admin `/admin/feedbacks`, mejoras UI hub/paywall/preview pan-zoom; fix formularios anidados en dialog (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md` — Branch: `monitoring-feedback`
 - [x] **Honeybadger (integración código)** — gem + initializer activo solo con `HONEYBADGER_API_KEY` (REQ-FIT-OPS-001) — 2026-06-09 — Branch: `monitoring-feedback`
+- [x] **Verificación post-deploy feedback (Coolify dev)** — `dev.modusloop.com`: `SMTP_*`, `DISCORD_WEBHOOK_URL`, `DISCORD_INVITE_URL`, `FEEDBACK_NOTIFY_EMAIL` en env Coolify; smoke test FAB → flash → fila en `/admin/feedbacks` → email a `soporte@modusloop.com` + embed Discord (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md`
 
 ---
 
@@ -186,7 +187,7 @@ _(none)_
 
 - [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
 - [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
-- [ ] **Verificación post-deploy feedback (Coolify dev + prod)** — Tras merge/deploy de `monitoring-feedback`: configurar `DISCORD_WEBHOOK_URL`, `DISCORD_INVITE_URL` y `SMTP_*` en **Development** (`dev.modusloop.com`) y **Production** (`modusloop.com`); smoke test FAB → DB → Discord/email → `/admin/feedbacks`. Ver `docs/DEPLOY.md` §4.
+- [ ] **Verificación post-deploy feedback (Coolify prod)** — Tras merge/deploy a **Production** (`modusloop.com`): replicar `DISCORD_WEBHOOK_URL`, `DISCORD_INVITE_URL`, `SMTP_*` y `FEEDBACK_NOTIFY_EMAIL` en env Coolify prod; smoke test FAB → DB → Discord/email → `/admin/feedbacks`. Dev verificado 2026-06-09. Ver `docs/DEPLOY.md` §4.
 - [ ] **Honeybadger operativo (Coolify prod)** — Crear proyecto en Honeybadger, añadir `HONEYBADGER_API_KEY` solo en la app Production de Coolify y verificar recepción de un error 500 de prueba. *(Código ya integrado en rama `monitoring-feedback`.)*
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
