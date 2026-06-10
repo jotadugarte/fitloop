@@ -1,0 +1,87 @@
+<div class="admin-dashboard">
+  <header class="admin-dashboard__header">
+    <h1 class="admin-dashboard__title"><%= t("feedback.admin.title") %></h1>
+  </header>
+
+  <%= form_with url: admin_feedbacks_path, method: :get, local: true, class: "fit-section admin-ventas-filters" do |f| %>
+    <h2 class="fit-section__legend"><%= t("feedback.admin.filter_status") %></h2>
+    <div class="admin-ventas-filters__grid">
+      <div>
+        <%= f.label :status, t("feedback.admin.filter_status"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :status,
+                     options_for_select(
+                       [ [ t("feedback.admin.all"), "" ] ] + Feedback::Status::ALLOWED.map { |s| [ t("feedback.statuses.#{s}"), s ] },
+                       @status_filter
+                     ),
+                     {},
+                     class: "admin-ventas-field__input" %>
+      </div>
+      <div>
+        <%= f.label :feedback_type, t("feedback.admin.filter_type"), class: "admin-stat-card__label admin-ventas-field__label" %>
+        <%= f.select :feedback_type,
+                     options_for_select(
+                       [ [ t("feedback.admin.all"), "" ] ] + Feedback::Category::ALLOWED.map { |tpe| [ t("feedback.types.#{tpe}"), tpe ] },
+                       @type_filter
+                     ),
+                     {},
+                     class: "admin-ventas-field__input" %>
+      </div>
+      <div class="admin-ventas-filters__actions">
+        <%= f.submit t("billing.paywall.selector.apply"), class: "btn btn-secondary" %>
+      </div>
+    </div>
+  <% end %>
+
+  <section class="fit-section">
+    <div class="table-container">
+      <table class="admin-table" data-testid="admin-feedbacks-table">
+        <thead>
+          <tr>
+            <th><%= t("feedback.type_label") %></th>
+            <th><%= t("feedback.email_label") %></th>
+            <th><%= t("feedback.message_label") %></th>
+            <th><%= t("feedback.admin.filter_status") %></th>
+            <th><%= t("admin.users.index.col_registered") %></th>
+            <th class="text-right"><%= t("feedback.admin.actions") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @feedbacks.any? %>
+            <% @feedbacks.each do |feedback| %>
+              <tr data-testid="admin-feedback-row-<%= feedback.id %>">
+                <td><%= t("feedback.types.#{feedback.feedback_type}") %></td>
+                <td><%= feedback.submitter_email %></td>
+                <td><%= feedback.message.truncate(120) %></td>
+                <td><%= t("feedback.statuses.#{feedback.status}") %></td>
+                <td><%= l(feedback.created_at, format: :short) %></td>
+                <td class="text-right admin-table__actions">
+                  <% unless feedback.reviewed? %>
+                    <%= button_to t("feedback.admin.mark_reviewed"),
+                                  admin_feedback_path(feedback, status: "reviewed", **request.query_parameters),
+                                  method: :patch,
+                                  class: "btn btn-secondary btn--compact" %>
+                  <% end %>
+                  <% unless feedback.archived? %>
+                    <%= button_to t("feedback.admin.mark_archived"),
+                                  admin_feedback_path(feedback, status: "archived", **request.query_parameters),
+                                  method: :patch,
+                                  class: "btn btn-secondary btn--compact" %>
+                  <% end %>
+                  <%= button_to t("feedback.admin.destroy"),
+                                admin_feedback_path(feedback, **request.query_parameters),
+                                method: :delete,
+                                class: "btn btn-secondary btn--compact",
+                                form: { data: { turbo_confirm: t("application.dialog_title") } } %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="6"><%= t("feedback.admin.empty") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

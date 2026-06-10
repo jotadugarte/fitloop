@@ -8,6 +8,45 @@ es:
     dialog_accept: "Aceptar"
     dialog_cancel: "Cancelar"
 
+  feedback:
+    fab_label: "Enviar sugerencia o reporte"
+    dialog_title: "Tu opinión nos importa"
+    dialog_intro: "Cuéntanos una idea, un error o cualquier comentario. También puedes unirte a nuestro Discord para soporte en vivo."
+    discord_support: "Soporte en Discord"
+    type_label: "Tipo"
+    email_label: "Correo electrónico"
+    message_label: "Mensaje"
+    source_url_label: "Página"
+    submit: "Enviar feedback"
+    cancel: "Cerrar"
+    flash:
+      success: "¡Gracias! Recibimos tu mensaje."
+      error: "No pudimos enviar tu feedback. Revisa los campos e inténtalo de nuevo."
+    types:
+      suggestion: "Sugerencia"
+      bug: "Error"
+      other: "Otro"
+    statuses:
+      pending: "Pendiente"
+      reviewed: "Revisado"
+      archived: "Archivado"
+    admin:
+      title: "Feedback de usuarios"
+      empty: "No hay feedback todavía."
+      filter_status: "Estado"
+      filter_type: "Tipo"
+      all: "Todos"
+      actions: "Acciones"
+      mark_reviewed: "Marcar revisado"
+      mark_archived: "Archivar"
+      destroy: "Eliminar"
+      destroyed: "Feedback eliminado."
+      updated: "Estado actualizado."
+    footer:
+      terms: "Términos"
+      privacy: "Privacidad"
+      discord: "Únete a nuestro Discord"
+
   locale:
     switcher_label: "Idioma"
     switcher_row_primary: "Idioma"
@@ -157,6 +196,11 @@ es:
       card_crc: "Tarjeta (CRC)"
       card_crc_reference: "Precio regular con tarjeta"
       meic_sinpe_hint: "Descuento especial con SINPE Móvil."
+      currency_geo_hint: "Moneda determinada según tu ubicación."
+      trust_badges:
+        secure: "Pago seguro"
+        sinpe: "SINPE Móvil"
+        cards: "Visa / Mastercard"
       aside:
         title: "Tu DXF final está listo"
         lead: "Elige cómo desbloquear la descarga:"

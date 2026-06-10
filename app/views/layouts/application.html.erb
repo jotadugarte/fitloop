@@ -35,7 +35,13 @@
         </div>
       <% end %>
       <%= render "shared/flash" unless content_for?(:inline_flash) %>
+      <div id="flash-stream-target"></div>
       <%= render "shared/fitloop_dialog" %>
+      <% if feedback_fab_visible? %>
+        <div id="feedback-shell" class="feedback-shell" data-controller="feedback-dialog">
+          <%= render "shared/feedback_dialog", feedback: Feedback.new, source_url: request.original_url %>
+        </div>
+      <% end %>
       <%= yield %>
     </div>
   </body>

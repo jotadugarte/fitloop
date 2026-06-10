@@ -5,8 +5,16 @@
 
   <% if preview.available? %>
     <p data-testid="preview-sheet-count"><%= t("projects.preview.sheet_count", count: preview.sheet_count) %></p>
-    <div class="nesting-preview nesting-preview--cad" data-testid="nesting-preview">
-      <%= nesting_preview_svg(preview, css_class: "nesting-preview__svg", testid: "nesting-preview-svg") %>
+    <div class="nesting-preview nesting-preview--cad nesting-preview--interactive"
+         data-controller="svg-pan-zoom"
+         data-testid="nesting-preview">
+      <div class="nesting-preview__viewport"
+           data-svg-pan-zoom-target="viewport"
+           data-action="wheel->svg-pan-zoom#wheel pointerdown->svg-pan-zoom#pointerDown pointermove->svg-pan-zoom#pointerMove pointerup->svg-pan-zoom#pointerUp pointercancel->svg-pan-zoom#pointerUp">
+        <div class="nesting-preview__canvas" data-svg-pan-zoom-target="canvas">
+          <%= nesting_preview_svg(preview, css_class: "nesting-preview__svg", testid: "nesting-preview-svg") %>
+        </div>
+      </div>
     </div>
   <% else %>
     <div class="nesting-preview nesting-preview--empty" data-testid="nesting-preview-empty">
