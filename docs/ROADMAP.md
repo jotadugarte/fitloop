@@ -187,9 +187,9 @@ _(none)_
 
 ### 3. Monitoreo & Feedback del Usuario (Operaciones)
 
-- [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
-- [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
-- [ ] **Honeybadger operativo (Coolify prod)** — Crear proyecto en Honeybadger, añadir `HONEYBADGER_API_KEY` solo en la app Production de Coolify y verificar recepción de un error 500 de prueba. *(Código ya integrado en rama `monitoring-feedback`.)*
+- [ ] **Monitoreo de caídas (Uptime)** — Configurar monitor externo (Uptime Kuma o Better Stack) en `https://modusloop.com/up`; alertas Discord/email. Guía paso a paso: `docs/DEPLOY.md` §10.2.
+- [ ] **Alertas de métricas del servidor (Home Ops)** — Netdata o cron en el host: disco >85 %, CPU/RAM crítica; opcional pg connections. Guía: `docs/DEPLOY.md` §10.3.
+- [ ] **Honeybadger operativo (Coolify prod)** — Proyecto Honeybadger + `HONEYBADGER_API_KEY` solo en Production; smoke test con `Honeybadger.notify`. Guía: `docs/DEPLOY.md` §10.1.
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
