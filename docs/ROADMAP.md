@@ -181,8 +181,8 @@ _(none)_
 
 - [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
 - [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
-- [ ] **Alertas de errores en producción** — Integrar Sentry o Honeybadger en el entorno de producción para notificar excepciones de servidor y errores 500 al instante.
-- [ ] **Botón de sugerencias (Feedback)** — Añadir un botón flotante o enlace simple en la barra de navegación del taller que abra un formulario para recibir ideas de mejoras de los usuarios y guardarlas en la base de datos.
+- [x] **Alertas de errores en producción** — Integrar Sentry o Honeybadger en el entorno de producción para notificar excepciones de servidor y errores 500 al instante.
+- [x] **Botón de sugerencias (Feedback)** — Añadir un botón flotante o enlace simple en la barra de navegación del taller que abra un formulario para recibir ideas de mejoras de los usuarios y guardarlas en la base de datos.
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
