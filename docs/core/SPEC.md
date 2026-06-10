@@ -153,6 +153,7 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 | **REQ-FIT-BILL-003** | `DownloadGrant` authorization; signed download URLs; 24h `retained_nested_dxf` for single purchase | P7 |
 | **REQ-FIT-ADMIN-001** | Admin foundation + `/admin/ventas` sales report (filters, CRC/USD tables, Hacienda totals, XLSX export, `cabys_code` on `payments`); stealth 404 gate on `/admin/*` | Pre-live |
 | **REQ-FIT-ANALYTICS-001** | Admin analytics & user event bitácora (dashboard, funnel stages, event catalog, analytics.yml thresholds, geo-IP, user timeline, A41 drift contract verifier) | Pre-live |
+| **REQ-FIT-OPS-001** | User feedback capture (FAB + dialog), email/Discord notifications, admin triage, Honeybadger in production, landing footer & paywall trust UX | Pre-live |
 
 ### REQ-FIT-AUTH-001 (detail)
 

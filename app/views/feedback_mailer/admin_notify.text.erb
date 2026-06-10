@@ -1,0 +1,11 @@
+Nuevo feedback de usuario
+
+Tipo: <%= t("feedback.types.#{@feedback.feedback_type}") %>
+Estado: <%= t("feedback.statuses.#{@feedback.status}") %>
+Correo: <%= @feedback.submitter_email %>
+<% if @feedback.source_url.present? %>
+Página: <%= @feedback.source_url %>
+<% end %>
+
+Mensaje:
+<%= @feedback.message %>

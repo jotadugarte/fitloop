@@ -1,0 +1,20 @@
+<h1>Nuevo feedback de usuario</h1>
+
+<p><strong>Tipo:</strong> <%= t("feedback.types.#{@feedback.feedback_type}") %></p>
+<p><strong>Estado:</strong> <%= t("feedback.statuses.#{@feedback.status}") %></p>
+<p><strong>Correo:</strong> <%= @feedback.submitter_email %></p>
+<% if @feedback.source_url.present? %>
+  <p><strong>Página:</strong> <%= @feedback.source_url %></p>
+<% end %>
+
+<h2>Mensaje</h2>
+<p><%= simple_format(@feedback.message) %></p>
+
+<% if @feedback.guest_metadata.present? %>
+  <h2>Metadatos</h2>
+  <ul>
+    <% @feedback.guest_metadata.each do |key, value| %>
+      <li><strong><%= key %>:</strong> <%= value %></li>
+    <% end %>
+  </ul>
+<% end %>

@@ -26,4 +26,17 @@
       <p class="tool-card__tagline"><%= t("home.hub.coming_soon") %></p>
     </div>
   </div>
+
+  <footer class="tool-hub__footer" data-testid="tool-hub-footer">
+    <nav class="tool-hub__footer-nav" aria-label="<%= t('feedback.footer.terms') %>">
+      <%= link_to t("feedback.footer.terms"), terminos_path, class: "tool-hub__footer-link" %>
+      <%= link_to t("feedback.footer.privacy"), privacidad_path, class: "tool-hub__footer-link" %>
+      <%= link_to t("feedback.footer.discord"),
+                  discord_invite_url,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  class: "tool-hub__footer-link tool-hub__footer-link--discord",
+                  data: { testid: "tool-hub-discord-link" } %>
+    </nav>
+  </footer>
 </main>

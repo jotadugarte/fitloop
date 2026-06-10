@@ -7,6 +7,44 @@ es_panic:
     dialog_title: El Oráculo del Láser
     dialog_accept: Diay, a jugársela
     dialog_cancel: Mejor no
+  feedback:
+    fab_label: Gritarle al láser
+    dialog_title: Cuéntenos su tragedia
+    dialog_intro: Idea, bug o pánico existencial. También hay Discord si necesita contención grupal.
+    discord_support: Refugio en Discord
+    type_label: Tipo de drama
+    email_label: Correo (para el acta)
+    message_label: Desahogo
+    source_url_label: Página del crimen
+    submit: Enviar grito al vacío
+    cancel: Cerrar y fingir normalidad
+    flash:
+      success: Recibido. El láser digital escuchó.
+      error: El grito rebotó. Revise los campos.
+    types:
+      suggestion: Sugerencia
+      bug: Bug del infierno
+      other: Otro sufrimiento
+    statuses:
+      pending: Pendiente
+      reviewed: Revisado
+      archived: Archivado
+    admin:
+      title: Gritos de usuarios
+      empty: Silencio ominoso. Nadie gritó aún.
+      filter_status: Estado
+      filter_type: Tipo
+      all: Todos
+      actions: Acciones
+      mark_reviewed: Marcar revisado
+      mark_archived: Archivar
+      destroy: Eliminar
+      destroyed: Grito purgado del registro.
+      updated: Estado actualizado.
+    footer:
+      terms: Términos
+      privacy: Privacidad
+      discord: Discord (grupo de apoyo)
   locale:
     switcher_label: Nivel de Estrés
     switcher_row_primary: EN / ES (antes del pánico)
@@ -151,6 +189,11 @@ es_panic:
       card_crc: Tarjeta (CRC)
       card_crc_reference: Precio regular con tarjeta
       meic_sinpe_hint: Precio especial con SINPE Móvil. La tarjeta queda como referencia.
+      currency_geo_hint: Moneda según dónde esté parado (geo-IP).
+      trust_badges:
+        secure: Pago supuestamente seguro
+        sinpe: SINPE Móvil
+        cards: Visa / Mastercard
       aside:
         title: El DXF anidado ya está (no lo toques sin pagar)
         lead: "El Tetris terminó. Desbloquea la bajada así:"

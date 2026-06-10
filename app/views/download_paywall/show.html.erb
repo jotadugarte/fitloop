@@ -9,6 +9,17 @@
     <p class="checkout-page__intro"><%= t("billing.paywall.intro") %></p>
     <p class="checkout-page__intro"><%= t("billing.single_download.retention_24h") %></p>
 
+    <div class="paywall-trust" data-testid="paywall-trust-badges">
+      <p class="paywall-trust__hint" title="<%= t('billing.paywall.currency_geo_hint') %>">
+        <%= t("billing.paywall.currency_geo_hint") %>
+      </p>
+      <ul class="paywall-trust__badges">
+        <li class="paywall-trust__badge" data-testid="paywall-trust-secure"><%= t("billing.paywall.trust_badges.secure") %></li>
+        <li class="paywall-trust__badge" data-testid="paywall-trust-sinpe"><%= t("billing.paywall.trust_badges.sinpe") %></li>
+        <li class="paywall-trust__badge" data-testid="paywall-trust-cards"><%= t("billing.paywall.trust_badges.cards") %></li>
+      </ul>
+    </div>
+
     <% if show_sinpe_reference %>
       <p class="paywall-meic-hint"><%= t("billing.paywall.meic_sinpe_hint") %></p>
     <% end %>

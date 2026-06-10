@@ -1,0 +1,85 @@
+<dialog id="feedback-dialog"
+        class="feedback-dialog fitloop-dialog"
+        data-feedback-dialog-target="dialog"
+        data-testid="feedback-dialog">
+  <div class="fitloop-dialog__panel feedback-dialog__panel">
+    <p class="fitloop-dialog__title feedback-dialog__title"><%= t("feedback.dialog_title") %></p>
+    <p class="feedback-dialog__intro"><%= t("feedback.dialog_intro") %></p>
+    <p class="feedback-dialog__discord">
+      <%= link_to t("feedback.discord_support"),
+                  discord_invite_url,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                  class: "feedback-dialog__discord-link",
+                  data: { testid: "feedback-discord-link" } %>
+    </p>
+
+    <div id="feedback-dialog-errors" class="feedback-dialog__errors" data-testid="feedback-dialog-errors"></div>
+
+    <%= form_with model: feedback,
+                  url: feedbacks_path,
+                  scope: :feedback,
+                  html: {
+                    class: "feedback-dialog__form",
+                    data: {
+                      feedback_dialog_target: "form",
+                      turbo: true,
+                      testid: "feedback-form",
+                      action: "turbo:submit-end->feedback-dialog#handleSubmitEnd"
+                    }
+                  } do |f| %>
+      <%= f.hidden_field :source_url, value: source_url %>
+
+      <div class="feedback-dialog__field">
+        <%= f.label :feedback_type, t("feedback.type_label"), class: "feedback-dialog__label" %>
+        <%= f.select :feedback_type,
+                     Feedback::Category::ALLOWED.map { |value| [ t("feedback.types.#{value}"), value ] },
+                     {},
+                     class: "feedback-dialog__select",
+                     data: { testid: "feedback-type" } %>
+      </div>
+
+      <% unless user_signed_in? %>
+        <div class="feedback-dialog__field">
+          <%= f.label :email, t("feedback.email_label"), class: "feedback-dialog__label" %>
+          <%= f.email_field :email,
+                            required: true,
+                            autocomplete: "email",
+                            class: "feedback-dialog__input",
+                            data: { testid: "feedback-email" } %>
+        </div>
+      <% end %>
+
+      <div class="feedback-dialog__field">
+        <%= f.label :message, t("feedback.message_label"), class: "feedback-dialog__label" %>
+        <%= f.text_area :message,
+                        required: true,
+                        rows: 5,
+                        maxlength: Feedback::Message::MAX_LENGTH,
+                        class: "feedback-dialog__textarea",
+                        data: { testid: "feedback-message" } %>
+      </div>
+
+      <menu class="fitloop-dialog__actions feedback-dialog__actions">
+        <button type="button"
+                class="btn btn-secondary fitloop-dialog__btn"
+                data-action="feedback-dialog#close"
+                data-testid="feedback-cancel"><%= t("feedback.cancel") %></button>
+        <%= f.submit t("feedback.submit"),
+                     class: "btn btn-primary fitloop-dialog__btn",
+                     data: { testid: "feedback-submit" } %>
+      </menu>
+    <% end %>
+  </div>
+</dialog>
+
+<button type="button"
+        class="feedback-fab"
+        data-action="feedback-dialog#open"
+        data-testid="feedback-fab"
+        aria-haspopup="dialog"
+        aria-controls="feedback-dialog"
+        title="<%= t("feedback.fab_label") %>">
+  <span class="feedback-fab__icon" aria-hidden="true">✉</span>
+  <span class="visually-hidden"><%= t("feedback.fab_label") %></span>
+</button>

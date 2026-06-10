@@ -235,6 +235,15 @@ In the **Environment Variables** tab of each app in Coolify, configure the follo
 | `ONVO_PUBLISHABLE_KEY` | *Live ONVO key* | *Test ONVO key* |
 | `ONVO_WEBHOOK_SECRET` | *Live ONVO webhook secret* | *Test ONVO webhook secret* |
 | `APP_HOST` | `modusloop.com` | `dev.modusloop.com` |
+| `DISCORD_WEBHOOK_URL` | Webhook canal alertas **prod** | Webhook canal alertas **dev** (recomendado separado) |
+| `DISCORD_INVITE_URL` | Invite permanente comunidad | Mismo invite que prod |
+| `FEEDBACK_NOTIFY_EMAIL` | `soporte@modusloop.com` | Gmail de prueba o mismo soporte |
+| `MAILER_SENDER` | `noreply@modusloop.com` | `noreply@modusloop.com` |
+| `SMTP_ADDRESS` | Brevo SMTP host | Brevo SMTP host |
+| `SMTP_PORT` | `587` | `587` |
+| `SMTP_USER` | Brevo login | Brevo login |
+| `SMTP_PASSWORD` | Brevo SMTP key | Brevo SMTP key |
+| `HONEYBADGER_API_KEY` | API key Honeybadger | *(omitir en dev)* |
 
 > [!WARNING]
 > Do not set `FITLOOP_BILLING_COUNTRY_OVERRIDE` in production. For testing billing on the development site, you can set `FITLOOP_BILLING_COUNTRY_OVERRIDE=US` to simulate transactions from outside Costa Rica.

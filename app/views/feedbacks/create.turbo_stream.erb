@@ -1,0 +1,34 @@
+<% if @feedback.errors.any? %>
+  <%= turbo_stream.replace "feedback-dialog-errors" do %>
+    <div id="feedback-dialog-errors" class="feedback-dialog__errors" data-testid="feedback-dialog-errors">
+      <ul class="feedback-dialog__error-list">
+        <% @feedback.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+<% else %>
+  <%= turbo_stream.replace "flash-stream-target" do %>
+    <div id="flash-stream-target">
+      <div
+        class="flash flash-notice"
+        data-controller="flash-dismiss"
+        data-turbo-temporary
+        data-action="mouseenter->flash-dismiss#pause mouseleave->flash-dismiss#resume"
+        data-testid="flash-notice"
+        role="status"
+        aria-live="polite"
+      >
+        <p class="flash__title"><%= t("application.dialog_title") %></p>
+        <p class="flash__message"><%= t("feedback.flash.success") %></p>
+      </div>
+    </div>
+  <% end %>
+
+  <%= turbo_stream.replace "feedback-shell" do %>
+    <div id="feedback-shell" class="feedback-shell" data-controller="feedback-dialog">
+      <%= render "shared/feedback_dialog", feedback: Feedback.new, source_url: request.referer %>
+    </div>
+  <% end %>
+<% end %>
