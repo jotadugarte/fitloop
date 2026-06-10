@@ -37,6 +37,45 @@ en:
     dialog_accept: "OK"
     dialog_cancel: "Cancel"
 
+  feedback:
+    fab_label: "Send suggestion or report"
+    dialog_title: "We value your feedback"
+    dialog_intro: "Share an idea, bug, or comment. You can also join our Discord for live support."
+    discord_support: "Discord support"
+    type_label: "Type"
+    email_label: "Email"
+    message_label: "Message"
+    source_url_label: "Page"
+    submit: "Send feedback"
+    cancel: "Close"
+    flash:
+      success: "Thanks! We received your message."
+      error: "We could not send your feedback. Check the fields and try again."
+    types:
+      suggestion: "Suggestion"
+      bug: "Bug"
+      other: "Other"
+    statuses:
+      pending: "Pending"
+      reviewed: "Reviewed"
+      archived: "Archived"
+    admin:
+      title: "User feedback"
+      empty: "No feedback yet."
+      filter_status: "Status"
+      filter_type: "Type"
+      all: "All"
+      actions: "Actions"
+      mark_reviewed: "Mark reviewed"
+      mark_archived: "Archive"
+      destroy: "Delete"
+      destroyed: "Feedback deleted."
+      updated: "Status updated."
+    footer:
+      terms: "Terms"
+      privacy: "Privacy"
+      discord: "Join our Discord"
+
   locale:
     switcher_label: "Language"
     switcher_row_primary: "Language"
@@ -142,6 +181,11 @@ en:
       card_crc: "Card (CRC)"
       card_crc_reference: "Regular card price"
       meic_sinpe_hint: "Special price with SINPE Mobile. Card price is shown for reference."
+      currency_geo_hint: "Currency is determined from your location."
+      trust_badges:
+        secure: "Secure checkout"
+        sinpe: "SINPE Mobile"
+        cards: "Visa / Mastercard"
       aside:
         title: "Your nested DXF is ready"
         lead: "Nesting finished. Choose how to unlock the download:"

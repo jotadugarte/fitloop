@@ -146,4 +146,12 @@ module ApplicationHelper
   def event_label(event_type)
     t("admin.events.#{event_type}", default: event_type.to_s.humanize)
   end
+
+  def discord_invite_url
+    ENV.fetch("DISCORD_INVITE_URL", "https://discord.gg/modusloop")
+  end
+
+  def feedback_fab_visible?
+    !controller_path.start_with?("admin/")
+  end
 end
