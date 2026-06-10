@@ -25,13 +25,13 @@ class FeedbacksController < ApplicationController
 
   def build_feedback
     guest_context = if user_signed_in?
-                      nil
-                    else
-                      Feedback::GuestContext.from_request(
-                        request: request,
-                        source_url: feedback_params[:source_url]
-                      )
-                    end
+      nil
+    else
+      Feedback::GuestContext.from_request(
+        request: request,
+        source_url: feedback_params[:source_url]
+      )
+    end
 
     Feedback.build_from_params(
       params: feedback_params,
