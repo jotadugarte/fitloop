@@ -68,6 +68,8 @@ Rails.application.routes.draw do
 
   get "empezar", to: "projects#start", as: :start_project
 
+  resources :feedbacks, only: :create
+
   resolve("Project") { [ :workshop ] }
 
   # Ephemeral workshop (session-bound); no project id in the browser URL.
@@ -129,6 +131,7 @@ Rails.application.routes.draw do
     get "analytics", to: "analytics#index"
     get "analytics/export", to: "analytics#export_csv", as: :export_analytics
     resources :usuarios, only: %i[index show], controller: "users"
+    resources :feedbacks, only: %i[index update destroy]
   end
 
   # Fallback redirects for relative admin path resolution
