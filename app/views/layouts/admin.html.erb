@@ -23,6 +23,7 @@
           <%= link_to "Ventas", admin_ventas_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if request.path.start_with?('/admin/ventas')}" %>
           <%= link_to "Analytics", admin_analytics_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if request.path.start_with?('/admin/analytics')}" %>
           <%= link_to "Usuarios", admin_usuarios_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if request.path.start_with?('/admin/usuarios')}" %>
+          <%= link_to "Feedback", admin_feedbacks_path, class: "admin-header__nav-link #{'admin-header__nav-link--active' if request.path.start_with?('/admin/feedbacks')}" %>
         </nav>
       </div>
       <div class="admin-header__user">
