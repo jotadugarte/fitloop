@@ -14,6 +14,9 @@ RSpec.describe "Feedback flow", "[REQ-FIT-OPS-001]", type: :system do
     visit root_path
 
     expect(page).to have_css("[data-testid='feedback-fab']")
+    expect(page).to have_css("[data-testid='feedback-dialog'] form[data-testid='feedback-form']", count: 1)
+
+    find("[data-testid='feedback-fab']").click
 
     within("[data-testid='feedback-dialog']", visible: :all) do
       select I18n.t("feedback.types.suggestion"), from: "feedback_feedback_type", visible: :all
