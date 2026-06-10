@@ -2,7 +2,7 @@
         class="feedback-dialog fitloop-dialog"
         data-feedback-dialog-target="dialog"
         data-testid="feedback-dialog">
-  <form method="dialog" class="fitloop-dialog__panel feedback-dialog__panel">
+  <div class="fitloop-dialog__panel feedback-dialog__panel">
     <p class="fitloop-dialog__title feedback-dialog__title"><%= t("feedback.dialog_title") %></p>
     <p class="feedback-dialog__intro"><%= t("feedback.dialog_intro") %></p>
     <p class="feedback-dialog__discord">
@@ -70,7 +70,7 @@
                      data: { testid: "feedback-submit" } %>
       </menu>
     <% end %>
-  </form>
+  </div>
 </dialog>
 
 <button type="button"
