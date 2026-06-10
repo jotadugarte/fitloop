@@ -159,6 +159,11 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Integrated SimpleCov in the RSpec suite, set strict line (100.0%) and branch (100.0%) coverage minimums, and fixed all uncovered paths in controllers, models, and services. — 2026-06-07 — Branch: `refactor/test-coverage-100`
 - [x] **Script de desarrollo con Solid Queue local** (REQ-FIT-QA-001) — Configured `bin/dev` to run with Solid Queue and Puma integrated supervisor using the `--solid` flag or `USE_SOLID_QUEUE=true` environment variable, aligning development environment closely with production/Coolify background queue adapter. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_local-solid-queue-development.md`
 
+### Monitoreo & feedback (branch `monitoring-feedback`)
+
+- [x] **Botón de sugerencias (Feedback)** — FAB + dialog, persistencia en DB, notificaciones email/Discord, panel admin `/admin/feedbacks`, mejoras UI hub/paywall/preview pan-zoom (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md` — Branch: `monitoring-feedback`
+- [x] **Honeybadger (integración código)** — gem + initializer activo solo con `HONEYBADGER_API_KEY` (REQ-FIT-OPS-001) — 2026-06-09 — Branch: `monitoring-feedback`
+
 ---
 
 ## In Progress
@@ -181,8 +186,8 @@ _(none)_
 
 - [ ] **Monitoreo de caídas (Uptime)** — Configurar monitoreo externo independiente (Uptime Kuma o Better Stack) para alertar de inmediato ante caídas de conexión del servidor o fallos en el proxy de Cloudflare.
 - [ ] **Alertas de métricas del servidor (Home Ops)** — Configurar alertas del sistema para espacio de almacenamiento en disco (>85%), consumo crítico de memoria/CPU, y saturación del pool de conexiones en PostgreSQL.
-- [x] **Alertas de errores en producción** — Integrar Sentry o Honeybadger en el entorno de producción para notificar excepciones de servidor y errores 500 al instante.
-- [x] **Botón de sugerencias (Feedback)** — Añadir un botón flotante o enlace simple en la barra de navegación del taller que abra un formulario para recibir ideas de mejoras de los usuarios y guardarlas en la base de datos.
+- [ ] **Verificación post-deploy feedback (Coolify dev + prod)** — Tras merge/deploy de `monitoring-feedback`: configurar `DISCORD_WEBHOOK_URL`, `DISCORD_INVITE_URL` y `SMTP_*` en **Development** (`dev.modusloop.com`) y **Production** (`modusloop.com`); smoke test FAB → DB → Discord/email → `/admin/feedbacks`. Ver `docs/DEPLOY.md` §4.
+- [ ] **Honeybadger operativo (Coolify prod)** — Crear proyecto en Honeybadger, añadir `HONEYBADGER_API_KEY` solo en la app Production de Coolify y verificar recepción de un error 500 de prueba. *(Código ya integrado en rama `monitoring-feedback`.)*
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
