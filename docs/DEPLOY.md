@@ -405,7 +405,7 @@ Si supera ~80 % del `max_connections`, investiga pool de Puma + Solid Queue. Net
 - [x] Alerta disco > 85 % (Configurado en Netdata Cloud)
 - [x] Alerta CPU/RAM crítica (Netdata o equivalente) (Configurado en Netdata Cloud)
 - [x] Canal Discord (o email) para alertas de infra (Integrado con webhook de Discord)
-- [ ] *(Opcional)* Cron semanal `docker system prune` (ver ROADMAP §5 Disk Purge)
+- [x] Cron semanal `docker system prune` (ver ROADMAP §5 Disk Purge) — Configurado en el host los miércoles a las 11:00 AM.
 
 #### 10.4 Resumen de canales Discord
 
