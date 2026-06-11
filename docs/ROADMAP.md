@@ -6,7 +6,7 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Last audit:** 2026-06-09 — **Feedback (REQ-FIT-OPS-001)** verified end-to-end on Coolify **Development** and **Production**: FAB submit → DB → email + Discord → `/admin/feedbacks`. `SMTP_*` and `DISCORD_WEBHOOK_URL` confirmed in both Coolify apps.
 
-**Next action:** Honeybadger ops on prod; uptime/server-metric monitoring backlog.
+**Next action:** Uptime/server-metric monitoring backlog.
 
 ---
 
@@ -166,6 +166,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Verificación post-deploy feedback (Coolify dev)** — `dev.modusloop.com`: `SMTP_*`, `DISCORD_WEBHOOK_URL`, `DISCORD_INVITE_URL`, `FEEDBACK_NOTIFY_EMAIL` en env Coolify; smoke test FAB → flash → fila en `/admin/feedbacks` → email a `soporte@modusloop.com` + embed Discord (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md`
 - [x] **Verificación post-deploy feedback (Coolify prod)** — `modusloop.com`: mismas env vars en Production; smoke test FAB → DB → email + Discord confirmado (REQ-FIT-OPS-001) — 2026-06-09 — Session: `task_monitoring-feedback.md`
 - [x] **Variables SMTP en Coolify (prod)** — Credenciales Brevo en Production verificadas vía smoke test de feedback (email a `soporte@modusloop.com`) — 2026-06-09
+- [x] **Honeybadger operativo (Coolify prod)** — Proyecto Honeybadger + `HONEYBADGER_API_KEY` solo en Production; smoke test con `Honeybadger.notify` verificado en dashboard — 2026-06-10
+- [x] **Monitoreo de caídas (Uptime)** — Configurado monitor externo en Better Stack SaaS en `https://modusloop.com/up` con alertas por correo electrónico verificadas — 2026-06-10
+- [x] **Alertas de métricas del servidor (Home Ops)** — Instalado Netdata Agent en el host (`server-zelda`) y configuradas alertas centralizadas a Discord vía Netdata Cloud — 2026-06-10
 
 ---
 
@@ -187,9 +190,7 @@ _(none)_
 
 ### 3. Monitoreo & Feedback del Usuario (Operaciones)
 
-- [ ] **Monitoreo de caídas (Uptime)** — Configurar monitor externo (Uptime Kuma o Better Stack) en `https://modusloop.com/up`; alertas Discord/email. Guía paso a paso: `docs/DEPLOY.md` §10.2.
-- [ ] **Alertas de métricas del servidor (Home Ops)** — Netdata o cron en el host: disco >85 %, CPU/RAM crítica; opcional pg connections. Guía: `docs/DEPLOY.md` §10.3.
-- [ ] **Honeybadger operativo (Coolify prod)** — Proyecto Honeybadger + `HONEYBADGER_API_KEY` solo en Production; smoke test con `Honeybadger.notify`. Guía: `docs/DEPLOY.md` §10.1.
+_(none)_
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 

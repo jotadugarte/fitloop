@@ -321,10 +321,10 @@ Code for Honeybadger and the feedback pipeline is already in `main`. The items b
 
 **Checklist**
 
-- [ ] Proyecto Honeybadger creado
-- [ ] `HONEYBADGER_API_KEY` solo en Coolify Production
-- [ ] Redeploy completado
-- [ ] `Honeybadger.notify` smoke test visible en dashboard
+- [x] Proyecto Honeybadger creado
+- [x] `HONEYBADGER_API_KEY` solo en Coolify Production
+- [x] Redeploy completado
+- [x] `Honeybadger.notify` smoke test visible en dashboard
 
 #### 10.2 Uptime — caídas del sitio
 
@@ -355,9 +355,9 @@ Usa un monitor **externo** al VPS (si el servidor cae, el monitor debe poder avi
 
 **Checklist**
 
-- [ ] Monitor HTTP en `/up` (prod)
-- [ ] Alerta Discord o email cuando falle 2+ veces seguidas
-- [ ] Prueba manual: pausar contenedor Rails → alerta en <5 min
+- [x] Monitor HTTP en `/up` (prod) (Configurado en Better Stack SaaS)
+- [x] Alerta Discord o email cuando falle 2+ veces seguidas (Configurado con alertas por email)
+- [x] Prueba manual: pausar contenedor Rails → alerta en <5 min (Alerta recibida exitosamente)
 
 #### 10.3 Métricas del servidor (Home Ops)
 
@@ -402,9 +402,9 @@ Si supera ~80 % del `max_connections`, investiga pool de Puma + Solid Queue. Net
 
 **Checklist**
 
-- [ ] Alerta disco > 85 %
-- [ ] Alerta CPU/RAM crítica (Netdata o equivalente)
-- [ ] Canal Discord (o email) para alertas de infra
+- [x] Alerta disco > 85 % (Configurado en Netdata Cloud)
+- [x] Alerta CPU/RAM crítica (Netdata o equivalente) (Configurado en Netdata Cloud)
+- [x] Canal Discord (o email) para alertas de infra (Integrado con webhook de Discord)
 - [ ] *(Opcional)* Cron semanal `docker system prune` (ver ROADMAP §5 Disk Purge)
 
 #### 10.4 Resumen de canales Discord
