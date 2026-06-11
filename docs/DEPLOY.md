@@ -296,6 +296,128 @@ Register the webhook URLs in your ONVO dashboards:
    ```
    Ensure GeoIP resolution resolves correctly.
 
+### 10. Monitoring & alerting (REQ-FIT-OPS-001)
+
+Code for Honeybadger and the feedback pipeline is already in `main`. The items below are **manual ops** in Coolify, Honeybadger, and your home server.
+
+#### 10.1 Honeybadger — excepciones en producción
+
+**Scope:** solo la app **Production** en Coolify (`modusloop.com`). No configures `HONEYBADGER_API_KEY` en Development.
+
+1. Crea cuenta en [Honeybadger](https://www.honeybadger.io/) (plan gratuito cubre el volumen inicial).
+2. **Projects → New project → Ruby on Rails** → nombre `moduSLoop Production`.
+3. Copia la **API key** del proyecto.
+4. En Coolify → app **Production** → **Environment Variables**:
+   - `HONEYBADGER_API_KEY` = *(API key)*
+5. **Redeploy** la app Production (el initializer solo activa Honeybadger si la key está presente).
+6. **Smoke test** desde la consola/terminal del contenedor en Coolify:
+   ```bash
+   bin/rails runner 'Honeybadger.notify("Smoke test modusloop.com — puede ignorar")'
+   ```
+7. En el dashboard de Honeybadger → **Errors**, confirma que aparece la notificación en ~1 minuto.
+8. *(Opcional)* En Honeybadger → **Settings → Notifications**, enlaza el mismo canal de Discord o tu email para alertas de excepciones.
+
+> El formulario de feedback **no** pasa por Honeybadger; Honeybadger solo captura excepciones no manejadas (500, errores de job, etc.). Los envíos de feedback usan email + Discord (ya verificados).
+
+**Checklist**
+
+- [x] Proyecto Honeybadger creado
+- [x] `HONEYBADGER_API_KEY` solo en Coolify Production
+- [x] Redeploy completado
+- [x] `Honeybadger.notify` smoke test visible en dashboard
+
+#### 10.2 Uptime — caídas del sitio
+
+Usa un monitor **externo** al VPS (si el servidor cae, el monitor debe poder avisarte). Opciones recomendadas:
+
+| Herramienta | Costo | Dónde corre |
+|-------------|-------|-------------|
+| **Uptime Kuma** | Gratis | Docker en otro host, NAS, o la misma máquina en otro contenedor |
+| **Better Stack** (Better Uptime) | Freemium | SaaS |
+
+**Endpoint recomendado:** `https://modusloop.com/up`
+
+- Responde **200** si Rails arrancó sin errores.
+- **Bypass** de modo mantenimiento (`MAINTENANCE_MODE=true` no bloquea `/up`) — útil para saber si el proceso sigue vivo durante mantenimiento planificado.
+- No requiere login ni cookies.
+
+**Configuración Uptime Kuma (ejemplo)**
+
+1. Instala [Uptime Kuma](https://github.com/louislam/uptime-kuma) (Docker Compose en un host distinto al túnel, si es posible).
+2. **Add New Monitor → HTTP(s)**:
+   - **Friendly Name:** `modusloop.com /up`
+   - **URL:** `https://modusloop.com/up`
+   - **Heartbeat Interval:** `60` seconds
+   - **Retries:** `2`
+   - **Expected Status Codes:** `200`
+3. **Notifications → Discord** (webhook al canal `#alertas-servidor-prod` o similar).
+4. *(Opcional)* Segundo monitor en `https://dev.modusloop.com/up` — recuerda que dev está detrás de Cloudflare Access; el monitor necesitará cookie/token o un bypass de Access para esa ruta.
+
+**Checklist**
+
+- [x] Monitor HTTP en `/up` (prod) (Configurado en Better Stack SaaS)
+- [x] Alerta Discord o email cuando falle 2+ veces seguidas (Configurado con alertas por email)
+- [x] Prueba manual: pausar contenedor Rails → alerta en <5 min (Alerta recibida exitosamente)
+
+#### 10.3 Métricas del servidor (Home Ops)
+
+Alertas para disco, CPU/RAM y (opcional) PostgreSQL en el **host** donde corre Coolify.
+
+**Opción A — Netdata (recomendada para home lab)**
+
+1. Instala Netdata en el host Linux ([guía oficial](https://learn.netdata.cloud/docs/installing/)).
+2. Activa alertas por defecto:
+   - **Disco** > 85 % en volumen raíz o donde monta Docker/Coolify
+   - **RAM** > 90 % sostenido
+   - **CPU** > 90 % sostenido (ajusta según i7 / 3 workers nesting)
+3. **Netdata Cloud** (gratis) → Notifications → Discord webhook o email.
+
+**Opción B — Script cron + Discord**
+
+En el host (fuera del contenedor Rails), cron cada 5 min:
+
+```bash
+# /usr/local/bin/fitloop-host-alert.sh (ejemplo mínimo)
+THRESH=85
+USE=$(df / --output=pcent | tail -1 | tr -dc '0-9')
+WEBHOOK="$DISCORD_WEBHOOK_URL"
+if [ "$USE" -ge "$THRESH" ]; then
+  curl -s -H "Content-Type: application/json" \
+    -d "{\"content\":\"⚠️ Disco host al ${USE}% — revisar Coolify/Docker\"}" \
+    "$WEBHOOK"
+fi
+```
+
+Configura `DISCORD_WEBHOOK_URL` en el entorno del cron o en el script (mismo webhook de alertas o canal dedicado).
+
+**PostgreSQL (conexiones)**
+
+Desde consola Postgres en Coolify o `docker exec` al contenedor DB:
+
+```sql
+SELECT count(*) FROM pg_stat_activity;
+```
+
+Si supera ~80 % del `max_connections`, investiga pool de Puma + Solid Queue. Netdata puede monitorizar Postgres si instalas el collector; no es obligatorio en v1.
+
+**Checklist**
+
+- [x] Alerta disco > 85 % (Configurado en Netdata Cloud)
+- [x] Alerta CPU/RAM crítica (Netdata o equivalente) (Configurado en Netdata Cloud)
+- [x] Canal Discord (o email) para alertas de infra (Integrado con webhook de Discord)
+- [ ] *(Opcional)* Cron semanal `docker system prune` (ver ROADMAP §5 Disk Purge)
+
+#### 10.4 Resumen de canales Discord
+
+| Evento | Origen | Canal sugerido |
+|--------|--------|----------------|
+| Feedback usuario | Rails `DeliverFeedbackJob` | `#soporte` o `#feedback` |
+| Excepción 500 | Honeybadger → Discord/email | `#alertas-app` |
+| Sitio caído | Uptime Kuma | `#alertas-uptime` |
+| Disco/CPU host | Netdata o cron | `#alertas-servidor` |
+
+Puedes usar un solo webhook en un canal `#alertas-modusloop` al inicio; separa canales cuando el volumen crezca.
+
 ## Automated E2E
 To run system tests on the project repository:
 ```bash
