@@ -4,9 +4,8 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 
 **Format:** `[x]` done · `[ ]` pending · `(REQ-ID)` → `docs/core/SPEC.md` · `— YYYY-MM-DD` done · `— Branch: name` in progress · `— Depends on: Item` blocked · **Session:** archived log in `.agenticguild/completed_sessions/` (filename with date suffix)
 
-**Last audit:** 2026-06-09 — **Feedback (REQ-FIT-OPS-001)** verified end-to-end on Coolify **Development** and **Production**: FAB submit → DB → email + Discord → `/admin/feedbacks`. `SMTP_*` and `DISCORD_WEBHOOK_URL` confirmed in both Coolify apps.
-
-**Next action:** Uptime/server-metric monitoring backlog.
+**Last audit:** 2026-06-11 — **Production Hardening (REQ-FIT-QA-001)**: SSL/TLS Full strict active in Cloudflare, automatic database backups via Coolify to Cloudflare R2, file storage sync via rclone to R2, and weekly Docker system prune cleanup task configured.
+**Next action:** Backlog triage / Product feature feedback.
 
 ---
 
@@ -158,6 +157,9 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Habilitar RSpec en CI** (REQ-FIT-QA-001) — Configured GitHub Actions in `ci.yml` to spin up a PostgreSQL test service and run the full RSpec suite (unit, controllers, request, system/E2E specs) on every PR and push. — 2026-06-07 — Branch: `refactor/test-coverage-100`
 - [x] **Enforcement de cobertura al 100%** (REQ-FIT-QA-001) — Integrated SimpleCov in the RSpec suite, set strict line (100.0%) and branch (100.0%) coverage minimums, and fixed all uncovered paths in controllers, models, and services. — 2026-06-07 — Branch: `refactor/test-coverage-100`
 - [x] **Script de desarrollo con Solid Queue local** (REQ-FIT-QA-001) — Configured `bin/dev` to run with Solid Queue and Puma integrated supervisor using the `--solid` flag or `USE_SOLID_QUEUE=true` environment variable, aligning development environment closely with production/Coolify background queue adapter. — 2026-06-07 — Branch: `test-coolifyv` — Session: `task_local-solid-queue-development.md`
+- [x] **Certificado SSL/TLS (conexión encriptada)** (REQ-FIT-QA-001) — Cloudflare Dashboard cambiado de Full a Full (strict). Cloudflare Tunnel garantiza cifrado end-to-end sin certificado de origen adicional. — 2026-06-10
+- [x] **Respaldos de base de datos (Backups)** — Programadas tareas de backup diario de PostgreSQL en Coolify con destino a Cloudflare R2 (`modusloop-backups`) y retención de 30 días. — 2026-06-10
+- [x] **Limpieza automática de Docker (Disk Purge)** — Configurada tarea cron en el host (`server-zelda`) para ejecutar `docker system prune -f` semanalmente (miércoles a las 11:00 AM) y evitar llenado de disco. — 2026-06-10
 
 ### Monitoreo & feedback (branch `monitoring-feedback`)
 
@@ -169,6 +171,8 @@ moduSLoop is a platform for student tools. Its first tool is fiTLoop (web app fo
 - [x] **Honeybadger operativo (Coolify prod)** — Proyecto Honeybadger + `HONEYBADGER_API_KEY` solo en Production; smoke test con `Honeybadger.notify` verificado en dashboard — 2026-06-10
 - [x] **Monitoreo de caídas (Uptime)** — Configurado monitor externo en Better Stack SaaS en `https://modusloop.com/up` con alertas por correo electrónico verificadas — 2026-06-10
 - [x] **Alertas de métricas del servidor (Home Ops)** — Instalado Netdata Agent en el host (`server-zelda`) y configuradas alertas centralizadas a Discord vía Netdata Cloud — 2026-06-10
+- [x] **Enrutamiento de correos en Cloudflare** — Configuradas reglas de redirección para `soporte@`, `facturacion@` y `admin@modusloop.com` hacia Gmail; verificado recibo de email de prueba en bandeja. — 2026-06-10 — Session: `task_email-discord-setup.md`
+- [x] **DNS SPF/DKIM/DMARC para Brevo** — Añadidos registros TXT en Cloudflare DNS para legitimar envío de correos transaccionales desde `modusloop.com` vía Brevo; verificado end-to-end con smoke test de feedback. — 2026-06-10 — Session: `task_email-discord-setup.md`
 
 ---
 
@@ -194,14 +198,11 @@ _(none)_
 
 ### 4. Configuración de Producción & DevOps (Fuera de código)
 
-- [ ] **Certificado SSL/TLS (conexión encriptada)** (REQ-FIT-QA-001) — Instalar certificado de origen en el VPS/Coolify (Cloudflare Origin Certificate o Let's Encrypt vía proxy de Coolify) y activar modo SSL **Full (strict)** en Cloudflare, asegurando cifrado end-to-end entre el edge y la aplicación. Complementa `config.assume_ssl` ya desplegado en Rails.
-- [ ] **Enrutamiento de correos en Cloudflare** — Configurar reglas de redirección para `soporte@modusloop.com` y `facturacion@...` hacia Gmail.
-- [ ] **DNS SPF/DKIM/DMARC para Brevo** — Añadir registros DNS TXT requeridos en Cloudflare para legitimar el envío de correos transaccionales.
-- [ ] **Respaldos de base de datos (Backups)** — Programar tareas de backup diario encriptado automáticas en el panel de Coolify con destino a un almacenamiento externo compatible con S3 o Backblaze B2.
+_(none)_
 
 ### 5. Resiliencia del Entorno Casero (Home Ops)
 
-- [ ] **Limpieza automática de Docker (Disk Purge)** — Configurar una tarea cron en el servidor o en Coolify para ejecutar semanalmente `docker system prune -f` y evitar el llenado del almacenamiento local por imágenes acumuladas.
+_(none)_
 
 ---
 
@@ -216,7 +217,6 @@ _(no pending engine items)_
 - [ ] **Analytics archive (cold storage)** — `analytics_archive`, retención 6 meses hot + job de copia/purga (fuera de Analytics v1)
 - [ ] **Analytics operational alerts** — email/Slack cuando conversión o fallos de pago salgan de umbral (hoy solo semáforo en `/admin/analytics`)
 - [ ] **External BI** (Metabase u otro) — opcional; conectar a `user_events` o réplica read-only
-- [ ] FastAPI wrapper for nesting engine (optional; v1 uses CLI only)
 - [ ] Hard limits on file size / piece count (explicitly out of v1 scope today)
 
 <!-- Reference: archived decision log in .agenticguild/completed_sessions/task_dxf-nesting_2026-05-17.md -->
