@@ -58,7 +58,10 @@ def test_load_pieces_from_config_uses_composite_path_when_primary_layer_set(
     assert decoration_count >= 3
 
 
-def test_load_pieces_from_config_legacy_included_layers_unchanged(tmp_path: Path) -> None:
+def test_load_pieces_from_config_legacy_included_layers_returns_composite_pieces(tmp_path: Path) -> None:
+    """included_layers now returns CompositePiece objects so that internal cut lines
+    from overlapping polylines are preserved in the output DXF.  Pieces that do NOT
+    overlap have no decorations, but they are still CompositePiece instances."""
     path = tmp_path / "legacy-loader.dxf"
     _write_composite_fixture(path)
     warnings: list[str] = []
@@ -77,5 +80,7 @@ def test_load_pieces_from_config_legacy_included_layers_unchanged(tmp_path: Path
     )
 
     assert len(pieces) == 2
-    assert all(isinstance(piece, Polygon) for piece in pieces)
-    assert all(not hasattr(piece, "decorations") for piece in pieces)
+    # Pieces are now CompositePiece objects carrying the layer name
+    assert all(isinstance(piece, CompositePiece) for piece in pieces)
+    # The two rectangles do NOT overlap, so no internal line decorations are needed
+    assert all(len(piece.decorations) == 0 for piece in pieces)

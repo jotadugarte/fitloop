@@ -37,7 +37,6 @@ import numpy as np
 
 # Make sure nesting_engine package is importable when run from its directory
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from nesting_engine.extract import extract_closed_contours
 from nesting_engine.composite_extract import load_composite_pieces
 from ezdxf.path import make_path
 
@@ -143,8 +142,8 @@ def _polygon_to_patch(polygon, facecolor, alpha=0.75):
     return PathPatch(path, facecolor=facecolor, edgecolor="white", linewidth=1.5, alpha=alpha)
 
 
-def _draw_extracted_polygons(ax, polygons, all_x, all_y):
-    """Draw extracted polygons onto ax."""
+def _draw_extracted_polygons(ax, polygons, all_x, all_y, decorations_per_poly=None):
+    """Draw extracted polygons onto ax, including internal decoration lines."""
     for i, polygon in enumerate(polygons):
         color = COLORS[i % len(COLORS)]
         patch = _polygon_to_patch(polygon, facecolor=color)
@@ -159,6 +158,22 @@ def _draw_extracted_polygons(ax, polygons, all_x, all_y):
             color="white",
             zorder=10,
         )
+
+        # Draw internal decoration lines on top of the filled polygon
+        if decorations_per_poly and i < len(decorations_per_poly):
+            for deco in decorations_per_poly[i]:
+                if deco.geometry_type == "line":
+                    coords = deco.payload.get("coordinates", [])
+                    if len(coords) >= 2:
+                        xs = [p[0] for p in coords]
+                        ys = [p[1] for p in coords]
+                        ax.plot(
+                            xs, ys,
+                            color="#FFE066", linewidth=1.5, alpha=0.9,
+                            linestyle="--", zorder=8,
+                        )
+                        all_x.extend(xs)
+                        all_y.extend(ys)
 
         # Collect coords for auto-bounds
         ext = list(polygon.exterior.coords)
@@ -194,7 +209,12 @@ def _style_ax(ax, title):
 # ── Extraction ────────────────────────────────────────────────────────────────────
 
 def run_extraction(dxf_path, primary_layer, aux_layers, tol, warnings):
-    """Run the correct engine path based on layer config."""
+    """Run the correct engine path based on layer config.
+    Returns (polygons, mode, decorations_per_poly).
+    decorations_per_poly: list[list[dict]] — one entry per polygon.
+    """
+    from nesting_engine.extract import extract_pieces_with_internal_lines
+
     if aux_layers:
         # Composite mode: primary contours + auxiliary decorations
         pieces = load_composite_pieces(
@@ -205,17 +225,20 @@ def run_extraction(dxf_path, primary_layer, aux_layers, tol, warnings):
             warnings=warnings,
         )
         polygons = [p.polygon for p in pieces]
+        decorations_per_poly = [p.decorations for p in pieces]
         mode = f"COMPOSITE  (primary='{primary_layer}', aux={aux_layers})"
     else:
-        # Flat mode: only extract closed contours from primary layer
-        polygons = extract_closed_contours(
+        # Flat mode: use extract_pieces_with_internal_lines to preserve inner cut lines
+        pieces = extract_pieces_with_internal_lines(
             dxf_path,
             layer_name=primary_layer,
             curve_tolerance_mm=tol,
             warnings=warnings,
         )
+        polygons = [p.polygon for p in pieces]
+        decorations_per_poly = [p.decorations for p in pieces]
         mode = f"FLAT  (primary='{primary_layer}', sin auxiliares)"
-    return polygons, mode
+    return polygons, mode, decorations_per_poly
 
 
 # ── Text report ───────────────────────────────────────────────────────────────
@@ -266,7 +289,7 @@ def _add_raw_legend(ax):
               facecolor=BACKGROUND, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR)
 
 
-def _add_poly_legend(ax, polygons):
+def _add_poly_legend(ax, polygons, has_internal_lines=False):
     handles = []
     for i, poly in enumerate(polygons):
         holes = len(list(poly.interiors))
@@ -274,6 +297,13 @@ def _add_poly_legend(ax, polygons):
         if holes:
             label += f"  ({holes} hole{'s' if holes>1 else ''})"
         handles.append(mpatches.Patch(color=COLORS[i % len(COLORS)], label=label))
+    if has_internal_lines:
+        handles.append(
+            mpatches.Patch(
+                color="#FFE066", label="Internal cut lines (preserved in output DXF)",
+                linestyle="--", fill=False,
+            )
+        )
     ax.legend(handles=handles, loc="upper right", fontsize=7,
               facecolor=BACKGROUND, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR)
 
@@ -397,7 +427,7 @@ def main():
 
     # ── Run extraction with the declared layers ──────────────────────────────────
     warnings: list[str] = []
-    polygons, mode = run_extraction(dxf_path, args.primary, args.aux, args.tol, warnings)
+    polygons, mode, decorations_per_poly = run_extraction(dxf_path, args.primary, args.aux, args.tol, warnings)
 
     out_path = Path(args.out) if args.out else dxf_path.with_name(dxf_path.stem + "_diag.png")
 
@@ -419,14 +449,20 @@ def main():
 
     # ── RIGHT: extracted polygons ─────────────────────────────────────────────
     ext_x, ext_y = [], []
-    _draw_extracted_polygons(ax_ext, polygons, ext_x, ext_y)
+    _draw_extracted_polygons(ax_ext, polygons, ext_x, ext_y, decorations_per_poly=decorations_per_poly)
     n = len(polygons)
     _style_ax(ax_ext, f"② EXTRACTED  ({n} polygon{'s' if n != 1 else ''} recognized)")
     if ext_x and ext_y:
         _set_ax_bounds(ax_ext, ext_x, ext_y)
     elif raw_x and raw_y:
         _set_ax_bounds(ax_ext, raw_x, raw_y)
-    _add_poly_legend(ax_ext, polygons)
+    _add_poly_legend(
+        ax_ext, polygons,
+        has_internal_lines=any(
+            any(d.geometry_type == "line" for d in decos)
+            for decos in decorations_per_poly
+        ),
+    )
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=BACKGROUND)

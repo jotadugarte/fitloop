@@ -11,7 +11,7 @@ from nesting_engine.composite_extract import (
     DecorationEntity,
     load_composite_pieces,
 )
-from nesting_engine.extract import extract_closed_contours
+from nesting_engine.extract import extract_closed_contours, extract_pieces_with_internal_lines
 from nesting_engine.nest_placement import Placement
 from nesting_engine.nest_types import PlacedPiece
 
@@ -29,13 +29,13 @@ def load_pieces(
     for path_str in input_dxf_paths:
         path = Path(path_str)
         for layer_name in included_layers:
-            contours = extract_closed_contours(
+            composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
             )
-            pieces.extend(contours)
+            pieces.extend(composite_pieces)
 
     assert isinstance(pieces, list)
     return pieces
@@ -109,13 +109,13 @@ def _pieces_from_input_files(
             continue
 
         for layer_name in entry.get("included_layers", []):
-            contours = extract_closed_contours(
+            composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
             )
-            pieces.extend(contours)
+            pieces.extend(composite_pieces)
 
     return pieces
 
