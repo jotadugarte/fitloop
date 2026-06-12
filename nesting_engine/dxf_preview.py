@@ -255,14 +255,15 @@ def _file_layer_polylines(
         gaps_with_status = []
         auto_close_lines = []
         for gap in gaps:
+            should_auto_close = is_auto_close and gap["distance_mm"] <= 15.0
             gap_data = {
                 "distance_mm": gap["distance_mm"],
                 "start": gap["start"],
                 "end": gap["end"],
-                "auto_closed": is_auto_close
+                "auto_closed": should_auto_close
             }
             gaps_with_status.append(gap_data)
-            if is_auto_close:
+            if should_auto_close:
                 auto_close_lines.append([gap["start"], gap["end"]])
 
         result[name]["gaps"] = gaps_with_status
@@ -301,14 +302,15 @@ def _composite_file_layer_polylines(
     gaps_with_status = []
     auto_close_lines = []
     for gap in gaps:
+        should_auto_close = is_auto_close and gap["distance_mm"] <= 15.0
         gap_data = {
             "distance_mm": gap["distance_mm"],
             "start": gap["start"],
             "end": gap["end"],
-            "auto_closed": is_auto_close
+            "auto_closed": should_auto_close
         }
         gaps_with_status.append(gap_data)
-        if is_auto_close:
+        if should_auto_close:
             auto_close_lines.append([gap["start"], gap["end"]])
 
     result[primary_layer]["gaps"] = gaps_with_status
