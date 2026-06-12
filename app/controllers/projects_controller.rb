@@ -173,6 +173,11 @@ class ProjectsController < ApplicationController
           project_dom_id(:status_badge),
           partial: "projects/status_badge",
           locals: { project: @project }
+        ),
+        turbo_stream.replace(
+          project_dom_id(:source_dxf_preview),
+          partial: "projects/source_dxf_preview",
+          locals: { project: @project, source_preview: Dxf::SourcePreviewPresenter.for(@project) }
         )
       ]
     else

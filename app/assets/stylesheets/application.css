@@ -1388,6 +1388,32 @@ h3.fit-section__legend {
   font-size: 0.875rem;
 }
 
+
+.source-dxf-preview__gap-circle {
+  stroke-linecap: round;
+  transform-origin: center;
+}
+
+.source-dxf-preview__auto-close-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes pulse {
+  0% {
+    stroke-opacity: 1;
+    stroke-width: 2.5px;
+  }
+  50% {
+    stroke-opacity: 0.4;
+    stroke-width: 4.5px;
+  }
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 2.5px;
+  }
+}
+
 .nesting-preview--cad {
   padding: 0.75rem;
   background: var(--fit-cad-bg);
