@@ -68,7 +68,7 @@ def _file_preview_placement(
     max_block_depth: int,
     cursor_max_x: float | None,
 ) -> tuple[
-    dict[str, list[list[list[float]]]],
+    dict[str, dict[str, object]],
     dict[str, str],
     float,
     dict[str, float],
@@ -95,13 +95,14 @@ def _file_preview_placement(
 
 
 def _bounds_from_layer_polylines(
-    file_layers: dict[str, list[list[list[float]]]],
+    file_layers: dict[str, dict[str, object]],
 ) -> dict[str, float] | None:
     min_x = math.inf
     min_y = math.inf
     max_x = -math.inf
     max_y = -math.inf
-    for polylines in file_layers.values():
+    for data in file_layers.values():
+        polylines = data["polylines"]
         for points in polylines:
             for x, y in points:
                 min_x = min(min_x, x)
@@ -115,23 +116,44 @@ def _bounds_from_layer_polylines(
 
 def _merge_shifted_layers(
     layers: dict[str, dict[str, object]],
-    file_layers: dict[str, list[list[list[float]]]],
+    file_layers: dict[str, dict[str, object]],
     colors: dict[str, str],
     place_offset_x: float,
 ) -> None:
-    for layer_name, polylines in file_layers.items():
-        if not polylines:
-            continue
-        shifted = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
+    for layer_name, data in file_layers.items():
+        polylines = data["polylines"]
+        gaps = data["gaps"]
+        auto_close_lines = data["auto_close_lines"]
+
+        shifted_polylines = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
+
+        shifted_gaps = []
+        for gap in gaps:
+            shifted_gaps.append({
+                "distance_mm": gap["distance_mm"],
+                "start": [_shift_x(gap["start"][0], place_offset_x), gap["start"][1]],
+                "end": [_shift_x(gap["end"][0], place_offset_x), gap["end"][1]],
+                "auto_closed": gap["auto_closed"]
+            })
+
+        shifted_auto_close_lines = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in auto_close_lines]
+
         entry = layers.setdefault(
             layer_name,
-            {"name": layer_name, "color": colors.get(layer_name, "#808080"), "polylines": []},
+            {
+                "name": layer_name,
+                "color": colors.get(layer_name, "#808080"),
+                "polylines": [],
+                "gaps": [],
+                "auto_close_lines": []
+            },
         )
         if layer_name in colors:
             entry["color"] = colors[layer_name]
-        cast_polylines = entry["polylines"]
-        assert isinstance(cast_polylines, list)
-        cast_polylines.extend(shifted)
+
+        entry["polylines"].extend(shifted_polylines)
+        entry["gaps"].extend(shifted_gaps)
+        entry["auto_close_lines"].extend(shifted_auto_close_lines)
 
 
 def _advance_preview_bounds(
@@ -158,6 +180,8 @@ def _preview_payload(
             "name": name,
             "color": layers[name]["color"],
             "polylines": layers[name]["polylines"],
+            "gaps": layers[name]["gaps"],
+            "auto_close_lines": layers[name]["auto_close_lines"],
         }
         for name in sorted(layers)
     ]
@@ -191,7 +215,7 @@ def _file_layer_polylines(
     file_config: dict[str, object],
     curve_tolerance_mm: float,
     max_block_depth: int,
-) -> dict[str, list[list[list[float]]]]:
+) -> dict[str, dict[str, object]]:
     primary_layer = file_config.get("primary_layer")
     if isinstance(primary_layer, str) and primary_layer.strip():
         return _composite_file_layer_polylines(
@@ -201,13 +225,17 @@ def _file_layer_polylines(
             list(file_config.get("auxiliary_layers") or []),
             curve_tolerance_mm=curve_tolerance_mm,
             max_block_depth=max_block_depth,
+            file_config=file_config,
         )
 
     included = {name for name in list(file_config.get("layer_names") or default_layer_names) if name}
     if not included:
         return {}
 
-    file_layers: dict[str, list[list[list[float]]]] = {name: [] for name in included}
+    result: dict[str, dict[str, object]] = {
+        name: {"polylines": [], "gaps": [], "auto_close_lines": []}
+        for name in included
+    }
     for polyline in _iter_layer_polylines(
         doc,
         included,
@@ -216,8 +244,31 @@ def _file_layer_polylines(
     ):
         layer_name = str(polyline["layer"])
         points = polyline["points"]
-        file_layers.setdefault(layer_name, []).append(points)
-    return file_layers
+        result.setdefault(layer_name, {"polylines": [], "gaps": [], "auto_close_lines": []})
+        result[layer_name]["polylines"].append(points)
+
+    auto_close_layers = file_config.get("auto_close_layers") or []
+    from nesting_engine.read_layers import find_layer_gaps
+    for name in result:
+        gaps = find_layer_gaps(doc, name, curve_tolerance_mm)
+        is_auto_close = name in auto_close_layers
+        gaps_with_status = []
+        auto_close_lines = []
+        for gap in gaps:
+            gap_data = {
+                "distance_mm": gap["distance_mm"],
+                "start": gap["start"],
+                "end": gap["end"],
+                "auto_closed": is_auto_close
+            }
+            gaps_with_status.append(gap_data)
+            if is_auto_close:
+                auto_close_lines.append([gap["start"], gap["end"]])
+
+        result[name]["gaps"] = gaps_with_status
+        result[name]["auto_close_lines"] = auto_close_lines
+
+    return {name: data for name, data in result.items() if data["polylines"]}
 
 
 def _composite_file_layer_polylines(
@@ -228,18 +279,40 @@ def _composite_file_layer_polylines(
     *,
     curve_tolerance_mm: float,
     max_block_depth: int,
-) -> dict[str, list[list[list[float]]]]:
+    file_config: dict[str, object],
+) -> dict[str, dict[str, object]]:
     from nesting_engine.composite_extract import load_composite_pieces
 
-    included = {primary_layer}
-    file_layers: dict[str, list[list[list[float]]]] = {primary_layer: []}
+    result: dict[str, dict[str, object]] = {
+        primary_layer: {"polylines": [], "gaps": [], "auto_close_lines": []}
+    }
     for polyline in _iter_layer_polylines(
         doc,
-        included,
+        {primary_layer},
         curve_tolerance_mm=curve_tolerance_mm,
         max_block_depth=max_block_depth,
     ):
-        file_layers[primary_layer].append(polyline["points"])
+        result[primary_layer]["polylines"].append(polyline["points"])
+
+    auto_close_layers = file_config.get("auto_close_layers") or []
+    from nesting_engine.read_layers import find_layer_gaps
+    gaps = find_layer_gaps(doc, primary_layer, curve_tolerance_mm)
+    is_auto_close = primary_layer in auto_close_layers
+    gaps_with_status = []
+    auto_close_lines = []
+    for gap in gaps:
+        gap_data = {
+            "distance_mm": gap["distance_mm"],
+            "start": gap["start"],
+            "end": gap["end"],
+            "auto_closed": is_auto_close
+        }
+        gaps_with_status.append(gap_data)
+        if is_auto_close:
+            auto_close_lines.append([gap["start"], gap["end"]])
+
+    result[primary_layer]["gaps"] = gaps_with_status
+    result[primary_layer]["auto_close_lines"] = auto_close_lines
 
     aux_layers = [name for name in auxiliary_layers if name]
     if aux_layers:
@@ -258,9 +331,13 @@ def _composite_file_layer_polylines(
                 if not coordinates or len(coordinates) < 2:
                     continue
                 points = [[float(x), float(y)] for x, y in coordinates]
-                file_layers.setdefault(decoration.layer_name, []).append(points)
+                result.setdefault(
+                    decoration.layer_name,
+                    {"polylines": [], "gaps": [], "auto_close_lines": []}
+                )
+                result[decoration.layer_name]["polylines"].append(points)
 
-    return {name: polylines for name, polylines in file_layers.items() if polylines}
+    return {name: data for name, data in result.items() if data["polylines"]}
 
 
 def _empty_preview() -> dict[str, object]:

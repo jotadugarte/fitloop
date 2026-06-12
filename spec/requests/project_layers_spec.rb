@@ -101,6 +101,36 @@ RSpec.describe "Project layers", type: :request do
       expect(response.body).not_to include(I18n.t("project_layers.primary_layer.tooltip"))
     end
 
+    it "shows blocking gap warning when a layer has gaps > 15mm" do
+      gaps = [{ "distance_mm" => 20.0, "start" => [0, 0], "end" => [20, 0] }]
+      allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
+        [ { "name" => "PIECES", "color" => "#808080", "gaps" => gaps } ]
+      )
+      attachment = attach_per_file_dxf!
+
+      get project_layers_path(project)
+
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      expect(response.body).to include("layer-gap-warning-#{layer.id}")
+      expect(response.body).to include(I18n.t("project_layers.blocking_gap_warning", distance: 20.0))
+      expect(response.body).not_to include("auto_close_gaps")
+    end
+
+    it "shows warnable gap warning and auto-close checkbox when a layer has gaps 2mm..15mm" do
+      gaps = [{ "distance_mm" => 5.0, "start" => [0, 0], "end" => [5, 0] }]
+      allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
+        [ { "name" => "PIECES", "color" => "#808080", "gaps" => gaps } ]
+      )
+      attachment = attach_per_file_dxf!
+
+      get project_layers_path(project)
+
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      expect(response.body).to include("layer-gap-warning-#{layer.id}")
+      expect(response.body).to include(I18n.t("project_layers.warnable_gap_warning", distance: 5.0))
+      expect(response.body).to include("auto_close_gaps")
+    end
+
     it "PATCH sets exclusive primary and auxiliary roles per attachment" do
       attachment = attach_per_file_dxf!
       cut = project.project_layers.find_by!(

@@ -130,7 +130,9 @@ class ProjectsController < ApplicationController
 
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     # Avoid replacing the layer form on autosave — rapid radio/check changes race with turbo streams.
-    head :no_content
+    # Instead, we only update the status badge and action buttons to reflect the readiness state.
+    @project.reload
+    render_workspace_turbo_stream(:layers)
   end
 
   def update_workspace_billing!
@@ -159,6 +161,20 @@ class ProjectsController < ApplicationController
     when :sheets
       @project.reload
       sheet_workspace_streams
+    when :layers
+      @project.reload
+      [
+        turbo_stream.replace(
+          project_dom_id(:show_actions),
+          partial: "projects/show_actions",
+          locals: { project: @project }
+        ),
+        turbo_stream.replace(
+          project_dom_id(:status_badge),
+          partial: "projects/status_badge",
+          locals: { project: @project }
+        )
+      ]
     else
       []
     end

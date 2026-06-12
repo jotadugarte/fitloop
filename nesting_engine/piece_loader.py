@@ -22,6 +22,7 @@ def load_pieces(
     *,
     curve_tolerance_mm: float,
     warnings: list[str],
+    auto_close_layers: list[str] | None = None,
 ) -> list:
     assert curve_tolerance_mm > 0, "curve_tolerance_mm must be positive"
 
@@ -29,11 +30,13 @@ def load_pieces(
     for path_str in input_dxf_paths:
         path = Path(path_str)
         for layer_name in included_layers:
+            auto_close = bool(auto_close_layers and (layer_name in auto_close_layers))
             composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
             pieces.extend(composite_pieces)
 
@@ -56,6 +59,7 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
             config.get("included_layers", []),
             curve_tolerance_mm=curve_tolerance_mm,
             warnings=warnings,
+            auto_close_layers=config.get("auto_close_layers", []),
         )
 
     pieces = _without_excluded_pieces(pieces, config)
@@ -96,24 +100,29 @@ def _pieces_from_input_files(
     for entry in input_files:
         path = Path(entry["path"])
         primary_layer = entry.get("primary_layer")
+        auto_close_layers = entry.get("auto_close_layers") or []
         if primary_layer:
             auxiliary_layers = list(entry.get("auxiliary_layers") or [])
+            auto_close = primary_layer in auto_close_layers
             composite_pieces = load_composite_pieces(
                 path,
                 primary_layer=str(primary_layer),
                 auxiliary_layers=auxiliary_layers,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
             pieces.extend(composite_pieces)
             continue
 
         for layer_name in entry.get("included_layers", []):
+            auto_close = layer_name in auto_close_layers
             composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
             pieces.extend(composite_pieces)
 

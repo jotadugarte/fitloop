@@ -35,6 +35,7 @@ module Dxf
             layer_name: entry["name"]
           )
           layer.color = entry["color"] if entry["color"].present?
+          layer.gaps_detected = entry["gaps"] || []
           layer.included = false if layer.new_record?
           layer.save!
         end

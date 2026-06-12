@@ -30,6 +30,7 @@ def extract_closed_contours(
     curve_tolerance_mm: float = 0.1,
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
+    auto_close_gaps: bool = False,
 ) -> list[Polygon]:
     """Return piece polygons: loose contours and INSERT geometry, with nested contours merged as holes."""
     assert layer_name and layer_name.strip(), "layer_name is required"
@@ -62,6 +63,7 @@ def extract_closed_contours(
                 curve_tolerance_mm=curve_tolerance_mm,
                 max_block_depth=max_block_depth,
                 warnings=report,
+                auto_close_gaps=auto_close_gaps,
             )
             polygons.extend(block_polys)
             circle_specs.extend(block_circles)
@@ -74,6 +76,7 @@ def extract_closed_contours(
             circle_specs=circle_specs,
             line_segments=line_segments,
             curve_tolerance_mm=curve_tolerance_mm,
+            auto_close_gaps=auto_close_gaps,
         )
 
     polygons.extend(_polygons_from_line_segments(line_segments, curve_tolerance_mm=curve_tolerance_mm))
@@ -96,6 +99,7 @@ def _geometry_from_block(
     curve_tolerance_mm: float,
     max_block_depth: int,
     warnings: list[str],
+    auto_close_gaps: bool = False,
 ) -> tuple[list[Polygon], list[_CircleSpec], list[tuple[tuple[float, float], tuple[float, float]]]]:
     if depth > max_block_depth:
         warnings.append(f"Block nesting depth exceeded limit ({max_block_depth})")
@@ -122,6 +126,7 @@ def _geometry_from_block(
                 curve_tolerance_mm=curve_tolerance_mm,
                 max_block_depth=max_block_depth,
                 warnings=warnings,
+                auto_close_gaps=auto_close_gaps,
             )
             polygons.extend(nested_polys)
             circle_specs.extend(nested_circles)
@@ -137,6 +142,7 @@ def _geometry_from_block(
             circle_specs=block_circles,
             line_segments=block_segments,
             curve_tolerance_mm=curve_tolerance_mm,
+            auto_close_gaps=auto_close_gaps,
         )
         polygons.extend(_transform_polygon(polygon, transform) for polygon in block_polygons)
         circle_specs.extend(_transform_circle_spec(spec, transform) for spec in block_circles)
@@ -152,6 +158,7 @@ def _collect_entity_geometry(
     circle_specs: list[_CircleSpec],
     line_segments: list[tuple[tuple[float, float], tuple[float, float]]],
     curve_tolerance_mm: float,
+    auto_close_gaps: bool = False,
 ) -> None:
     if isinstance(entity, Line):
         line_segments.append(_line_segment(entity))
@@ -163,7 +170,11 @@ def _collect_entity_geometry(
             circle_specs.append(spec)
         return
 
-    polygon = _closed_contour_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+    polygon = _closed_contour_polygon(
+        entity,
+        curve_tolerance_mm=curve_tolerance_mm,
+        auto_close_gaps=auto_close_gaps,
+    )
     if polygon is not None:
         polygons.append(polygon)
         return
@@ -747,26 +758,36 @@ def _force_close_polygon(points: list[tuple[float, float]]) -> Polygon | None:
     return None
 
 
-def _closed_contour_polygon(entity: object, *, curve_tolerance_mm: float) -> Polygon | None:
+def _closed_contour_polygon(
+    entity: object,
+    *,
+    curve_tolerance_mm: float,
+    auto_close_gaps: bool = False,
+) -> Polygon | None:
     if _is_full_circle_entity(entity):
         return None
     if isinstance(entity, LWPolyline):
         if _lwpolyline_has_bulge(entity):
-            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
-        polygon = _lwpolyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
+        polygon = _lwpolyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
         if polygon is not None:
             return polygon
-        return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+        return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
     if isinstance(entity, Polyline):
         if _polyline_has_bulge(entity):
-            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
-        return _polyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+            return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
+        return _polyline_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
     if hasattr(entity, "dxftype") and entity.dxftype() in {"ARC", "ELLIPSE", "SPLINE"}:
-        return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm)
+        return _flattened_path_polygon(entity, curve_tolerance_mm=curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
     return None
 
 
-def _flattened_path_polygon(entity: object, *, curve_tolerance_mm: float) -> Polygon | None:
+def _flattened_path_polygon(
+    entity: object,
+    *,
+    curve_tolerance_mm: float,
+    auto_close_gaps: bool = False,
+) -> Polygon | None:
     path = make_path(entity)
     points = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance_mm)]
     if len(points) < 3:
@@ -775,8 +796,9 @@ def _flattened_path_polygon(entity: object, *, curve_tolerance_mm: float) -> Pol
     gap = _point_distance(points[0], points[-1])
     if gap > curve_tolerance_mm:
         etype = getattr(entity, "dxftype", lambda: "")()
-        if etype in ("LWPOLYLINE", "POLYLINE") and gap <= 15.0:
-            return _force_close_polygon(points)
+        if etype in ("LWPOLYLINE", "POLYLINE"):
+            if gap <= 2.0 or (gap <= 15.0 and auto_close_gaps):
+                return _force_close_polygon(points)
         return None
 
     if gap > 0:
@@ -792,7 +814,12 @@ def _polyline_has_bulge(entity: Polyline) -> bool:
     return any(abs(float(vertex.dxf.bulge)) > 1e-9 for vertex in entity.vertices)
 
 
-def _lwpolyline_polygon(entity: LWPolyline, *, curve_tolerance_mm: float) -> Polygon | None:
+def _lwpolyline_polygon(
+    entity: LWPolyline,
+    *,
+    curve_tolerance_mm: float,
+    auto_close_gaps: bool = False,
+) -> Polygon | None:
     points = [(float(x), float(y)) for x, y, *_ in entity.get_points("xy")]
     if len(points) < 3:
         return None
@@ -800,14 +827,19 @@ def _lwpolyline_polygon(entity: LWPolyline, *, curve_tolerance_mm: float) -> Pol
     if not entity.closed:
         gap = _point_distance(points[0], points[-1])
         if gap > curve_tolerance_mm:
-            if gap <= 15.0:
+            if gap <= 2.0 or (gap <= 15.0 and auto_close_gaps):
                 return _force_close_polygon(points)
             return None
 
     return _polygon_from_points(points)
 
 
-def _polyline_polygon(entity: Polyline, *, curve_tolerance_mm: float) -> Polygon | None:
+def _polyline_polygon(
+    entity: Polyline,
+    *,
+    curve_tolerance_mm: float,
+    auto_close_gaps: bool = False,
+) -> Polygon | None:
     points = [(float(v.dxf.location.x), float(v.dxf.location.y)) for v in entity.vertices]
     if len(points) < 3:
         return None
@@ -815,7 +847,7 @@ def _polyline_polygon(entity: Polyline, *, curve_tolerance_mm: float) -> Polygon
     if not entity.is_closed:
         gap = _point_distance(points[0], points[-1])
         if gap > curve_tolerance_mm:
-            if gap <= 15.0:
+            if gap <= 2.0 or (gap <= 15.0 and auto_close_gaps):
                 return _force_close_polygon(points)
             return None
 
@@ -1012,6 +1044,7 @@ def extract_pieces_with_internal_lines(
     curve_tolerance_mm: float = 0.1,
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
+    auto_close_gaps: bool = False,
 ) -> list:
     """Like extract_closed_contours but returns CompositePiece objects.
 
@@ -1055,6 +1088,7 @@ def extract_pieces_with_internal_lines(
                 curve_tolerance_mm=curve_tolerance_mm,
                 max_block_depth=max_block_depth,
                 warnings=report,
+                auto_close_gaps=auto_close_gaps,
             )
             raw_polygons.extend(block_polys)
             circle_specs.extend(block_circles)
@@ -1067,6 +1101,7 @@ def extract_pieces_with_internal_lines(
             circle_specs=circle_specs,
             line_segments=line_segments,
             curve_tolerance_mm=curve_tolerance_mm,
+            auto_close_gaps=auto_close_gaps,
         )
 
     raw_polygons.extend(_polygons_from_line_segments(line_segments, curve_tolerance_mm=curve_tolerance_mm))

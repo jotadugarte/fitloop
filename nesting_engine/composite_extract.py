@@ -50,6 +50,7 @@ def load_composite_pieces(
     curve_tolerance_mm: float = 0.1,
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
+    auto_close_gaps: bool = False,
 ) -> list[CompositePiece]:
     assert primary_layer and primary_layer.strip(), "primary_layer is required"
     assert auxiliary_layers is not None, "auxiliary_layers is required"
@@ -67,6 +68,7 @@ def load_composite_pieces(
         primary_layer,
         curve_tolerance_mm=curve_tolerance_mm,
         warnings=report,
+        auto_close_gaps=auto_close_gaps,
     )
     pieces = [
         CompositePiece(

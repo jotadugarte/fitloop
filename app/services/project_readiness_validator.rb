@@ -18,11 +18,19 @@ class ProjectReadinessValidator
     errors << I18n.t("project_readiness.no_layers_selected") unless selected_layers?
     errors.concat(missing_primary_layer_errors)
     errors << I18n.t("project_readiness.no_extractable_pieces") if selected_layers? && extractable_piece_count.zero?
+    errors << I18n.t("project_readiness.unresolved_gaps") if selected_layers? && unresolved_gaps?
 
     Result.new(ok?: errors.empty?, errors: errors)
   end
 
   private
+
+  def unresolved_gaps?
+    @project.project_layers.where(included: true).any? do |layer|
+      report = Nesting::GapReport.from_json(layer.gaps_detected)
+      report.unresolved?(auto_close_gaps: !!layer.auto_close_gaps)
+    end
+  end
 
   def sheet_stocks?
     @project.sheet_stocks.exists?

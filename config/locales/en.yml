@@ -620,8 +620,12 @@ en:
     no_layers_selected: "Select at least one layer to include in nesting."
     no_extractable_pieces: "No closed contours were found on the selected layers."
     primary_layer_required: "Choose a primary layer for each DXF file that includes associated layers."
+    unresolved_gaps: "Please resolve open shapes (gaps) in your CAD layers or enable 'Auto-close' to proceed."
 
   project_layers:
+    blocking_gap_warning: "Non-nestable open contour (gap of %{distance} mm). Must correct in CAD and upload again."
+    warnable_gap_warning: "Open contour detected (gap of %{distance} mm)."
+    auto_close_label: "Auto-close (generates diagonal)"
     layer_name: "Layer"
     section_note: "Choose the primary layer for outlines to nest. Engraving, marks, text, and other auxiliary layers move with the piece that contains them."
     primary_layer:

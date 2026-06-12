@@ -49,6 +49,15 @@ class ProjectLayerSelection
 
       layers_on_attachment(attachment_key).find_each do |layer|
         layer_id = layer.id.to_s
+        layer_params = attrs[layer_id]
+
+        if layer_params.is_a?(Hash)
+          auto_close = layer_params["auto_close_gaps"] == "1"
+          layer.update!(auto_close_gaps: auto_close)
+        else
+          layer.update!(auto_close_gaps: false)
+        end
+
         next if layer_id == primary_id.to_s
 
         if auxiliary_ids.include?(layer_id)
@@ -85,7 +94,8 @@ class ProjectLayerSelection
       next if attrs.blank?
 
       included = attrs[:included] == "1" || attrs["included"] == "1"
-      layer.update!(included: included)
+      auto_close = attrs[:auto_close_gaps] == "1" || attrs["auto_close_gaps"] == "1"
+      layer.update!(included: included, auto_close_gaps: auto_close)
     end
   end
 

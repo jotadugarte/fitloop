@@ -635,8 +635,12 @@ es:
     no_layers_selected: "Selecciona al menos una capa para incluir en la distribución."
     no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
     primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
+    unresolved_gaps: "Corrige los contornos abiertos detectados o activa el cierre automático para continuar."
 
   project_layers:
+    blocking_gap_warning: "Contorno abierto no anidable (abertura de %{distance} mm). Requiere corregir en CAD y volver a subir."
+    warnable_gap_warning: "Se detectó contorno abierto (abertura de %{distance} mm)."
+    auto_close_label: "Cerrar automáticamente (genera diagonal)"
     layer_name: "Capa"
     section_note: "Elige la capa principal para las piezas de corte a distribuir. Grabado, marcas, texto y otras capas auxiliares se desplazan con la pieza que las contiene."
     primary_layer:

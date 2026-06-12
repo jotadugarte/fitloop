@@ -176,4 +176,70 @@ RSpec.describe Nesting::ConfigBuilder, "[REQ-FIT-CLI-001]" do
       sort_order: 1
     )
   end
+
+  describe "auto_close_layers config generation" do
+    it "adds auto_close_layers to file entry in per-file mode" do
+      project = Project.create!(
+        ephemeral: true,
+        status: :ready,
+        title: "Composite config auto_close",
+        kerf_mm: 0,
+        margin_mm: 5,
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
+        }
+      )
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      attachment = project.input_dxf_attachments.first!
+      cut = project.project_layers.find_by!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment.id
+      )
+      cut.update!(auto_close_gaps: true)
+      ProjectLayer::SetPrimary.call(cut)
+
+      input_path = work_dir.join("piece-auto-close.dxf")
+      FileUtils.mkdir_p(work_dir)
+      FileUtils.cp(sample_dxf, input_path)
+      file_entry = described_class.build(
+        project: project.reload,
+        work_dir: work_dir,
+        input_paths: [ input_path ]
+      ).fetch(:input_files).first
+
+      expect(file_entry).to include(auto_close_layers: [ "PIECES" ])
+    end
+
+    it "adds auto_close_layers to top-level payload in union mode" do
+      project = Project.create!(
+        ephemeral: true,
+        status: :ready,
+        title: "Union config auto_close",
+        kerf_mm: 0,
+        margin_mm: 5,
+        sheet_stocks_attributes: {
+          "0" => { width_mm: 1000, height_mm: 2000, quantity: 1, sort_order: 0 }
+        }
+      )
+      # Create layer without attachment (union mode)
+      project.project_layers.create!(
+        layer_name: "PIECES",
+        included: true,
+        auto_close_gaps: true
+      )
+
+      payload = described_class.build(
+        project: project,
+        work_dir: work_dir,
+        input_paths: []
+      )
+
+      expect(payload).to include(auto_close_layers: [ "PIECES" ])
+    end
+  end
 end

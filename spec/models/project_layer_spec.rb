@@ -124,4 +124,23 @@ RSpec.describe ProjectLayer, type: :model do
       end
     end
   end
+
+  describe "syncing layers with gaps [REQ-FIT-DXF-001]" do
+    it "saves gaps in gaps_detected column" do
+      gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
+      allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
+        [ { "name" => "PIECES", "color" => "#ffffff", "gaps" => gaps } ]
+      )
+
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      expect(layer.gaps_detected).to eq(gaps)
+    end
+  end
 end

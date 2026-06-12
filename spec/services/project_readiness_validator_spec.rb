@@ -56,6 +56,66 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       expect(result.ok?).to be(true)
       expect(result.errors).to be_empty
     end
+
+    it "rejects when layers have blocking gaps (> 15.0 mm)" do
+      attach_sample_dxf!
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(
+        included: true,
+        gaps_detected: [{ "distance_mm" => 20.0, "start" => [0.0, 0.0], "end" => [20.0, 0.0] }],
+        auto_close_gaps: true
+      )
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(false)
+      expect(result.errors).to include(I18n.t("project_readiness.unresolved_gaps"))
+    end
+
+    it "rejects when layers have medium gaps (2.0 - 15.0 mm) without auto_close_gaps enabled" do
+      attach_sample_dxf!
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(
+        included: true,
+        gaps_detected: [{ "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] }],
+        auto_close_gaps: false
+      )
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(false)
+      expect(result.errors).to include(I18n.t("project_readiness.unresolved_gaps"))
+    end
+
+    it "accepts when layers have medium gaps (2.0 - 15.0 mm) with auto_close_gaps enabled" do
+      attach_sample_dxf!
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(
+        included: true,
+        gaps_detected: [{ "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] }],
+        auto_close_gaps: true
+      )
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(true)
+      expect(result.errors).to be_empty
+    end
+
+    it "accepts when layers have only small gaps (<= 2.0 mm) regardless of auto_close_gaps" do
+      attach_sample_dxf!
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(
+        included: true,
+        gaps_detected: [{ "distance_mm" => 1.5, "start" => [0.0, 0.0], "end" => [1.5, 0.0] }],
+        auto_close_gaps: false
+      )
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(true)
+      expect(result.errors).to be_empty
+    end
   end
 
   describe "composite layer roles [REQ-FIT-DXF-002] [REQ-FIT-VAL-001]" do

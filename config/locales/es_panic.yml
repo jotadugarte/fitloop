@@ -623,7 +623,11 @@ es_panic:
     no_layers_selected: "¡Ojo! Seleccione al menos un layer, el láser no lee mentes."
     no_extractable_pieces: Suba un archivo que tenga líneas de corte, por amor a Dios.
     primary_layer_required: Marque por lo menos UNA capa como 'Corte principal' o la máquina se va a volver loca.
+    unresolved_gaps: "¡Ojo! Hay contornos abiertos (gaps) no resueltos. O remienda ese AutoCAD o deje que el sistema lo machetee."
   project_layers:
+    blocking_gap_warning: "¡Contorno abierto insalvable! Abertura de %{distance} mm. Vaya al AutoCAD a remendarlo o reprueba."
+    warnable_gap_warning: "Línea abierta (abertura de %{distance} mm)."
+    auto_close_label: "Cerrar automáticamente (genera diagonal)"
     layer_name: Layer / Capa
     section_note: Diga cuál capa corta. El grabado, marcas y textos auxiliares se van a mover con la pieza para no hacer un desastre.
     primary_layer:
