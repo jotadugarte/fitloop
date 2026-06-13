@@ -12,7 +12,10 @@ module Dxf
     end
 
     def call
-      return if @project.input_dxf_attachments.blank?
+      if @project.input_dxf_attachments.blank?
+        @project.project_layers.destroy_all
+        return
+      end
 
       attachment_ids = []
 
@@ -22,6 +25,7 @@ module Dxf
       end
 
       stale = @project.project_layers.where.not(active_storage_attachment_id: attachment_ids)
+                                     .or(@project.project_layers.where(active_storage_attachment_id: nil))
       stale.destroy_all
     end
 

@@ -11,8 +11,16 @@
             <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
               <%= t("projects.source_preview.open_shapes_hint", default: "Estas formas tienen aberturas. Las líneas punteadas muestran el cierre automático propuesto y los círculos indican puntos abiertos.") %>
             </p>
-            <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview-open">
-              <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-open", filter: :open, zoom_to_corrections: source_preview.zoom_to_corrections?) %>
+            <div class="source-dxf-preview source-dxf-preview--cad nesting-preview--interactive"
+                 data-controller="svg-pan-zoom"
+                 data-testid="source-dxf-preview-open">
+              <div class="nesting-preview__viewport"
+                   data-svg-pan-zoom-target="viewport"
+                   data-action="wheel->svg-pan-zoom#wheel pointerdown->svg-pan-zoom#pointerDown pointermove->svg-pan-zoom#pointerMove pointerup->svg-pan-zoom#pointerUp pointercancel->svg-pan-zoom#pointerUp">
+                <div class="nesting-preview__canvas" data-svg-pan-zoom-target="canvas">
+                  <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-open", filter: :open, zoom_to_corrections: source_preview.zoom_to_corrections?) %>
+                </div>
+              </div>
             </div>
           </div>
         <% end %>

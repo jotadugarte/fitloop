@@ -44,6 +44,10 @@ function lockedClosedOnPath(path, key, details) {
   if (details?.dataset.collapsiblePreserveOpen === "true") return false
   if (path !== "/taller") return false
   if (document.querySelector("[data-workshop-setup-mode='true']")) return false
+
+  const pageState = readStore()[path] || {}
+  if (pageState[key] === true) return false
+
   return key === "workshop-sheet-inventory" || key === "workshop-source-dxf-detail"
 }
 
