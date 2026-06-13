@@ -1037,6 +1037,21 @@ def _merge_overlapping_roots_with_absorbed(
     return merged_roots, absorbed_map
 
 
+def _extract_line_strings(geom) -> list[LineString]:
+    if geom.is_empty:
+        return []
+    if geom.geom_type == "LineString":
+        return [geom]
+    if geom.geom_type == "MultiLineString":
+        return list(geom.geoms)
+    if hasattr(geom, "geoms"):
+        res = []
+        for g in geom.geoms:
+            res.extend(_extract_line_strings(g))
+        return res
+    return []
+
+
 def extract_pieces_with_internal_lines(
     dxf_path: Path | str,
     layer_name: str,
@@ -1147,6 +1162,27 @@ def extract_pieces_with_internal_lines(
                             payload={"coordinates": interior_coords},
                         )
                     )
+
+        # Also add any open line segments from the primary layer that lie inside the polygon
+        # and are not on the polygon boundary (e.g. inner wall lines, slot details)
+        boundary_buffered = polygon.boundary.buffer(curve_tolerance_mm)
+        for segment in line_segments:
+            line = LineString(segment)
+            if line.intersects(polygon):
+                clipped = line.intersection(polygon)
+                if not clipped.is_empty:
+                    decor = clipped.difference(boundary_buffered)
+                    if not decor.is_empty and decor.length > curve_tolerance_mm:
+                        for part in _extract_line_strings(decor):
+                            if part.length > curve_tolerance_mm:
+                                decorations.append(
+                                    DecorationEntity(
+                                        layer_name=layer_name,
+                                        geometry_type="line",
+                                        payload={"coordinates": list(part.coords)},
+                                    )
+                                )
+
         pieces.append(
             CompositePiece(
                 polygon=polygon,
