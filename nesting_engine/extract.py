@@ -10,7 +10,7 @@ from ezdxf.entities import Circle, Insert, LWPolyline, Line, Polyline
 from ezdxf.math import Matrix44, Vec3
 from ezdxf.path import make_path
 from shapely.geometry import LineString, MultiLineString, Polygon
-from shapely.ops import polygonize
+from shapely.ops import polygonize, unary_union
 from shapely.validation import make_valid
 
 if TYPE_CHECKING:
@@ -492,6 +492,24 @@ def _polygons_from_line_segments(
         if geometry.is_empty or geometry.area <= 0:
             continue
         polygons.append(geometry)
+
+    # Union adjacent/connected polygons to merge notches and nested features into their main body
+    if polygons:
+        union_geom = unary_union(polygons)
+        merged_polys: list[Polygon] = []
+        if union_geom.geom_type == "Polygon":
+            if not union_geom.is_empty:
+                merged_polys.append(union_geom)
+        elif union_geom.geom_type == "MultiPolygon":
+            merged_polys.extend(p for p in union_geom.geoms if not p.is_empty)
+        elif hasattr(union_geom, "geoms"):
+            for geom in union_geom.geoms:
+                if geom.geom_type == "Polygon" and not geom.is_empty:
+                    merged_polys.append(geom)
+                elif geom.geom_type == "MultiPolygon":
+                    merged_polys.extend(p for p in geom.geoms if not p.is_empty)
+        polygons = merged_polys
+
     return _filter_polygon_slivers(polygons, curve_tolerance_mm=curve_tolerance_mm)
 
 
