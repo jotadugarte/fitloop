@@ -588,12 +588,14 @@ def _print_layer_analysis(layer_stats, primary, auxiliaries):
 
 # ── Text report ───────────────────────────────────────────────────────────────
 
-def _print_report(dxf_path, mode, raw_stats, polygons, gaps: list[GapInfo], warnings):
+def _print_report(dxf_path, mode, raw_stats, polygons, gaps: list[GapInfo], warnings, cluster_count=None):
     print()
     print("=" * 60)
     print("  DXF EXTRACTION REPORT")
     print(f"  File : {dxf_path.name}")
     print(f"  Mode : {mode}")
+    if cluster_count is not None:
+        print(f"  Clusters : {cluster_count} local rasterization canvases")
     print("=" * 60)
 
     print("\n✎ RAW ENTITIES (primary layer):")
@@ -729,6 +731,29 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     _draw_extracted_polygons(ax_img, image_polygons, img_x, img_y, image_decorations, alpha=0.75)
     _doc_img = ezdxf.readfile(dxf_path)
     _draw_layer_non_polyline_entities(ax_img, _doc_img, args.primary, args.tol, img_x, img_y)
+
+    from nesting_engine.image_extract import _cluster_entities
+    clusters = _cluster_entities(_doc_img, args.primary, args.tol)
+    for cluster_idx, (entities, bounds) in enumerate(clusters):
+        rect = mpatches.Rectangle(
+            (bounds.min_x, bounds.min_y),
+            bounds.width,
+            bounds.height,
+            linewidth=1.0,
+            edgecolor="#4CE87A",
+            facecolor="none",
+            linestyle="--",
+            alpha=0.6,
+            zorder=2,
+        )
+        ax_img.add_patch(rect)
+        ax_img.text(
+            bounds.min_x + 2, bounds.max_y - 8,
+            f"C{cluster_idx+1}",
+            color="#4CE87A", fontsize=6, alpha=0.8,
+            zorder=3
+        )
+
     n_img = len(image_polygons)
     _style_ax(ax_img, "⑦ IMAGE EXTRACT", f"{n_img} polygon{'s' if n_img != 1 else ''} detected", title_color="#4CE87A")
     if img_x and img_y:
@@ -927,7 +952,12 @@ def main():
     plt.close(fig)
 
     # ── Text report ─────────────────────────────────────────────────────────
-    _print_report(dxf_path, image_mode, raw_stats, image_polygons, gaps, warnings_image)
+    from nesting_engine.image_extract import _cluster_entities
+    doc = ezdxf.readfile(dxf_path)
+    clusters = _cluster_entities(doc, args.primary, args.tol)
+    cluster_count = len(clusters)
+
+    _print_report(dxf_path, image_mode, raw_stats, image_polygons, gaps, warnings_image, cluster_count=cluster_count)
     print(f"✅  Image saved → {out_path}")
 
 
