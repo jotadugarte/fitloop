@@ -48,7 +48,7 @@ def find_layer_gaps(doc: ezdxf.document.Drawing, layer_name: str, curve_toleranc
             doc.filename,
             layer_name,
             curve_tolerance_mm=curve_tolerance_mm,
-            auto_close_gaps=True,  # treat gaps ≤ 15mm as valid — app nests, not corrects
+            auto_close_gaps=False,  # Use auto_close_gaps=False so we only count shapes the engine can form WITHOUT user-authorized closing
             warnings=[],
         )
         if polygons:

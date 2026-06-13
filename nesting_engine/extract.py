@@ -31,6 +31,7 @@ def extract_closed_contours(
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
     auto_close_gaps: bool = False,
+    use_image_extraction: bool = True,
 ) -> list[Polygon]:
     """Return piece polygons: loose contours and INSERT geometry, with nested contours merged as holes."""
     assert layer_name and layer_name.strip(), "layer_name is required"
@@ -41,6 +42,19 @@ def extract_closed_contours(
     assert path.is_file(), f"DXF file not found: {path}"
 
     report: list[str] = warnings if warnings is not None else []
+
+    if use_image_extraction:
+        pieces = extract_pieces_with_internal_lines(
+            path,
+            layer_name,
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+            warnings=report,
+            auto_close_gaps=auto_close_gaps,
+            use_image_extraction=True,
+        )
+        return [p.polygon for p in pieces]
+
     doc = ezdxf.readfile(path)
     polygons: list[Polygon] = []
     circle_specs: list[_CircleSpec] = []
@@ -1078,6 +1092,7 @@ def extract_pieces_with_internal_lines(
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
     auto_close_gaps: bool = False,
+    use_image_extraction: bool = True,
 ) -> list:
     """Like extract_closed_contours but returns CompositePiece objects.
 
@@ -1099,6 +1114,19 @@ def extract_pieces_with_internal_lines(
     assert path.is_file(), f"DXF file not found: {path}"
 
     report: list[str] = warnings if warnings is not None else []
+
+    if use_image_extraction:
+        # [REQ-FIT-EXT-001] Image-based extraction — reemplaza entity parsing
+        from nesting_engine.image_extract import image_extract_pieces
+        return image_extract_pieces(
+            path,
+            layer_name,
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+            warnings=report,
+            auto_close_gaps=auto_close_gaps,
+        )
+
     doc = ezdxf.readfile(path)
     raw_polygons: list[Polygon] = []
     circle_specs: list[_CircleSpec] = []

@@ -68,7 +68,15 @@ def _compute_dxf_bounds(doc: object, layer_name: str, curve_tolerance_mm: float)
     return BBox(min(xs), min(ys), max(xs), max(ys))
 
 
-def _render_entity_recursive(ax: object, entity: object, doc: object, curve_tolerance_mm: float, depth: int = 0, transform: object = None) -> None:
+def _render_entity_recursive(
+    ax: object,
+    entity: object,
+    doc: object,
+    curve_tolerance_mm: float,
+    depth: int = 0,
+    transform: object = None,
+    auto_close_gaps: bool = False,
+) -> None:
     if depth > 8:
         return
     etype = entity.dxftype()
@@ -78,7 +86,7 @@ def _render_entity_recursive(ax: object, entity: object, doc: object, curve_tole
             matrix = entity.matrix44()
             combined = matrix if transform is None else transform @ matrix
             for sub_entity in block:
-                _render_entity_recursive(ax, sub_entity, doc, curve_tolerance_mm, depth + 1, combined)
+                _render_entity_recursive(ax, sub_entity, doc, curve_tolerance_mm, depth + 1, combined, auto_close_gaps)
         return
 
     try:
@@ -96,16 +104,31 @@ def _render_entity_recursive(ax: object, entity: object, doc: object, curve_tole
     xs = [p[0] for p in pts]
     ys = [p[1] for p in pts]
 
+    closed = False
     if etype in ("LWPOLYLINE", "POLYLINE"):
         closed = getattr(entity, "closed", False) or getattr(entity, "is_closed", False)
-        if closed and (xs[0] != xs[-1] or ys[0] != ys[-1]):
-            xs.append(xs[0])
-            ys.append(ys[0])
+        if not closed:
+            x0, y0 = pts[0]
+            x1, y1 = pts[-1]
+            dist = math.hypot(x1 - x0, y1 - y0)
+            if dist <= 2.0 or (dist <= 15.0 and auto_close_gaps):
+                closed = True
+
+    if closed and (xs[0] != xs[-1] or ys[0] != ys[-1]):
+        xs.append(xs[0])
+        ys.append(ys[0])
 
     ax.plot(xs, ys, color="white", linewidth=2.0, antialiased=False)
 
 
-def _rasterize_dxf_layer(doc: object, layer_name: str, bounds: BBox, scale_px_per_mm: float = 4.0, curve_tolerance_mm: float = 0.25) -> np.ndarray:
+def _rasterize_dxf_layer(
+    doc: object,
+    layer_name: str,
+    bounds: BBox,
+    scale_px_per_mm: float = 4.0,
+    curve_tolerance_mm: float = 0.25,
+    auto_close_gaps: bool = False,
+) -> np.ndarray:
     margin = 5.0  # mm
     width_mm = bounds.width + 2 * margin
     height_mm = bounds.height + 2 * margin
@@ -122,7 +145,7 @@ def _rasterize_dxf_layer(doc: object, layer_name: str, bounds: BBox, scale_px_pe
 
     for entity in doc.modelspace():
         if entity.dxf.layer == layer_name:
-            _render_entity_recursive(ax, entity, doc, curve_tolerance_mm)
+            _render_entity_recursive(ax, entity, doc, curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
 
     fig.canvas.draw()
     rgba = np.asarray(fig.canvas.buffer_rgba())
@@ -148,9 +171,19 @@ def _separate_shapes(binary: np.ndarray, scale_px_per_mm: float) -> list[np.ndar
         line_mask = labeled_lines == label
         filled_mask = scipy.ndimage.binary_fill_holes(line_mask)
         
-        px_area = np.sum(filled_mask)
+        line_area = np.sum(line_mask)
+        filled_area = np.sum(filled_mask)
+        
+        if line_area <= 0:
+            continue
+            
+        fill_ratio = filled_area / line_area
+        # A true closed shape must enclose space, so its filled area must be significantly larger than the boundary line itself.
+        if fill_ratio < 1.3:
+            continue
+            
         min_area_px = (5.0 * scale_px_per_mm) ** 2
-        if px_area > min_area_px:
+        if filled_area > min_area_px:
             masks.append(filled_mask)
             
     return masks
@@ -177,14 +210,22 @@ def _mask_to_polygon(mask: np.ndarray, bounds: BBox, scale: float, img_height: i
         return None
         
     poly = Polygon(pts)
+    poly = poly.buffer(-1.5 / scale)
     if not poly.is_valid:
         poly = make_valid(poly)
         
-    if poly.is_empty or poly.area <= 0:
+    if poly.is_empty:
         return None
         
-    min_area_mm = (curve_tolerance_mm * 4.0) ** 2
-    if poly.area < min_area_mm:
+    if poly.geom_type == "MultiPolygon":
+        polys = [p for p in poly.geoms if not p.is_empty and p.area > 0]
+        if not polys:
+            return None
+        poly = max(polys, key=lambda p: p.area)
+    elif poly.geom_type != "Polygon":
+        return None
+        
+    if poly.area < (curve_tolerance_mm * 4.0) ** 2:
         return None
         
     return poly
@@ -212,11 +253,10 @@ def image_extract_pieces(
     # 1. Bounds & Rasterization
     bounds = _compute_dxf_bounds(doc, layer_name, curve_tolerance_mm)
     scale = 4.0
-    binary = _rasterize_dxf_layer(doc, layer_name, bounds, scale, curve_tolerance_mm)
+    binary = _rasterize_dxf_layer(doc, layer_name, bounds, scale, curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
 
-    # 2. Gap bridging
-    gap_max_mm = 15.0 if auto_close_gaps else 2.0
-    gap_bridge_px = max(2, int(gap_max_mm * scale))
+    # 2. Gap bridging (always small for raster/aliasing gaps since vector gaps are closed during rendering)
+    gap_bridge_px = max(2, int(2.0 * scale))
     bridged = _bridge_gaps(binary, gap_bridge_px)
 
     # 3. Labeling and filling
