@@ -409,6 +409,14 @@ def image_extract_pieces(
                 if inter_area > best_intersection:
                     best_intersection = inter_area
                     best_idx = idx
+
+        matched_polygon = polygon
+        if best_idx is not None:
+            legacy_poly = merged_polygons[best_idx]
+            # Check overlap percentage to ensure it's the same shape
+            overlap_ratio = best_intersection / max(polygon.area, legacy_poly.area)
+            if overlap_ratio > 0.85:
+                matched_polygon = legacy_poly
                     
         # Add absorbed polygons boundaries as line decorations
         if best_idx is not None:
@@ -435,11 +443,11 @@ def image_extract_pieces(
                         )
 
         # Also add any open line segments from the primary layer that lie inside the polygon
-        boundary_buffered = polygon.boundary.buffer(curve_tolerance_mm)
+        boundary_buffered = matched_polygon.boundary.buffer(curve_tolerance_mm)
         for segment in line_segments:
             line = LineString(segment)
-            if line.intersects(polygon):
-                clipped = line.intersection(polygon)
+            if line.intersects(matched_polygon):
+                clipped = line.intersection(matched_polygon)
                 if not clipped.is_empty:
                     decor = clipped.difference(boundary_buffered)
                     if not decor.is_empty and decor.length > curve_tolerance_mm:
@@ -454,7 +462,7 @@ def image_extract_pieces(
                                 )
         pieces.append(
             CompositePiece(
-                polygon=polygon,
+                polygon=matched_polygon,
                 decorations=decorations,
                 piece_index=i,
                 primary_layer_name=layer_name,
