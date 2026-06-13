@@ -126,12 +126,18 @@ module Dxf
     def build_layers
       Array(@data["layers"]).map do |row|
         layer_name = row.fetch("name")
-        proj_layer = @project.project_layers.find_by(
-          layer_name: layer_name,
-          active_storage_attachment_id: @attachment&.id
-        ) || @project.project_layers.find_by(layer_name: layer_name)
-
-        auto_close = proj_layer&.auto_close_gaps? || false
+        auto_close = if @attachment
+                       @project.project_layers.find_by(
+                         layer_name: layer_name,
+                         active_storage_attachment_id: @attachment.id
+                       )&.auto_close_gaps? || false
+                     else
+                       @project.project_layers.where(
+                         layer_name: layer_name,
+                         included: true,
+                         auto_close_gaps: true
+                       ).exists?
+                     end
 
         Layer.new(
           name: layer_name,
