@@ -823,12 +823,16 @@ es:
       invalid: "Correo o contraseña no válidos."
       timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
       already_authenticated: "Ya iniciaste sesión."
+      user_not_found_in_database: "Correo o contraseña no válidos."
+      not_found_in_database: "Correo o contraseña no válidos."
       user:
         unauthenticated: "Debes iniciar sesión para continuar."
         unconfirmed: "Confirma tu correo antes de pagar o descargar."
         invalid: "Correo o contraseña no válidos."
         timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
         already_authenticated: "Ya iniciaste sesión."
+        user_not_found_in_database: "Correo o contraseña no válidos."
+        not_found_in_database: "Correo o contraseña no válidos."
     sessions:
       signed_in: "Iniciaste sesión correctamente."
       signed_out: "Cerraste sesión correctamente."

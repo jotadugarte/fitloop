@@ -808,12 +808,16 @@ en:
       invalid: "Invalid email or password."
       timeout: "Your session expired. Please sign in again."
       already_authenticated: "You are already signed in."
+      user_not_found_in_database: "Invalid email or password."
+      not_found_in_database: "Invalid email or password."
       user:
         unauthenticated: "You need to sign in to continue."
         unconfirmed: "Confirm your email before paying or downloading."
         invalid: "Invalid email or password."
         timeout: "Your session expired. Please sign in again."
         already_authenticated: "You are already signed in."
+        user_not_found_in_database: "Invalid email or password."
+        not_found_in_database: "Invalid email or password."
     sessions:
       signed_in: "Signed in successfully."
       signed_out: "Signed out successfully."

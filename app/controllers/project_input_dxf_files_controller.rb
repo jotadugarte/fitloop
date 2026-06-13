@@ -60,7 +60,7 @@ class ProjectInputDxfFilesController < ApplicationController
       attachment.purge
       @project.project_layers.where(active_storage_attachment_id: params[:id]).destroy_all
     end
-    @expand_layers = false
+    @expand_layers = true
     @expanded_attachment_ids = []
 
     respond_to do |format|

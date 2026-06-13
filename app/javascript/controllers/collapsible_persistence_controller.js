@@ -112,4 +112,17 @@ export default class extends Controller {
     }
     writeStore(store)
   }
+
+  forceCollapseDetail() {
+    const path = pagePath()
+    const store = readStore()
+    if (!store[path]) store[path] = {}
+    store[path]["workshop-source-dxf-detail"] = false
+    writeStore(store)
+
+    const details = document.querySelector('details[data-collapsible-key="workshop-source-dxf-detail"]')
+    if (details) {
+      details.open = false
+    }
+  }
 }

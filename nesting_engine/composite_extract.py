@@ -20,6 +20,7 @@ from nesting_engine.extract import (
     _open_curve_segments,
     _open_polyline_segments,
     extract_closed_contours,
+    extract_pieces_with_internal_lines,
 )
 
 _MAX_ENTITIES = 100_000
@@ -63,21 +64,13 @@ def load_composite_pieces(
     report: list[str] = warnings if warnings is not None else []
     aux_layers = {name for name in auxiliary_layers if name}
 
-    primaries = extract_closed_contours(
+    pieces = extract_pieces_with_internal_lines(
         path,
         primary_layer,
         curve_tolerance_mm=curve_tolerance_mm,
         warnings=report,
         auto_close_gaps=auto_close_gaps,
     )
-    pieces = [
-        CompositePiece(
-            polygon=polygon,
-            piece_index=index,
-            primary_layer_name=primary_layer,
-        )
-        for index, polygon in enumerate(primaries)
-    ]
 
     if not aux_layers or not pieces:
         return pieces
