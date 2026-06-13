@@ -3,11 +3,32 @@
     <h2><%= t("projects.source_preview.title") %></h2>
 
     <% if source_preview.available? %>
-      <p data-testid="source-dxf-layer-count">
-        <%= t("projects.source_preview.layer_count", count: source_preview.layers.count) %>
-      </p>
-      <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview">
-        <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg") %>
+      <div class="source-dxf-previews-container" style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <% if source_preview.has_valid_shapes? %>
+          <div class="source-dxf-preview-group" data-testid="source-dxf-valid-group">
+            <h3><%= t("projects.source_preview.valid_shapes_title", default: "Piezas Válidas (Cerradas)") %></h3>
+            <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <%= t("projects.source_preview.valid_shapes_hint", default: "Estas formas se detectaron como cerradas y están listas para el anidado.") %>
+            </p>
+            <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview-valid">
+              <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-valid", filter: :valid) %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if source_preview.has_open_shapes? %>
+          <div class="source-dxf-preview-group" data-testid="source-dxf-open-group">
+            <h3><%= t("projects.source_preview.open_shapes_title", default: "Contornos Abiertos / Correcciones") %></h3>
+            <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <%= t("projects.source_preview.open_shapes_hint", default: "Estas formas tienen aberturas. Las líneas punteadas muestran el cierre automático propuesto y los círculos indican puntos abiertos.") %>
+            </p>
+            <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview-open">
+              <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-open", filter: :open, zoom_to_corrections: source_preview.zoom_to_corrections?) %>
+            </div>
+          </div>
+        <% end %>
+
       </div>
     <% else %>
       <div class="source-dxf-preview source-dxf-preview--empty" data-testid="source-dxf-preview-empty">

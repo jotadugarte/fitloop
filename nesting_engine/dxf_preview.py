@@ -103,8 +103,8 @@ def _bounds_from_layer_polylines(
     max_y = -math.inf
     for data in file_layers.values():
         polylines = data["polylines"]
-        for points in polylines:
-            for x, y in points:
+        for polyline in polylines:
+            for x, y in polyline["points"]:
                 min_x = min(min_x, x)
                 min_y = min(min_y, y)
                 max_x = max(max_x, x)
@@ -125,7 +125,13 @@ def _merge_shifted_layers(
         gaps = data["gaps"]
         auto_close_lines = data["auto_close_lines"]
 
-        shifted_polylines = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
+        shifted_polylines = []
+        for line in polylines:
+            shifted_points = [[_shift_x(x, place_offset_x), y] for x, y in line["points"]]
+            shifted_polylines.append({
+                "points": shifted_points,
+                "is_open": line.get("is_open", False)
+            })
 
         shifted_gaps = []
         for gap in gaps:
@@ -245,7 +251,10 @@ def _file_layer_polylines(
         layer_name = str(polyline["layer"])
         points = polyline["points"]
         result.setdefault(layer_name, {"polylines": [], "gaps": [], "auto_close_lines": []})
-        result[layer_name]["polylines"].append(points)
+        result[layer_name]["polylines"].append({
+            "points": points,
+            "is_open": polyline.get("is_open", False)
+        })
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     from nesting_engine.read_layers import find_layer_gaps
@@ -293,7 +302,10 @@ def _composite_file_layer_polylines(
         curve_tolerance_mm=curve_tolerance_mm,
         max_block_depth=max_block_depth,
     ):
-        result[primary_layer]["polylines"].append(polyline["points"])
+        result[primary_layer]["polylines"].append({
+            "points": polyline["points"],
+            "is_open": polyline.get("is_open", False)
+        })
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     from nesting_engine.read_layers import find_layer_gaps
@@ -337,7 +349,10 @@ def _composite_file_layer_polylines(
                     decoration.layer_name,
                     {"polylines": [], "gaps": [], "auto_close_lines": []}
                 )
-                result[decoration.layer_name]["polylines"].append(points)
+                result[decoration.layer_name]["polylines"].append({
+                    "points": points,
+                    "is_open": False
+                })
 
     return {name: data for name, data in result.items() if data["polylines"]}
 
@@ -427,7 +442,17 @@ def _polylines_from_entity(
     if len(points) < 2:
         return []
 
-    return [{"layer": layer_name, "points": points}]
+    is_open = False
+    if hasattr(entity, "closed") or hasattr(entity, "is_closed"):
+        closed_attrib = entity.closed if hasattr(entity, "closed") else entity.is_closed
+        if not closed_attrib:
+            x0, y0 = points[0]
+            x1, y1 = points[-1]
+            dist = math.hypot(x1 - x0, y1 - y0)
+            if dist > 2.0:
+                is_open = True
+
+    return [{"layer": layer_name, "points": points, "is_open": is_open}]
 
 
 def _flatten_entity_points(

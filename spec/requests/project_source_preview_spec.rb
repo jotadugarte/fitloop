@@ -7,7 +7,7 @@ RSpec.describe "Project source DXF detail", type: :request do
   let(:sample_dxf) { Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf") }
 
   describe "GET /projects/:id" do
-    it "renders source DXF preview when layers are included and have polylines" do
+    it "renders source DXF preview groups when layers are included and have polylines" do
       project.input_dxf.attach(
         io: File.open(sample_dxf),
         filename: "piece.dxf",
@@ -21,8 +21,7 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(I18n.t("projects.show.source_dxf_detail_summary"))
       expect(response.body).to include('data-testid="dxf-file-entry"')
-      expect(response.body).to include('data-testid="source-dxf-preview"')
-      expect(response.body).to include('data-testid="source-dxf-layer-count"')
+      expect(response.body).to include('data-testid="source-dxf-valid-group"')
     end
 
     it "renders empty preview message when no layers are included" do
@@ -38,10 +37,10 @@ RSpec.describe "Project source DXF detail", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="source-dxf-preview-empty"')
-      expect(response.body).not_to include('data-testid="source-dxf-preview"')
+      expect(response.body).not_to include('data-testid="source-dxf-valid-group"')
     end
 
-    it "renders proposed auto-close lines when auto_close_gaps is enabled and gap <= 15.0 mm" do
+    it "renders proposed auto-close lines with zoomed viewBox when auto_close_gaps is enabled and gap <= 15.0 mm" do
       layer_data = {
         "width_mm" => 100.0,
         "height_mm" => 100.0,
@@ -51,7 +50,12 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
+            "polylines" => [
+              {
+                "points" => [[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]],
+                "is_open" => true
+              }
+            ],
             "gaps" => [
               {
                 "distance_mm" => 5.0,
@@ -77,12 +81,13 @@ RSpec.describe "Project source DXF detail", type: :request do
       get project_path(project)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('data-testid="source-dxf-preview"')
+      expect(response.body).to include('data-testid="source-dxf-open-group"')
       expect(response.body).to include('data-testid="proposed-auto-close-line"')
       expect(response.body).not_to include('data-testid="gap-error-circle"')
+      expect(response.body).to include('viewBox="-30.0 70.0 65.0 60.0"')
     end
 
-    it "renders pulsing red circles when auto_close_gaps is disabled or gap > 15.0 mm" do
+    it "renders pulsing red circles with full viewBox when auto_close_gaps is disabled or gap > 15.0 mm" do
       layer_data = {
         "width_mm" => 100.0,
         "height_mm" => 100.0,
@@ -92,7 +97,12 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[20.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
+            "polylines" => [
+              {
+                "points" => [[20.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]],
+                "is_open" => true
+              }
+            ],
             "gaps" => [
               {
                 "distance_mm" => 20.0,
@@ -113,14 +123,15 @@ RSpec.describe "Project source DXF detail", type: :request do
         content_type: "application/dxf"
       )
       Dxf::LayerSyncPerFile.call(project)
-      project.project_layers.find_by!(layer_name: "PIECES").update!(included: true, auto_close_gaps: true)
+      project.project_layers.find_by!(layer_name: "PIECES").update!(included: true, auto_close_gaps: false)
 
       get project_path(project)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include('data-testid="source-dxf-preview"')
+      expect(response.body).to include('data-testid="source-dxf-open-group"')
       expect(response.body).not_to include('data-testid="proposed-auto-close-line"')
       expect(response.body).to include('data-testid="gap-error-circle"')
+      expect(response.body).to include('viewBox="0 0 100.0 100.0"')
     end
   end
 end

@@ -4,6 +4,7 @@ module Dxf
   # [REQ-FIT-UI-002] Original DXF preview for layers selected for nesting.
   class SourcePreviewPresenter
     Layer = Struct.new(:name, :color, :polylines, :gaps, :auto_close_lines, :auto_close_gaps, keyword_init: true)
+    Polyline = Struct.new(:points, :is_open, keyword_init: true)
 
     def self.for(project, attachment: nil)
       new(project: project, attachment: attachment)
@@ -17,6 +18,18 @@ module Dxf
 
     def available?
       layers.any? { |layer| layer.polylines.any? }
+    end
+
+    def has_open_shapes?
+      layers.any? { |layer| layer.polylines.any?(&:is_open) || layer.gaps.any? }
+    end
+
+    def has_valid_shapes?
+      layers.any? { |layer| layer.polylines.any? { |p| !p.is_open } }
+    end
+
+    def zoom_to_corrections?
+      layers.any?(&:auto_close_gaps)
     end
 
     def layers
@@ -41,6 +54,48 @@ module Dxf
 
     def view_box
       "0 0 #{view_width} #{view_height}"
+    end
+
+    def corrections_view_box
+      min_x = Float::INFINITY
+      min_y = Float::INFINITY
+      max_x = -Float::INFINITY
+      max_y = -Float::INFINITY
+
+      layers.each do |layer|
+        layer.gaps.each do |gap|
+          [gap[:start], gap[:end]].each do |pt|
+            x = pt[0]
+            y = pt[1]
+            min_x = x if x < min_x
+            min_y = y if y < min_y
+            max_x = x if x > max_x
+            max_y = y if y > max_y
+          end
+        end
+      end
+
+      if min_x == Float::INFINITY
+        return view_box
+      end
+
+      svg_x1 = min_x - offset_x_mm
+      svg_x2 = max_x - offset_x_mm
+      svg_y1 = view_height - (max_y - offset_y_mm)
+      svg_y2 = view_height - (min_y - offset_y_mm)
+
+      svg_width = svg_x2 - svg_x1
+      svg_height = svg_y2 - svg_y1
+
+      padding_x = [svg_width * 0.3, 30.0].max
+      padding_y = [svg_height * 0.3, 30.0].max
+
+      zoom_x = svg_x1 - padding_x
+      zoom_y = svg_y1 - padding_y
+      zoom_w = svg_width + 2 * padding_x
+      zoom_h = svg_height + 2 * padding_y
+
+      "#{zoom_x} #{zoom_y} #{zoom_w} #{zoom_h}"
     end
 
     def included_layer_names
@@ -83,13 +138,21 @@ module Dxf
           color: row.fetch("color"),
           polylines: normalize_polylines(row["polylines"]),
           gaps: normalize_gaps(row["gaps"]),
-          auto_close_lines: normalize_polylines(row["auto_close_lines"]),
+          auto_close_lines: normalize_raw_polylines(row["auto_close_lines"]),
           auto_close_gaps: auto_close
         )
       end
     end
 
     def normalize_polylines(polylines)
+      Array(polylines).map do |line|
+        points = Array(line.fetch("points", [])).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
+        is_open = !!line.fetch("is_open", false)
+        Polyline.new(points: points, is_open: is_open)
+      end
+    end
+
+    def normalize_raw_polylines(polylines)
       Array(polylines).map do |line|
         Array(line).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
       end
