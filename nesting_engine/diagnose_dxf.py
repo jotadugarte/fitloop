@@ -2,16 +2,20 @@
 """
 diagnose_dxf.py — Visual diagnostics for DXF shape extraction.
 
-Usage:
-    # Step 1 — Analyze layers only (no extraction)
-    python diagnose_dxf.py <file.dxf>
+Usage (desde la raíz del proyecto):
+    # Opción A — con el venv del proyecto (recomendado):
+    .venv/bin/python nesting_engine/diagnose_dxf.py <file.dxf>
+    .venv/bin/python nesting_engine/diagnose_dxf.py <file.dxf> --primary CORTE
 
-    # Step 2 — Extract with explicit layer declaration
-    python diagnose_dxf.py <file.dxf> --primary LAYER_NAME
-    python diagnose_dxf.py <file.dxf> --primary CORTE --aux GRABADO --aux TEXTO
+    # Opción B — con python3 del sistema (si tiene las dependencias):
+    python3 nesting_engine/diagnose_dxf.py <file.dxf>
+    python3 nesting_engine/diagnose_dxf.py <file.dxf> --primary CORTE
 
-    # Optional
-    --out output.png     Override output PNG path
+    # Opción C — capa + auxiliares:
+    .venv/bin/python nesting_engine/diagnose_dxf.py <file.dxf> --primary CORTE --aux GRABADO
+
+    # Opcional
+    --out output.png     Ruta del PNG de salida (default: <nombre_dxf>_diag.png)
     --tol 0.1            curve_tolerance_mm (default: 0.1)
 
 Generates a multi-panel PNG:
@@ -187,11 +191,12 @@ def _polygon_to_patch(polygon, facecolor, alpha=0.75):
     return PathPatch(path, facecolor=facecolor, edgecolor="white", linewidth=1.5, alpha=alpha)
 
 
-def _draw_extracted_polygons(ax, polygons, all_x, all_y, decorations_per_poly=None):
+def _draw_extracted_polygons(ax, polygons, all_x, all_y, decorations_per_poly=None,
+                             alpha: float = 0.75):
     """Draw extracted polygons onto ax, including internal decoration lines."""
     for i, polygon in enumerate(polygons):
         color = COLORS[i % len(COLORS)]
-        patch = _polygon_to_patch(polygon, facecolor=color)
+        patch = _polygon_to_patch(polygon, facecolor=color, alpha=alpha)
         ax.add_patch(patch)
 
         # Label each polygon
@@ -267,16 +272,47 @@ def _collect_open_entities(dxf_path: Path, layer_name: str, curve_tolerance: flo
     return gaps
 
 
+def _draw_layer_non_polyline_entities(ax, doc, layer_name: str, curve_tolerance: float,
+                                      all_x: list, all_y: list) -> None:
+    """
+    Draw all non-polyline entities on the layer (LINE, ARC, SPLINE, etc.).
+    These are the 'loose lines' / 'pedacidos' that live alongside the main contours.
+    """
+    for entity in doc.modelspace():
+        if entity.dxf.layer != layer_name:
+            continue
+        etype = entity.dxftype()
+        if etype in ("LWPOLYLINE", "POLYLINE", "INSERT", "CIRCLE"):
+            continue  # handled separately
+        try:
+            path = make_path(entity)
+            pts = [(float(v.x), float(v.y)) for v in path.flattening(curve_tolerance)]
+        except Exception:
+            continue
+        if len(pts) < 2:
+            continue
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        all_x.extend(xs)
+        all_y.extend(ys)
+        if etype == "LINE":
+            ax.plot(xs, ys, color="#FFD700", linewidth=2.0, alpha=0.95, zorder=12)
+        else:
+            ax.plot(xs, ys, color="#FF69B4", linewidth=1.5, alpha=0.90,
+                    linestyle="--", zorder=12)
+
+
 def _draw_open_shapes(ax, dxf_path: Path, layer_name: str, curve_tolerance: float,
                       gaps: list[GapInfo], all_x: list, all_y: list,
                       show_categories: set[str] | None = None) -> None:
     """
     Draw open polylines in dim colour + highlight their gap endpoints.
+    Also draws any loose LINE/ARC entities on the same layer.
     show_categories: if given, only annotate gaps of those categories.
     """
     doc = ezdxf.readfile(dxf_path)
 
-    # First, draw all open contours in a muted colour
+    # Draw all open polyline contours in a muted colour
     for entity in doc.modelspace():
         if entity.dxf.layer != layer_name:
             continue
@@ -298,6 +334,9 @@ def _draw_open_shapes(ax, dxf_path: Path, layer_name: str, curve_tolerance: floa
         all_x.extend(xs)
         all_y.extend(ys)
         ax.plot(xs, ys, color="#7EC8E3", linewidth=1.2, alpha=0.8, linestyle="-")
+
+    # Also draw loose LINE / ARC / etc. entities that live on the same layer
+    _draw_layer_non_polyline_entities(ax, doc, layer_name, curve_tolerance, all_x, all_y)
 
     # Overlay gap markers and labels
     for g in gaps:
@@ -646,7 +685,11 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
 
     # ── ② RECOGNIZED ─────────────────────────────────────────────────────────
     ext_x, ext_y = [], []
-    _draw_extracted_polygons(ax_ext, polygons, ext_x, ext_y, decorations_per_poly)
+    _draw_extracted_polygons(ax_ext, polygons, ext_x, ext_y, decorations_per_poly, alpha=0.40)
+    # Also overlay all loose LINE/ARC entities from the layer ("pedacidos") on
+    # top of the filled polygons so the user sees the full picture.
+    _doc_ext = ezdxf.readfile(dxf_path)
+    _draw_layer_non_polyline_entities(ax_ext, _doc_ext, args.primary, args.tol, ext_x, ext_y)
     n = len(polygons)
     _style_ax(ax_ext, f"② RECOGNIZED", f"{n} polygon{'s' if n != 1 else ''} extracted")
     if ext_x and ext_y:
