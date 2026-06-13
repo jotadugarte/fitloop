@@ -103,8 +103,8 @@ def _bounds_from_layer_polylines(
     max_y = -math.inf
     for data in file_layers.values():
         polylines = data["polylines"]
-        for polyline in polylines:
-            for x, y in polyline["points"]:
+        for points in polylines:
+            for x, y in points:
                 min_x = min(min_x, x)
                 min_y = min(min_y, y)
                 max_x = max(max_x, x)
@@ -122,16 +122,11 @@ def _merge_shifted_layers(
 ) -> None:
     for layer_name, data in file_layers.items():
         polylines = data["polylines"]
+        polyline_open_flags = data.get("polyline_open_flags") or [False] * len(polylines)
         gaps = data["gaps"]
         auto_close_lines = data["auto_close_lines"]
 
-        shifted_polylines = []
-        for line in polylines:
-            shifted_points = [[_shift_x(x, place_offset_x), y] for x, y in line["points"]]
-            shifted_polylines.append({
-                "points": shifted_points,
-                "is_open": line.get("is_open", False)
-            })
+        shifted_polylines = [[[_shift_x(x, place_offset_x), y] for x, y in line] for line in polylines]
 
         shifted_gaps = []
         for gap in gaps:
@@ -150,6 +145,7 @@ def _merge_shifted_layers(
                 "name": layer_name,
                 "color": colors.get(layer_name, "#808080"),
                 "polylines": [],
+                "polyline_open_flags": [],
                 "gaps": [],
                 "auto_close_lines": []
             },
@@ -158,6 +154,7 @@ def _merge_shifted_layers(
             entry["color"] = colors[layer_name]
 
         entry["polylines"].extend(shifted_polylines)
+        entry["polyline_open_flags"].extend(polyline_open_flags)
         entry["gaps"].extend(shifted_gaps)
         entry["auto_close_lines"].extend(shifted_auto_close_lines)
 
@@ -186,6 +183,7 @@ def _preview_payload(
             "name": name,
             "color": layers[name]["color"],
             "polylines": layers[name]["polylines"],
+            "polyline_open_flags": layers[name]["polyline_open_flags"],
             "gaps": layers[name]["gaps"],
             "auto_close_lines": layers[name]["auto_close_lines"],
         }
@@ -239,7 +237,7 @@ def _file_layer_polylines(
         return {}
 
     result: dict[str, dict[str, object]] = {
-        name: {"polylines": [], "gaps": [], "auto_close_lines": []}
+        name: {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
         for name in included
     }
     for polyline in _iter_layer_polylines(
@@ -250,11 +248,9 @@ def _file_layer_polylines(
     ):
         layer_name = str(polyline["layer"])
         points = polyline["points"]
-        result.setdefault(layer_name, {"polylines": [], "gaps": [], "auto_close_lines": []})
-        result[layer_name]["polylines"].append({
-            "points": points,
-            "is_open": polyline.get("is_open", False)
-        })
+        result.setdefault(layer_name, {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []})
+        result[layer_name]["polylines"].append(points)
+        result[layer_name]["polyline_open_flags"].append(polyline.get("is_open", False))
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     from nesting_engine.read_layers import find_layer_gaps
@@ -294,7 +290,7 @@ def _composite_file_layer_polylines(
     from nesting_engine.composite_extract import load_composite_pieces
 
     result: dict[str, dict[str, object]] = {
-        primary_layer: {"polylines": [], "gaps": [], "auto_close_lines": []}
+        primary_layer: {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
     }
     for polyline in _iter_layer_polylines(
         doc,
@@ -302,10 +298,8 @@ def _composite_file_layer_polylines(
         curve_tolerance_mm=curve_tolerance_mm,
         max_block_depth=max_block_depth,
     ):
-        result[primary_layer]["polylines"].append({
-            "points": polyline["points"],
-            "is_open": polyline.get("is_open", False)
-        })
+        result[primary_layer]["polylines"].append(polyline["points"])
+        result[primary_layer]["polyline_open_flags"].append(polyline.get("is_open", False))
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     from nesting_engine.read_layers import find_layer_gaps
@@ -347,12 +341,10 @@ def _composite_file_layer_polylines(
                 points = [[float(x), float(y)] for x, y in coordinates]
                 result.setdefault(
                     decoration.layer_name,
-                    {"polylines": [], "gaps": [], "auto_close_lines": []}
+                    {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
                 )
-                result[decoration.layer_name]["polylines"].append({
-                    "points": points,
-                    "is_open": False
-                })
+                result[decoration.layer_name]["polylines"].append(points)
+                result[decoration.layer_name]["polyline_open_flags"].append(False)
 
     return {name: data for name, data in result.items() if data["polylines"]}
 

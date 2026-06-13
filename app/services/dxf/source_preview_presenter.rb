@@ -136,7 +136,7 @@ module Dxf
         Layer.new(
           name: layer_name,
           color: row.fetch("color"),
-          polylines: normalize_polylines(row["polylines"]),
+          polylines: normalize_polylines(row["polylines"], row["polyline_open_flags"]),
           gaps: normalize_gaps(row["gaps"]),
           auto_close_lines: normalize_raw_polylines(row["auto_close_lines"]),
           auto_close_gaps: auto_close
@@ -144,10 +144,11 @@ module Dxf
       end
     end
 
-    def normalize_polylines(polylines)
-      Array(polylines).map do |line|
-        points = Array(line.fetch("points", [])).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
-        is_open = !!line.fetch("is_open", false)
+    def normalize_polylines(polylines, open_flags)
+      flags = Array(open_flags)
+      Array(polylines).each_with_index.map do |line, index|
+        points = Array(line).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
+        is_open = !!flags[index]
         Polyline.new(points: points, is_open: is_open)
       end
     end

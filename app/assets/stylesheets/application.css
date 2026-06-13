@@ -1402,15 +1402,18 @@ h3.fit-section__legend {
 @keyframes pulse {
   0% {
     stroke-opacity: 1;
-    stroke-width: 2.5px;
+    stroke-width: 4px;
+    fill-opacity: 0.5;
   }
   50% {
     stroke-opacity: 0.4;
-    stroke-width: 4.5px;
+    stroke-width: 12px;
+    fill-opacity: 0.15;
   }
   100% {
     stroke-opacity: 1;
-    stroke-width: 2.5px;
+    stroke-width: 4px;
+    fill-opacity: 0.5;
   }
 }
 

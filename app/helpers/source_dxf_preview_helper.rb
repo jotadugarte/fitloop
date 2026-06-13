@@ -70,12 +70,14 @@ module SourceDxfPreviewHelper
         elements << tag.circle(
           cx: svg_x,
           cy: svg_y,
-          r: 10,
-          fill: "none",
+          r: 30,
+          fill: "#ff4d4d",
+          fill_opacity: 0.4,
           stroke: "#ff4d4d",
-          stroke_width: 3.0,
+          stroke_width: 4,
           class: "source-dxf-preview__gap-circle",
-          style: "animation: pulse 1.5s infinite ease-in-out;",
+          vector_effect: "non-scaling-stroke",
+          style: "animation: pulse 1.2s infinite ease-in-out;",
           data: { testid: "gap-error-circle", distance: gap[:distance_mm] }
         )
       end

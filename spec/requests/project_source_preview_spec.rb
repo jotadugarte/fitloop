@@ -50,12 +50,8 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [
-              {
-                "points" => [[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]],
-                "is_open" => true
-              }
-            ],
+            "polylines" => [[[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
+            "polyline_open_flags" => [true],
             "gaps" => [
               {
                 "distance_mm" => 5.0,
@@ -97,12 +93,8 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [
-              {
-                "points" => [[20.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]],
-                "is_open" => true
-              }
-            ],
+            "polylines" => [[[20.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
+            "polyline_open_flags" => [true],
             "gaps" => [
               {
                 "distance_mm" => 20.0,
