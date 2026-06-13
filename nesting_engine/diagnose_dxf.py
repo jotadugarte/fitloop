@@ -406,13 +406,13 @@ def _set_ax_bounds(ax, all_x, all_y, margin_frac=0.08):
     ax.set_aspect("equal")
 
 
-def _style_ax(ax, title, subtitle: str = ""):
+def _style_ax(ax, title, subtitle: str = "", title_color: str | None = None):
     ax.set_facecolor(PANEL_BG)
     ax.tick_params(colors=TEXT_COLOR, labelsize=7)
     ax.spines[:].set_color(GRID_COLOR)
     ax.grid(True, color=GRID_COLOR, linewidth=0.5, alpha=0.5)
     full = title if not subtitle else f"{title}\n{subtitle}"
-    ax.set_title(full, color=TEXT_COLOR, fontsize=10, fontweight="bold", pad=6)
+    ax.set_title(full, color=title_color or TEXT_COLOR, fontsize=10, fontweight="bold", pad=6)
     ax.set_xlabel("X (mm)", color=TEXT_COLOR, fontsize=7)
     ax.set_ylabel("Y (mm)", color=TEXT_COLOR, fontsize=7)
 
@@ -434,6 +434,7 @@ def run_extraction(dxf_path, primary_layer, aux_layers, tol, warnings,
             auxiliary_layers=aux_layers,
             curve_tolerance_mm=tol,
             warnings=warnings,
+            auto_close_gaps=auto_close_gaps,
         )
         polygons = [p.polygon for p in pieces]
         decorations_per_poly = [p.decorations for p in pieces]
@@ -444,6 +445,7 @@ def run_extraction(dxf_path, primary_layer, aux_layers, tol, warnings,
             layer_name=primary_layer,
             curve_tolerance_mm=tol,
             warnings=warnings,
+            auto_close_gaps=auto_close_gaps,
         )
         polygons = [p.polygon for p in pieces]
         decorations_per_poly = [p.decorations for p in pieces]
@@ -647,23 +649,27 @@ def _print_report(dxf_path, mode, raw_stats, polygons, gaps: list[GapInfo], warn
 # ── Figure construction ───────────────────────────────────────────────────────
 
 def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
-                  polygons, decorations_per_poly, gaps: list[GapInfo]):
+                  polygons, decorations_per_poly, gaps: list[GapInfo],
+                  nesting_polygons=None, nesting_decorations=None):
     """
     Create the multi-panel PNG.
 
-    Panel layout (1 row × 5 cols, or 2 rows if we collapse empty panels):
-      ① Raw DXF
-      ② Recognized polygons
-      ③ Open shapes + all gap markers
-      ④ Auto-close < 2mm (silent)
-      ⑤ Needs auth 2–15mm
+    Panel layout (always first: NESTING ENGINE):
+      ① Motor de anidado  ← LO QUE EL MOTOR USA (auto_close_gaps=True)
+      ② Raw DXF
+      ③ Recognized polygons (sin auto-close)
+      ④ Open shapes + all gap markers         (only if gaps exist)
+      ⑤ Auto-close < 2mm (silent)             (only if gaps exist)
+      ⑥ Needs auth 2–15mm                     (only if gaps exist)
     """
+    nesting_polygons    = nesting_polygons    or []
+    nesting_decorations = nesting_decorations or []
     silent_gaps  = [g for g in gaps if g.category == "silent"]
     auth_gaps    = [g for g in gaps if g.category == "auth"]
     ignored_gaps = [g for g in gaps if g.category == "ignored"]
 
     has_open = bool(gaps)
-    ncols = 5 if has_open else 2
+    ncols = 6 if has_open else 3   # always: MOTOR + RAW + RECOGNIZED [+ OPEN + AUTO + AUTH]
     fig_w = 7 * ncols
     fig, axes = plt.subplots(1, ncols, figsize=(fig_w, 9), facecolor=BACKGROUND)
     if ncols == 1:
@@ -674,16 +680,51 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
         color=TEXT_COLOR, fontsize=12, fontweight="bold", y=0.99,
     )
 
-    ax_raw = axes[0]
-    ax_ext = axes[1]
+    ax_nest = axes[0]   # ① MOTOR DE ANIDADO
+    ax_raw  = axes[1]   # ② RAW DXF
+    ax_ext  = axes[2]   # ③ RECOGNIZED
 
-    # ── ① RAW DXF ────────────────────────────────────────────────────────────
+    # ── ① MOTOR DE ANIDADO ───────────────────────────────────────────────────
+    nest_x, nest_y = [], []
+    _draw_extracted_polygons(ax_nest, nesting_polygons, nest_x, nest_y,
+                             nesting_decorations, alpha=0.70)
+    _doc_nest = ezdxf.readfile(dxf_path)
+    _draw_layer_non_polyline_entities(ax_nest, _doc_nest, args.primary, args.tol, nest_x, nest_y)
+    n_nest = len(nesting_polygons)
+    _style_ax(ax_nest,
+              "🔧 MOTOR DE ANIDADO",
+              f"{n_nest} forma{'s' if n_nest != 1 else ''} → va al anidado",
+              title_color="#00E5FF")
+    if nest_x and nest_y:
+        _set_ax_bounds(ax_nest, nest_x, nest_y)
+    elif raw_x and raw_y:
+        _set_ax_bounds(ax_nest, raw_x, raw_y)
+    _add_poly_legend(
+        ax_nest, nesting_polygons,
+        has_internal_lines=any(
+            any(d.geometry_type == "line" for d in decos)
+            for decos in nesting_decorations
+        ),
+    )
+    if not nesting_polygons:
+        ax_nest.text(
+            0.5, 0.5, "❌ Sin formas reconocidas\n(no se puede anidar)",
+            transform=ax_nest.transAxes,
+            ha="center", va="center", fontsize=12,
+            color="#FF4444", alpha=0.85,
+        )
+    # Add prominent border to highlight this is the key panel
+    for spine in ax_nest.spines.values():
+        spine.set_edgecolor("#00E5FF")
+        spine.set_linewidth(2.5)
+
+    # ── ② RAW DXF ────────────────────────────────────────────────────────────
     _, rraw_x, rraw_y = _draw_raw_dxf(ax_raw, dxf_path, args.primary, args.tol)
-    _style_ax(ax_raw, f"① RAW DXF", f"layer: '{args.primary}'")
+    _style_ax(ax_raw, f"② RAW DXF", f"layer: '{args.primary}'")
     _set_ax_bounds(ax_raw, rraw_x, rraw_y)
     _add_raw_legend(ax_raw)
 
-    # ── ② RECOGNIZED ─────────────────────────────────────────────────────────
+    # ── ③ RECOGNIZED (sin auto-close) ────────────────────────────────────────
     ext_x, ext_y = [], []
     _draw_extracted_polygons(ax_ext, polygons, ext_x, ext_y, decorations_per_poly, alpha=0.40)
     # Also overlay all loose LINE/ARC entities from the layer ("pedacidos") on
@@ -691,7 +732,7 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     _doc_ext = ezdxf.readfile(dxf_path)
     _draw_layer_non_polyline_entities(ax_ext, _doc_ext, args.primary, args.tol, ext_x, ext_y)
     n = len(polygons)
-    _style_ax(ax_ext, f"② RECOGNIZED", f"{n} polygon{'s' if n != 1 else ''} extracted")
+    _style_ax(ax_ext, f"③ RECOGNIZED", f"{n} polygon{'s' if n != 1 else ''} extracted")
     if ext_x and ext_y:
         _set_ax_bounds(ax_ext, ext_x, ext_y)
     elif raw_x and raw_y:
@@ -705,24 +746,24 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     )
 
     if has_open:
-        ax_open   = axes[2]
-        ax_silent = axes[3]
-        ax_auth   = axes[4]
+        ax_open   = axes[3]
+        ax_silent = axes[4]
+        ax_auth   = axes[5]
 
         # Shared reference bounds
         ref_x = rraw_x or raw_x
         ref_y = rraw_y or raw_y
 
-        # ── ③ OPEN SHAPES ─────────────────────────────────────────────────
+        # ── ④ OPEN SHAPES ─────────────────────────────────────────────────
         ox, oy = [], []
         _draw_open_shapes(ax_open, dxf_path, args.primary, args.tol, gaps, ox, oy,
                           show_categories={"silent", "auth", "ignored"})
-        _style_ax(ax_open, "③ OPEN SHAPES",
+        _style_ax(ax_open, "④ OPEN SHAPES",
                   f"{len(gaps)} gap(s) total")
         _set_ax_bounds(ax_open, ox or ref_x, oy or ref_y)
         _add_gap_legend(ax_open, gaps)
 
-        # ── ④ AUTO-CLOSE < 2mm ────────────────────────────────────────────
+        # ── ⑤ AUTO-CLOSE < 2mm ────────────────────────────────────────────
         sx, sy = [], []
         _draw_open_shapes(ax_silent, dxf_path, args.primary, args.tol,
                           gaps, sx, sy, show_categories=set())
@@ -730,7 +771,7 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
             sx.extend([g.start[0], g.end[0]])
             sy.extend([g.start[1], g.end[1]])
             _draw_close_line(ax_silent, g)
-        _style_ax(ax_silent, f"④ AUTO-CLOSE < {GAP_SILENT_MM}mm",
+        _style_ax(ax_silent, f"⑤ AUTO-CLOSE < {GAP_SILENT_MM}mm",
                   f"{len(silent_gaps)} gap(s) — always closed silently")
         _set_ax_bounds(ax_silent, sx or ref_x, sy or ref_y)
         _add_close_legend(ax_silent, "silent", gaps)
@@ -742,7 +783,7 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
                 color=TEXT_COLOR, alpha=0.5,
             )
 
-        # ── ⑤ NEEDS AUTH 2–15mm ───────────────────────────────────────────
+        # ── ⑥ NEEDS AUTH 2–15mm ───────────────────────────────────────────
         ux, uy = [], []
         _draw_open_shapes(ax_auth, dxf_path, args.primary, args.tol,
                           gaps, ux, uy, show_categories=set())
@@ -760,7 +801,7 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
                              fontsize=6, color=col, ha="center",
                              bbox=dict(boxstyle="round,pad=0.2", facecolor=BACKGROUND,
                                        edgecolor=col, alpha=0.8))
-        _style_ax(ax_auth, f"⑤ NEEDS AUTH {GAP_SILENT_MM}–{GAP_AUTH_MM}mm",
+        _style_ax(ax_auth, f"⑥ NEEDS AUTH {GAP_SILENT_MM}–{GAP_AUTH_MM}mm",
                   f"{len(auth_gaps)} gap(s) — mark layer as auto_close to fix")
         _set_ax_bounds(ax_auth, ux or ref_x, uy or ref_y)
         _add_close_legend(ax_auth, "auth", gaps)
@@ -817,10 +858,16 @@ def main():
     # ── Gap analysis ────────────────────────────────────────────────────────
     gaps = _collect_open_entities(dxf_path, args.primary, args.tol)
 
-    # ── Run extraction (without auto_close — shows what gets recognized) ────
+    # ── Extraction: without auto_close (what's recognized as-is) ────────────
     warnings: list[str] = []
     polygons, mode, decorations_per_poly = run_extraction(
         dxf_path, args.primary, args.aux, args.tol, warnings, auto_close_gaps=False
+    )
+
+    # ── Extraction: with auto_close=True (what the nesting engine ACTUALLY uses) ──
+    warnings_nest: list[str] = []
+    nesting_polygons, _, nesting_decorations = run_extraction(
+        dxf_path, args.primary, args.aux, args.tol, warnings_nest, auto_close_gaps=True
     )
 
     out_path = Path(args.out) if args.out else dxf_path.with_name(dxf_path.stem + "_diag.png")
@@ -834,7 +881,9 @@ def main():
 
     # ── Build multi-panel figure ────────────────────────────────────────────
     fig = _build_figure(dxf_path, args, raw_stats, raw_x, raw_y,
-                        polygons, decorations_per_poly, gaps)
+                        polygons, decorations_per_poly, gaps,
+                        nesting_polygons=nesting_polygons,
+                        nesting_decorations=nesting_decorations)
     fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=BACKGROUND)
     plt.close(fig)
 
