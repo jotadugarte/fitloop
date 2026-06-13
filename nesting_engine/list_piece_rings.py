@@ -30,7 +30,7 @@ def list_piece_rings(dxf_paths: list[Path], layer_names: list[str]) -> list[list
     pieces: list[list[list[list[float]]]] = []
     for path in dxf_paths:
         for layer_name in layer_names:
-            for polygon in extract_closed_contours(path, layer_name):
+            for polygon in extract_closed_contours(path, layer_name, use_image_extraction=False):
                 if polygon.is_empty:
                     continue
                 pieces.append(_polygon_rings(polygon))

@@ -86,7 +86,8 @@ RSpec.describe "Billing telemetry", "[REQ-FIT-ANALYTICS-001]", type: :request do
       end
 
       it "is idempotent on quick double requests" do
-        travel_to Time.zone.parse("2026-06-06 12:00:00") do
+        subscription = Subscription.find_by(user: user)
+        travel_to subscription.starts_at + 1.day do
           expect {
             get nested_dxf_project_path(project)
             get nested_dxf_project_path(project)
