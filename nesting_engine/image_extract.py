@@ -121,9 +121,9 @@ def _render_entity_recursive(
     ax.plot(xs, ys, color="white", linewidth=2.0, antialiased=False)
 
 
-def _rasterize_dxf_layer(
+def _rasterize_dxf_entities(
+    entities: list[object],
     doc: object,
-    layer_name: str,
     bounds: BBox,
     scale_px_per_mm: float = 4.0,
     curve_tolerance_mm: float = 0.25,
@@ -143,9 +143,8 @@ def _rasterize_dxf_layer(
     ax.set_xlim(bounds.min_x - margin, bounds.max_x + margin)
     ax.set_ylim(bounds.min_y - margin, bounds.max_y + margin)
 
-    for entity in doc.modelspace():
-        if entity.dxf.layer == layer_name:
-            _render_entity_recursive(ax, entity, doc, curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
+    for entity in entities:
+        _render_entity_recursive(ax, entity, doc, curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
 
     fig.canvas.draw()
     rgba = np.asarray(fig.canvas.buffer_rgba())
@@ -154,6 +153,70 @@ def _rasterize_dxf_layer(
     gray = rgba[:, :, 0]
     binary = gray > 128
     return binary
+
+
+def _cluster_entities(doc: object, layer_name: str, curve_tolerance_mm: float) -> list[tuple[list[object], BBox]]:
+    entities_with_bboxes = []
+    for entity in doc.modelspace():
+        if entity.dxf.layer == layer_name:
+            pts = []
+            _collect_points_recursive(entity, doc, curve_tolerance_mm, pts)
+            if pts:
+                xs = [p[0] for p in pts]
+                ys = [p[1] for p in pts]
+                bbox = BBox(min(xs), min(ys), max(xs), max(ys))
+                entities_with_bboxes.append((entity, bbox))
+
+    if not entities_with_bboxes:
+        return []
+
+    n = len(entities_with_bboxes)
+    parent = list(range(n))
+
+    def find(i):
+        path = []
+        while parent[i] != i:
+            path.append(i)
+            i = parent[i]
+        for node in path:
+            parent[node] = i
+        return i
+
+    def union(i, j):
+        root_i = find(i)
+        root_j = find(j)
+        if root_i != root_j:
+            parent[root_i] = root_j
+
+    gap_threshold = 15.0  # mm
+    for i in range(n):
+        for j in range(i + 1, n):
+            b1 = entities_with_bboxes[i][1]
+            b2 = entities_with_bboxes[j][1]
+            overlap = not (b1.max_x + gap_threshold < b2.min_x - gap_threshold or
+                           b1.min_x - gap_threshold > b2.max_x + gap_threshold or
+                           b1.max_y + gap_threshold < b2.min_y - gap_threshold or
+                           b1.min_y - gap_threshold > b2.max_y + gap_threshold)
+            if overlap:
+                union(i, j)
+
+    groups = {}
+    for i in range(n):
+        root = find(i)
+        if root not in groups:
+            groups[root] = []
+        groups[root].append(entities_with_bboxes[i])
+
+    clustered = []
+    for group in groups.values():
+        entities_list = [item[0] for item in group]
+        min_x = min(item[1].min_x for item in group)
+        min_y = min(item[1].min_y for item in group)
+        max_x = max(item[1].max_x for item in group)
+        max_y = max(item[1].max_y for item in group)
+        clustered.append((entities_list, BBox(min_x, min_y, max_x, max_y)))
+
+    return clustered
 
 
 def _bridge_gaps(binary: np.ndarray, gap_bridge_px: int) -> np.ndarray:
@@ -250,25 +313,34 @@ def image_extract_pieces(
         _extract_line_strings,
     )
 
-    # 1. Bounds & Rasterization
-    bounds = _compute_dxf_bounds(doc, layer_name, curve_tolerance_mm)
-    scale = 4.0
-    binary = _rasterize_dxf_layer(doc, layer_name, bounds, scale, curve_tolerance_mm, auto_close_gaps=auto_close_gaps)
-
-    # 2. Gap bridging (always small for raster/aliasing gaps since vector gaps are closed during rendering)
-    gap_bridge_px = max(2, int(2.0 * scale))
-    bridged = _bridge_gaps(binary, gap_bridge_px)
-
-    # 3. Labeling and filling
-    masks = _separate_shapes(bridged, scale)
-
-    # 4. Mask to polygon conversion
-    img_height, img_width = bridged.shape
+    # 1. Clustering & Extraction
+    clusters = _cluster_entities(doc, layer_name, curve_tolerance_mm)
     polygons = []
-    for mask in masks:
-        poly = _mask_to_polygon(mask, bounds, scale, img_height, curve_tolerance_mm)
-        if poly is not None:
-            polygons.append(poly)
+    scale = 4.0
+
+    for entities, bounds in clusters:
+        binary = _rasterize_dxf_entities(
+            entities,
+            doc,
+            bounds,
+            scale,
+            curve_tolerance_mm,
+            auto_close_gaps=auto_close_gaps,
+        )
+
+        # 2. Gap bridging (always small for raster/aliasing gaps since vector gaps are closed during rendering)
+        gap_bridge_px = max(2, int(2.0 * scale))
+        bridged = _bridge_gaps(binary, gap_bridge_px)
+
+        # 3. Labeling and filling
+        masks = _separate_shapes(bridged, scale)
+
+        # 4. Mask to polygon conversion
+        img_height, img_width = bridged.shape
+        for mask in masks:
+            poly = _mask_to_polygon(mask, bounds, scale, img_height, curve_tolerance_mm)
+            if poly is not None:
+                polygons.append(poly)
 
     # 5. Nesting / association (G)
     from nesting_engine.extract import _associate_nested_contours
