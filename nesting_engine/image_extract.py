@@ -273,7 +273,7 @@ def _mask_to_polygon(mask: np.ndarray, bounds: BBox, scale: float, img_height: i
         return None
         
     poly = Polygon(pts)
-    poly = poly.buffer(-1.5 / scale)
+    poly = poly.buffer(-1.5 / scale, join_style=2)
     if not poly.is_valid:
         poly = make_valid(poly)
         
@@ -329,7 +329,7 @@ def image_extract_pieces(
         )
 
         # 2. Gap bridging (always small for raster/aliasing gaps since vector gaps are closed during rendering)
-        gap_bridge_px = max(2, int(2.0 * scale))
+        gap_bridge_px = 2
         bridged = _bridge_gaps(binary, gap_bridge_px)
 
         # 3. Labeling and filling
