@@ -118,7 +118,7 @@ def _render_entity_recursive(
         xs.append(xs[0])
         ys.append(ys[0])
 
-    ax.plot(xs, ys, color="white", linewidth=2.0, antialiased=False)
+    ax.plot(xs, ys, color="white", linewidth=1.0, antialiased=False)
 
 
 def _rasterize_dxf_entities(
@@ -261,7 +261,7 @@ def _mask_to_polygon(mask: np.ndarray, bounds: BBox, scale: float, img_height: i
         return None
     
     contour = max(contours, key=len)
-    approx_contour = skimage.measure.approximate_polygon(contour, tolerance=1.0)
+    approx_contour = skimage.measure.approximate_polygon(contour, tolerance=0.2)
     
     pts = []
     for row, col in approx_contour:
@@ -273,7 +273,7 @@ def _mask_to_polygon(mask: np.ndarray, bounds: BBox, scale: float, img_height: i
         return None
         
     poly = Polygon(pts)
-    poly = poly.buffer(-1.5 / scale, join_style=2)
+    poly = poly.buffer(-1.75 / scale, join_style=2)
     if not poly.is_valid:
         poly = make_valid(poly)
         
@@ -316,7 +316,7 @@ def image_extract_pieces(
     # 1. Clustering & Extraction
     clusters = _cluster_entities(doc, layer_name, curve_tolerance_mm)
     polygons = []
-    scale = 4.0
+    scale = 10.0
 
     for entities, bounds in clusters:
         binary = _rasterize_dxf_entities(

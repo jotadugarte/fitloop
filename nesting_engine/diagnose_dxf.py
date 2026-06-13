@@ -659,40 +659,30 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
                   nesting_polygons=None, nesting_decorations=None):
     """
     Create the multi-panel PNG.
-
-    Panel layout (always first: NESTING ENGINE):
-      ① Motor de anidado  ← LO QUE EL MOTOR USA (auto_close_gaps=True, use_image_extraction=True)
-      ⑦ IMAGE EXTRACT     ← Polígonos por imagen sin auto-close (use_image_extraction=True)
-      ② Raw DXF           ← Entidades en el archivo original
-      ③ Recognized        ← Legacy entity-based (use_image_extraction=False)
-      ④ Open shapes + all gap markers         (only if gaps exist)
-      ⑤ Auto-close < 2mm (silent)             (only if gaps exist)
-      ⑥ Needs auth 2–15mm                     (only if gaps exist)
+    Shows only the RAW DXF and the final shape output sent to the nesting engine.
     """
     nesting_polygons    = nesting_polygons    or []
     nesting_decorations = nesting_decorations or []
-    silent_gaps  = [g for g in gaps if g.category == "silent"]
-    auth_gaps    = [g for g in gaps if g.category == "auth"]
-    ignored_gaps = [g for g in gaps if g.category == "ignored"]
 
-    has_open = bool(gaps)
-    ncols = 7 if has_open else 4   # always: MOTOR + IMAGE EXTRACT + RAW + RECOGNIZED [+ OPEN + AUTO + AUTH]
+    ncols = 2
     fig_w = 7 * ncols
     fig, axes = plt.subplots(1, ncols, figsize=(fig_w, 9), facecolor=BACKGROUND)
-    if ncols == 1:
-        axes = [axes]
 
     fig.suptitle(
         f"{dxf_path.name}  ·  tol: {args.tol} mm",
         color=TEXT_COLOR, fontsize=12, fontweight="bold", y=0.99,
     )
 
-    ax_nest = axes[0]   # ① MOTOR DE ANIDADO
-    ax_img  = axes[1]   # ⑦ IMAGE EXTRACT
-    ax_raw  = axes[2]   # ② RAW DXF
-    ax_ext  = axes[3]   # ③ RECOGNIZED
+    ax_raw  = axes[0]   # ① RAW DXF
+    ax_nest = axes[1]   # ② MOTOR DE ANIDADO
 
-    # ── ① MOTOR DE ANIDADO ───────────────────────────────────────────────────
+    # ── ① RAW DXF ────────────────────────────────────────────────────────────
+    _, rraw_x, rraw_y = _draw_raw_dxf(ax_raw, dxf_path, args.primary, args.tol)
+    _style_ax(ax_raw, f"① RAW DXF", f"layer: '{args.primary}'")
+    _set_ax_bounds(ax_raw, rraw_x, rraw_y)
+    _add_raw_legend(ax_raw)
+
+    # ── ② MOTOR DE ANIDADO ───────────────────────────────────────────────────
     nest_x, nest_y = [], []
     _draw_extracted_polygons(ax_nest, nesting_polygons, nest_x, nest_y,
                              nesting_decorations, alpha=0.70)
@@ -723,13 +713,13 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
 
     n_nest = len(nesting_polygons)
     _style_ax(ax_nest,
-              "🔧 MOTOR DE ANIDADO",
+              "🔧 MOTOR DE ANIDADO (OUTPUT FINAL)",
               f"{n_nest} forma{'s' if n_nest != 1 else ''} → va al anidado",
               title_color="#00E5FF")
     if nest_x and nest_y:
         _set_ax_bounds(ax_nest, nest_x, nest_y)
-    elif raw_x and raw_y:
-        _set_ax_bounds(ax_nest, raw_x, raw_y)
+    elif rraw_x and rraw_y:
+        _set_ax_bounds(ax_nest, rraw_x, rraw_y)
     _add_poly_legend(
         ax_nest, nesting_polygons,
         has_internal_lines=any(
@@ -748,148 +738,6 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     for spine in ax_nest.spines.values():
         spine.set_edgecolor("#00E5FF")
         spine.set_linewidth(2.5)
-
-    # ── ⑦ IMAGE EXTRACT ─────────────────────────────────────────────────────
-    img_x, img_y = [], []
-    _draw_extracted_polygons(ax_img, image_polygons, img_x, img_y, image_decorations, alpha=0.75)
-    _doc_img = ezdxf.readfile(dxf_path)
-    _draw_layer_non_polyline_entities(ax_img, _doc_img, args.primary, args.tol, img_x, img_y)
-    clusters = _cluster_entities(_doc_img, args.primary, args.tol)
-    for cluster_idx, (entities, bounds) in enumerate(clusters):
-        rect = mpatches.Rectangle(
-            (bounds.min_x, bounds.min_y),
-            bounds.width,
-            bounds.height,
-            linewidth=1.0,
-            edgecolor="#4CE87A",
-            facecolor="none",
-            linestyle="--",
-            alpha=0.6,
-            zorder=2,
-        )
-        ax_img.add_patch(rect)
-        ax_img.text(
-            bounds.min_x + 2, bounds.max_y - 8,
-            f"C{cluster_idx+1}",
-            color="#4CE87A", fontsize=6, alpha=0.8,
-            zorder=3
-        )
-
-    n_img = len(image_polygons)
-    _style_ax(ax_img, "⑦ IMAGE EXTRACT", f"{n_img} polygon{'s' if n_img != 1 else ''} detected", title_color="#4CE87A")
-    if img_x and img_y:
-        _set_ax_bounds(ax_img, img_x, img_y)
-    elif raw_x and raw_y:
-        _set_ax_bounds(ax_img, raw_x, raw_y)
-    _add_poly_legend(
-        ax_img, image_polygons,
-        has_internal_lines=any(
-            any(d.geometry_type == "line" for d in decos)
-            for decos in image_decorations
-        ),
-    )
-    if not image_polygons:
-        ax_img.text(
-            0.5, 0.5, "❌ Sin formas detectadas",
-            transform=ax_img.transAxes,
-            ha="center", va="center", fontsize=12,
-            color="#FF4444", alpha=0.85,
-        )
-
-    # ── ② RAW DXF ────────────────────────────────────────────────────────────
-    _, rraw_x, rraw_y = _draw_raw_dxf(ax_raw, dxf_path, args.primary, args.tol)
-    _style_ax(ax_raw, f"② RAW DXF", f"layer: '{args.primary}'")
-    _set_ax_bounds(ax_raw, rraw_x, rraw_y)
-    _add_raw_legend(ax_raw)
-
-    # ── ③ RECOGNIZED (sin auto-close) ────────────────────────────────────────
-    ext_x, ext_y = [], []
-    _draw_extracted_polygons(ax_ext, legacy_polygons, ext_x, ext_y, legacy_decorations, alpha=0.40)
-    # Also overlay all loose LINE/ARC entities from the layer ("pedacidos") on
-    # top of the filled polygons so the user sees the full picture.
-    _doc_ext = ezdxf.readfile(dxf_path)
-    _draw_layer_non_polyline_entities(ax_ext, _doc_ext, args.primary, args.tol, ext_x, ext_y)
-    n = len(legacy_polygons)
-    _style_ax(ax_ext, f"③ RECOGNIZED", f"{n} polygon{'s' if n != 1 else ''} extracted")
-    if ext_x and ext_y:
-        _set_ax_bounds(ax_ext, ext_x, ext_y)
-    elif raw_x and raw_y:
-        _set_ax_bounds(ax_ext, raw_x, raw_y)
-    _add_poly_legend(
-        ax_ext, legacy_polygons,
-        has_internal_lines=any(
-            any(d.geometry_type == "line" for d in decos)
-            for decos in legacy_decorations
-        ),
-    )
-
-    if has_open:
-        ax_open   = axes[4]
-        ax_silent = axes[5]
-        ax_auth   = axes[6]
-
-        # Shared reference bounds
-        ref_x = rraw_x or raw_x
-        ref_y = rraw_y or raw_y
-
-        # ── ④ OPEN SHAPES ─────────────────────────────────────────────────
-        ox, oy = [], []
-        _draw_open_shapes(ax_open, dxf_path, args.primary, args.tol, gaps, ox, oy,
-                          show_categories={"silent", "auth", "ignored"})
-        _style_ax(ax_open, "④ OPEN SHAPES",
-                  f"{len(gaps)} gap(s) total")
-        _set_ax_bounds(ax_open, ox or ref_x, oy or ref_y)
-        _add_gap_legend(ax_open, gaps)
-
-        # ── ⑤ AUTO-CLOSE < 2mm ────────────────────────────────────────────
-        sx, sy = [], []
-        _draw_open_shapes(ax_silent, dxf_path, args.primary, args.tol,
-                          gaps, sx, sy, show_categories=set())
-        for g in silent_gaps:
-            sx.extend([g.start[0], g.end[0]])
-            sy.extend([g.start[1], g.end[1]])
-            _draw_close_line(ax_silent, g)
-        _style_ax(ax_silent, f"⑤ AUTO-CLOSE < {GAP_SILENT_MM}mm",
-                  f"{len(silent_gaps)} gap(s) — always closed silently")
-        _set_ax_bounds(ax_silent, sx or ref_x, sy or ref_y)
-        _add_close_legend(ax_silent, "silent", gaps)
-        if not silent_gaps:
-            ax_silent.text(
-                0.5, 0.5, "No gaps < 2mm",
-                transform=ax_silent.transAxes,
-                ha="center", va="center", fontsize=12,
-                color=TEXT_COLOR, alpha=0.5,
-            )
-
-        # ── ⑥ NEEDS AUTH 2–15mm ───────────────────────────────────────────
-        ux, uy = [], []
-        _draw_open_shapes(ax_auth, dxf_path, args.primary, args.tol,
-                          gaps, ux, uy, show_categories=set())
-        for g in auth_gaps:
-            ux.extend([g.start[0], g.end[0]])
-            uy.extend([g.start[1], g.end[1]])
-            _draw_close_line(ax_auth, g)
-        # Also mark ignored gaps
-        for g in ignored_gaps:
-            col = COL_IGNORED
-            ax_auth.plot([g.start[0], g.end[0]], [g.start[1], g.end[1]],
-                         "x", color=col, markersize=10, markeredgewidth=2, zorder=7)
-            mx, my = (g.start[0] + g.end[0]) / 2, (g.start[1] + g.end[1]) / 2
-            ax_auth.annotate(f"IGNORED\n{g.distance_mm:.1f}mm", xy=(mx, my),
-                             fontsize=6, color=col, ha="center",
-                             bbox=dict(boxstyle="round,pad=0.2", facecolor=BACKGROUND,
-                                       edgecolor=col, alpha=0.8))
-        _style_ax(ax_auth, f"⑥ NEEDS AUTH {GAP_SILENT_MM}–{GAP_AUTH_MM}mm",
-                  f"{len(auth_gaps)} gap(s) — mark layer as auto_close to fix")
-        _set_ax_bounds(ax_auth, ux or ref_x, uy or ref_y)
-        _add_close_legend(ax_auth, "auth", gaps)
-        if not auth_gaps and not ignored_gaps:
-            ax_auth.text(
-                0.5, 0.5, f"No gaps {GAP_SILENT_MM}–{GAP_AUTH_MM}mm",
-                transform=ax_auth.transAxes,
-                ha="center", va="center", fontsize=12,
-                color=TEXT_COLOR, alpha=0.5,
-            )
 
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     return fig
