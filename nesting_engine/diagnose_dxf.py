@@ -698,6 +698,29 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
                              nesting_decorations, alpha=0.70)
     _doc_nest = ezdxf.readfile(dxf_path)
     _draw_layer_non_polyline_entities(ax_nest, _doc_nest, args.primary, args.tol, nest_x, nest_y)
+
+    from nesting_engine.image_extract import _cluster_entities
+    clusters = _cluster_entities(_doc_nest, args.primary, args.tol)
+    for cluster_idx, (entities, bounds) in enumerate(clusters):
+        rect = mpatches.Rectangle(
+            (bounds.min_x, bounds.min_y),
+            bounds.width,
+            bounds.height,
+            linewidth=1.0,
+            edgecolor="#4CE87A",
+            facecolor="none",
+            linestyle="--",
+            alpha=0.6,
+            zorder=2,
+        )
+        ax_nest.add_patch(rect)
+        ax_nest.text(
+            bounds.min_x + 2, bounds.max_y - 8,
+            f"C{cluster_idx+1}",
+            color="#4CE87A", fontsize=6, alpha=0.8,
+            zorder=3
+        )
+
     n_nest = len(nesting_polygons)
     _style_ax(ax_nest,
               "🔧 MOTOR DE ANIDADO",
@@ -731,8 +754,6 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     _draw_extracted_polygons(ax_img, image_polygons, img_x, img_y, image_decorations, alpha=0.75)
     _doc_img = ezdxf.readfile(dxf_path)
     _draw_layer_non_polyline_entities(ax_img, _doc_img, args.primary, args.tol, img_x, img_y)
-
-    from nesting_engine.image_extract import _cluster_entities
     clusters = _cluster_entities(_doc_img, args.primary, args.tol)
     for cluster_idx, (entities, bounds) in enumerate(clusters):
         rect = mpatches.Rectangle(
