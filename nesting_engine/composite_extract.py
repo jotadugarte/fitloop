@@ -52,6 +52,7 @@ def load_composite_pieces(
     max_block_depth: int = _DEFAULT_MAX_BLOCK_DEPTH,
     warnings: list[str] | None = None,
     auto_close_gaps: bool = False,
+    use_image_extraction: bool = True,
 ) -> list[CompositePiece]:
     assert primary_layer and primary_layer.strip(), "primary_layer is required"
     assert auxiliary_layers is not None, "auxiliary_layers is required"
@@ -70,6 +71,7 @@ def load_composite_pieces(
         curve_tolerance_mm=curve_tolerance_mm,
         warnings=report,
         auto_close_gaps=auto_close_gaps,
+        use_image_extraction=use_image_extraction,
     )
 
     if not aux_layers or not pieces:
