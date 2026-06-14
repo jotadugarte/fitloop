@@ -98,16 +98,36 @@ def nest_sheet(
     assert pieces, "at least one piece required"
     assert len(pieces) <= _MAX_PIECES, "piece count exceeds sheet limit"
 
-    usable_w, usable_h, frame_ox, frame_oy = _usable_frame(bin_width_mm, bin_height_mm, margin_mm)
+    centered_bin = (len(pieces) == 1)
+    usable_w, usable_h, frame_ox, frame_oy = _usable_frame(
+        bin_width_mm, bin_height_mm, margin_mm, centered_bin=centered_bin
+    )
+
     fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
-    items = [_shapely_to_item(piece) for piece in fit_pieces]
+
+    offsets = []
+    translated_pieces = []
+    for piece in fit_pieces:
+        geom = piece_polygon(piece)
+        minx, miny, _, _ = geom.bounds
+        if centered_bin:
+            ox = -usable_w / 2.0 - minx
+            oy = -usable_h / 2.0 - miny
+        else:
+            ox = -minx
+            oy = -miny
+        offsets.append((ox, oy))
+        translated_pieces.append(translate(geom, xoff=ox, yoff=oy))
+
+    items = [_shapely_to_item(piece) for piece in translated_pieces]
 
     bins_used = _run_sheet_nest(items, usable_w, usable_h)
     assert bins_used >= 1, "libnest2d must allocate at least one bin"
     assert all(item.binId() >= 0 for item in items), "every piece must fit on the sheet"
 
-    placements = [
-        _resolve_libnest2d_placement(
+    placements = []
+    for fit_piece, item, (ox, oy) in zip(translated_pieces, items, offsets, strict=True):
+        resolved = _resolve_libnest2d_placement(
             _quantize_polygon(fit_piece),
             item,
             margin_mm=margin_mm,
@@ -115,9 +135,15 @@ def nest_sheet(
             usable_h=usable_h,
             frame_ox=frame_ox,
             frame_oy=frame_oy,
-        ).placement
-        for fit_piece, item in zip(fit_pieces, items, strict=True)
-    ]
+            centered_bin=centered_bin,
+        )
+        orig_placement = Placement(
+            x=resolved.placement.x + ox,
+            y=resolved.placement.y + oy,
+            rotation_deg=resolved.placement.rotation_deg,
+        )
+        placements.append(orig_placement)
+
     assert len(placements) == len(pieces)
     return placements
 
@@ -137,11 +163,29 @@ def nest_sheet_with_obstacles(
     assert len(pieces) + len(obstacles) <= _MAX_PIECES, "item count exceeds sheet limit"
     assert pieces or obstacles, "at least one piece or obstacle required"
 
-    usable_w, usable_h, frame_ox, frame_oy = _usable_frame(bin_width_mm, bin_height_mm, margin_mm)
+    centered_bin = (len(pieces) + len(obstacles) == 1)
+    usable_w, usable_h, frame_ox, frame_oy = _usable_frame(
+        bin_width_mm, bin_height_mm, margin_mm, centered_bin=centered_bin
+    )
     bin_box = Box(usable_w, usable_h)
     fixed_items = [_fixed_item_from_world_polygon(obs, ox=frame_ox, oy=frame_oy) for obs in obstacles]
     fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
-    nest_items = [_shapely_to_item(fit_piece) for fit_piece in fit_pieces]
+
+    offsets = []
+    translated_pieces = []
+    for piece in fit_pieces:
+        geom = piece_polygon(piece)
+        minx, miny, _, _ = geom.bounds
+        if centered_bin:
+            ox = -usable_w / 2.0 - minx
+            oy = -usable_h / 2.0 - miny
+        else:
+            ox = -minx
+            oy = -miny
+        offsets.append((ox, oy))
+        translated_pieces.append(translate(geom, xoff=ox, yoff=oy))
+
+    nest_items = [_shapely_to_item(fit_piece) for fit_piece in translated_pieces]
     all_items = fixed_items + nest_items
 
     bins_used = _run_sheet_nest(all_items, usable_w, usable_h)
@@ -152,7 +196,7 @@ def nest_sheet_with_obstacles(
         )
 
     placements, unplaced = _collect_obstacle_aware_placements(
-        fit_pieces,
+        translated_pieces,
         nest_items,
         obstacles=obstacles,
         bin_box=bin_box,
@@ -163,9 +207,25 @@ def nest_sheet_with_obstacles(
         usable_h=usable_h,
         frame_ox=frame_ox,
         frame_oy=frame_oy,
+        centered_bin=centered_bin,
     )
-    assert len(placements) + len(unplaced) == len(pieces)
-    return ObstacleAwareSheetResult(placements=placements, unplaced_indices=unplaced)
+
+    shifted_placements = {}
+    for index, resolved in placements.items():
+        ox, oy = offsets[index]
+        orig_placement = Placement(
+            x=resolved.placement.x + ox,
+            y=resolved.placement.y + oy,
+            rotation_deg=resolved.placement.rotation_deg,
+        )
+        orig_geometry = translate(resolved.geometry, xoff=-ox, yoff=-oy)
+        shifted_placements[index] = SheetPiecePlacement(
+            placement=orig_placement,
+            geometry=orig_geometry,
+        )
+
+    assert len(shifted_placements) + len(unplaced) == len(pieces)
+    return ObstacleAwareSheetResult(placements=shifted_placements, unplaced_indices=unplaced)
 
 
 def _fill_phase_percent(pieces_placed: int, pieces_total: int) -> int:
@@ -462,11 +522,16 @@ def _usable_frame(
     bin_width_mm: float,
     bin_height_mm: float,
     margin_mm: float,
+    centered_bin: bool = True,
 ) -> tuple[int, int, float, float]:
     usable_w = max(int(round(bin_width_mm - 2.0 * margin_mm)), 1)
     usable_h = max(int(round(bin_height_mm - 2.0 * margin_mm)), 1)
-    frame_ox = usable_w / 2.0 + margin_mm
-    frame_oy = usable_h / 2.0 + margin_mm
+    if centered_bin:
+        frame_ox = usable_w / 2.0 + margin_mm
+        frame_oy = usable_h / 2.0 + margin_mm
+    else:
+        frame_ox = margin_mm
+        frame_oy = margin_mm
     return usable_w, usable_h, frame_ox, frame_oy
 
 
@@ -496,6 +561,7 @@ def _collect_obstacle_aware_placements(
     usable_h: int,
     frame_ox: float,
     frame_oy: float,
+    centered_bin: bool = True,
 ) -> tuple[dict[int, Placement], list[int]]:
     placements: dict[int, Placement] = {}
     unplaced: list[int] = []
@@ -507,6 +573,7 @@ def _collect_obstacle_aware_placements(
             margin_mm=margin_mm,
             usable_w=usable_w,
             usable_h=usable_h,
+            centered_bin=centered_bin,
         )
         if item.binId() < 0:
             unplaced.append(index)
@@ -530,6 +597,7 @@ def _collect_obstacle_aware_placements(
             usable_h=usable_h,
             frame_ox=frame_ox,
             frame_oy=frame_oy,
+            centered_bin=centered_bin,
         )
         placements[index] = resolved
         placed_world.append(_sheet_piece_world_polygon(resolved))
@@ -576,9 +644,14 @@ def _world_polygon_from_item(
     margin_mm: float,
     usable_w: int,
     usable_h: int,
+    centered_bin: bool = True,
 ) -> Polygon:
-    offset_x = usable_w / 2.0 + margin_mm
-    offset_y = usable_h / 2.0 + margin_mm
+    if centered_bin:
+        offset_x = usable_w / 2.0 + margin_mm
+        offset_y = usable_h / 2.0 + margin_mm
+    else:
+        offset_x = margin_mm
+        offset_y = margin_mm
     exterior = [(point.x() + offset_x, point.y() + offset_y) for point in item.transformedContour()]
     holes = [
         [(point.x() + offset_x, point.y() + offset_y) for point in ring]
@@ -611,8 +684,10 @@ def _placement_matches_world(
     placement: Placement,
     world: Polygon,
     *,
-    tolerance_mm2: float = _PLACEMENT_AREA_TOLERANCE_MM2,
+    tolerance_mm2: float | None = None,
 ) -> bool:
+    if tolerance_mm2 is None:
+        tolerance_mm2 = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * fit_piece.area)
     diff = placed_polygon(fit_piece, placement).symmetric_difference(world).area
     return diff <= tolerance_mm2
 
@@ -620,7 +695,8 @@ def _placement_matches_world(
 def _placement_from_world(piece: Polygon, world: Polygon) -> Placement:
     """Discrete-angle inverse map; asserts when no centroid+translate model fits within tolerance."""
     placement, best_diff = _placement_from_world_best_effort(piece, world)
-    assert best_diff <= _PLACEMENT_AREA_TOLERANCE_MM2, "libnest2d placement must map to Shapely transform"
+    tolerance = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * piece.area)
+    assert best_diff <= tolerance, "libnest2d placement must map to Shapely transform"
     return placement
 
 
@@ -652,6 +728,7 @@ def _resolve_libnest2d_placement(
     usable_h: int,
     frame_ox: float,
     frame_oy: float,
+    centered_bin: bool = True,
 ) -> SheetPiecePlacement:
     """Map pynest2d item pose to Placement; use transformed contour when inverse fit fails."""
     world = _world_polygon_from_item(
@@ -659,6 +736,7 @@ def _resolve_libnest2d_placement(
         margin_mm=margin_mm,
         usable_w=usable_w,
         usable_h=usable_h,
+        centered_bin=centered_bin,
     )
     angle = math.degrees(item.rotation())
     candidates: list[Placement] = []
@@ -677,12 +755,14 @@ def _resolve_libnest2d_placement(
         )
     )
 
+    tolerance = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * nest_geometry.area)
+
     for placement in candidates:
-        if _placement_matches_world(nest_geometry, placement, world):
+        if _placement_matches_world(nest_geometry, placement, world, tolerance_mm2=tolerance):
             return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
 
     placement, best_diff = _placement_from_world_best_effort(nest_geometry, world)
-    if best_diff <= _PLACEMENT_AREA_TOLERANCE_MM2:
+    if best_diff <= tolerance:
         return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
 
     return SheetPiecePlacement(placement=Placement(0.0, 0.0, 0.0), geometry=world)
@@ -702,12 +782,21 @@ def _shapely_to_item(polygon: Polygon) -> Item:
 
 def _ring_to_points(coords) -> list[Point]:
     """Quantize vertices to integer mm for libnest2d; see _MIN_COORD_QUANTUM_MM."""
-    ring = list(coords)
-    if len(ring) > 1 and ring[0] == ring[-1]:
-        ring = ring[:-1]
-    points = [Point(int(round(x)), int(round(y))) for x, y in ring]
-    assert len(points) >= 3, "polygon ring needs at least three vertices"
-    return points
+    # Round decimal coords to integers first
+    rounded = [(int(round(x)), int(round(y))) for x, y in coords]
+
+    # Remove consecutive duplicate coordinates to avoid zero-length segments
+    cleaned = []
+    for pt in rounded:
+        if not cleaned or cleaned[-1] != pt:
+            cleaned.append(pt)
+
+    # Ensure the loop is closed by appending the first point to the end if needed
+    if len(cleaned) > 1 and cleaned[0] != cleaned[-1]:
+        cleaned.append(cleaned[0])
+
+    assert len(cleaned) >= 4, "polygon ring needs at least four vertices (including closing vertex)"
+    return [Point(x, y) for x, y in cleaned]
 
 
 def _place_piece_on_sheet(
