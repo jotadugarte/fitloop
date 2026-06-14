@@ -121,6 +121,9 @@ def _render_entity_recursive(
     ax.plot(xs, ys, color="white", linewidth=1.0, antialiased=False)
 
 
+
+
+
 def _rasterize_dxf_entities(
     entities: list[object],
     doc: object,
@@ -416,7 +419,11 @@ def image_extract_pieces(
             # Check overlap percentage to ensure it's the same shape
             overlap_ratio = best_intersection / max(polygon.area, legacy_poly.area)
             if overlap_ratio > 0.85:
-                matched_polygon = legacy_poly
+                # Ensure the rasterized polygon does not significantly exceed the legacy shape's boundaries
+                # (allowing small pixel variations but preventing mismatch of extra geometry)
+                exceso_area = polygon.difference(legacy_poly.buffer(1.5)).area
+                if exceso_area < 10.0:
+                    matched_polygon = legacy_poly
                     
         # Add absorbed polygons boundaries as line decorations
         if best_idx is not None:
@@ -442,12 +449,54 @@ def image_extract_pieces(
                             )
                         )
 
+        # Add fully-contained raw polygons as line decorations (Solution A).
+        # _merge_overlapping_roots_with_absorbed only tracks overlapping polygons in
+        # absorbed_map, NOT polygons that are fully contained inside the outer root.
+        # For example in 007.dxf, the inner narrow rectangle is completely inside the
+        # outer shape but never shows up in absorbed_map — it gets silently discarded.
+        # We recover it here by scanning all raw_polygons.
+        # Note: We construct a solid polygon from the exterior ring of matched_polygon
+        # so that raw polygons/lines inside holes are correctly identified as contained.
+        solid_matched = Polygon(matched_polygon.exterior)
+        already_absorbed_geoms = {id(p) for p in absorbed_map.get(best_idx or -1, [])}
+        for raw_poly in raw_polygons:
+            if id(raw_poly) in already_absorbed_geoms:
+                continue  # already handled above
+            # Skip the matched polygon itself
+            if raw_poly.equals(matched_polygon):
+                continue
+            # Check if this raw polygon is largely contained within the outer boundary
+            try:
+                inter_area = raw_poly.intersection(solid_matched).area
+                if raw_poly.area > 0 and inter_area / raw_poly.area > 0.85:
+                    ring_coords = list(raw_poly.exterior.coords)
+                    if len(ring_coords) >= 2:
+                        decorations.append(
+                            DecorationEntity(
+                                layer_name=layer_name,
+                                geometry_type="line",
+                                payload={"coordinates": ring_coords},
+                            )
+                        )
+                    for interior in raw_poly.interiors:
+                        interior_coords = list(interior.coords)
+                        if len(interior_coords) >= 2:
+                            decorations.append(
+                                DecorationEntity(
+                                    layer_name=layer_name,
+                                    geometry_type="line",
+                                    payload={"coordinates": interior_coords},
+                                )
+                            )
+            except Exception:
+                continue  # skip malformed geometries
+
         # Also add any open line segments from the primary layer that lie inside the polygon
         boundary_buffered = matched_polygon.boundary.buffer(curve_tolerance_mm)
         for segment in line_segments:
             line = LineString(segment)
-            if line.intersects(matched_polygon):
-                clipped = line.intersection(matched_polygon)
+            if line.intersects(solid_matched):
+                clipped = line.intersection(solid_matched)
                 if not clipped.is_empty:
                     decor = clipped.difference(boundary_buffered)
                     if not decor.is_empty and decor.length > curve_tolerance_mm:

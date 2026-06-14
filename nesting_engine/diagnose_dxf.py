@@ -188,7 +188,7 @@ def _polygon_to_patch(polygon, facecolor, alpha=0.75):
         ring_to_verts(interior)
 
     path = MplPath(verts, codes)
-    return PathPatch(path, facecolor=facecolor, edgecolor="white", linewidth=1.5, alpha=alpha)
+    return PathPatch(path, facecolor=facecolor, edgecolor="red", linewidth=1.0, alpha=alpha)
 
 
 def _draw_extracted_polygons(ax, polygons, all_x, all_y, decorations_per_poly=None,
@@ -218,7 +218,7 @@ def _draw_extracted_polygons(ax, polygons, all_x, all_y, decorations_per_poly=No
                         ys = [p[1] for p in coords]
                         ax.plot(
                             xs, ys,
-                            color="#FFE066", linewidth=1.5, alpha=0.9,
+                            color="red", linewidth=1.0, alpha=0.9,
                             linestyle="--", zorder=8,
                         )
                         all_x.extend(xs)
@@ -464,8 +464,8 @@ def _add_raw_legend(ax):
         mpatches.Patch(color="#E84CA0", label="ARC / ELLIPSE / SPLINE"),
         mpatches.Patch(color="#AAAAAA", label="Other"),
     ]
-    ax.legend(handles=handles, loc="upper right", fontsize=6,
-              facecolor=BACKGROUND, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR)
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.15),
+              ncol=2, fontsize=6, facecolor=BACKGROUND, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR)
 
 
 def _add_poly_legend(ax, polygons, has_internal_lines=False):
@@ -479,11 +479,12 @@ def _add_poly_legend(ax, polygons, has_internal_lines=False):
     if has_internal_lines:
         handles.append(
             mpatches.Patch(
-                color="#FFE066", label="Internal cut lines (in output DXF)",
+                color="red", label="Internal cut lines (in output DXF)",
                 linestyle="--", fill=False,
             )
         )
-    ax.legend(handles=handles, loc="upper right", fontsize=6,
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.15),
+              ncol=1 if len(handles) <= 2 else 2, fontsize=6,
               facecolor=BACKGROUND, edgecolor=GRID_COLOR, labelcolor=TEXT_COLOR)
 
 
@@ -686,30 +687,6 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
     nest_x, nest_y = [], []
     _draw_extracted_polygons(ax_nest, nesting_polygons, nest_x, nest_y,
                              nesting_decorations, alpha=0.70)
-    _doc_nest = ezdxf.readfile(dxf_path)
-    _draw_layer_non_polyline_entities(ax_nest, _doc_nest, args.primary, args.tol, nest_x, nest_y)
-
-    from nesting_engine.image_extract import _cluster_entities
-    clusters = _cluster_entities(_doc_nest, args.primary, args.tol)
-    for cluster_idx, (entities, bounds) in enumerate(clusters):
-        rect = mpatches.Rectangle(
-            (bounds.min_x, bounds.min_y),
-            bounds.width,
-            bounds.height,
-            linewidth=1.0,
-            edgecolor="#4CE87A",
-            facecolor="none",
-            linestyle="--",
-            alpha=0.6,
-            zorder=2,
-        )
-        ax_nest.add_patch(rect)
-        ax_nest.text(
-            bounds.min_x + 2, bounds.max_y - 8,
-            f"C{cluster_idx+1}",
-            color="#4CE87A", fontsize=6, alpha=0.8,
-            zorder=3
-        )
 
     n_nest = len(nesting_polygons)
     _style_ax(ax_nest,
@@ -739,7 +716,7 @@ def _build_figure(dxf_path: Path, args, raw_stats, raw_x, raw_y,
         spine.set_edgecolor("#00E5FF")
         spine.set_linewidth(2.5)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.tight_layout(rect=[0, 0.08, 1, 0.97])
     return fig
 
 
@@ -817,7 +794,7 @@ def main():
                         image_polygons, image_decorations, gaps,
                         nesting_polygons=nesting_polygons,
                         nesting_decorations=nesting_decorations)
-    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=BACKGROUND)
+    fig.savefig(out_path, dpi=1000, bbox_inches="tight", facecolor=BACKGROUND)
     plt.close(fig)
 
     # ── Text report ─────────────────────────────────────────────────────────
