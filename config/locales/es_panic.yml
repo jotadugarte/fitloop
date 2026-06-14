@@ -527,6 +527,8 @@ es_panic:
       dxf_upload_hint: Solo archivos .dxf por favor, no intente subir un PDF.
       dxf_upload_setup_hint: Si sube un archivo corrupto, el servidor va a llorar.
       dxf_upload_failed: El archivo murió al subir.
+      dxf_upload_processing: Masticando vectores...
+      layers_saving: Guardando...
       dxf_layers_prompt: Diga cuál capa corta. El grabado y los adornos se van a mover con la pieza principal.
       dxf_layers_empty: Este CAD no tiene capas útiles.
       dxf_upload_resubmit_hint: Purgue ese AutoCAD y vuelva a intentar.

@@ -536,6 +536,8 @@ es:
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
       dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
+      dxf_upload_processing: "Analizando formas del archivo..."
+      layers_saving: "Guardando cambios..."
       dxf_layers_prompt: "Aún no hay archivos DXF. Elige uno o más arriba."
       dxf_layers_empty: "No se encontraron capas en este archivo."
       dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
