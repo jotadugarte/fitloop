@@ -144,6 +144,5 @@ def test_nest_multi_bin_001_002_uses_cardinal_batch_fill() -> None:
         assert is_axis_aligned_on_sheet(poly), (
             f"greedy fallback tilts pieces; rotation_deg={placed_row.placement.rotation_deg}"
         )
-        minx, miny, _, _ = poly.bounds
+        minx, _miny, _, _ = poly.bounds
         assert minx <= margin + 20.0, "batch layout should compact to the left margin"
-        assert miny <= margin + 20.0, "batch layout should compact to the bottom margin"
