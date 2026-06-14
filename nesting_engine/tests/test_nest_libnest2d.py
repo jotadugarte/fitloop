@@ -84,8 +84,8 @@ def test_nest_sheet_accepts_up_to_128_pieces() -> None:
     )
 
 
-def test_nest_sheet_with_obstacles_uses_native_item_pose_for_continuous_rotation() -> None:
-    # nest_blp allows any angle; placement must preserve libnest2d rotation (not snap to 5°).
+def test_nest_sheet_with_obstacles_uses_cardinal_rotation_for_orthogonal_piece() -> None:
+    # Orthogonal rectangles use NFP cardinal rotations (0/90/180/270°), not free tilt.
     piece = box(0, 0, 90, 20)
     margin_mm = 0.0
     kerf_mm = 0.0
@@ -101,7 +101,7 @@ def test_nest_sheet_with_obstacles_uses_native_item_pose_for_continuous_rotation
 
     assert result.unplaced_indices == []
     resolved = result.placements[0]
-    assert resolved.placement.rotation_deg % ROTATION_STEP_DEG != 0.0
+    assert resolved.placement.rotation_deg in (0.0, 90.0, 180.0, 270.0)
     world = _sheet_piece_world_polygon(resolved)
     minx, miny, maxx, maxy = world.bounds
     assert minx >= margin_mm - _EPS_MM
