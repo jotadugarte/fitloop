@@ -208,3 +208,25 @@ def _layout_bounds_public(placed, occupied: list) -> tuple[float, float, float, 
         maxx = max(maxx, o_maxx)
         maxy = max(maxy, o_maxy)
     return minx, miny, maxx, maxy
+
+
+def test_place_with_rotation_allowed_rotations() -> None:
+    # Test that allowed_rotations restricts the possible placement angles
+    piece = box(0, 0, 100, 50)  # Rectangle of 100 x 50
+    # In a bin of 120 x 70, it can fit at 0° or 180°
+    # If we only allow [90.0, 270.0], it would have to stand up (width=50, height=100)
+    # which will NOT fit in height 70 (height needs to be <= 70 - 2*margin).
+    # With margin=5.0, usable width is 110, usable height is 60.
+    # So standing up (100) doesn't fit, but lying flat (50) fits.
+    # Therefore, if we allow [90.0], it should fail to place (return None).
+    # If we allow [0.0], it should place successfully.
+    
+    # 1. Allowed [90.0] -> Should not fit and return None
+    p1 = place_with_rotation(piece, 120.0, 70.0, margin=5.0, allowed_rotations=[90.0])
+    assert p1 is None
+    
+    # 2. Allowed [0.0] -> Should fit and return a Placement
+    p2 = place_with_rotation(piece, 120.0, 70.0, margin=5.0, allowed_rotations=[0.0])
+    assert p2 is not None
+    assert p2.rotation_deg == 0.0
+

@@ -36,6 +36,7 @@ def place_with_rotation(
     *,
     margin: float,
     obstacles: list[Polygon] | None = None,
+    allowed_rotations: list[float] | None = None,
 ) -> Placement | None:
     occupied = obstacles or []
     base_x_candidates, base_y_candidates = _anchor_candidates(occupied, margin)
@@ -44,8 +45,12 @@ def place_with_rotation(
     best: Placement | None = None
     best_score: tuple[float, float, float, float, float] | None = None
 
-    for step in range(_MAX_ROTATION_STEPS):
-        angle = float(step * ROTATION_STEP_DEG)
+    if allowed_rotations is not None:
+        angles = [float(a) for a in allowed_rotations]
+    else:
+        angles = [float(step * ROTATION_STEP_DEG) for step in range(_MAX_ROTATION_STEPS)]
+
+    for angle in angles:
         candidate = _best_placement_for_angle(
             piece,
             angle,
