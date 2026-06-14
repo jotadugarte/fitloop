@@ -137,7 +137,7 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
-    honeybadger (5.30.0)
+    honeybadger (6.9.0)
       logger
       ostruct
     htmlentities (4.4.2)
@@ -409,7 +409,7 @@ DEPENDENCIES
   debug
   devise (>= 5.0.4)
   dotenv-rails (~> 3.1)
-  honeybadger (~> 5.28)
+  honeybadger (~> 6.9)
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
@@ -479,7 +479,7 @@ CHECKSUMS
   ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
   fugit (1.12.1) sha256=5898f478ede9b415f0804e42b8f3fd53f814bd85eebffceebdbc34e1107aaf68
   globalid (1.3.0) sha256=05c639ad6eb4594522a0b07983022f04aa7254626ab69445a0e493aa3786ff11
-  honeybadger (5.30.0) sha256=cb7073b79900c8337e38154db11190a34b062b66589e5bd1fa48494da29cbdbf
+  honeybadger (6.9.0) sha256=f90b4f0dd37b8bfb1decb40f17349459828f6fd6933ef8cf1b1881dbc4a9eb75
   htmlentities (4.4.2) sha256=bbafbdf69f2eca9262be4efef7e43e6a1de54c95eb600f26984f71d2fe96c5c3
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   image_processing (1.14.0) sha256=754cc169c9c262980889bec6bfd325ed1dafad34f85242b5a07b60af004742fb
