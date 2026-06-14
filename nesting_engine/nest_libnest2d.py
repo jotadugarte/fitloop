@@ -1757,6 +1757,8 @@ def _try_orthogonal_flip_improvements(
     """[REQ-FIT-NEST-002] Try rotating each orthogonal piece by 90° when layout score improves."""
     if len(sheet_pieces) < 2:
         return None
+    if len(sheet_pieces) >= 3:
+        return None
 
     best = sheet_pieces
     best_score = _layout_score_for_pieces(
