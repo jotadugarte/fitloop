@@ -741,7 +741,7 @@ def _run_sheet_nest(
 ) -> int:
     bin_shape = Box(usable_w, usable_h)
     ctx = ortho_ctx or _BatchOrthoContext(all_orthogonal=False, any_orthogonal=False)
-    if len(items) == 1:
+    if len(items) == 1 or ctx.all_orthogonal:
         return nest(
             items,
             bin_shape,

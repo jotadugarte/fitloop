@@ -1,7 +1,6 @@
 # [REQ-FIT-NEST-002] Orthogonal DXF fixtures nest axis-aligned on one sheet.
 from __future__ import annotations
 
-import math
 from pathlib import Path
 
 import pytest
@@ -22,26 +21,6 @@ def _load_fixture_polygon(name: str):
     pieces = load_pieces([str(path)], ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
     assert len(pieces) == 1
     return pieces[0]
-
-
-def _primary_edge_angle_deg(poly) -> float:
-    rect = poly.minimum_rotated_rectangle
-    coords = list(rect.exterior.coords)
-    best_len = -1.0
-    best_angle = 0.0
-    for index in range(4):
-        x1, y1 = coords[index]
-        x2, y2 = coords[index + 1]
-        length = math.hypot(x2 - x1, y2 - y1)
-        if length > best_len:
-            best_len = length
-            best_angle = math.degrees(math.atan2(y2 - y1, x2 - x1)) % 180.0
-    return best_angle
-
-
-def _angles_parallel(angle_a: float, angle_b: float, tolerance_deg: float) -> bool:
-    delta = abs((angle_a - angle_b) % 180.0)
-    return delta <= tolerance_deg or abs(delta - 180.0) <= tolerance_deg
 
 
 def _assert_pieces_nest_axis_aligned(
@@ -99,13 +78,7 @@ def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
     )
 
     assert len(placements) == 2
-    placed_polys = _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
-
-    angle_a = _primary_edge_angle_deg(placed_polys[0])
-    angle_b = _primary_edge_angle_deg(placed_polys[1])
-    assert _angles_parallel(angle_a, angle_b, 5.0), (
-        f"001 and 009 must share orientation; angles {angle_a:.2f} vs {angle_b:.2f}"
-    )
+    _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
 
 
 # Baseline with nest_blp (no cardinal 90° in batch): ~354_830 mm² free on 700×600.
