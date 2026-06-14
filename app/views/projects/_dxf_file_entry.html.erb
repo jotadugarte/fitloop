@@ -11,6 +11,7 @@
          data-controller="layer-roles"
          data-layer-roles-meta-template-value="<%= t("projects.show.dxf_file_layers_meta_template", selected: "%{selected}", total: layers.size) %>"
          data-layer-roles-total-value="<%= layers.size %>"
+         data-action="turbo:submit-start@document->layer-roles#setDeleting"
          <%= "open" if entry_open %>>
   <summary class="collapsible-panel__summary dxf-file-entry__summary">
     <span class="collapsible-panel__leading">
@@ -31,7 +32,6 @@
                       turbo_method: :delete,
                       turbo_stream: true,
                       turbo_confirm: t("projects.show.remove_dxf_confirm", filename: attachment.filename),
-                      action: "turbo:submit-start->layer-roles#setDeleting",
                       testid: "remove-dxf-file"
                     } %>
       <% end %>

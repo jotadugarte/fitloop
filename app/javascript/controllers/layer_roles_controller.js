@@ -73,6 +73,9 @@ export default class extends Controller {
   }
 
   setDeleting(event) {
-    this.element.classList.add("is-deleting")
+    const submitter = event.detail.submitter
+    if (submitter && this.element.contains(submitter)) {
+      this.element.classList.add("is-deleting")
+    }
   }
 }
