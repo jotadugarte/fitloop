@@ -71,4 +71,8 @@ export default class extends Controller {
     const primary = row.querySelector("[data-layer-roles-target='primary']")
     if (primary) primary.disabled = false
   }
+
+  setDeleting(event) {
+    this.element.classList.add("is-deleting")
+  }
 }
