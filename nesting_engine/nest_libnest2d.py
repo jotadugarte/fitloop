@@ -1482,6 +1482,14 @@ def _apply_sheet_margin_shift(
     sheet = work[sheet_idx]
     if not sheet.pieces:
         return work
+    baseline_score = _layout_score_for_pieces(
+        sheet.pieces,
+        pieces,
+        sheet.width_mm,
+        sheet.height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
     compacted = _compact_placed_pieces_to_margin(
         sheet.pieces,
         pieces,
@@ -1490,6 +1498,16 @@ def _apply_sheet_margin_shift(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
+    compacted_score = _layout_score_for_pieces(
+        compacted,
+        pieces,
+        sheet.width_mm,
+        sheet.height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if not _layout_better_than(baseline_score, compacted_score):
+        return work
     work[sheet_idx] = NestedSheet(
         stock_sort_order=sheet.stock_sort_order,
         sheet_index=sheet.sheet_index,
