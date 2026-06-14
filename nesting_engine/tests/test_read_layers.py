@@ -19,3 +19,10 @@ def test_catalog_includes_hex_color() -> None:
     pieces = next(entry for entry in catalog if entry["name"] == "PIECES")
     assert pieces["color"].startswith("#")
     assert len(pieces["color"]) == 7
+
+
+def test_gaps_on_006_dxf() -> None:
+    dxf_006 = Path(__file__).resolve().parent / "fixtures" / "individuals" / "006.dxf"
+    catalog = layer_catalog([dxf_006])
+    corte = next(entry for entry in catalog if entry["name"] == "CORTE")
+    assert corte["gaps"] == []
