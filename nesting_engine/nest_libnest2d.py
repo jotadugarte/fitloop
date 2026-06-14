@@ -132,36 +132,18 @@ def _restore_placement_to_source(
         solver_geometry, solver_placement
     )
     if pre_align_deg is not None:
-        tolerance = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * source_geometry.area)
-        direct = placed_polygon(source_geometry, solver_placement)
-        if (
-            direct.symmetric_difference(world).area <= tolerance
-            and is_axis_aligned_on_sheet(direct)
-        ):
-            return solver_placement
-        return _restore_cardinal_placement(source_geometry, world)
+        rotation_deg = (solver_placement.rotation_deg - pre_align_deg) % 360.0
+        rotated = rotate(source_geometry, rotation_deg, origin="centroid")
+        wminx, wminy, _, _ = world.bounds
+        rminx, rminy, _, _ = rotated.bounds
+        placement = Placement(wminx - rminx, wminy - rminy, rotation_deg)
+        placed = placed_polygon(source_geometry, placement)
+        assert is_axis_aligned_on_sheet(placed), (
+            f"pre-aligned orthogonal piece must nest axis-aligned (rotation_deg={rotation_deg})"
+        )
+        return placement
     restored, _diff = _placement_from_world_best_effort(source_geometry, world)
     return restored
-
-
-def _restore_cardinal_placement(source_geometry: Polygon, world: Polygon) -> Placement:
-    best_placement: Placement | None = None
-    best_diff = float("inf")
-    wminx, wminy, _, _ = world.bounds
-    for angle in ORTHO_ROTATIONS_DEG:
-        rotated = rotate(source_geometry, angle, origin="centroid")
-        rminx, rminy, _, _ = rotated.bounds
-        offset_x = wminx - rminx
-        offset_y = wminy - rminy
-        placed = translate(rotated, xoff=offset_x, yoff=offset_y)
-        if not is_axis_aligned_on_sheet(placed):
-            continue
-        diff = placed.symmetric_difference(world).area
-        if diff < best_diff:
-            best_diff = diff
-            best_placement = Placement(offset_x, offset_y, angle)
-    assert best_placement is not None, "orthogonal piece must map to a cardinal sheet placement"
-    return best_placement
 
 
 def _nfp_config_for_batch(*, orthogonal: bool) -> NfpConfig:
@@ -235,7 +217,13 @@ def nest_sheet(
             solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
             sheet_world = translate(solver_world, xoff=ox, yoff=oy)
             fit_geom = piece_polygon(fit_pieces[index])
-            orig_placement = _restore_cardinal_placement(fit_geom, sheet_world)
+            orig_placement = _restore_placement_to_source(
+                fit_geom,
+                prep.solver_geometry,
+                resolved.placement,
+                pre_align_deg=prep.pre_align_deg,
+                world_geometry=sheet_world,
+            )
         else:
             orig_placement = Placement(
                 x=resolved.placement.x + ox,
@@ -320,7 +308,13 @@ def nest_sheet_with_obstacles(
             solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
             sheet_world = translate(solver_world, xoff=ox, yoff=oy)
             fit_geom = piece_polygon(fit_pieces[index])
-            orig_placement = _restore_cardinal_placement(fit_geom, sheet_world)
+            orig_placement = _restore_placement_to_source(
+                fit_geom,
+                prep.solver_geometry,
+                resolved.placement,
+                pre_align_deg=prep.pre_align_deg,
+                world_geometry=sheet_world,
+            )
         else:
             orig_placement = Placement(
                 x=resolved.placement.x + ox,
