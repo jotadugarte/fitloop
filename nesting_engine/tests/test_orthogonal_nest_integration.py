@@ -8,7 +8,7 @@ import pytest
 
 from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet
 from nesting_engine.nest_libnest2d import nest_sheet
-from nesting_engine.nest_placement import placed_polygon
+from nesting_engine.nest_placement import placed_polygon, score_sheet_layout
 from nesting_engine.nest_types import apply_kerf
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
@@ -105,4 +105,35 @@ def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
     angle_b = _primary_edge_angle_deg(placed_polys[1])
     assert _angles_parallel(angle_a, angle_b, 5.0), (
         f"001 and 009 must share orientation; angles {angle_a:.2f} vs {angle_b:.2f}"
+    )
+
+
+# Baseline with nest_blp (no cardinal 90° in batch): ~354_830 mm² free on 700×600.
+# Cardinal NFP batch (Option A) reaches ~393_000 mm² for the same fixtures.
+_MIN_FREE_AREA_001_002_003 = 380_000.0
+
+
+@pytest.mark.slow
+def test_nest_sheet_001_002_003_uses_cardinal_rotation_for_material_efficiency() -> None:
+    """[REQ-FIT-NEST-002] All-orthogonal batch must explore 90° to reduce layout footprint."""
+    pieces = [
+        _load_fixture_polygon("001.dxf"),
+        _load_fixture_polygon("002.dxf"),
+        _load_fixture_polygon("003.dxf"),
+    ]
+    bin_w, bin_h, margin = 700.0, 600.0, 5.0
+
+    placements = nest_sheet(
+        pieces,
+        bin_width_mm=bin_w,
+        bin_height_mm=bin_h,
+        margin_mm=margin,
+        kerf_mm=0.0,
+    )
+
+    assert len(placements) == 3
+    placed_polys = _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
+    free_area, footprint = score_sheet_layout(bin_w, bin_h, margin, placed_polys)
+    assert free_area >= _MIN_FREE_AREA_001_002_003, (
+        f"expected larger continuous free area; got {free_area:.0f} mm² (footprint {footprint:.0f})"
     )
