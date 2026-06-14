@@ -73,9 +73,13 @@ export default class extends Controller {
   }
 
   setDeleting(event) {
-    const submitter = event.detail.submitter
-    if (submitter && this.element.contains(submitter)) {
-      this.element.classList.add("is-deleting")
+    const form = event.target
+    if (form && form.action) {
+      const attachmentId = this.element.dataset.attachmentId
+      const expectedPath = `/input_dxf_files/${attachmentId}`
+      if (form.action.includes(expectedPath)) {
+        this.element.classList.add("is-deleting")
+      }
     }
   }
 }
