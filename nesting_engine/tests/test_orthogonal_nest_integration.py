@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from nesting_engine.nest_geometry_classify import ORTHO_ROTATIONS_DEG, is_axis_aligned_on_sheet
+from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet
 from nesting_engine.nest_libnest2d import nest_sheet
 from nesting_engine.nest_placement import placed_polygon
 from nesting_engine.nest_types import apply_kerf
@@ -44,25 +44,12 @@ def _angles_parallel(angle_a: float, angle_b: float, tolerance_deg: float) -> bo
     return delta <= tolerance_deg or abs(delta - 180.0) <= tolerance_deg
 
 
-@pytest.mark.slow
-def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
-    """[REQ-FIT-NEST-002] Dynamic orthogonality: tilted/staircase rects stay sheet-parallel."""
-    piece_a = _load_fixture_polygon("001.dxf")
-    piece_b = _load_fixture_polygon("009.dxf")
-    pieces = [piece_a, piece_b]
-    kerf_mm = 0.0
-    margin_mm = 5.0
-
-    placements = nest_sheet(
-        pieces,
-        bin_width_mm=3000.0,
-        bin_height_mm=3000.0,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-    )
-
-    assert len(placements) == 2
-
+def _assert_pieces_nest_axis_aligned(
+    pieces: list,
+    placements: list,
+    *,
+    kerf_mm: float,
+) -> list:
     placed_polys = []
     for piece, placement in zip(pieces, placements, strict=True):
         fit = apply_kerf(piece_polygon(piece), kerf_mm)
@@ -70,8 +57,49 @@ def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
         assert is_axis_aligned_on_sheet(placed), (
             f"piece must nest axis-aligned; rotation_deg={placement.rotation_deg}"
         )
-        assert placement.rotation_deg in ORTHO_ROTATIONS_DEG
         placed_polys.append(placed)
+    return placed_polys
+
+
+@pytest.mark.slow
+def test_nest_sheet_keeps_001_and_002_axis_aligned_on_one_sheet() -> None:
+    """[REQ-FIT-NEST-002] Rotated rectangle (002) must nest at right angles with 001."""
+    piece_a = _load_fixture_polygon("001.dxf")
+    piece_b = _load_fixture_polygon("002.dxf")
+    poly_b = piece_polygon(piece_b)
+    is_ortho_b, _angle_b = classify_geometry(poly_b)
+    assert is_ortho_b is True, "002.dxf must classify as orthogonal"
+
+    pieces = [piece_a, piece_b]
+    placements = nest_sheet(
+        pieces,
+        bin_width_mm=600.0,
+        bin_height_mm=500.0,
+        margin_mm=5.0,
+        kerf_mm=0.0,
+    )
+
+    assert len(placements) == 2
+    _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
+
+
+@pytest.mark.slow
+def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
+    """[REQ-FIT-NEST-002] Dynamic orthogonality: tilted/staircase rects stay sheet-parallel."""
+    piece_a = _load_fixture_polygon("001.dxf")
+    piece_b = _load_fixture_polygon("009.dxf")
+    pieces = [piece_a, piece_b]
+
+    placements = nest_sheet(
+        pieces,
+        bin_width_mm=3000.0,
+        bin_height_mm=3000.0,
+        margin_mm=5.0,
+        kerf_mm=0.0,
+    )
+
+    assert len(placements) == 2
+    placed_polys = _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
 
     angle_a = _primary_edge_angle_deg(placed_polys[0])
     angle_b = _primary_edge_angle_deg(placed_polys[1])

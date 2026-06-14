@@ -45,6 +45,14 @@ def test_real_fixtures():
     poly_009 = piece_polygon(pieces[0])
     is_ortho_009, angle_009 = classify_geometry(poly_009)
     assert is_ortho_009 is True
+
+    # 002.dxf (rotated rectangle with internal line decorations)
+    p002_path = workspace / "nesting_engine/tests/fixtures/individuals/002.dxf"
+    pieces = load_pieces([str(p002_path)], ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    poly_002 = piece_polygon(pieces[0])
+    is_ortho_002, angle_002 = classify_geometry(poly_002)
+    assert is_ortho_002 is True
+    assert not is_axis_aligned_on_sheet(poly_002)
     
     # 011.dxf (complex orthogonal shape rotated by 45° with tiny corner chamfers)
     p011_path = workspace / "nesting_engine/tests/fixtures/individuals/011.dxf"
