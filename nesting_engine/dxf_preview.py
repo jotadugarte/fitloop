@@ -273,6 +273,8 @@ def _file_layer_polylines(
 
         result[name]["gaps"] = gaps_with_status
         result[name]["auto_close_lines"] = auto_close_lines
+        if not gaps:
+            result[name]["polyline_open_flags"] = [False] * len(result[name]["polylines"])
 
     return {name: data for name, data in result.items() if data["polylines"]}
 
@@ -321,6 +323,8 @@ def _composite_file_layer_polylines(
 
     result[primary_layer]["gaps"] = gaps_with_status
     result[primary_layer]["auto_close_lines"] = auto_close_lines
+    if not gaps:
+        result[primary_layer]["polyline_open_flags"] = [False] * len(result[primary_layer]["polylines"])
 
     aux_layers = [name for name in auxiliary_layers if name]
     if aux_layers:
