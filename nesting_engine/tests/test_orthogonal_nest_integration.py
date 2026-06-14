@@ -145,7 +145,7 @@ def test_nest_multi_bin_001_002_uses_cardinal_batch_fill() -> None:
             f"greedy fallback tilts pieces; rotation_deg={placed_row.placement.rotation_deg}"
         )
         minx, _miny, _, _ = poly.bounds
-        assert minx <= margin + 20.0, "batch layout should compact to the left margin"
+        assert minx <= margin + _MARGIN_EPS_MM, "batch layout should compact to the left margin"
 
 
 _MARGIN_EPS_MM = 1e-3

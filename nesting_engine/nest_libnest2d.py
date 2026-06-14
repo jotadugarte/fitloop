@@ -14,6 +14,7 @@ from nesting_engine.nest_placement import (
     ROTATION_STEP_DEG,
     Placement,
     _EPS_MM,
+    _fits_bin,
     _layout_better_than,
     _layout_bounds,
     _layout_rank_key,
@@ -1108,9 +1109,11 @@ def _place_on_one_sheet(
             return placed_pieces, pending
 
     if placed_pieces:
-        placed_pieces = _shift_placed_pieces_to_bottom_left(
+        placed_pieces = _compact_placed_pieces_to_margin(
             placed_pieces,
             pieces,
+            bin_width,
+            bin_height,
             margin_mm=margin_mm,
             kerf_mm=kerf_mm,
         )
@@ -1376,6 +1379,90 @@ def _shift_placed_pieces_to_bottom_left(
     ]
 
 
+def _placement_from_compacted_world(source_geometry: Polygon, world: Polygon) -> Placement:
+    prep = _prepare_solver_piece(source_geometry)
+    if prep.is_orthogonal:
+        return _orthogonal_placement_from_world(source_geometry, world)
+    placement, _diff = _placement_from_world_best_effort(source_geometry, world)
+    return placement
+
+
+def _compact_placed_pieces_to_margin(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece]:
+    """[REQ-FIT-NEST-002] Shift layout to margin, then align each piece's left edge to margin."""
+    if not sheet_pieces:
+        return sheet_pieces
+
+    shifted = _shift_placed_pieces_to_bottom_left(
+        sheet_pieces,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    placements = [row.placement for row in shifted]
+    order = sorted(
+        range(len(shifted)),
+        key=lambda index: (
+            placed_polygon(
+                piece_polygon(apply_kerf(pieces[shifted[index].piece_index], kerf_mm)),
+                placements[index],
+            ).bounds[1],
+            placed_polygon(
+                piece_polygon(apply_kerf(pieces[shifted[index].piece_index], kerf_mm)),
+                placements[index],
+            ).bounds[0],
+        ),
+    )
+    updated = list(placements)
+    for index in order:
+        piece_index = shifted[index].piece_index
+        fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
+        placed = placed_polygon(fit_geom, updated[index])
+        dx = margin_mm - placed.bounds[0]
+        if abs(dx) <= _EPS_MM:
+            continue
+        trial = translate(placed, xoff=dx, yoff=0.0)
+        if not _fits_bin(trial, bin_width, bin_height, margin=margin_mm):
+            continue
+        obstacles = [
+            placed_polygon(
+                piece_polygon(apply_kerf(pieces[shifted[other].piece_index], kerf_mm)),
+                updated[other],
+            )
+            for other in range(len(shifted))
+            if other != index
+        ]
+        if any(polygons_overlap_significantly(trial, obstacle) for obstacle in obstacles):
+            continue
+        updated[index] = _placement_from_compacted_world(fit_geom, trial)
+
+    compacted_pieces = [
+        placed_piece_from_source(
+            shifted[index].piece_index,
+            pieces[shifted[index].piece_index],
+            updated[index],
+        )
+        for index in range(len(shifted))
+    ]
+    if not _sheet_pieces_are_valid(
+        compacted_pieces,
+        pieces,
+        bin_width_mm=bin_width,
+        bin_height_mm=bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    ):
+        return shifted
+    return compacted_pieces
+
+
 def _apply_sheet_margin_shift(
     work: list[NestedSheet],
     sheet_idx: int,
@@ -1387,9 +1474,11 @@ def _apply_sheet_margin_shift(
     sheet = work[sheet_idx]
     if not sheet.pieces:
         return work
-    shifted = _shift_placed_pieces_to_bottom_left(
+    compacted = _compact_placed_pieces_to_margin(
         sheet.pieces,
         pieces,
+        sheet.width_mm,
+        sheet.height_mm,
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
@@ -1399,7 +1488,7 @@ def _apply_sheet_margin_shift(
         width_mm=sheet.width_mm,
         height_mm=sheet.height_mm,
         offset_x_mm=sheet.offset_x_mm,
-        pieces=shifted,
+        pieces=compacted,
     )
     return work
 
