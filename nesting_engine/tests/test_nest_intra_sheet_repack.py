@@ -8,7 +8,9 @@ from shapely.geometry import box
 from nesting_engine.nest_bin import SheetStockSpec
 from nesting_engine.nest_libnest2d import (
     _intra_sheet_repack_search,
+    _layout_score_for_pieces,
     _layout_score_for_sheet,
+    _try_orthogonal_flip_improvements,
     nest_sheet,
     nest_sheet_with_obstacles,
 )
@@ -236,3 +238,99 @@ def test_intra_sheet_repack_improves_free_area_on_synthetic_hole() -> None:
                 placed_polys[left].intersects(placed_polys[right])
                 and not placed_polys[left].touches(placed_polys[right])
             )
+
+
+def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
+    """[REQ-FIT-NEST-002] 90° flip local search improves score when batch orientation is suboptimal."""
+    margin_mm = 0.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 200.0, 200.0
+    pieces = [box(0, 0, 100, 40), box(0, 0, 40, 100)]
+    sheet_pieces = [
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(0.0, 0.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(100.0, 0.0, 0.0)),
+    ]
+    baseline_score = _layout_score_for_pieces(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    improved = _try_orthogonal_flip_improvements(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert improved is not None
+    improved_score = _layout_score_for_pieces(
+        improved,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert _layout_better_than(baseline_score, improved_score)
+    _assert_all_fit_bin(
+        pieces,
+        [row.placement for row in improved],
+        bin_width_mm=bin_w,
+        bin_height_mm=bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+
+def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
+    """[REQ-FIT-NEST-002] 90° flip local search improves score when batch orientation is suboptimal."""
+    margin_mm = 0.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 200.0, 200.0
+    pieces = [box(0, 0, 100, 40), box(0, 0, 40, 100)]
+    sheet_pieces = [
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(0.0, 0.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(100.0, 0.0, 0.0)),
+    ]
+    baseline_score = _layout_score_for_pieces(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    improved = _try_orthogonal_flip_improvements(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert improved is not None
+    improved_score = _layout_score_for_pieces(
+        improved,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert _layout_better_than(baseline_score, improved_score)
+    _assert_all_fit_bin(
+        pieces,
+        [row.placement for row in improved],
+        bin_width_mm=bin_w,
+        bin_height_mm=bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
