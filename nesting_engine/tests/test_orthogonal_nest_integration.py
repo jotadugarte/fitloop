@@ -81,9 +81,9 @@ def test_nest_sheet_keeps_001_and_009_axis_aligned_on_one_sheet() -> None:
     _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
 
 
-# Baseline with nest_blp (no cardinal 90° in batch): ~354_830 mm² free on 700×600.
-# Cardinal NFP batch (Option A) reaches ~393_000 mm² for the same fixtures.
-_MIN_FREE_AREA_001_002_003 = 380_000.0
+# nest_blp without cardinal 90° (frozen DXF orientation): footprint ~4_045_357 mm².
+# Cardinal NFP batch with valid in-bin placements: footprint ~257_000 mm².
+_MAX_FOOTPRINT_001_002_003 = 300_000.0
 
 
 @pytest.mark.slow
@@ -107,6 +107,10 @@ def test_nest_sheet_001_002_003_uses_cardinal_rotation_for_material_efficiency()
     assert len(placements) == 3
     placed_polys = _assert_pieces_nest_axis_aligned(pieces, placements, kerf_mm=0.0)
     free_area, footprint = score_sheet_layout(bin_w, bin_h, margin, placed_polys)
-    assert free_area >= _MIN_FREE_AREA_001_002_003, (
-        f"expected larger continuous free area; got {free_area:.0f} mm² (footprint {footprint:.0f})"
+    assert footprint <= _MAX_FOOTPRINT_001_002_003, (
+        f"expected tighter layout footprint; got {footprint:.0f} mm² (free area {free_area:.0f})"
     )
+    for poly in placed_polys:
+        minx, miny, maxx, maxy = poly.bounds
+        assert minx >= margin - 1e-3 and miny >= margin - 1e-3
+        assert maxx <= bin_w - margin + 1e-3 and maxy <= bin_h - margin + 1e-3

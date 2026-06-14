@@ -120,6 +120,74 @@ def _batch_ortho_context(prepared: list[_PreparedSolverPiece]) -> _BatchOrthoCon
     )
 
 
+def _centered_bin_for_batch(
+    nest_piece_count: int,
+    obstacle_count: int,
+    *,
+    all_orthogonal: bool,
+) -> bool:
+    """Cardinal NFP nest() uses a centered usable frame; bottom-left only for nest_blp batches."""
+    if nest_piece_count + obstacle_count == 1:
+        return True
+    if obstacle_count > 0:
+        return False
+    return nest_piece_count >= 2 and all_orthogonal
+
+
+def _all_pieces_orthogonal(pieces: list[Polygon]) -> bool:
+    if not pieces:
+        return False
+    return all(classify_geometry(piece)[0] for piece in pieces)
+
+
+def _orthogonal_placement_from_world(source_geometry: Polygon, world: Polygon) -> Placement:
+    wminx, wminy, _, _ = world.bounds
+    best_placement: Placement | None = None
+    best_diff = float("inf")
+    for angle in ORTHO_ROTATIONS_DEG:
+        rotated = rotate(source_geometry, angle, origin="centroid")
+        rminx, rminy, _, _ = rotated.bounds
+        placement = Placement(wminx - rminx, wminy - rminy, float(angle))
+        diff = placed_polygon(source_geometry, placement).symmetric_difference(world).area
+        if diff < best_diff:
+            best_diff = diff
+            best_placement = placement
+    assert best_placement is not None, "orthogonal placement must match item world"
+    return best_placement
+
+
+def _sheet_placement_from_nest_item(
+    item: Item,
+    prep: _PreparedSolverPiece,
+    source_geometry: Polygon,
+    *,
+    margin_mm: float,
+    usable_w: int,
+    usable_h: int,
+    centered_bin: bool,
+) -> Placement:
+    world = _world_polygon_from_item(
+        item,
+        margin_mm=margin_mm,
+        usable_w=usable_w,
+        usable_h=usable_h,
+        centered_bin=centered_bin,
+    )
+    if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+        solver_placement = Placement(0.0, 0.0, math.degrees(item.rotation()))
+        return _restore_placement_to_source(
+            source_geometry,
+            prep.solver_geometry,
+            solver_placement,
+            pre_align_deg=prep.pre_align_deg,
+            world_geometry=world,
+        )
+    if prep.is_orthogonal:
+        return _orthogonal_placement_from_world(source_geometry, world)
+    placement, _diff = _placement_from_world_best_effort(source_geometry, world)
+    return placement
+
+
 def _restore_placement_to_source(
     source_geometry: Polygon,
     solver_geometry: Polygon,
@@ -172,12 +240,15 @@ def nest_sheet(
     assert pieces, "at least one piece required"
     assert len(pieces) <= _MAX_PIECES, "piece count exceeds sheet limit"
 
-    centered_bin = (len(pieces) == 1)
+    fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
+    centered_bin = _centered_bin_for_batch(
+        len(pieces),
+        0,
+        all_orthogonal=_all_pieces_orthogonal([piece_polygon(row) for row in fit_pieces]),
+    )
     usable_w, usable_h, frame_ox, frame_oy = _usable_frame(
         bin_width_mm, bin_height_mm, margin_mm, centered_bin=centered_bin
     )
-
-    fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
 
     prepared: list[_PreparedSolverPiece] = []
     offsets = []
@@ -202,34 +273,46 @@ def nest_sheet(
     assert all(item.binId() >= 0 for item in items), "every piece must fit on the sheet"
 
     placements = []
-    for index, (prep, item, (ox, oy)) in enumerate(zip(prepared, items, offsets, strict=True)):
-        resolved = _resolve_libnest2d_placement(
-            _quantize_polygon(prep.solver_geometry),
-            item,
-            margin_mm=margin_mm,
-            usable_w=usable_w,
-            usable_h=usable_h,
-            frame_ox=frame_ox,
-            frame_oy=frame_oy,
-            centered_bin=centered_bin,
-        )
-        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
-            solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
-            sheet_world = translate(solver_world, xoff=ox, yoff=oy)
-            fit_geom = piece_polygon(fit_pieces[index])
-            orig_placement = _restore_placement_to_source(
+    for index, (prep, item, _offset) in enumerate(zip(prepared, items, offsets, strict=True)):
+        fit_geom = piece_polygon(fit_pieces[index])
+        if ortho_ctx.all_orthogonal:
+            orig_placement = _sheet_placement_from_nest_item(
+                item,
+                prep,
                 fit_geom,
-                prep.solver_geometry,
-                resolved.placement,
-                pre_align_deg=prep.pre_align_deg,
-                world_geometry=sheet_world,
+                margin_mm=margin_mm,
+                usable_w=usable_w,
+                usable_h=usable_h,
+                centered_bin=centered_bin,
             )
         else:
-            orig_placement = Placement(
-                x=resolved.placement.x + ox,
-                y=resolved.placement.y + oy,
-                rotation_deg=resolved.placement.rotation_deg,
+            resolved = _resolve_libnest2d_placement(
+                _quantize_polygon(prep.solver_geometry),
+                item,
+                margin_mm=margin_mm,
+                usable_w=usable_w,
+                usable_h=usable_h,
+                frame_ox=frame_ox,
+                frame_oy=frame_oy,
+                centered_bin=centered_bin,
             )
+            ox, oy = offsets[index]
+            if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+                solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
+                sheet_world = translate(solver_world, xoff=ox, yoff=oy)
+                orig_placement = _restore_placement_to_source(
+                    fit_geom,
+                    prep.solver_geometry,
+                    resolved.placement,
+                    pre_align_deg=prep.pre_align_deg,
+                    world_geometry=sheet_world,
+                )
+            else:
+                orig_placement = Placement(
+                    x=resolved.placement.x + ox,
+                    y=resolved.placement.y + oy,
+                    rotation_deg=resolved.placement.rotation_deg,
+                )
         placements.append(orig_placement)
 
     assert len(placements) == len(pieces)
@@ -251,13 +334,17 @@ def nest_sheet_with_obstacles(
     assert len(pieces) + len(obstacles) <= _MAX_PIECES, "item count exceeds sheet limit"
     assert pieces or obstacles, "at least one piece or obstacle required"
 
-    centered_bin = (len(pieces) + len(obstacles) == 1)
+    fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
+    centered_bin = _centered_bin_for_batch(
+        len(pieces),
+        len(obstacles),
+        all_orthogonal=_all_pieces_orthogonal([piece_polygon(row) for row in fit_pieces]),
+    )
     usable_w, usable_h, frame_ox, frame_oy = _usable_frame(
         bin_width_mm, bin_height_mm, margin_mm, centered_bin=centered_bin
     )
     bin_box = Box(usable_w, usable_h)
     fixed_items = [_fixed_item_from_world_polygon(obs, ox=frame_ox, oy=frame_oy) for obs in obstacles]
-    fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
 
     prepared: list[_PreparedSolverPiece] = []
     offsets = []
@@ -304,10 +391,20 @@ def nest_sheet_with_obstacles(
     for index, resolved in placements.items():
         ox, oy = offsets[index]
         prep = prepared[index]
-        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+        fit_geom = piece_polygon(fit_pieces[index])
+        if ortho_ctx.all_orthogonal:
+            orig_placement = _sheet_placement_from_nest_item(
+                nest_items[index],
+                prep,
+                fit_geom,
+                margin_mm=margin_mm,
+                usable_w=usable_w,
+                usable_h=usable_h,
+                centered_bin=centered_bin,
+            )
+        elif prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
             solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
             sheet_world = translate(solver_world, xoff=ox, yoff=oy)
-            fit_geom = piece_polygon(fit_pieces[index])
             orig_placement = _restore_placement_to_source(
                 fit_geom,
                 prep.solver_geometry,
@@ -1423,6 +1520,109 @@ def _try_repack_merge_sheets(
     return True
 
 
+def _sheet_pieces_are_valid(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    *,
+    bin_width_mm: float,
+    bin_height_mm: float,
+    margin_mm: float,
+    kerf_mm: float,
+) -> bool:
+    if not sheet_pieces:
+        return True
+    subset = [pieces[row.piece_index] for row in sheet_pieces]
+    placements = [row.placement for row in sheet_pieces]
+    return _batch_placements_are_valid(
+        subset,
+        placements,
+        bin_width_mm=bin_width_mm,
+        bin_height_mm=bin_height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+
+def _try_orthogonal_flip_improvements(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece] | None:
+    """[REQ-FIT-NEST-002] Try rotating each orthogonal piece by 90° when layout score improves."""
+    if len(sheet_pieces) < 2:
+        return None
+
+    best = sheet_pieces
+    best_score = _layout_score_for_pieces(
+        best,
+        pieces,
+        bin_width,
+        bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    improved = False
+
+    for index, placed_row in enumerate(best):
+        piece_index = placed_row.piece_index
+        fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
+        is_orthogonal, _principal = classify_geometry(fit_geom)
+        if not is_orthogonal:
+            continue
+
+        other_occupied = _occupied_polygons(
+            [row for row_index, row in enumerate(best) if row_index != index],
+            pieces,
+            kerf_mm,
+        )
+        flip_rot = (placed_row.placement.rotation_deg + 90.0) % 360.0
+        new_placement = place_with_rotation(
+            fit_geom,
+            bin_width,
+            bin_height,
+            margin=margin_mm,
+            obstacles=other_occupied,
+            allowed_rotations=[flip_rot],
+        )
+        if new_placement is None:
+            continue
+
+        placed_poly = placed_polygon(fit_geom, new_placement)
+        if not is_axis_aligned_on_sheet(placed_poly):
+            continue
+
+        trial = list(best)
+        trial[index] = placed_piece_from_source(piece_index, pieces[piece_index], new_placement)
+        if not _sheet_pieces_are_valid(
+            trial,
+            pieces,
+            bin_width_mm=bin_width,
+            bin_height_mm=bin_height,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        ):
+            continue
+
+        trial_score = _layout_score_for_pieces(
+            trial,
+            pieces,
+            bin_width,
+            bin_height,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        if _layout_better_than(best_score, trial_score):
+            best = trial
+            best_score = trial_score
+            improved = True
+
+    return best if improved else None
+
+
 def _intra_sheet_repack_search(
     sheets: list[NestedSheet],
     pieces: list[Polygon],
@@ -1484,7 +1684,15 @@ def _apply_intra_repack_to_sheet(
         deadline=deadline,
     )
     if best is None or _time_limit_exceeded(deadline):
-        return work
+        return _apply_orthogonal_flip_if_better(
+            work,
+            sheet_idx,
+            sheet,
+            pieces,
+            baseline_score=baseline_score,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
 
     repacked_pieces, pulled_indices = best
     work[sheet_idx] = NestedSheet(
@@ -1497,6 +1705,64 @@ def _apply_intra_repack_to_sheet(
     )
     if pulled_indices:
         work = _strip_pulled_pieces_from_donors(work, sheet_idx, pulled_indices)
+
+    post_repack_score = _layout_score_for_sheet(
+        work[sheet_idx],
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    return _apply_orthogonal_flip_if_better(
+        work,
+        sheet_idx,
+        sheet,
+        pieces,
+        baseline_score=post_repack_score,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+
+def _apply_orthogonal_flip_if_better(
+    work: list[NestedSheet],
+    sheet_idx: int,
+    sheet: NestedSheet,
+    pieces: list[Polygon],
+    *,
+    baseline_score: tuple[float, float, float, float, float],
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[NestedSheet]:
+    flipped = _try_orthogonal_flip_improvements(
+        work[sheet_idx].pieces,
+        pieces,
+        sheet.width_mm,
+        sheet.height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if flipped is None:
+        return work
+
+    candidate_score = _layout_score_for_pieces(
+        flipped,
+        pieces,
+        sheet.width_mm,
+        sheet.height_mm,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if not _layout_better_than(baseline_score, candidate_score):
+        return work
+
+    work[sheet_idx] = NestedSheet(
+        stock_sort_order=sheet.stock_sort_order,
+        sheet_index=sheet.sheet_index,
+        width_mm=sheet.width_mm,
+        height_mm=sheet.height_mm,
+        offset_x_mm=sheet.offset_x_mm,
+        pieces=flipped,
+    )
     return work
 
 
@@ -1568,6 +1834,16 @@ def _pick_best_intra_repack_trial(
         )
         if repacked is None:
             continue
+        flipped = _try_orthogonal_flip_improvements(
+            repacked,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        if flipped is not None:
+            repacked = flipped
         candidate_score = _layout_score_for_pieces(
             repacked,
             pieces,
