@@ -1,8 +1,37 @@
-import math
-from shapely.geometry import Polygon
-from shapely.affinity import rotate
+# [REQ-FIT-NEST-002] Dynamic orthogonality classification for axis-aligned nesting.
+from __future__ import annotations
 
-def classify_geometry(poly: Polygon, ortho_threshold: float = 0.70, angle_tolerance: float = 1.0, simplify_tolerance: float = 0.5) -> tuple[bool, float]:
+import math
+
+from shapely.affinity import rotate
+from shapely.geometry import Polygon
+
+ORTHO_ROTATIONS_DEG: tuple[float, ...] = (0.0, 90.0, 180.0, 270.0)
+_SNAP_PRINCIPAL_CANDIDATES_DEG: tuple[float, ...] = (0.0, 45.0, 90.0)
+
+
+def _snap_orthogonal_principal(principal_deg: float) -> float:
+    principal = principal_deg % 180.0
+    best = _SNAP_PRINCIPAL_CANDIDATES_DEG[0]
+    best_delta = float("inf")
+    for candidate in _SNAP_PRINCIPAL_CANDIDATES_DEG:
+        delta = min(
+            abs(principal - candidate),
+            abs(principal - candidate - 180.0),
+            abs(principal - candidate + 180.0),
+        )
+        if delta < best_delta:
+            best_delta = delta
+            best = candidate
+    return best
+
+
+def classify_geometry(
+    poly: Polygon,
+    ortho_threshold: float = 0.70,
+    angle_tolerance: float = 1.0,
+    simplify_tolerance: float = 0.5,
+) -> tuple[bool, float]:
     """
     Analyzes a shapely Polygon to determine if it is predominantly orthogonal.
     
@@ -69,3 +98,36 @@ def classify_geometry(poly: Polygon, ortho_threshold: float = 0.70, angle_tolera
     is_orthogonal = ortho_ratio >= ortho_threshold
     
     return is_orthogonal, best_angle
+
+
+def pre_align_orthogonal(poly: Polygon) -> tuple[Polygon, float | None]:
+    """Rotate predominantly orthogonal polygons to sheet axes; return (geometry, offset_deg)."""
+    is_orthogonal, principal_deg = classify_geometry(poly)
+    if not is_orthogonal:
+        return poly, None
+    if is_axis_aligned_on_sheet(poly):
+        return poly, None
+    snap_deg = _snap_orthogonal_principal(principal_deg)
+    return rotate(poly, -snap_deg, origin="centroid"), snap_deg
+
+
+def is_axis_aligned_on_sheet(poly: Polygon, angle_tolerance: float = 1.0) -> bool:
+    """True when exterior segments are parallel to sheet X or Y within tolerance."""
+    coords = list(poly.exterior.coords)
+    total_len = 0.0
+    ortho_len = 0.0
+    for index in range(len(coords) - 1):
+        x1, y1 = coords[index]
+        x2, y2 = coords[index + 1]
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        dist = math.hypot(dx, dy)
+        total_len += dist
+        if dist <= 1e-5:
+            continue
+        angle_seg = math.degrees(math.atan2(dy, dx))
+        if any(abs(angle_seg - target) < angle_tolerance for target in (0.0, 90.0)):
+            ortho_len += dist
+    if total_len <= 1e-5:
+        return False
+    return (ortho_len / total_len) >= 0.70
