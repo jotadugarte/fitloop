@@ -31,6 +31,7 @@
                       turbo_method: :delete,
                       turbo_stream: true,
                       turbo_confirm: t("projects.show.remove_dxf_confirm", filename: attachment.filename),
+                      action: "turbo:submit-start->layer-roles#setDeleting",
                       testid: "remove-dxf-file"
                     } %>
       <% end %>
