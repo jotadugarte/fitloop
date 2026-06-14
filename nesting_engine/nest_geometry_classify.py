@@ -8,11 +8,13 @@ from shapely.geometry import Polygon
 
 ORTHO_ROTATIONS_DEG: tuple[float, ...] = (0.0, 90.0, 180.0, 270.0)
 _SNAP_PRINCIPAL_CANDIDATES_DEG: tuple[float, ...] = (0.0, 45.0, 90.0)
+_PRINCIPAL_SNAP_TOLERANCE_DEG = 1.0
 
 
-def _snap_orthogonal_principal(principal_deg: float) -> float:
+def _pre_align_offset_deg(principal_deg: float, snap_tolerance_deg: float = _PRINCIPAL_SNAP_TOLERANCE_DEG) -> float:
+    """OMMB principal angle for pre-align; snap to 0/45/90 only when already within tolerance."""
     principal = principal_deg % 180.0
-    best = _SNAP_PRINCIPAL_CANDIDATES_DEG[0]
+    best_candidate = _SNAP_PRINCIPAL_CANDIDATES_DEG[0]
     best_delta = float("inf")
     for candidate in _SNAP_PRINCIPAL_CANDIDATES_DEG:
         delta = min(
@@ -22,8 +24,10 @@ def _snap_orthogonal_principal(principal_deg: float) -> float:
         )
         if delta < best_delta:
             best_delta = delta
-            best = candidate
-    return best
+            best_candidate = candidate
+    if best_delta <= snap_tolerance_deg:
+        return best_candidate
+    return principal
 
 
 def classify_geometry(
@@ -107,8 +111,8 @@ def pre_align_orthogonal(poly: Polygon) -> tuple[Polygon, float | None]:
         return poly, None
     if is_axis_aligned_on_sheet(poly):
         return poly, None
-    snap_deg = _snap_orthogonal_principal(principal_deg)
-    return rotate(poly, -snap_deg, origin="centroid"), snap_deg
+    offset_deg = _pre_align_offset_deg(principal_deg)
+    return rotate(poly, -offset_deg, origin="centroid"), offset_deg
 
 
 def is_axis_aligned_on_sheet(poly: Polygon, angle_tolerance: float = 1.0) -> bool:

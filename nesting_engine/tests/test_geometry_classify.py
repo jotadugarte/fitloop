@@ -2,7 +2,7 @@ import math
 from pathlib import Path
 from shapely.geometry import Polygon, Point
 from shapely.affinity import rotate
-from nesting_engine.nest_geometry_classify import classify_geometry
+from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet, pre_align_orthogonal
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 def test_basic_shapes():
@@ -53,3 +53,26 @@ def test_real_fixtures():
     is_ortho_011, angle_011 = classify_geometry(poly_011)
     assert is_ortho_011 is True
     assert abs(angle_011 - 45.0) < 1.0
+
+
+def test_pre_align_uses_exact_ombb_for_arbitrary_tilt():
+    # [REQ-FIT-NEST-002] 38° tilt must pre-align by -38°, not snap to -45°.
+    rect = Polygon([(0, 0), (100, 0), (100, 50), (0, 50)])
+    tilted = rotate(rect, 38.0, origin=(0, 0))
+    _is_ortho, principal = classify_geometry(tilted)
+    assert _is_ortho is True
+    aligned, offset = pre_align_orthogonal(tilted)
+    assert offset is not None
+    assert abs(offset - principal) < 1.0
+    assert abs(offset - 45.0) > 1.0
+    assert is_axis_aligned_on_sheet(aligned)
+
+
+def test_pre_align_snaps_when_principal_near_cardinal():
+    rect = Polygon([(0, 0), (100, 0), (100, 50), (0, 50)])
+    tilted = rotate(rect, 44.6, origin=(0, 0))
+    _is_ortho, _principal = classify_geometry(tilted)
+    assert _is_ortho is True
+    _aligned, offset = pre_align_orthogonal(tilted)
+    assert offset is not None
+    assert abs(offset - 45.0) < 1.0
