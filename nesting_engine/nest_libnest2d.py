@@ -1441,7 +1441,15 @@ def _compact_placed_pieces_to_margin(
         ]
         if any(polygons_overlap_significantly(trial, obstacle) for obstacle in obstacles):
             continue
-        updated[index] = _placement_from_compacted_world(fit_geom, trial)
+        prep = _prepare_solver_piece(fit_geom)
+        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+            updated[index] = Placement(
+                updated[index].x + dx,
+                updated[index].y,
+                updated[index].rotation_deg,
+            )
+        else:
+            updated[index] = _placement_from_compacted_world(fit_geom, trial)
 
     compacted_pieces = [
         placed_piece_from_source(
