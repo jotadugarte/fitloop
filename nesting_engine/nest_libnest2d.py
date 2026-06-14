@@ -134,26 +134,17 @@ def _restore_placement_to_source(
     if pre_align_deg is not None:
         tolerance = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * source_geometry.area)
         direct = placed_polygon(source_geometry, solver_placement)
-        direct_diff = direct.symmetric_difference(world).area
-        if direct_diff <= tolerance and is_axis_aligned_on_sheet(direct):
+        if (
+            direct.symmetric_difference(world).area <= tolerance
+            and is_axis_aligned_on_sheet(direct)
+        ):
             return solver_placement
-        rotation_deg = (solver_placement.rotation_deg - pre_align_deg) % 360.0
-        snapped = round(rotation_deg / 90.0) * 90.0 % 360.0
-        rotated = rotate(source_geometry, snapped, origin="centroid")
-        wminx, wminy, _, _ = world.bounds
-        rminx, rminy, _, _ = rotated.bounds
-        placement = Placement(wminx - rminx, wminy - rminy, snapped)
-        placed = placed_polygon(source_geometry, placement)
-        diff = placed.symmetric_difference(world).area
-        if diff <= tolerance and is_axis_aligned_on_sheet(placed):
-            return placement
         return _restore_cardinal_placement(source_geometry, world)
     restored, _diff = _placement_from_world_best_effort(source_geometry, world)
     return restored
 
 
 def _restore_cardinal_placement(source_geometry: Polygon, world: Polygon) -> Placement:
-    tolerance = max(_PLACEMENT_AREA_TOLERANCE_MM2, 0.01 * source_geometry.area)
     best_placement: Placement | None = None
     best_diff = float("inf")
     wminx, wminy, _, _ = world.bounds
@@ -169,13 +160,7 @@ def _restore_cardinal_placement(source_geometry: Polygon, world: Polygon) -> Pla
         if diff < best_diff:
             best_diff = diff
             best_placement = Placement(offset_x, offset_y, angle)
-    if best_placement is None:
-        restored, _diff = _placement_from_world_best_effort(source_geometry, world)
-        return restored
-    if best_diff > tolerance:
-        restored, restored_diff = _placement_from_world_best_effort(source_geometry, world)
-        if restored_diff < best_diff:
-            return restored
+    assert best_placement is not None, "orthogonal piece must map to a cardinal sheet placement"
     return best_placement
 
 
