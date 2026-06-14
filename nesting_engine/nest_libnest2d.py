@@ -19,6 +19,7 @@ from nesting_engine.nest_placement import (
     _layout_rank_key,
     place_with_rotation,
     placed_polygon,
+    polygons_overlap_significantly,
     score_sheet_layout,
 )
 from nesting_engine.sheet_stocks_config import stocks_in_consumption_order
@@ -820,9 +821,9 @@ def _world_placement_valid(
         return False
     if maxx > bin_width_mm - margin_mm + _EPS_MM or maxy > bin_height_mm - margin_mm + _EPS_MM:
         return False
-    for blocker in obstacles + other_placed:
-        if world.intersects(blocker) and not world.touches(blocker):
-            return False
+        for blocker in obstacles + other_placed:
+            if polygons_overlap_significantly(world, blocker):
+                return False
     return True
 
 
@@ -1213,6 +1214,22 @@ def _try_full_sheet_batch_clean(
     ):
         return [], pending, occupied
 
+    batch_placements = _shift_placements_to_bottom_left(
+        batch_pieces,
+        batch_placements,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if not _batch_placements_are_valid(
+        batch_pieces,
+        batch_placements,
+        bin_width_mm=bin_width,
+        bin_height_mm=bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    ):
+        return [], pending, occupied
+
     placed: list[PlacedPiece] = []
     for local_idx, placement in enumerate(batch_placements):
         piece_index = batch_indices[local_idx]
@@ -1265,7 +1282,7 @@ def _batch_resolved_placements_are_valid(
         if maxx > bin_width_mm - margin_mm + _EPS_MM or maxy > bin_height_mm - margin_mm + _EPS_MM:
             return False
         for obstacle in occupied:
-            if placed.intersects(obstacle) and not placed.touches(obstacle):
+            if polygons_overlap_significantly(placed, obstacle):
                 return False
         occupied.append(placed)
     return True
@@ -1293,10 +1310,34 @@ def _batch_placements_are_valid(
         if maxx > bin_width_mm - margin_mm + _EPS_MM or maxy > bin_height_mm - margin_mm + _EPS_MM:
             return False
         for blocker in occupied:
-            if placed.intersects(blocker) and not placed.touches(blocker):
+            if polygons_overlap_significantly(placed, blocker):
                 return False
         occupied.append(placed)
     return True
+
+
+def _shift_placements_to_bottom_left(
+    pieces: list[Polygon],
+    placements: list[Placement],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[Placement]:
+    """Shift a batch layout so its combined bbox sits on the sheet margin (bottom-left)."""
+    placed_polys = [
+        placed_polygon(apply_kerf(piece, kerf_mm), placement)
+        for piece, placement in zip(pieces, placements, strict=True)
+    ]
+    minx = min(poly.bounds[0] for poly in placed_polys)
+    miny = min(poly.bounds[1] for poly in placed_polys)
+    dx = margin_mm - minx
+    dy = margin_mm - miny
+    if abs(dx) <= _EPS_MM and abs(dy) <= _EPS_MM:
+        return placements
+    return [
+        Placement(placement.x + dx, placement.y + dy, placement.rotation_deg)
+        for placement in placements
+    ]
 
 
 def _greedy_place_pending(
@@ -1570,8 +1611,10 @@ def _try_orthogonal_flip_improvements(
     for index, placed_row in enumerate(best):
         piece_index = placed_row.piece_index
         fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
-        is_orthogonal, _principal = classify_geometry(fit_geom)
-        if not is_orthogonal:
+        prep = _prepare_solver_piece(fit_geom)
+        if not prep.is_orthogonal:
+            continue
+        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
             continue
 
         other_occupied = _occupied_polygons(
@@ -1580,16 +1623,22 @@ def _try_orthogonal_flip_improvements(
             kerf_mm,
         )
         flip_rot = (placed_row.placement.rotation_deg + 90.0) % 360.0
-        new_placement = place_with_rotation(
-            fit_geom,
+        solver_placement = place_with_rotation(
+            prep.solver_geometry,
             bin_width,
             bin_height,
             margin=margin_mm,
             obstacles=other_occupied,
             allowed_rotations=[flip_rot],
         )
-        if new_placement is None:
+        if solver_placement is None:
             continue
+
+        new_placement = Placement(
+            solver_placement.x,
+            solver_placement.y,
+            solver_placement.rotation_deg,
+        )
 
         placed_poly = placed_polygon(fit_geom, new_placement)
         if not is_axis_aligned_on_sheet(placed_poly):

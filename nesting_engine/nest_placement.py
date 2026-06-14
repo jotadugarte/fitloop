@@ -13,6 +13,7 @@ _MAX_ROTATION_STEPS = 360 // ROTATION_STEP_DEG
 _COMPACT_STEP_MM = 2.0
 _MAX_COMPACT_STEPS = 200
 _EPS_MM = 1e-6
+_OVERLAP_AREA_TOLERANCE_MM2 = 1.0
 
 
 @dataclass(frozen=True)
@@ -409,6 +410,17 @@ def _fits_bin(placed: Polygon, bin_width: float, bin_height: float, *, margin: f
         and maxx <= bin_width - margin + _EPS_MM
         and maxy <= bin_height - margin + _EPS_MM
     )
+
+
+def overlap_area_mm2(a: Polygon, b: Polygon) -> float:
+    if not a.intersects(b):
+        return 0.0
+    return float(a.intersection(b).area)
+
+
+def polygons_overlap_significantly(a: Polygon, b: Polygon) -> bool:
+    """True when intersection exceeds solver quantization noise (sub-mm slivers)."""
+    return overlap_area_mm2(a, b) > _OVERLAP_AREA_TOLERANCE_MM2
 
 
 def _overlaps_any(placed: Polygon, obstacles: list[Polygon]) -> bool:

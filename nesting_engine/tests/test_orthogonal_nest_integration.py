@@ -6,9 +6,9 @@ from pathlib import Path
 import pytest
 
 from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet
-from nesting_engine.nest_libnest2d import nest_sheet
+from nesting_engine.nest_libnest2d import nest_multi_bin, nest_sheet
 from nesting_engine.nest_placement import placed_polygon, score_sheet_layout
-from nesting_engine.nest_types import apply_kerf
+from nesting_engine.nest_types import SheetStockSpec, apply_kerf
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 _FIXTURES = Path(__file__).resolve().parent / "fixtures" / "individuals"
@@ -114,3 +114,36 @@ def test_nest_sheet_001_002_003_uses_cardinal_rotation_for_material_efficiency()
         minx, miny, maxx, maxy = poly.bounds
         assert minx >= margin - 1e-3 and miny >= margin - 1e-3
         assert maxx <= bin_w - margin + 1e-3 and maxy <= bin_h - margin + 1e-3
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_001_002_uses_cardinal_batch_fill() -> None:
+    """[REQ-FIT-NEST-002] Fill phase must accept cardinal batch nest (not greedy fallback)."""
+    pieces = [
+        _load_fixture_polygon("001.dxf"),
+        _load_fixture_polygon("002.dxf"),
+    ]
+    bin_w, bin_h, margin = 600.0, 700.0, 5.0
+    stocks = [SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    assert len(result.sheets[0].pieces) == 2
+
+    for placed_row in result.sheets[0].pieces:
+        fit = apply_kerf(piece_polygon(pieces[placed_row.piece_index]), 0.0)
+        poly = placed_polygon(fit, placed_row.placement)
+        assert is_axis_aligned_on_sheet(poly), (
+            f"greedy fallback tilts pieces; rotation_deg={placed_row.placement.rotation_deg}"
+        )
+        minx, miny, _, _ = poly.bounds
+        assert minx <= margin + 20.0, "batch layout should compact to the left margin"
+        assert miny <= margin + 20.0, "batch layout should compact to the bottom margin"
