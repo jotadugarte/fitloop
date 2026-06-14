@@ -13,7 +13,12 @@ module Dxf
     def self.catalog(paths)
       raise ArgumentError, "paths must be present" if paths.blank?
 
-      output, status = Open3.capture2(Python.executable, SCRIPT.to_s, *paths.map(&:to_s))
+      output, status = Open3.capture2(
+        Python.subprocess_env,
+        Python.executable,
+        SCRIPT.to_s,
+        *paths.map(&:to_s)
+      )
       raise Error, output.presence || "layer discovery failed" unless status.success?
 
       JSON.parse(output)
