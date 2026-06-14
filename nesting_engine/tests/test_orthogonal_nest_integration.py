@@ -187,3 +187,48 @@ def test_nest_multi_bin_001_002_pieces_pinned_to_sheet_margin() -> None:
     lowest = min(placed_polys, key=lambda poly: (poly.bounds[1], poly.bounds[0]))
     assert lowest.bounds[1] <= margin + _MARGIN_EPS_MM, "bottom piece should hug the lower sheet margin"
     assert lowest.bounds[0] <= margin + _MARGIN_EPS_MM
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_001_002_003_left_column_order_on_700_square() -> None:
+    """[REQ-FIT-NEST-002] Three-piece batch stays left-aligned; flip must not scatter pieces."""
+    pieces = [
+        _load_fixture_polygon("001.dxf"),
+        _load_fixture_polygon("002.dxf"),
+        _load_fixture_polygon("003.dxf"),
+    ]
+    bin_w, bin_h, margin = 700.0, 700.0, 5.0
+    stocks = [SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    placed_polys = [
+        placed_polygon(
+            apply_kerf(piece_polygon(pieces[row.piece_index]), 0.0),
+            row.placement,
+        )
+        for row in result.sheets[0].pieces
+    ]
+    assert len(placed_polys) == 3
+
+    for poly in placed_polys:
+        minx, miny, maxx, maxy = poly.bounds
+        assert minx >= margin - _MARGIN_EPS_MM
+        assert miny >= margin - _MARGIN_EPS_MM
+        assert maxx <= bin_w - margin + _MARGIN_EPS_MM
+        assert maxy <= bin_h - margin + _MARGIN_EPS_MM
+        assert minx <= margin + _MARGIN_EPS_MM, "each piece should stay in the left margin column"
+        assert is_axis_aligned_on_sheet(poly)
+
+    lowest = min(placed_polys, key=lambda poly: (poly.bounds[1], poly.bounds[0]))
+    assert lowest.bounds[1] <= margin + _MARGIN_EPS_MM
+    layout_maxx = max(poly.bounds[2] for poly in placed_polys)
+    assert layout_maxx <= 300.0, "layout must not scatter a piece to the far right of the sheet"
