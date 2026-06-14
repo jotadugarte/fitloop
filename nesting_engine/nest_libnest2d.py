@@ -1107,6 +1107,14 @@ def _place_on_one_sheet(
         if not progressed:
             return placed_pieces, pending
 
+    if placed_pieces:
+        placed_pieces = _shift_placed_pieces_to_bottom_left(
+            placed_pieces,
+            pieces,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+
     return placed_pieces, []
 
 
@@ -1338,6 +1346,62 @@ def _shift_placements_to_bottom_left(
         Placement(placement.x + dx, placement.y + dy, placement.rotation_deg)
         for placement in placements
     ]
+
+
+def _shift_placed_pieces_to_bottom_left(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece]:
+    """[REQ-FIT-NEST-002] Shift a sheet layout so its combined bbox sits on the margin."""
+    if not sheet_pieces:
+        return sheet_pieces
+    subset = [pieces[row.piece_index] for row in sheet_pieces]
+    placements = [row.placement for row in sheet_pieces]
+    shifted = _shift_placements_to_bottom_left(
+        subset,
+        placements,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    return [
+        placed_piece_from_source(
+            sheet_pieces[index].piece_index,
+            pieces[sheet_pieces[index].piece_index],
+            shifted[index],
+        )
+        for index in range(len(sheet_pieces))
+    ]
+
+
+def _apply_sheet_margin_shift(
+    work: list[NestedSheet],
+    sheet_idx: int,
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[NestedSheet]:
+    sheet = work[sheet_idx]
+    if not sheet.pieces:
+        return work
+    shifted = _shift_placed_pieces_to_bottom_left(
+        sheet.pieces,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    work[sheet_idx] = NestedSheet(
+        stock_sort_order=sheet.stock_sort_order,
+        sheet_index=sheet.sheet_index,
+        width_mm=sheet.width_mm,
+        height_mm=sheet.height_mm,
+        offset_x_mm=sheet.offset_x_mm,
+        pieces=shifted,
+    )
+    return work
 
 
 def _greedy_place_pending(
@@ -1733,12 +1797,19 @@ def _apply_intra_repack_to_sheet(
         deadline=deadline,
     )
     if best is None or _time_limit_exceeded(deadline):
-        return _apply_orthogonal_flip_if_better(
+        work = _apply_orthogonal_flip_if_better(
             work,
             sheet_idx,
             sheet,
             pieces,
             baseline_score=baseline_score,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        return _apply_sheet_margin_shift(
+            work,
+            sheet_idx,
+            pieces,
             margin_mm=margin_mm,
             kerf_mm=kerf_mm,
         )
@@ -1761,12 +1832,19 @@ def _apply_intra_repack_to_sheet(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
-    return _apply_orthogonal_flip_if_better(
+    work = _apply_orthogonal_flip_if_better(
         work,
         sheet_idx,
         sheet,
         pieces,
         baseline_score=post_repack_score,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    return _apply_sheet_margin_shift(
+        work,
+        sheet_idx,
+        pieces,
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
