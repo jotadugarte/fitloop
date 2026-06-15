@@ -11,6 +11,9 @@ from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import (
+    ObstacleAwareSheetResult,
+    SheetPiecePlacement,
+    _placed_from_batch_result,
     _sheet_piece_world_polygon,
     _world_placement_valid,
     capabilities,
@@ -363,6 +366,37 @@ def test_run_from_config_honors_time_limit_sec_with_partial_and_warning(
     placed_count = sum(len(sheet["pieces"]) for sheet in placements["sheets"])
     assert placed_count >= 1
     assert len(placements["orphans"]) >= 1
+
+
+def test_placed_from_batch_result_rejects_overlapping_solver_placements() -> None:
+    """[REQ-FIT-NEST-002] Obstacle-aware batch must not accept placements that overlap occupied area."""
+    pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
+    occupied = [box(5, 5, 20, 20)]
+    batch_result = ObstacleAwareSheetResult(
+        placements={
+            0: SheetPiecePlacement(
+                placement=Placement(15.0, 15.0, 0.0),
+                geometry=box(0, 0, 10, 10),
+            ),
+        },
+        unplaced_indices=[],
+    )
+
+    placed, pending, new_occupied = _placed_from_batch_result(
+        pieces,
+        [0],
+        batch_result,
+        [0],
+        kerf_mm=0.0,
+        occupied=occupied,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+    )
+
+    assert placed == []
+    assert pending == [0]
+    assert new_occupied == occupied
 
 
 def test_nest_sheet_packs_pieces_with_negative_offset_coordinates() -> None:

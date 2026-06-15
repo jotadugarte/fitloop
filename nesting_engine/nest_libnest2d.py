@@ -1293,6 +1293,9 @@ def _try_full_sheet_batch_with_obstacles(
         pending,
         kerf_mm=kerf_mm,
         occupied=occupied,
+        bin_width_mm=bin_width,
+        bin_height_mm=bin_height,
+        margin_mm=margin_mm,
     )
 
 
@@ -1364,21 +1367,39 @@ def _placed_from_batch_result(
     *,
     kerf_mm: float,
     occupied: list[Polygon],
+    bin_width_mm: float,
+    bin_height_mm: float,
+    margin_mm: float,
 ) -> tuple[list[PlacedPiece], list[int], list[Polygon]]:
     if not batch_result.placements:
         return [], pending, occupied
 
     placed: list[PlacedPiece] = []
-    for local_idx, resolved in batch_result.placements.items():
+    rejected_local_indices: list[int] = []
+    new_occupied = list(occupied)
+    for local_idx in sorted(batch_result.placements.keys()):
+        resolved = batch_result.placements[local_idx]
         piece_index = batch_indices[local_idx]
+        world = _sheet_piece_world_polygon(resolved)
+        if not _world_placement_valid(
+            world,
+            bin_width_mm=bin_width_mm,
+            bin_height_mm=bin_height_mm,
+            margin_mm=margin_mm,
+            obstacles=new_occupied,
+            other_placed=[],
+        ):
+            rejected_local_indices.append(local_idx)
+            continue
         placed.append(
             placed_piece_from_source(piece_index, pieces[piece_index], resolved.placement)
         )
-        occupied.append(_sheet_piece_world_polygon(resolved))
+        new_occupied.append(world)
 
     still_pending = [batch_indices[local_idx] for local_idx in batch_result.unplaced_indices]
+    still_pending.extend(batch_indices[local_idx] for local_idx in rejected_local_indices)
     still_pending.extend(pending[len(batch_indices) :])
-    return placed, still_pending, occupied
+    return placed, still_pending, new_occupied
 
 
 def _batch_resolved_placements_are_valid(
