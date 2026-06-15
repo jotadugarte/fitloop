@@ -22,6 +22,7 @@ from nesting_engine.nest_libnest2d import (
     nest_sheet_with_obstacles,
 )
 from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon, polygons_overlap_significantly
+from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 _EPS_MM = 1e-6
 
@@ -397,6 +398,34 @@ def test_placed_from_batch_result_rejects_overlapping_solver_placements() -> Non
     assert placed == []
     assert pending == [0]
     assert new_occupied == occupied
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_six_fixture_files_have_no_overlaps_on_700x690() -> None:
+    """[REQ-FIT-NEST-002] Regression: crowded multi-file layout must not overlap on sheet."""
+    fixtures = Path(__file__).resolve().parent / "fixtures" / "individuals"
+    names = ["010.dxf", "011.dxf", "012.dxf", "013.dxf", "014.dxf", "016.dxf"]
+    paths = [str(fixtures / name) for name in names]
+    warnings: list[str] = []
+    loaded = load_pieces(paths, ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    pieces = [piece_polygon(piece) for piece in loaded]
+    stocks = [SheetStockSpec(width_mm=700, height_mm=690, quantity=None, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    for sheet in result.sheets:
+        occupied: list[Polygon] = []
+        for placed in sheet.pieces:
+            world = placed_polygon(pieces[placed.piece_index], placed.placement)
+            for blocker in occupied:
+                assert not polygons_overlap_significantly(world, blocker)
+            occupied.append(world)
 
 
 def test_nest_sheet_packs_pieces_with_negative_offset_coordinates() -> None:
