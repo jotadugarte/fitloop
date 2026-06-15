@@ -615,6 +615,9 @@ def nest_multi_bin(
         kerf_mm=kerf_mm,
     )
     assert len(sheets) >= 0
+    assert not multi_bin_layout_has_significant_overlaps(sheets, pieces, kerf_mm=kerf_mm), (
+        "nest_multi_bin produced overlapping placements"
+    )
     return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
 
 
@@ -2704,6 +2707,34 @@ def _occupied_polygons(
         fit_piece = apply_kerf(pieces[placed.piece_index], kerf_mm)
         occupied.append(placed_polygon(fit_piece, placed.placement))
     return occupied
+
+
+def sheet_layout_has_significant_overlaps(
+    placed_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    *,
+    kerf_mm: float,
+) -> bool:
+    """[REQ-FIT-NEST-002] True when any pair on a sheet overlaps by more than kerf tolerance."""
+    occupied = _occupied_polygons(placed_pieces, pieces, kerf_mm)
+    for left_index in range(len(occupied)):
+        for right_index in range(left_index + 1, len(occupied)):
+            if polygons_overlap_significantly(occupied[left_index], occupied[right_index]):
+                return True
+    return False
+
+
+def multi_bin_layout_has_significant_overlaps(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    *,
+    kerf_mm: float,
+) -> bool:
+    """[REQ-FIT-NEST-002] Final safety check before writing nested outputs."""
+    return any(
+        sheet_layout_has_significant_overlaps(sheet.pieces, pieces, kerf_mm=kerf_mm)
+        for sheet in sheets
+    )
 
 
 def _reindex_sheet_offsets(sheets: list[NestedSheet], sheet_gap_mm: float) -> list[NestedSheet]:

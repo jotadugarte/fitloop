@@ -28,6 +28,7 @@ from nesting_engine.nest_geometry_classify import (  # noqa: E402
     is_axis_aligned_on_sheet,
     is_orthogonal_for_cardinal_nesting,
 )
+from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps  # noqa: E402
 from nesting_engine.progress_reporter import ProgressReporter  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -204,6 +205,23 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         orphans=result.orphans,
         warnings=merged_warnings,
     )
+
+    if multi_bin_layout_has_significant_overlaps(
+        result.sheets,
+        pieces,
+        kerf_mm=job_params.kerf_mm,
+    ):
+        merged_warnings.append("layout_overlap_detected")
+        result = MultiBinResult(sheets=[], orphans=result.orphans, warnings=merged_warnings)
+        report = {
+            "status": "failed",
+            "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
+            "warnings": merged_warnings,
+        }
+        progress.report("writing_outputs", 96, pieces_total=len(pieces))
+        (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+        progress.report("writing_outputs", 99, pieces_total=len(pieces))
+        return result
 
     status = "completed" if not result.orphans else "partial"
     report = {
