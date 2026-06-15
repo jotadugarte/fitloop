@@ -8,6 +8,7 @@ from nesting_engine.nest_geometry_classify import (
     is_orthogonal_for_cardinal_nesting,
     needs_pre_align_orthogonal,
     pre_align_orthogonal,
+    _ombb_cardinal_deviation_deg,
 )
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
@@ -70,7 +71,7 @@ def test_real_fixtures():
 
 
 def test_needs_pre_align_when_ombb_tilted_but_segments_are_sheet_parallel() -> None:
-    """[REQ-FIT-NEST-002] Staircase 009: orthogonal + H/V segments → no pre-align; cardinal pick handles orientation."""
+    """[REQ-FIT-NEST-002] Staircase 009: OMBB ~85° must pre-align even when segment ratio passes."""
     workspace = Path(__file__).parent.parent.parent
     warnings: list[str] = []
     p009_path = workspace / "nesting_engine/tests/fixtures/individuals/009.dxf"
@@ -79,8 +80,10 @@ def test_needs_pre_align_when_ombb_tilted_but_segments_are_sheet_parallel() -> N
     _is_ortho, principal = classify_geometry(poly_009)
     assert _is_ortho is True
     assert abs(principal - 85.0) < 2.0
-    assert is_axis_aligned_on_sheet(poly_009) is True
-    assert needs_pre_align_orthogonal(poly_009) is False
+    assert needs_pre_align_orthogonal(poly_009) is True
+    aligned, offset = pre_align_orthogonal(poly_009)
+    assert offset is not None
+    assert _ombb_cardinal_deviation_deg(aligned) <= 1.0
     assert is_orthogonal_for_cardinal_nesting(poly_009) is True
 
 
@@ -105,3 +108,16 @@ def test_pre_align_snaps_when_principal_near_cardinal():
     _aligned, offset = pre_align_orthogonal(tilted)
     assert offset is not None
     assert abs(offset - 45.0) < 1.0
+
+
+def test_pointed_fixture_013_is_not_orthogonal_for_cardinal_nesting() -> None:
+    """[REQ-FIT-NEST-002] Pointed 013 must use fine rotation steps, not cardinal-only."""
+    workspace = Path(__file__).parent.parent.parent
+    warnings: list[str] = []
+    p013_path = workspace / "nesting_engine/tests/fixtures/individuals/013.dxf"
+    pieces = load_pieces([str(p013_path)], ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    poly_013 = piece_polygon(pieces[0])
+    is_ortho_013, _principal = classify_geometry(poly_013)
+    assert is_ortho_013 is False
+    assert is_orthogonal_for_cardinal_nesting(poly_013) is False
+    assert needs_pre_align_orthogonal(poly_013) is False

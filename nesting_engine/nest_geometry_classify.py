@@ -109,19 +109,43 @@ def is_orthogonal_for_cardinal_nesting(
     *,
     ortho_threshold: float = 0.70,
 ) -> bool:
-    """[REQ-FIT-NEST-002] True when piece should use cardinal 0/90/180/270° nesting."""
+    """[REQ-FIT-NEST-002] True when piece should use cardinal 0/90/180/270° nesting.
+
+    Dense contours with pointed features (e.g. 013.dxf) may pass a raw segment-ratio
+    check while failing ``classify_geometry`` after simplify; trust classify only so
+    the solver can explore finer rotation steps.
+    """
     is_orthogonal, _principal_deg = classify_geometry(poly, ortho_threshold=ortho_threshold)
-    if is_orthogonal:
-        return True
-    return is_axis_aligned_on_sheet(poly)
+    return is_orthogonal
+
+
+def _ombb_cardinal_deviation_deg(poly: Polygon) -> float:
+    """Degrees from OMBB longest edge to the nearest sheet axis (0° or 90°)."""
+    is_orthogonal, principal_deg = classify_geometry(poly)
+    if not is_orthogonal:
+        return float("inf")
+    principal = principal_deg % 180.0
+    return min(
+        principal,
+        abs(principal - 90.0),
+        abs(principal - 180.0),
+    )
+
+
+def is_ombb_axis_aligned_on_sheet(
+    poly: Polygon,
+    angle_tolerance: float = _PRINCIPAL_SNAP_TOLERANCE_DEG,
+) -> bool:
+    """True when the OMBB is parallel to sheet axes within tolerance (visual alignment)."""
+    return _ombb_cardinal_deviation_deg(poly) <= angle_tolerance
 
 
 def needs_pre_align_orthogonal(poly: Polygon) -> bool:
-    """[REQ-FIT-NEST-002] Pre-align when orthogonal but not already sheet-parallel in source coords."""
+    """[REQ-FIT-NEST-002] Pre-align when orthogonal but OMBB is not sheet-parallel."""
     is_orthogonal, _principal_deg = classify_geometry(poly)
     if not is_orthogonal:
         return False
-    return not is_axis_aligned_on_sheet(poly)
+    return _ombb_cardinal_deviation_deg(poly) > _PRINCIPAL_SNAP_TOLERANCE_DEG
 
 
 def pre_align_orthogonal(poly: Polygon) -> tuple[Polygon, float | None]:
