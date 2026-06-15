@@ -17,6 +17,7 @@ from nesting_engine.nest_placement import (
     _fits_bin,
     _layout_better_than,
     _layout_bounds,
+    _layout_not_worse_than,
     _layout_rank_key,
     place_with_rotation,
     placed_polygon,
@@ -595,6 +596,12 @@ def _run_post_fill_phases(
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
+    )
+    sheets = _apply_gravity_compaction_to_sheets(
+        sheets,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
     )
     _report_pipeline_progress(
         progress_reporter,
@@ -1467,8 +1474,95 @@ def _compact_placed_pieces_to_margin(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     ):
-        return shifted
-    return compacted_pieces
+        candidate = shifted
+    else:
+        candidate = compacted_pieces
+    dropped = _compact_placed_pieces_down(
+        candidate,
+        pieces,
+        bin_width,
+        bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    if _sheet_pieces_are_valid(
+        dropped,
+        pieces,
+        bin_width_mm=bin_width,
+        bin_height_mm=bin_height,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    ):
+        return dropped
+    return candidate
+
+
+def _compact_placed_pieces_down(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece]:
+    """[REQ-FIT-NEST-002] Drop each piece vertically while clear; closes internal bottom voids."""
+    if not sheet_pieces:
+        return sheet_pieces
+
+    updated = [row.placement for row in sheet_pieces]
+    changed = True
+    while changed:
+        changed = False
+        order = sorted(
+            range(len(sheet_pieces)),
+            key=lambda index: (
+                placed_polygon(
+                    piece_polygon(apply_kerf(pieces[sheet_pieces[index].piece_index], kerf_mm)),
+                    updated[index],
+                ).bounds[1],
+                placed_polygon(
+                    piece_polygon(apply_kerf(pieces[sheet_pieces[index].piece_index], kerf_mm)),
+                    updated[index],
+                ).bounds[0],
+            ),
+        )
+        for index in order:
+            piece_index = sheet_pieces[index].piece_index
+            fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
+            placed = placed_polygon(fit_geom, updated[index])
+            if placed.bounds[1] <= margin_mm + _EPS_MM:
+                continue
+            dy = margin_mm - placed.bounds[1]
+            trial_placement = Placement(
+                updated[index].x,
+                updated[index].y + dy,
+                updated[index].rotation_deg,
+            )
+            trial = placed_polygon(fit_geom, trial_placement)
+            if not _fits_bin(trial, bin_width, bin_height, margin=margin_mm):
+                continue
+            obstacles = [
+                placed_polygon(
+                    piece_polygon(apply_kerf(pieces[sheet_pieces[other].piece_index], kerf_mm)),
+                    updated[other],
+                )
+                for other in range(len(sheet_pieces))
+                if other != index
+            ]
+            if any(polygons_overlap_significantly(trial, obstacle) for obstacle in obstacles):
+                continue
+            updated[index] = trial_placement
+            changed = True
+
+    return [
+        placed_piece_from_source(
+            sheet_pieces[index].piece_index,
+            pieces[sheet_pieces[index].piece_index],
+            updated[index],
+        )
+        for index in range(len(sheet_pieces))
+    ]
 
 
 def _apply_sheet_margin_shift(
@@ -1506,7 +1600,7 @@ def _apply_sheet_margin_shift(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
-    if not _layout_better_than(baseline_score, compacted_score):
+    if not _layout_not_worse_than(baseline_score, compacted_score):
         return work
     work[sheet_idx] = NestedSheet(
         stock_sort_order=sheet.stock_sort_order,
@@ -1516,6 +1610,40 @@ def _apply_sheet_margin_shift(
         offset_x_mm=sheet.offset_x_mm,
         pieces=compacted,
     )
+    return work
+
+
+def _apply_gravity_compaction_to_sheets(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[NestedSheet]:
+    """[REQ-FIT-NEST-002] Final pass: margin shift + vertical drop after optimizing phases."""
+    work: list[NestedSheet] = []
+    for sheet in sheets:
+        if not sheet.pieces:
+            work.append(sheet)
+            continue
+        compacted = _compact_placed_pieces_to_margin(
+            sheet.pieces,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        work.append(
+            NestedSheet(
+                stock_sort_order=sheet.stock_sort_order,
+                sheet_index=sheet.sheet_index,
+                width_mm=sheet.width_mm,
+                height_mm=sheet.height_mm,
+                offset_x_mm=sheet.offset_x_mm,
+                pieces=compacted,
+            )
+        )
     return work
 
 

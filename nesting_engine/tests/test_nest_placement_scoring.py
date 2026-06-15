@@ -9,6 +9,7 @@ from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 from nesting_engine.nest_placement import (
     _largest_continuous_free_area,
     _layout_better_than,
+    _layout_not_worse_than,
     _placement_score,
     place_with_rotation,
     placed_polygon,
@@ -92,6 +93,13 @@ def test_layout_better_than_rejects_regression_and_equal() -> None:
     assert not _layout_better_than(baseline, worse_free)
     assert not _layout_better_than(baseline, worse_footprint)
     assert not _layout_better_than(baseline, baseline)
+
+
+def test_layout_not_worse_than_accepts_equal_score() -> None:
+    """[REQ-FIT-NEST-002] Equal score tuples are acceptable when geometry still compacts."""
+    baseline = (100.0, 50.0, 200.0, 10.0, 20.0)
+    assert _layout_not_worse_than(baseline, baseline)
+    assert not _layout_not_worse_than(baseline, (90.0, 40.0, 200.0, 10.0, 20.0))
 
 
 def test_placement_score_prefers_larger_continuous_free_area_over_smaller_footprint() -> None:

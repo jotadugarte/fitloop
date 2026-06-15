@@ -305,6 +305,16 @@ def _layout_better_than(
     return improved
 
 
+def _layout_not_worse_than(
+    baseline: tuple[float, float, float, float, float],
+    candidate: tuple[float, float, float, float, float],
+) -> bool:
+    """[REQ-FIT-NEST-002] True when candidate matches or strictly improves the layout score tuple."""
+    if _layout_better_than(baseline, candidate):
+        return True
+    return _layout_rank_key(baseline) == _layout_rank_key(candidate)
+
+
 def _layout_rank_key(score: tuple[float, float, float, float, float]) -> tuple[float, float, float, float, float]:
     free_area, footprint, layout_maxy, min_y, min_x = score
     assert free_area >= 0.0 and footprint >= 0.0, "non-negative free area and footprint"

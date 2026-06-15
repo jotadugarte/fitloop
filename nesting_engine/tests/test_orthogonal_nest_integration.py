@@ -232,3 +232,48 @@ def test_nest_multi_bin_001_002_003_left_column_order_on_700_square() -> None:
     assert lowest.bounds[1] <= margin + _MARGIN_EPS_MM
     layout_maxx = max(poly.bounds[2] for poly in placed_polys)
     assert layout_maxx <= 300.0, "layout must not scatter a piece to the far right of the sheet"
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_seven_pieces_drop_002_to_bottom_on_700x800() -> None:
+    """[REQ-FIT-NEST-002] Vertical gravity compaction closes bottom voids (002 drops to margin)."""
+    fixture_names = [
+        "001.dxf",
+        "002.dxf",
+        "003.dxf",
+        "005.dxf",
+        "006.dxf",
+        "007.dxf",
+        "008.dxf",
+    ]
+    pieces = [ _load_fixture_polygon(name) for name in fixture_names ]
+    name_by_index = { index: name for index, name in enumerate(fixture_names) }
+    bin_w, bin_h, margin = 700.0, 800.0, 5.0
+    stocks = [ SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0) ]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    placed_by_name: dict[str, object] = {}
+    for row in result.sheets[0].pieces:
+        poly = placed_polygon(
+            apply_kerf(piece_polygon(pieces[row.piece_index]), 0.0),
+            row.placement,
+        )
+        placed_by_name[name_by_index[row.piece_index]] = poly
+
+    piece_002 = placed_by_name["002.dxf"]
+    assert piece_002.bounds[1] <= margin + _MARGIN_EPS_MM, "002 must drop into the bottom margin band"
+    for poly in placed_by_name.values():
+        minx, miny, maxx, maxy = poly.bounds
+        assert minx >= margin - _MARGIN_EPS_MM
+        assert miny >= margin - _MARGIN_EPS_MM
+        assert maxx <= bin_w - margin + _MARGIN_EPS_MM
+        assert maxy <= bin_h - margin + _MARGIN_EPS_MM
