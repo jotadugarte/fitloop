@@ -921,9 +921,9 @@ def _world_placement_valid(
         return False
     if maxx > bin_width_mm - margin_mm + _EPS_MM or maxy > bin_height_mm - margin_mm + _EPS_MM:
         return False
-        for blocker in obstacles + other_placed:
-            if polygons_overlap_significantly(world, blocker):
-                return False
+    for blocker in obstacles + other_placed:
+        if polygons_overlap_significantly(world, blocker):
+            return False
     return True
 
 

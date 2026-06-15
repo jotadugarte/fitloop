@@ -12,14 +12,40 @@ from nesting_engine.nest import run_from_config
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import (
     _sheet_piece_world_polygon,
+    _world_placement_valid,
     capabilities,
     nest_multi_bin,
     nest_sheet,
     nest_sheet_with_obstacles,
 )
-from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon
+from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon, polygons_overlap_significantly
 
 _EPS_MM = 1e-6
+
+
+def test_world_placement_valid_rejects_in_bin_overlap() -> None:
+    """[REQ-FIT-NEST-002] Overlap check must run for placements inside sheet bounds."""
+    obstacle = box(10, 10, 40, 40)
+    overlapping = box(30, 30, 60, 60)
+    clear = box(50, 50, 80, 80)
+
+    assert polygons_overlap_significantly(overlapping, obstacle)
+    assert not _world_placement_valid(
+        overlapping,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+        obstacles=[obstacle],
+        other_placed=[],
+    )
+    assert _world_placement_valid(
+        clear,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+        obstacles=[obstacle],
+        other_placed=[],
+    )
 
 
 def test_capabilities_reports_libnest2d_production() -> None:
