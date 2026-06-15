@@ -2,7 +2,7 @@ import math
 from pathlib import Path
 from shapely.geometry import Polygon, Point
 from shapely.affinity import rotate
-from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet, pre_align_orthogonal
+from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet, needs_pre_align_orthogonal, pre_align_orthogonal
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 def test_basic_shapes():
@@ -61,6 +61,20 @@ def test_real_fixtures():
     is_ortho_011, angle_011 = classify_geometry(poly_011)
     assert is_ortho_011 is True
     assert abs(angle_011 - 45.0) < 1.0
+
+
+def test_needs_pre_align_when_ombb_tilted_but_segments_are_sheet_parallel() -> None:
+    """[REQ-FIT-NEST-002] Staircase 009: orthogonal + H/V segments → no pre-align; cardinal pick handles orientation."""
+    workspace = Path(__file__).parent.parent.parent
+    warnings: list[str] = []
+    p009_path = workspace / "nesting_engine/tests/fixtures/individuals/009.dxf"
+    pieces = load_pieces([str(p009_path)], ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    poly_009 = piece_polygon(pieces[0])
+    _is_ortho, principal = classify_geometry(poly_009)
+    assert _is_ortho is True
+    assert abs(principal - 85.0) < 2.0
+    assert is_axis_aligned_on_sheet(poly_009) is True
+    assert needs_pre_align_orthogonal(poly_009) is False
 
 
 def test_pre_align_uses_exact_ombb_for_arbitrary_tilt():

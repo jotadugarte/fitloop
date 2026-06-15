@@ -104,13 +104,19 @@ def classify_geometry(
     return is_orthogonal, best_angle
 
 
+def needs_pre_align_orthogonal(poly: Polygon) -> bool:
+    """[REQ-FIT-NEST-002] Pre-align when orthogonal but not already sheet-parallel in source coords."""
+    is_orthogonal, _principal_deg = classify_geometry(poly)
+    if not is_orthogonal:
+        return False
+    return not is_axis_aligned_on_sheet(poly)
+
+
 def pre_align_orthogonal(poly: Polygon) -> tuple[Polygon, float | None]:
     """Rotate predominantly orthogonal polygons to sheet axes; return (geometry, offset_deg)."""
-    is_orthogonal, principal_deg = classify_geometry(poly)
-    if not is_orthogonal:
+    if not needs_pre_align_orthogonal(poly):
         return poly, None
-    if is_axis_aligned_on_sheet(poly):
-        return poly, None
+    _is_orthogonal, principal_deg = classify_geometry(poly)
     offset_deg = _pre_align_offset_deg(principal_deg)
     return rotate(poly, -offset_deg, origin="centroid"), offset_deg
 

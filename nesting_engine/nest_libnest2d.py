@@ -230,6 +230,37 @@ def libnest2d_binding_name() -> str:
     return _BINDING_NAME
 
 
+def _best_cardinal_single_piece_placement(
+    fit_geom: Polygon,
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+) -> Placement:
+    """[REQ-FIT-NEST-002] Pick 0/90/180/270° at margin with smallest layout footprint."""
+    best_placement: Placement | None = None
+    best_key: tuple[float, float, float] | None = None
+    for angle in ORTHO_ROTATIONS_DEG:
+        rotated = rotate(fit_geom, angle, origin="centroid")
+        rminx, rminy, _, _ = rotated.bounds
+        placement = Placement(margin_mm - rminx, margin_mm - rminy, float(angle))
+        placed = placed_polygon(fit_geom, placement)
+        if not _fits_bin(placed, bin_width, bin_height, margin=margin_mm):
+            continue
+        _free_area, footprint = score_sheet_layout(bin_width, bin_height, margin_mm, [ placed ])
+        minx, _miny, _maxx, maxy = placed.bounds
+        key = (footprint, maxy, minx)
+        if best_key is None or key < best_key:
+            best_key = key
+            best_placement = placement
+    assert best_placement is not None, "single orthogonal piece must fit at some cardinal angle"
+    placed = placed_polygon(fit_geom, best_placement)
+    assert is_axis_aligned_on_sheet(placed), (
+        f"cardinal single-piece placement must be axis-aligned (rotation_deg={best_placement.rotation_deg})"
+    )
+    return best_placement
+
+
 def nest_sheet(
     pieces: list[Polygon],
     bin_width_mm: float,
@@ -244,6 +275,19 @@ def nest_sheet(
     assert len(pieces) <= _MAX_PIECES, "piece count exceeds sheet limit"
 
     fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
+    if len(pieces) == 1:
+        fit_geom = piece_polygon(fit_pieces[0])
+        prep = _prepare_solver_piece(fit_geom)
+        if prep.is_orthogonal:
+            return [
+                _best_cardinal_single_piece_placement(
+                    fit_geom,
+                    bin_width_mm,
+                    bin_height_mm,
+                    margin_mm=margin_mm,
+                )
+            ]
+
     centered_bin = _centered_bin_for_batch(
         len(pieces),
         0,

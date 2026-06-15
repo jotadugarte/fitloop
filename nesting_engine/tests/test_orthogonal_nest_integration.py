@@ -277,3 +277,30 @@ def test_nest_multi_bin_seven_pieces_drop_002_to_bottom_on_700x800() -> None:
         assert miny >= margin - _MARGIN_EPS_MM
         assert maxx <= bin_w - margin + _MARGIN_EPS_MM
         assert maxy <= bin_h - margin + _MARGIN_EPS_MM
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_009_single_piece_prefers_horizontal_cardinal_on_700x800() -> None:
+    """[REQ-FIT-NEST-002] Single orthogonal 009 picks the smaller-footprint horizontal cardinal."""
+    piece = _load_fixture_polygon("009.dxf")
+    bin_w, bin_h, margin = 700.0, 800.0, 5.0
+    stocks = [ SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0) ]
+
+    result = nest_multi_bin(
+        [ piece ],
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    row = result.sheets[0].pieces[0]
+    poly = placed_polygon(apply_kerf(piece_polygon(piece), 0.0), row.placement)
+    minx, miny, maxx, maxy = poly.bounds
+    width = maxx - minx
+    height = maxy - miny
+    assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
+    assert is_axis_aligned_on_sheet(poly)
+    assert width > height, "009 should nest horizontal (wide) rather than vertical (tall)"
