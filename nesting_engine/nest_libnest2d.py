@@ -38,6 +38,7 @@ from nesting_engine.nest_geometry_classify import (
     ORTHO_ROTATIONS_DEG,
     classify_geometry,
     is_axis_aligned_on_sheet,
+    is_ombb_axis_aligned_on_sheet,
     is_orthogonal_for_cardinal_nesting,
     pre_align_orthogonal,
 )
@@ -203,17 +204,27 @@ def _restore_placement_to_source(
     world = world_geometry if world_geometry is not None else placed_polygon(
         solver_geometry, solver_placement
     )
-    if pre_align_deg is not None:
+    if pre_align_deg is not None and abs(pre_align_deg) > _EPS_MM:
         rotation_deg = (solver_placement.rotation_deg - pre_align_deg) % 360.0
         rotated = rotate(source_geometry, rotation_deg, origin="centroid")
         wminx, wminy, _, _ = world.bounds
         rminx, rminy, _, _ = rotated.bounds
         placement = Placement(wminx - rminx, wminy - rminy, rotation_deg)
         placed = placed_polygon(source_geometry, placement)
-        assert is_axis_aligned_on_sheet(placed), (
+        assert is_ombb_axis_aligned_on_sheet(placed), (
             f"pre-aligned orthogonal piece must nest axis-aligned (rotation_deg={rotation_deg})"
         )
         return placement
+    if is_orthogonal_for_cardinal_nesting(source_geometry):
+        prep = _prepare_solver_piece(source_geometry)
+        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+            solver_placement = _orthogonal_placement_from_world(prep.solver_geometry, world)
+            rotation_deg = (solver_placement.rotation_deg - prep.pre_align_deg) % 360.0
+            rotated = rotate(source_geometry, rotation_deg, origin="centroid")
+            wminx, wminy, _, _ = world.bounds
+            rminx, rminy, _, _ = rotated.bounds
+            return Placement(wminx - rminx, wminy - rminy, rotation_deg)
+        return _orthogonal_placement_from_world(source_geometry, world)
     restored, _diff = _placement_from_world_best_effort(source_geometry, world)
     return restored
 
@@ -256,10 +267,35 @@ def _best_cardinal_single_piece_placement(
             best_placement = placement
     assert best_placement is not None, "single orthogonal piece must fit at some cardinal angle"
     placed = placed_polygon(fit_geom, best_placement)
-    assert is_axis_aligned_on_sheet(placed), (
+    assert is_ombb_axis_aligned_on_sheet(placed), (
         f"cardinal single-piece placement must be axis-aligned (rotation_deg={best_placement.rotation_deg})"
     )
     return best_placement
+
+
+def _cardinal_placement_for_fit_geometry(
+    fit_geom: Polygon,
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+) -> Placement:
+    """[REQ-FIT-NEST-002] Cardinal pick on pre-aligned solver geometry; map back to source."""
+    prep = _prepare_solver_piece(fit_geom)
+    solver_placement = _best_cardinal_single_piece_placement(
+        prep.solver_geometry,
+        bin_width,
+        bin_height,
+        margin_mm=margin_mm,
+    )
+    if prep.pre_align_deg is None or abs(prep.pre_align_deg) <= _EPS_MM:
+        return solver_placement
+    return _restore_placement_to_source(
+        fit_geom,
+        prep.solver_geometry,
+        solver_placement,
+        pre_align_deg=prep.pre_align_deg,
+    )
 
 
 def nest_sheet(
@@ -280,7 +316,7 @@ def nest_sheet(
         fit_geom = piece_polygon(fit_pieces[0])
         if is_orthogonal_for_cardinal_nesting(fit_geom):
             return [
-                _best_cardinal_single_piece_placement(
+                _cardinal_placement_for_fit_geometry(
                     fit_geom,
                     bin_width_mm,
                     bin_height_mm,
@@ -342,6 +378,7 @@ def nest_sheet(
                 frame_ox=frame_ox,
                 frame_oy=frame_oy,
                 centered_bin=centered_bin,
+                orthogonal=prep.is_orthogonal,
             )
             ox, oy = offsets[index]
             if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
@@ -355,11 +392,21 @@ def nest_sheet(
                     world_geometry=sheet_world,
                 )
             else:
-                orig_placement = Placement(
-                    x=resolved.placement.x + ox,
-                    y=resolved.placement.y + oy,
-                    rotation_deg=resolved.placement.rotation_deg,
-                )
+                if prep.is_orthogonal:
+                    solver_world = placed_polygon(prep.solver_geometry, resolved.placement)
+                    sheet_world = translate(solver_world, xoff=ox, yoff=oy)
+                    orig_placement = _restore_placement_to_source(
+                        fit_geom,
+                        prep.solver_geometry,
+                        resolved.placement,
+                        world_geometry=sheet_world,
+                    )
+                else:
+                    orig_placement = Placement(
+                        x=resolved.placement.x + ox,
+                        y=resolved.placement.y + oy,
+                        rotation_deg=resolved.placement.rotation_deg,
+                    )
         placements.append(orig_placement)
 
     assert len(placements) == len(pieces)
@@ -851,6 +898,7 @@ def _collect_obstacle_aware_placements(
             frame_ox=frame_ox,
             frame_oy=frame_oy,
             centered_bin=centered_bin,
+            orthogonal=prep.is_orthogonal,
         )
         placements[index] = resolved
         placed_world.append(_sheet_piece_world_polygon(resolved))
@@ -994,6 +1042,7 @@ def _resolve_libnest2d_placement(
     frame_ox: float,
     frame_oy: float,
     centered_bin: bool = True,
+    orthogonal: bool = False,
 ) -> SheetPiecePlacement:
     """Map pynest2d item pose to Placement; use transformed contour when inverse fit fails."""
     world = _world_polygon_from_item(
@@ -1025,6 +1074,10 @@ def _resolve_libnest2d_placement(
     for placement in candidates:
         if _placement_matches_world(nest_geometry, placement, world, tolerance_mm2=tolerance):
             return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
+
+    if orthogonal or is_orthogonal_for_cardinal_nesting(nest_geometry):
+        placement = _orthogonal_placement_from_world(nest_geometry, world)
+        return SheetPiecePlacement(placement=placement, geometry=nest_geometry)
 
     placement, best_diff = _placement_from_world_best_effort(nest_geometry, world)
     if best_diff <= tolerance:
@@ -1715,7 +1768,7 @@ def _finalize_single_piece_cardinal_if_orthogonal(
     fit_geom = piece_polygon(apply_kerf(pieces[row.piece_index], kerf_mm))
     if not is_orthogonal_for_cardinal_nesting(fit_geom):
         return sheet_pieces
-    placement = _best_cardinal_single_piece_placement(
+    placement = _cardinal_placement_for_fit_geometry(
         fit_geom,
         bin_width,
         bin_height,
@@ -2033,7 +2086,7 @@ def _try_orthogonal_flip_improvements(
         )
 
         placed_poly = placed_polygon(fit_geom, new_placement)
-        if not is_axis_aligned_on_sheet(placed_poly):
+        if not is_ombb_axis_aligned_on_sheet(placed_poly):
             continue
 
         trial = list(best)

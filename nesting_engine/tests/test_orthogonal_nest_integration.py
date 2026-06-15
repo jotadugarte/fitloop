@@ -1,12 +1,23 @@
 # [REQ-FIT-NEST-002] Orthogonal DXF fixtures nest axis-aligned on one sheet.
 from __future__ import annotations
 
+import json
+import math
+import tempfile
 from pathlib import Path
 
 import pytest
+from shapely.affinity import rotate
+from shapely.geometry import Polygon
 
-from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet
-from nesting_engine.nest_libnest2d import nest_multi_bin, nest_sheet
+from nesting_engine.nest import run_from_config
+from nesting_engine.nest_geometry_classify import (
+    _ombb_cardinal_deviation_deg,
+    classify_geometry,
+    is_ombb_axis_aligned_on_sheet,
+    is_axis_aligned_on_sheet,
+)
+from nesting_engine.nest_libnest2d import nest_multi_bin, nest_sheet, _prepare_solver_piece
 from nesting_engine.nest_placement import placed_polygon, score_sheet_layout
 from nesting_engine.nest_types import SheetStockSpec, apply_kerf
 from nesting_engine.piece_loader import load_pieces, piece_polygon
@@ -35,6 +46,20 @@ def _assert_cardinal_rotation_deg(rotation_deg: float) -> None:
     )
 
 
+def _effective_solver_rotation_deg(piece, placement) -> float:
+    prep = _prepare_solver_piece(piece_polygon(piece))
+    rotation_deg = placement.rotation_deg
+    if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > 1e-9:
+        rotation_deg = (rotation_deg + prep.pre_align_deg) % 360.0
+    return rotation_deg
+
+
+def _assert_preview_ring_visually_axis_aligned(ring_poly: Polygon) -> None:
+    assert is_ombb_axis_aligned_on_sheet(ring_poly), (
+        "preview ring OMBB must be sheet-parallel (no ~5° staircase tilt)"
+    )
+
+
 def _assert_pieces_nest_axis_aligned(
     pieces: list,
     placements: list,
@@ -45,7 +70,7 @@ def _assert_pieces_nest_axis_aligned(
     for piece, placement in zip(pieces, placements, strict=True):
         fit = apply_kerf(piece_polygon(piece), kerf_mm)
         placed = placed_polygon(fit, placement)
-        assert is_axis_aligned_on_sheet(placed), (
+        assert is_ombb_axis_aligned_on_sheet(placed), (
             f"piece must nest axis-aligned; rotation_deg={placement.rotation_deg}"
         )
         placed_polys.append(placed)
@@ -314,8 +339,8 @@ def test_nest_multi_bin_009_single_piece_prefers_horizontal_cardinal_on_700x800(
     width = maxx - minx
     height = maxy - miny
     assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
-    assert is_axis_aligned_on_sheet(poly)
-    _assert_cardinal_rotation_deg(row.placement.rotation_deg)
+    assert is_ombb_axis_aligned_on_sheet(poly)
+    _assert_cardinal_rotation_deg(_effective_solver_rotation_deg(piece, row.placement))
     assert width > height, "009 should nest horizontal (wide) rather than vertical (tall)"
 
 
@@ -342,6 +367,122 @@ def test_nest_multi_bin_009_single_piece_cardinal_on_700_square_workshop_toleran
     width = maxx - minx
     height = maxy - miny
     assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
-    assert is_axis_aligned_on_sheet(poly)
-    _assert_cardinal_rotation_deg(row.placement.rotation_deg)
+    assert is_ombb_axis_aligned_on_sheet(poly)
+    _assert_cardinal_rotation_deg(_effective_solver_rotation_deg(piece, row.placement))
     assert width > height
+
+
+@pytest.mark.slow
+def test_run_from_config_009_placements_rings_stay_axis_aligned_for_preview() -> None:
+    """[REQ-FIT-NEST-002] placements.json rings must not be Douglas-Peucker tilted for preview SVG."""
+    path = _FIXTURES / "009.dxf"
+    with tempfile.TemporaryDirectory() as tmp:
+        config = {
+            "output_dir": tmp,
+            "input_files": [
+                {
+                    "path": str(path.resolve()),
+                    "primary_layer": "CORTE",
+                    "auxiliary_layers": [],
+                }
+            ],
+            "sheet_stocks": [
+                {"width_mm": 700.0, "height_mm": 700.0, "quantity": 1, "sort_order": 0}
+            ],
+            "margin_mm": 5.0,
+            "kerf_mm": 0.0,
+            "sheet_gap_mm": 0.0,
+            "curve_tolerance_mm": 0.1,
+            "time_limit_sec": 600,
+        }
+        run_from_config(config)
+        piece = json.loads(Path(tmp, "placements.json").read_text())["sheets"][0]["pieces"][0]
+        ring_poly = Polygon(piece["rings"][0])
+        _assert_preview_ring_visually_axis_aligned(ring_poly)
+        _assert_cardinal_rotation_deg(piece["rotation_deg"])
+        assert piece["width_mm"] > piece["height_mm"]
+
+
+@pytest.mark.slow
+def test_run_from_config_009_placements_rings_axis_aligned_on_500_square() -> None:
+    """[REQ-FIT-NEST-002] Workshop 500×500 preview must not show ~5° OMBB tilt for 009."""
+    path = _FIXTURES / "009.dxf"
+    with tempfile.TemporaryDirectory() as tmp:
+        config = {
+            "output_dir": tmp,
+            "input_files": [
+                {
+                    "path": str(path.resolve()),
+                    "primary_layer": "CORTE",
+                    "auxiliary_layers": [],
+                }
+            ],
+            "sheet_stocks": [
+                {"width_mm": 500.0, "height_mm": 500.0, "quantity": 1, "sort_order": 0}
+            ],
+            "margin_mm": 5.0,
+            "kerf_mm": 0.0,
+            "sheet_gap_mm": 0.0,
+            "curve_tolerance_mm": 0.1,
+            "time_limit_sec": 600,
+        }
+        run_from_config(config)
+        piece = json.loads(Path(tmp, "placements.json").read_text())["sheets"][0]["pieces"][0]
+        ring_poly = Polygon(piece["rings"][0])
+        _assert_preview_ring_visually_axis_aligned(ring_poly)
+        _assert_cardinal_rotation_deg(piece["rotation_deg"])
+
+
+@pytest.mark.slow
+def test_restore_skewed_libnest2d_world_keeps_cardinal_for_orthogonal_009() -> None:
+    """[REQ-FIT-NEST-002] Quantized libnest2d pose must not restore as ~5° off cardinal."""
+    from shapely.affinity import rotate
+
+    from nesting_engine.nest import _placed_world_polygon
+    from nesting_engine.nest_libnest2d import _restore_placement_to_source
+
+    piece = _load_fixture_polygon("009.dxf", curve_tolerance_mm=0.1)
+    poly = piece_polygon(piece)
+    result = nest_multi_bin(
+        [ piece ],
+        [ SheetStockSpec(width_mm=500.0, height_mm=500.0, quantity=1, sort_order=0) ],
+        margin_mm=5.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+    row = result.sheets[0].pieces[0]
+    world = _placed_world_polygon(row)
+    skewed_world = rotate(world, 5.0, origin="centroid")
+    restored = _restore_placement_to_source(
+        poly,
+        poly,
+        row.placement,
+        world_geometry=skewed_world,
+    )
+    placed = placed_polygon(poly, restored)
+    assert is_ombb_axis_aligned_on_sheet(placed)
+    _assert_cardinal_rotation_deg(_effective_solver_rotation_deg(piece, restored))
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_tilted_orthogonal_rectangle_nests_axis_aligned_on_500_square() -> None:
+    """[REQ-FIT-NEST-002] Source-tilted orthogonal rects pre-align before cardinal pick (no ~5° drift)."""
+    source = rotate(Polygon([(0, 0), (200, 0), (200, 40), (0, 40)]), 5.0, origin="centroid")
+    bin_w, bin_h, margin = 500.0, 500.0, 5.0
+    stocks = [ SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0) ]
+
+    result = nest_multi_bin(
+        [ source ],
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    row = result.sheets[0].pieces[0]
+    poly = placed_polygon(source, row.placement)
+    assert is_axis_aligned_on_sheet(poly)
+    minx, miny, _, _ = poly.bounds
+    assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
