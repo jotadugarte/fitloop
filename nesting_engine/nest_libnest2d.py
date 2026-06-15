@@ -38,6 +38,7 @@ from nesting_engine.nest_geometry_classify import (
     ORTHO_ROTATIONS_DEG,
     classify_geometry,
     is_axis_aligned_on_sheet,
+    is_orthogonal_for_cardinal_nesting,
     pre_align_orthogonal,
 )
 
@@ -277,8 +278,7 @@ def nest_sheet(
     fit_pieces = [apply_kerf(piece, kerf_mm) for piece in pieces]
     if len(pieces) == 1:
         fit_geom = piece_polygon(fit_pieces[0])
-        prep = _prepare_solver_piece(fit_geom)
-        if prep.is_orthogonal:
+        if is_orthogonal_for_cardinal_nesting(fit_geom):
             return [
                 _best_cardinal_single_piece_placement(
                     fit_geom,
@@ -1678,6 +1678,14 @@ def _apply_gravity_compaction_to_sheets(
             margin_mm=margin_mm,
             kerf_mm=kerf_mm,
         )
+        finalized = _finalize_single_piece_cardinal_if_orthogonal(
+            compacted,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
         work.append(
             NestedSheet(
                 stock_sort_order=sheet.stock_sort_order,
@@ -1685,10 +1693,41 @@ def _apply_gravity_compaction_to_sheets(
                 width_mm=sheet.width_mm,
                 height_mm=sheet.height_mm,
                 offset_x_mm=sheet.offset_x_mm,
-                pieces=compacted,
+                pieces=finalized,
             )
         )
     return work
+
+
+def _finalize_single_piece_cardinal_if_orthogonal(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    bin_width: float,
+    bin_height: float,
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[PlacedPiece]:
+    """[REQ-FIT-NEST-002] Re-apply cardinal placement after optimize phases (single-piece sheets)."""
+    if len(sheet_pieces) != 1:
+        return sheet_pieces
+    row = sheet_pieces[0]
+    fit_geom = piece_polygon(apply_kerf(pieces[row.piece_index], kerf_mm))
+    if not is_orthogonal_for_cardinal_nesting(fit_geom):
+        return sheet_pieces
+    placement = _best_cardinal_single_piece_placement(
+        fit_geom,
+        bin_width,
+        bin_height,
+        margin_mm=margin_mm,
+    )
+    return [
+        placed_piece_from_source(
+            row.piece_index,
+            pieces[row.piece_index],
+            placement,
+        )
+    ]
 
 
 def _greedy_place_pending(

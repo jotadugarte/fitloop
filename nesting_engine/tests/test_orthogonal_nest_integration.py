@@ -14,13 +14,25 @@ from nesting_engine.piece_loader import load_pieces, piece_polygon
 _FIXTURES = Path(__file__).resolve().parent / "fixtures" / "individuals"
 
 
-def _load_fixture_polygon(name: str):
+def _load_fixture_polygon(name: str, *, curve_tolerance_mm: float = 0.25):
     path = _FIXTURES / name
     assert path.is_file(), f"missing fixture: {path}"
     warnings: list[str] = []
-    pieces = load_pieces([str(path)], ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    pieces = load_pieces(
+        [str(path)],
+        ["PIECES", "CORTE"],
+        curve_tolerance_mm=curve_tolerance_mm,
+        warnings=warnings,
+    )
     assert len(pieces) == 1
     return pieces[0]
+
+
+def _assert_cardinal_rotation_deg(rotation_deg: float) -> None:
+    residual = abs(rotation_deg % 90.0)
+    assert residual <= _MARGIN_EPS_MM or abs(residual - 90.0) <= _MARGIN_EPS_MM, (
+        f"expected cardinal rotation, got rotation_deg={rotation_deg}"
+    )
 
 
 def _assert_pieces_nest_axis_aligned(
@@ -303,4 +315,33 @@ def test_nest_multi_bin_009_single_piece_prefers_horizontal_cardinal_on_700x800(
     height = maxy - miny
     assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
     assert is_axis_aligned_on_sheet(poly)
+    _assert_cardinal_rotation_deg(row.placement.rotation_deg)
     assert width > height, "009 should nest horizontal (wide) rather than vertical (tall)"
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_009_single_piece_cardinal_on_700_square_workshop_tolerance() -> None:
+    """[REQ-FIT-NEST-002] Finalize pass forces cardinal layout for 009 at project curve tolerance."""
+    piece = _load_fixture_polygon("009.dxf", curve_tolerance_mm=0.1)
+    bin_w, bin_h, margin = 700.0, 700.0, 5.0
+    stocks = [ SheetStockSpec(width_mm=bin_w, height_mm=bin_h, quantity=1, sort_order=0) ]
+
+    result = nest_multi_bin(
+        [ piece ],
+        stocks,
+        margin_mm=margin,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    row = result.sheets[0].pieces[0]
+    poly = placed_polygon(apply_kerf(piece_polygon(piece), 0.0), row.placement)
+    minx, miny, maxx, maxy = poly.bounds
+    width = maxx - minx
+    height = maxy - miny
+    assert minx <= margin + _MARGIN_EPS_MM and miny <= margin + _MARGIN_EPS_MM
+    assert is_axis_aligned_on_sheet(poly)
+    _assert_cardinal_rotation_deg(row.placement.rotation_deg)
+    assert width > height

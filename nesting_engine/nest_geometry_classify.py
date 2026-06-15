@@ -104,6 +104,18 @@ def classify_geometry(
     return is_orthogonal, best_angle
 
 
+def is_orthogonal_for_cardinal_nesting(
+    poly: Polygon,
+    *,
+    ortho_threshold: float = 0.70,
+) -> bool:
+    """[REQ-FIT-NEST-002] True when piece should use cardinal 0/90/180/270° nesting."""
+    is_orthogonal, _principal_deg = classify_geometry(poly, ortho_threshold=ortho_threshold)
+    if is_orthogonal:
+        return True
+    return is_axis_aligned_on_sheet(poly)
+
+
 def needs_pre_align_orthogonal(poly: Polygon) -> bool:
     """[REQ-FIT-NEST-002] Pre-align when orthogonal but not already sheet-parallel in source coords."""
     is_orthogonal, _principal_deg = classify_geometry(poly)

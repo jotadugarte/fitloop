@@ -2,7 +2,13 @@ import math
 from pathlib import Path
 from shapely.geometry import Polygon, Point
 from shapely.affinity import rotate
-from nesting_engine.nest_geometry_classify import classify_geometry, is_axis_aligned_on_sheet, needs_pre_align_orthogonal, pre_align_orthogonal
+from nesting_engine.nest_geometry_classify import (
+    classify_geometry,
+    is_axis_aligned_on_sheet,
+    is_orthogonal_for_cardinal_nesting,
+    needs_pre_align_orthogonal,
+    pre_align_orthogonal,
+)
 from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 def test_basic_shapes():
@@ -75,6 +81,7 @@ def test_needs_pre_align_when_ombb_tilted_but_segments_are_sheet_parallel() -> N
     assert abs(principal - 85.0) < 2.0
     assert is_axis_aligned_on_sheet(poly_009) is True
     assert needs_pre_align_orthogonal(poly_009) is False
+    assert is_orthogonal_for_cardinal_nesting(poly_009) is True
 
 
 def test_pre_align_uses_exact_ombb_for_arbitrary_tilt():
