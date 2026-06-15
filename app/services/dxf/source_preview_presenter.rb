@@ -21,7 +21,7 @@ module Dxf
     end
 
     def has_open_shapes?
-      layers.any? { |layer| layer.polylines.any?(&:is_open) || layer.gaps.any? }
+      layers.any? { |layer| layer.polylines.any?(&:is_open) || showable_gaps?(layer) }
     end
 
     def has_valid_shapes?
@@ -100,9 +100,13 @@ module Dxf
 
     def included_layer_names
       @included_layer_names ||= begin
-        scope = @project.project_layers.where(included: true)
-        scope = scope.where(active_storage_attachment_id: @attachment.id) if @attachment
-        scope.order(:layer_name).pluck(:layer_name)
+        if per_file_preview_configs?
+          preview_attachments.flat_map { |attachment| preview_layer_names_for(attachment) }.uniq.sort
+        else
+          included = @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)
+          gap_names = @project.project_layers.order(:layer_name).select { |layer| showable_detected_gaps?(layer) }.map(&:layer_name)
+          (included + gap_names).uniq.sort
+        end
       end
     end
 
@@ -143,7 +147,7 @@ module Dxf
           name: layer_name,
           color: row.fetch("color"),
           polylines: normalize_polylines(row["polylines"], row["polyline_open_flags"]),
-          gaps: normalize_gaps(row["gaps"]),
+          gaps: merged_gaps_for(layer_name, row["gaps"], auto_close: auto_close),
           auto_close_lines: normalize_raw_polylines(row["auto_close_lines"]),
           auto_close_gaps: auto_close
         )
@@ -171,7 +175,7 @@ module Dxf
           distance_mm: gap.fetch("distance_mm").to_f,
           start: [ gap.fetch("start").fetch(0).to_f, gap.fetch("start").fetch(1).to_f ],
           end: [ gap.fetch("end").fetch(0).to_f, gap.fetch("end").fetch(1).to_f ],
-          auto_closed: !!gap.fetch("auto_closed")
+          auto_closed: !!gap["auto_closed"]
         }
       end
     end
@@ -207,7 +211,7 @@ module Dxf
         primary = primary_layer_for(attachment)
         if primary
           entry = { primary_layer: primary.layer_name }
-          auxiliary = auxiliary_layers_for(attachment)
+          auxiliary = (auxiliary_layers_for(attachment) + preview_layer_names_for(attachment) - [ primary.layer_name ]).uniq.sort
           entry[:auxiliary_layers] = auxiliary if auxiliary.any?
           entry[:auto_close_layers] = [primary.layer_name] if primary.auto_close_gaps?
           entry
@@ -228,10 +232,70 @@ module Dxf
     end
 
     def included_layers_for(attachment)
-      @project.project_layers
+      preview_layer_names_for(attachment)
+    end
+
+    def preview_layer_names_for(attachment)
+      included = @project.project_layers
         .where(included: true, active_storage_attachment_id: attachment.id)
         .order(:layer_name)
         .pluck(:layer_name)
+      (included + gap_layer_names_for(attachment)).uniq.sort
+    end
+
+    def gap_layer_names_for(attachment)
+      @project.project_layers
+        .where(active_storage_attachment_id: attachment.id)
+        .order(:layer_name)
+        .select { |layer| showable_detected_gaps?(layer) }
+        .map(&:layer_name)
+    end
+
+    def merged_gaps_for(layer_name, preview_gaps, auto_close:)
+      gaps = normalize_gaps(preview_gaps)
+      project_layer = project_layer_for(layer_name)
+      return gaps if project_layer.blank?
+
+      detected = normalize_gaps(project_layer.gaps_detected)
+      return gaps if detected.empty?
+
+      merge_gaps(gaps, detected, auto_close: auto_close)
+    end
+
+    def merge_gaps(preview_gaps, detected_gaps, auto_close:)
+      keys = preview_gaps.map { |gap| gap_key(gap) }
+      detected_gaps.each do |gap|
+        key = gap_key(gap)
+        next if keys.include?(key)
+
+        preview_gaps << gap.merge(auto_closed: auto_close && gap[:distance_mm] <= 15.0)
+        keys << key
+      end
+      preview_gaps
+    end
+
+    def gap_key(gap)
+      [
+        gap[:distance_mm].to_f.round(4),
+        gap[:start][0].to_f.round(4),
+        gap[:start][1].to_f.round(4),
+        gap[:end][0].to_f.round(4),
+        gap[:end][1].to_f.round(4)
+      ]
+    end
+
+    def showable_gaps?(layer)
+      layer.gaps.any? { |gap| gap[:distance_mm].to_f > 2.0 && !gap[:auto_closed] }
+    end
+
+    def showable_detected_gaps?(layer)
+      Nesting::GapReport.from_json(layer.gaps_detected).gaps.any? { |gap| gap.value > 2.0 }
+    end
+
+    def project_layer_for(layer_name)
+      scope = @project.project_layers.where(layer_name: layer_name)
+      scope = scope.where(active_storage_attachment_id: @attachment.id) if @attachment
+      scope.first
     end
 
     def preview_attachments
