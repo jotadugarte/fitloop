@@ -104,7 +104,9 @@ module Dxf
           preview_attachments.flat_map { |attachment| preview_layer_names_for(attachment) }.uniq.sort
         else
           included = @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)
-          gap_names = @project.project_layers.order(:layer_name).select { |layer| showable_detected_gaps?(layer) }.map(&:layer_name)
+          gap_names = @project.project_layers.order(:layer_name).select { |layer|
+            layer.closed_contour_gap_validation? && showable_detected_gaps?(layer)
+          }.map(&:layer_name)
           (included + gap_names).uniq.sort
         end
       end
@@ -247,7 +249,7 @@ module Dxf
       @project.project_layers
         .where(active_storage_attachment_id: attachment.id)
         .order(:layer_name)
-        .select { |layer| showable_detected_gaps?(layer) }
+        .select { |layer| layer.closed_contour_gap_validation? && showable_detected_gaps?(layer) }
         .map(&:layer_name)
     end
 
@@ -255,6 +257,7 @@ module Dxf
       gaps = normalize_gaps(preview_gaps)
       project_layer = project_layer_for(layer_name)
       return gaps if project_layer.blank?
+      return gaps unless project_layer.closed_contour_gap_validation?
 
       detected = normalize_gaps(project_layer.gaps_detected)
       return gaps if detected.empty?
