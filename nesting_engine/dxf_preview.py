@@ -262,19 +262,10 @@ def _file_layer_polylines(
         gaps = find_layer_gaps(doc, name, curve_tolerance_mm)
         auth_gaps = [gap for gap in gaps if gap_needs_authorization(gap["distance_mm"])]
         is_auto_close = name in auto_close_layers
-        gaps_with_status = []
-        auto_close_lines = []
-        for gap in auth_gaps:
-            should_auto_close = is_auto_close and gap["distance_mm"] <= 15.0
-            gap_data = {
-                "distance_mm": gap["distance_mm"],
-                "start": gap["start"],
-                "end": gap["end"],
-                "auto_closed": should_auto_close
-            }
-            gaps_with_status.append(gap_data)
-            if should_auto_close:
-                auto_close_lines.append([gap["start"], gap["end"]])
+        gaps_with_status, auto_close_lines = _auth_gap_preview_fields(
+            auth_gaps,
+            auto_close_gaps=is_auto_close,
+        )
 
         result[name]["gaps"] = gaps_with_status
         result[name]["auto_close_lines"] = auto_close_lines
@@ -300,6 +291,26 @@ def _sync_open_flags_for_auth_gaps(
         )
         flags.append(matches)
     layer_data["polyline_open_flags"] = flags
+
+
+def _auth_gap_preview_fields(
+    auth_gaps: list[dict[str, object]],
+    *,
+    auto_close_gaps: bool,
+) -> tuple[list[dict[str, object]], list[list[list[float]]]]:
+    """Build gap metadata and always include proposed auto-close segments for auth gaps."""
+    gaps_with_status: list[dict[str, object]] = []
+    auto_close_lines: list[list[list[float]]] = []
+    for gap in auth_gaps:
+        should_auto_close = auto_close_gaps and float(gap["distance_mm"]) <= 15.0
+        gaps_with_status.append({
+            "distance_mm": gap["distance_mm"],
+            "start": gap["start"],
+            "end": gap["end"],
+            "auto_closed": should_auto_close,
+        })
+        auto_close_lines.append([gap["start"], gap["end"]])
+    return gaps_with_status, auto_close_lines
 
 
 def _composite_file_layer_polylines(
@@ -336,26 +347,16 @@ def _composite_file_layer_polylines(
 
     for piece in pieces:
         _append_polygon_outline(primary, piece.polygon)
-        _append_primary_internal_decorations(primary, piece, primary_layer)
 
     if aux_layers:
         _append_closed_auxiliary_decorations(result, pieces, aux_layers, decoration_keys)
 
     all_gaps = find_layer_gaps(doc, primary_layer, curve_tolerance_mm)
     auth_gaps = [gap for gap in all_gaps if gap_needs_authorization(gap["distance_mm"])]
-    gaps_with_status = []
-    auto_close_lines = []
-    for gap in auth_gaps:
-        should_auto_close = auto_close_gaps and gap["distance_mm"] <= 15.0
-        gap_data = {
-            "distance_mm": gap["distance_mm"],
-            "start": gap["start"],
-            "end": gap["end"],
-            "auto_closed": should_auto_close,
-        }
-        gaps_with_status.append(gap_data)
-        if should_auto_close:
-            auto_close_lines.append([gap["start"], gap["end"]])
+    gaps_with_status, auto_close_lines = _auth_gap_preview_fields(
+        auth_gaps,
+        auto_close_gaps=auto_close_gaps,
+    )
 
     primary["gaps"] = gaps_with_status
     primary["auto_close_lines"] = auto_close_lines
@@ -418,19 +419,6 @@ def _append_line_if_new(
     points = [[float(x), float(y)] for x, y in coordinates]
     layer_data["polylines"].append(points)
     layer_data["polyline_open_flags"].append(is_open)
-
-
-def _append_primary_internal_decorations(
-    primary: dict[str, object],
-    piece: object,
-    primary_layer: str,
-) -> None:
-    keys: set[tuple[tuple[float, float], ...]] = set()
-    for decoration in piece.decorations:
-        if decoration.layer_name != primary_layer or decoration.geometry_type != "line":
-            continue
-        coordinates = decoration.payload.get("coordinates")
-        _append_line_if_new(primary, coordinates, is_open=False, decoration_keys=keys)
 
 
 def _append_closed_auxiliary_decorations(

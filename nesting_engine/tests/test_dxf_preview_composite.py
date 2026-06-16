@@ -81,13 +81,12 @@ def test_015_open_corte_shows_marcado_in_open_auxiliary_preview() -> None:
     assert "MARCADO" in layers
 
     corte = layers[CORTE]
-    closed_corte = [
-        is_open for is_open in corte["polyline_open_flags"] if not is_open
-    ]
-    open_corte = [is_open for is_open in corte["polyline_open_flags"] if is_open]
-    assert len(closed_corte) >= 3
-    assert len(open_corte) == 1
+    closed_corte = sum(1 for is_open in corte["polyline_open_flags"] if not is_open)
+    open_corte = sum(1 for is_open in corte["polyline_open_flags"] if is_open)
+    assert closed_corte == 3
+    assert open_corte == 1
     assert len(corte["gaps"]) == 1
+    assert len(corte["auto_close_lines"]) == 1
     assert corte["gaps"][0]["distance_mm"] == pytest.approx(14.8348, rel=1e-3)
 
     marcado = layers["MARCADO"]
@@ -115,7 +114,7 @@ def test_015_auto_close_moves_marcado_to_valid_panel() -> None:
     layers = {row["name"]: row for row in preview["layers"]}
     corte = layers[CORTE]
     assert not any(corte["polyline_open_flags"])
-    assert sum(1 for is_open in corte["polyline_open_flags"] if not is_open) >= 4
+    assert sum(1 for is_open in corte["polyline_open_flags"] if not is_open) == 4
 
     marcado = layers["MARCADO"]
     assert marcado["polylines"]
