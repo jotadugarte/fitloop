@@ -2,6 +2,7 @@
 <% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
 <% primary_layer = layers.find { |layer| layer.layer_role == "primary" } %>
 
+<%= turbo_frame_tag dom_id(attachment, :dxf_file_layers) do %>
 <section class="dxf-file-layers panel panel--inset"
          data-testid="dxf-file-layers"
          data-attachment-id="<%= attachment.id %>">
@@ -81,3 +82,4 @@
     <p><%= t("project_layers.index.empty") %></p>
   <% end %>
 </section>
+<% end %>
