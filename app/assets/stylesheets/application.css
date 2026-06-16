@@ -1399,6 +1399,11 @@ h3.fit-section__legend {
   stroke-linejoin: round;
 }
 
+.source-dxf-preview__internal-cut-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 @keyframes pulse {
   0% {
     stroke-opacity: 1;

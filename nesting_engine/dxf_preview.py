@@ -128,6 +128,7 @@ def _merge_shifted_layers(
     for layer_name, data in file_layers.items():
         polylines = data["polylines"]
         polyline_open_flags = data.get("polyline_open_flags") or [False] * len(polylines)
+        polyline_internal_cut_flags = data.get("polyline_internal_cut_flags") or [False] * len(polylines)
         gaps = data["gaps"]
         auto_close_lines = data["auto_close_lines"]
 
@@ -151,6 +152,7 @@ def _merge_shifted_layers(
                 "color": colors.get(layer_name, "#808080"),
                 "polylines": [],
                 "polyline_open_flags": [],
+                "polyline_internal_cut_flags": [],
                 "gaps": [],
                 "auto_close_lines": []
             },
@@ -160,6 +162,7 @@ def _merge_shifted_layers(
 
         entry["polylines"].extend(shifted_polylines)
         entry["polyline_open_flags"].extend(polyline_open_flags)
+        entry["polyline_internal_cut_flags"].extend(polyline_internal_cut_flags)
         entry["gaps"].extend(shifted_gaps)
         entry["auto_close_lines"].extend(shifted_auto_close_lines)
 
@@ -189,6 +192,7 @@ def _preview_payload(
             "color": layers[name]["color"],
             "polylines": layers[name]["polylines"],
             "polyline_open_flags": layers[name]["polyline_open_flags"],
+            "polyline_internal_cut_flags": layers[name].get("polyline_internal_cut_flags") or [False] * len(layers[name]["polylines"]),
             "gaps": layers[name]["gaps"],
             "auto_close_lines": layers[name]["auto_close_lines"],
         }
@@ -242,7 +246,7 @@ def _file_layer_polylines(
         return {}
 
     result: dict[str, dict[str, object]] = {
-        name: {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
+        name: {"polylines": [], "polyline_open_flags": [], "polyline_internal_cut_flags": [], "gaps": [], "auto_close_lines": []}
         for name in included
     }
     for polyline in _iter_layer_polylines(
@@ -253,9 +257,10 @@ def _file_layer_polylines(
     ):
         layer_name = str(polyline["layer"])
         points = polyline["points"]
-        result.setdefault(layer_name, {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []})
+        result.setdefault(layer_name, {"polylines": [], "polyline_open_flags": [], "polyline_internal_cut_flags": [], "gaps": [], "auto_close_lines": []})
         result[layer_name]["polylines"].append(points)
         result[layer_name]["polyline_open_flags"].append(polyline.get("is_open", False))
+        result[layer_name]["polyline_internal_cut_flags"].append(False)
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     from nesting_engine.read_layers import find_layer_gaps
@@ -348,6 +353,13 @@ def _composite_file_layer_polylines(
     for piece in pieces:
         _append_polygon_outline(primary, piece.polygon)
 
+    _append_primary_internal_decorations(
+        primary,
+        pieces,
+        primary_layer,
+        decoration_keys=decoration_keys,
+    )
+
     if aux_layers:
         _append_closed_auxiliary_decorations(result, pieces, aux_layers, decoration_keys)
 
@@ -385,7 +397,13 @@ def _composite_file_layer_polylines(
 
 
 def _empty_layer_preview_data() -> dict[str, object]:
-    return {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
+    return {
+        "polylines": [],
+        "polyline_open_flags": [],
+        "polyline_internal_cut_flags": [],
+        "gaps": [],
+        "auto_close_lines": [],
+    }
 
 
 def _append_polygon_outline(layer_data: dict[str, object], polygon: Polygon) -> None:
@@ -397,6 +415,29 @@ def _append_polygon_outline(layer_data: dict[str, object], polygon: Polygon) -> 
     points = [[float(x), float(y)] for x, y in coords]
     layer_data["polylines"].append(points)
     layer_data["polyline_open_flags"].append(False)
+    layer_data.setdefault("polyline_internal_cut_flags", []).append(False)
+
+
+def _append_primary_internal_decorations(
+    primary: dict[str, object],
+    pieces: list[object],
+    primary_layer: str,
+    *,
+    decoration_keys: set[tuple[tuple[float, float], ...]],
+) -> None:
+    """[REQ-FIT-DXF-002] Primary-layer internal cut lines from composite extraction."""
+    for piece in pieces:
+        for decoration in piece.decorations:
+            if decoration.layer_name != primary_layer or decoration.geometry_type != "line":
+                continue
+            coordinates = decoration.payload.get("coordinates")
+            _append_line_if_new(
+                primary,
+                coordinates,
+                is_open=False,
+                decoration_keys=decoration_keys,
+                internal_cut=True,
+            )
 
 
 def _decoration_line_key(coordinates: list) -> tuple[tuple[float, float], ...]:
@@ -409,6 +450,7 @@ def _append_line_if_new(
     *,
     is_open: bool,
     decoration_keys: set[tuple[tuple[float, float], ...]],
+    internal_cut: bool = False,
 ) -> None:
     if not coordinates or len(coordinates) < 2:
         return
@@ -419,6 +461,7 @@ def _append_line_if_new(
     points = [[float(x), float(y)] for x, y in coordinates]
     layer_data["polylines"].append(points)
     layer_data["polyline_open_flags"].append(is_open)
+    layer_data.setdefault("polyline_internal_cut_flags", []).append(internal_cut)
 
 
 def _append_closed_auxiliary_decorations(
@@ -472,6 +515,7 @@ def _append_auth_open_primary_contours(
                 continue
             primary["polylines"].append(points)
             primary["polyline_open_flags"].append(True)
+            primary.setdefault("polyline_internal_cut_flags", []).append(False)
             matched_gaps.add(gap_key)
             break
 

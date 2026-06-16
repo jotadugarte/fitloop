@@ -31,13 +31,20 @@ module SourceDxfPreviewHelper
 
     elements.concat(
       polylines_to_render.map do |line|
-        tag.path(
+        path_attrs = {
           d: source_dxf_polyline_path(line, preview: preview),
-          class: "source-dxf-preview__path",
           fill: "none",
           stroke: layer.color,
           vector_effect: "non-scaling-stroke"
-        )
+        }
+        if line.internal_cut
+          path_attrs[:class] = "source-dxf-preview__path source-dxf-preview__internal-cut-line"
+          path_attrs[:stroke_dasharray] = "6 4"
+          path_attrs[:data] = { testid: "primary-internal-cut-line" }
+        else
+          path_attrs[:class] = "source-dxf-preview__path"
+        end
+        tag.path(**path_attrs)
       end
     )
 

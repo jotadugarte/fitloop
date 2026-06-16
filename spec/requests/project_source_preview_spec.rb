@@ -283,6 +283,7 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response.body).to include('data-testid="source-dxf-valid-group"')
       expect(response.body).to include('data-testid="proposed-auto-close-line"')
       expect(response.body).to include('data-testid="auto-close-gaps-checkbox"')
+      expect(response.body).to include('data-testid="primary-internal-cut-line"')
     end
   end
 end

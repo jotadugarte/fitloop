@@ -4,7 +4,7 @@ module Dxf
   # [REQ-FIT-UI-002] Original DXF preview for layers selected for nesting.
   class SourcePreviewPresenter
     Layer = Struct.new(:name, :color, :polylines, :gaps, :auto_close_lines, :auto_close_gaps, keyword_init: true)
-    Polyline = Struct.new(:points, :is_open, keyword_init: true)
+    Polyline = Struct.new(:points, :is_open, :internal_cut, keyword_init: true)
 
     def self.for(project, attachment: nil)
       new(project: project, attachment: attachment)
@@ -161,7 +161,11 @@ module Dxf
         Layer.new(
           name: layer_name,
           color: row.fetch("color"),
-          polylines: normalize_polylines(row["polylines"], row["polyline_open_flags"]),
+          polylines: normalize_polylines(
+            row["polylines"],
+            row["polyline_open_flags"],
+            row["polyline_internal_cut_flags"]
+          ),
           gaps: merged_gaps_for(layer_name, row["gaps"], auto_close: auto_close),
           auto_close_lines: normalize_raw_polylines(row["auto_close_lines"]),
           auto_close_gaps: auto_close
@@ -169,12 +173,14 @@ module Dxf
       end
     end
 
-    def normalize_polylines(polylines, open_flags)
+    def normalize_polylines(polylines, open_flags, internal_cut_flags = nil)
       flags = Array(open_flags)
+      internal_flags = Array(internal_cut_flags)
       Array(polylines).each_with_index.map do |line, index|
         points = Array(line).map { |point| [ point.fetch(0).to_f, point.fetch(1).to_f ] }
         is_open = !!flags[index]
-        Polyline.new(points: points, is_open: is_open)
+        internal_cut = !!internal_flags[index]
+        Polyline.new(points: points, is_open: is_open, internal_cut: internal_cut)
       end
     end
 
