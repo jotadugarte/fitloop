@@ -113,6 +113,35 @@ def test_015_valid_panel_includes_primary_internal_cut_lines() -> None:
 
 
 @pytest.mark.slow
+def test_008_preview_has_no_false_open_gaps_when_extraction_is_single_piece() -> None:
+    """[REQ-FIT-DXF-002] Micro-gaps on absorbed crossbar segments must not block the workshop."""
+    path = Path(__file__).resolve().parent / "fixtures" / "individuals" / "008.dxf"
+
+    preview = build_source_preview(
+        [path],
+        [],
+        curve_tolerance_mm=0.25,
+        file_configs=[{"primary_layer": CORTE, "auxiliary_layers": []}],
+    )
+
+    corte = {row["name"]: row for row in preview["layers"]}[CORTE]
+    closed_exteriors = sum(
+        1
+        for is_open, is_internal in zip(
+            corte["polyline_open_flags"],
+            corte["polyline_internal_cut_flags"],
+            strict=True,
+        )
+        if not is_open and not is_internal
+    )
+    open_n = sum(1 for is_open in corte["polyline_open_flags"] if is_open)
+    assert closed_exteriors == 1
+    assert open_n == 0
+    assert corte["gaps"] == []
+    assert corte["auto_close_lines"] == []
+
+
+@pytest.mark.slow
 def test_015_marcado_auxiliary_shows_on_open_piece_before_auto_close() -> None:
     path = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
 

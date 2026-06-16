@@ -329,7 +329,7 @@ def _composite_file_layer_polylines(
     file_config: dict[str, object],
 ) -> dict[str, dict[str, object]]:
     from nesting_engine.composite_extract import load_composite_pieces
-    from nesting_engine.read_layers import find_layer_gaps
+    from nesting_engine.read_layers import filter_gaps_resolved_by_extraction, find_layer_gaps
 
     auto_close_layers = file_config.get("auto_close_layers") or []
     auto_close_gaps = primary_layer in auto_close_layers
@@ -364,6 +364,13 @@ def _composite_file_layer_polylines(
         _append_closed_auxiliary_decorations(result, pieces, aux_layers, decoration_keys)
 
     all_gaps = find_layer_gaps(doc, primary_layer, curve_tolerance_mm)
+    all_gaps = filter_gaps_resolved_by_extraction(
+        all_gaps,
+        doc,
+        primary_layer,
+        pieces,
+        curve_tolerance_mm=curve_tolerance_mm,
+    )
     auth_gaps = [gap for gap in all_gaps if gap_needs_authorization(gap["distance_mm"])]
     gaps_with_status, auto_close_lines = _auth_gap_preview_fields(
         auth_gaps,
