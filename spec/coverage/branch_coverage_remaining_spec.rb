@@ -1821,6 +1821,46 @@ RSpec.describe "Branch coverage remaining gaps" do
         Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "PIECES")
       end.to raise_error(Dxf::LayerNamesReader::Error, /layer gap scan failed/)
     end
+
+    it "raises when composite gap scan paths or primary layers are blank" do
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "", primary_layer: "CORTE")
+      end.to raise_error(ArgumentError, /path must be present/)
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "/tmp/sample.dxf", primary_layer: "")
+      end.to raise_error(ArgumentError, /primary_layer must be present/)
+    end
+
+    it "raises when the Python composite gap scan exits non-zero" do
+      allow(Open3).to receive(:capture2).and_return([ "composite layer gap scan failed", instance_double(Process::Status, success?: false) ])
+
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "/tmp/sample.dxf", primary_layer: "CORTE")
+      end.to raise_error(Dxf::LayerNamesReader::Error, /composite layer gap scan failed/)
+    end
+
+    it "passes auxiliary layers and auto-close flags to the composite gap scan" do
+      allow(Open3).to receive(:capture2).and_return([ "[]", instance_double(Process::Status, success?: true) ])
+
+      Dxf::LayerNamesReader.gaps_for_composite(
+        path: "/tmp/sample.dxf",
+        primary_layer: "CORTE",
+        auxiliary_layers: %w[MARCADO],
+        auto_close_gaps: true
+      )
+
+      expect(Open3).to have_received(:capture2).with(
+        anything,
+        anything,
+        Rails.root.join("nesting_engine/read_layers.py").to_s,
+        "--gaps-for-composite",
+        "CORTE",
+        "/tmp/sample.dxf",
+        "--aux",
+        "MARCADO",
+        "--auto-close"
+      )
+    end
   end
 
   describe "Dxf::PieceRingsLister branches [REQ-FIT-DXF-001]" do

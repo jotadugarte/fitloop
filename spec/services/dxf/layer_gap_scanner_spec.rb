@@ -19,11 +19,29 @@ RSpec.describe Dxf::LayerGapScanner, "[REQ-FIT-DXF-002]" do
   describe ".refresh!" do
     it "scans gaps when the layer requires closed-contour validation" do
       gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
-      allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
       attach_sample_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       ProjectLayer::SetPrimary.call(layer)
 
+      expect(layer.reload.gaps_detected).to eq(gaps)
+    end
+
+    it "uses composite gap scan for primary layers" do
+      gaps = []
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
+      attach_sample_dxf!
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(included: true, layer_role: :primary)
+
+      described_class.refresh!(layer)
+
+      expect(Dxf::LayerNamesReader).to have_received(:gaps_for_composite).with(
+        hash_including(
+          primary_layer: "PIECES",
+          auto_close_gaps: false
+        )
+      )
       expect(layer.reload.gaps_detected).to eq(gaps)
     end
 

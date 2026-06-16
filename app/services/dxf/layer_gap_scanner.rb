@@ -24,13 +24,34 @@ module Dxf
       return clear! if attachment.blank?
 
       with_downloaded_path(attachment) do |path|
-        gaps = LayerNamesReader.gaps_for(path: path, layer_name: @layer.layer_name)
+        gaps = gaps_for_layer(path)
         @layer.update!(gaps_detected: gaps)
       end
     end
 
     def clear!
       self.class.clear!(@layer)
+    end
+
+    def gaps_for_layer(path)
+      if @layer.primary?
+        auxiliary_layers = @layer.project.project_layers
+          .where(
+            active_storage_attachment_id: @layer.active_storage_attachment_id,
+            layer_role: :auxiliary,
+            included: true
+          )
+          .order(:layer_name)
+          .pluck(:layer_name)
+        LayerNamesReader.gaps_for_composite(
+          path: path,
+          primary_layer: @layer.layer_name,
+          auxiliary_layers: auxiliary_layers,
+          auto_close_gaps: @layer.auto_close_gaps?
+        )
+      else
+        LayerNamesReader.gaps_for(path: path, layer_name: @layer.layer_name)
+      end
     end
 
     private
