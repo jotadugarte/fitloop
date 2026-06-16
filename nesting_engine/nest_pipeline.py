@@ -28,6 +28,8 @@ class NestPipelineContext:
     sheet_gap_mm: float
     time_limit_sec: float | None
     progress_reporter: object | None = None
+    max_seeds: int = 16
+    max_local_search_iterations: int = 12
 
 
 @dataclass(frozen=True)
@@ -74,7 +76,6 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
         _time_limit_deadline,
         multi_bin_layout_has_significant_overlaps,
     )
-    from nesting_engine.nest_orientation import apply_orientation_profile
 
     active_seed = seed or default_seed()
     assert ctx.margin_mm >= 0 and ctx.kerf_mm >= 0 and ctx.sheet_gap_mm >= 0, "non-negative job parameters"
@@ -82,12 +83,7 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
     if ctx.time_limit_sec is not None:
         assert ctx.time_limit_sec > 0.0, "time_limit_sec must be positive when set"
 
-    pieces = apply_orientation_profile(
-        ctx.pieces,
-        active_seed.orientation_profile,
-        sheet_width_mm=ctx.sheet_stocks[0].width_mm,
-        sheet_height_mm=ctx.sheet_stocks[0].height_mm,
-    )
+    pieces = ctx.pieces
     deadline = _time_limit_deadline(ctx.time_limit_sec)
     remaining_indices = _resolve_piece_order(pieces, active_seed)
     stocks = stocks_in_consumption_order(ctx.sheet_stocks)
@@ -172,11 +168,12 @@ def pick_better_pipeline_result(
 
 
 def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
-    from nesting_engine.nest_ordering import generate_seeds
     from nesting_engine.nest_local_search import local_search_pipeline_result
+    from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
+    from nesting_engine.nest_ordering import generate_seeds
 
     best: NestPipelineResult | None = None
-    for seed in generate_seeds(len(ctx.pieces), ctx.pieces):
+    for seed in generate_seeds(len(ctx.pieces), ctx.pieces, max_seeds=ctx.max_seeds):
         thorough_seed = NestSeed(
             name=seed.name,
             piece_order=seed.piece_order,
@@ -185,11 +182,22 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
             enable_local_search=True,
         )
         candidate = run_pipeline(ctx, seed=thorough_seed)
+        if multi_bin_layout_has_significant_overlaps(
+            candidate.sheets,
+            ctx.pieces,
+            kerf_mm=ctx.kerf_mm,
+        ):
+            continue
         if best is None:
             best = candidate
             continue
         best = pick_better_pipeline_result(best, candidate)
 
-    assert best is not None
-    top_results = local_search_pipeline_result(ctx, best, max_iterations=12)
+    if best is None:
+        best = run_pipeline(ctx, seed=default_seed())
+    top_results = local_search_pipeline_result(
+        ctx,
+        best,
+        max_iterations=ctx.max_local_search_iterations,
+    )
     return top_results
