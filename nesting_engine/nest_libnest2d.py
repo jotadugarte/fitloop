@@ -697,6 +697,12 @@ def _run_post_fill_phases(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
+    sheets = _apply_orthogonal_flip_pass_to_sheets(
+        sheets,
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
     _report_pipeline_progress(
         progress_reporter,
         "refining",
@@ -1618,6 +1624,21 @@ def _compact_placed_pieces_to_margin(
     return candidate
 
 
+def _placed_rows_from_placements(
+    sheet_pieces: list[PlacedPiece],
+    pieces: list[Polygon],
+    placements: list[Placement],
+) -> list[PlacedPiece]:
+    return [
+        placed_piece_from_source(
+            sheet_pieces[index].piece_index,
+            pieces[sheet_pieces[index].piece_index],
+            placements[index],
+        )
+        for index in range(len(sheet_pieces))
+    ]
+
+
 def _compact_placed_pieces_down(
     sheet_pieces: list[PlacedPiece],
     pieces: list[Polygon],
@@ -1672,6 +1693,26 @@ def _compact_placed_pieces_down(
                 if other != index
             ]
             if any(polygons_overlap_significantly(trial, obstacle) for obstacle in obstacles):
+                continue
+            before_score = _layout_score_for_pieces(
+                _placed_rows_from_placements(sheet_pieces, pieces, updated),
+                pieces,
+                bin_width,
+                bin_height,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+            )
+            trial_updated = list(updated)
+            trial_updated[index] = trial_placement
+            trial_score = _layout_score_for_pieces(
+                _placed_rows_from_placements(sheet_pieces, pieces, trial_updated),
+                pieces,
+                bin_width,
+                bin_height,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+            )
+            if not _layout_not_worse_than(before_score, trial_score):
                 continue
             updated[index] = trial_placement
             changed = True
@@ -1771,6 +1812,60 @@ def _apply_gravity_compaction_to_sheets(
                 height_mm=sheet.height_mm,
                 offset_x_mm=sheet.offset_x_mm,
                 pieces=finalized,
+            )
+        )
+    return work
+
+
+def _apply_orthogonal_flip_pass_to_sheets(
+    sheets: list[NestedSheet],
+    pieces: list[Polygon],
+    *,
+    margin_mm: float,
+    kerf_mm: float,
+) -> list[NestedSheet]:
+    """[REQ-FIT-NEST-002] Flip pass after gravity; vertical drops can lock poor bar orientations."""
+    work: list[NestedSheet] = []
+    for sheet in sheets:
+        if len(sheet.pieces) < 2:
+            work.append(sheet)
+            continue
+        baseline_score = _layout_score_for_sheet(
+            sheet,
+            pieces,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        flipped = _try_orthogonal_flip_improvements(
+            sheet.pieces,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        if flipped is None:
+            work.append(sheet)
+            continue
+        candidate_score = _layout_score_for_pieces(
+            flipped,
+            pieces,
+            sheet.width_mm,
+            sheet.height_mm,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+        )
+        if not _layout_better_than(baseline_score, candidate_score):
+            work.append(sheet)
+            continue
+        work.append(
+            NestedSheet(
+                stock_sort_order=sheet.stock_sort_order,
+                sheet_index=sheet.sheet_index,
+                width_mm=sheet.width_mm,
+                height_mm=sheet.height_mm,
+                offset_x_mm=sheet.offset_x_mm,
+                pieces=flipped,
             )
         )
     return work
