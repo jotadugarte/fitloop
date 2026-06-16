@@ -7,6 +7,7 @@ from typing import Literal
 from shapely.affinity import rotate, translate
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
+from shapely.validation import make_valid
 
 ROTATION_STEP_DEG = 5
 _MAX_ROTATION_STEPS = 360 // ROTATION_STEP_DEG
@@ -23,6 +24,18 @@ class Placement:
     x: float
     y: float
     rotation_deg: float
+
+
+def collision_footprint(polygon: Polygon) -> Polygon:
+    """[REQ-FIT-NEST-002] Solid sheet occupancy; interior rings are not nestable for other pieces."""
+    if polygon.is_empty:
+        return polygon
+    if not polygon.interiors:
+        return polygon
+    solid = Polygon(polygon.exterior)
+    if solid.is_valid:
+        return solid
+    return make_valid(solid)
 
 
 def placed_polygon(piece: Polygon, placement: Placement) -> Polygon:
@@ -423,18 +436,20 @@ def _fits_bin(placed: Polygon, bin_width: float, bin_height: float, *, margin: f
 
 
 def overlap_area_mm2(a: Polygon, b: Polygon) -> float:
-    if not a.intersects(b):
+    solid_a = collision_footprint(a)
+    solid_b = collision_footprint(b)
+    if not solid_a.intersects(solid_b):
         return 0.0
-    return float(a.intersection(b).area)
+    return float(solid_a.intersection(solid_b).area)
 
 
 def polygons_overlap_significantly(a: Polygon, b: Polygon) -> bool:
-    """True when intersection exceeds solver quantization noise (sub-mm slivers)."""
+    """True when solid footprints intersect beyond solver quantization noise."""
     return overlap_area_mm2(a, b) > _OVERLAP_AREA_TOLERANCE_MM2
 
 
 def _overlaps_any(placed: Polygon, obstacles: list[Polygon]) -> bool:
     for obstacle in obstacles:
-        if placed.intersects(obstacle) and not placed.touches(obstacle):
+        if polygons_overlap_significantly(placed, obstacle):
             return True
     return False

@@ -80,6 +80,63 @@ def test_nest_sheet_places_piece_with_hole() -> None:
     _assert_all_fit_bin([piece], placements, bin_width_mm=200.0, bin_height_mm=200.0, margin_mm=1.0, kerf_mm=0.0)
 
 
+def test_collision_footprint_rejects_piece_inside_another_hole() -> None:
+    """[REQ-FIT-NEST-002] Material rings must block placement in interior holes."""
+    outer = box(0, 0, 100, 100)
+    hole = box(30, 30, 70, 70)
+    frame = Polygon(outer.exterior.coords, [list(hole.exterior.coords)])
+    inner = box(35, 35, 65, 65)
+
+    assert frame.intersection(inner).area < 1e-6
+    assert polygons_overlap_significantly(frame, inner)
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_007_through_011_avoids_piece_inside_frame_hole() -> None:
+    """[REQ-FIT-NEST-002] Crossbar must not nest inside 010 frame hole on one 700×700 sheet."""
+    fixtures = Path(__file__).resolve().parent / "fixtures" / "individuals"
+    names = ["007.dxf", "008.dxf", "009.dxf", "010.dxf", "011.dxf"]
+    loaded = load_pieces(
+        [str(fixtures / name) for name in names],
+        ["CORTE"],
+        curve_tolerance_mm=0.25,
+        warnings=[],
+    )
+    pieces = [piece_polygon(piece) for piece in loaded]
+    stocks = [SheetStockSpec(width_mm=700.0, height_mm=700.0, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=5.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+        time_limit_sec=120.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    worlds = [
+        (
+            names[row.piece_index],
+            placed_polygon(pieces[row.piece_index], row.placement),
+        )
+        for row in result.sheets[0].pieces
+    ]
+    for left_name, left_poly in worlds:
+        for right_name, right_poly in worlds:
+            if left_name == right_name:
+                continue
+            assert not polygons_overlap_significantly(left_poly, right_poly)
+            for ring in left_poly.interiors:
+                hole = Polygon(ring)
+                if (
+                    hole.contains(right_poly.centroid)
+                    and left_poly.intersection(right_poly).area < 1.0
+                ):
+                    pytest.fail(f"{right_name} placed inside hole of {left_name}")
+
+
 def test_nest_sheet_uses_non_zero_rotation_when_required() -> None:
     piece = box(0, 0, 90, 20)
 
@@ -170,7 +227,7 @@ def _assert_all_fit_bin(
         assert maxx <= bin_width_mm - margin_mm + _EPS_MM
         assert maxy <= bin_height_mm - margin_mm + _EPS_MM
         for obstacle in occupied:
-            assert not (placed.intersects(obstacle) and not placed.touches(obstacle))
+            assert not polygons_overlap_significantly(placed, obstacle)
         occupied.append(placed)
 
 
