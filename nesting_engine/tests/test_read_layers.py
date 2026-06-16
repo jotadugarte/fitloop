@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from nesting_engine.read_layers import layer_catalog, union_layer_names
+from nesting_engine.read_layers import layer_catalog, layer_gaps_for_file, union_layer_names
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample_piece.dxf"
 
@@ -21,8 +21,17 @@ def test_catalog_includes_hex_color() -> None:
     assert len(pieces["color"]) == 7
 
 
-def test_gaps_on_006_dxf() -> None:
+def test_catalog_omits_gap_scan_at_sync() -> None:
     dxf_006 = Path(__file__).resolve().parent / "fixtures" / "individuals" / "006.dxf"
     catalog = layer_catalog([dxf_006])
     corte = next(entry for entry in catalog if entry["name"] == "CORTE")
     assert corte["gaps"] == []
+
+
+def test_layer_gaps_for_file_detects_open_contours_on_demand() -> None:
+    dxf_015 = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
+    corte_gaps = layer_gaps_for_file(dxf_015, "CORTE")
+    marcado_gaps = layer_gaps_for_file(dxf_015, "MARCADO")
+    assert corte_gaps == []
+    assert marcado_gaps
+    assert max(gap["distance_mm"] for gap in marcado_gaps) > 15.0

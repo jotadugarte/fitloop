@@ -27,5 +27,23 @@ module Dxf
     def self.union(paths)
       catalog(paths).pluck("name").sort
     end
+
+    # [REQ-FIT-DXF-002] On-demand closed-contour gap scan for primary / legacy cut layers.
+    def self.gaps_for(path:, layer_name:)
+      raise ArgumentError, "path must be present" if path.blank?
+      raise ArgumentError, "layer_name must be present" if layer_name.blank?
+
+      output, status = Open3.capture2(
+        Python.subprocess_env,
+        Python.executable,
+        SCRIPT.to_s,
+        "--gaps-for",
+        layer_name.to_s,
+        path.to_s
+      )
+      raise Error, output.presence || "layer gap scan failed" unless status.success?
+
+      JSON.parse(output)
+    end
   end
 end

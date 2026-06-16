@@ -113,16 +113,24 @@ def layer_catalog_from_file(path: Path) -> dict[str, str]:
     return catalog
 
 
+def layer_gaps_for_file(
+    path: Path,
+    layer_name: str,
+    *,
+    curve_tolerance_mm: float = 0.25,
+) -> list[dict[str, object]]:
+    """[REQ-FIT-DXF-002] Closed-contour gap scan for a single cut layer on demand."""
+    doc = ezdxf.readfile(path)
+    return find_layer_gaps(doc, layer_name, curve_tolerance_mm=curve_tolerance_mm)
+
+
 def layer_catalog(paths: list[Path]) -> list[dict[str, object]]:
+    """Layer names and colors only; gap scans run on demand for primary/legacy cut layers."""
     merged: dict[str, dict[str, object]] = {}
     for path in paths:
-        doc = ezdxf.readfile(path)
         for name, color in layer_catalog_from_file(path).items():
-            gaps = find_layer_gaps(doc, name)
             if name not in merged:
-                merged[name] = {"color": color, "gaps": gaps}
-            else:
-                merged[name]["gaps"].extend(gaps)
+                merged[name] = {"color": color, "gaps": []}
     return [{"name": name, "color": info["color"], "gaps": info["gaps"]} for name, info in sorted(merged.items())]
 
 
@@ -132,6 +140,10 @@ def union_layer_names(paths: list[Path]) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     argv = argv if argv is not None else sys.argv[1:]
+    if len(argv) >= 3 and argv[0] == "--gaps-for":
+        result = layer_gaps_for_file(Path(argv[2]), argv[1])
+        print(json.dumps(result))
+        return 0
     if not argv:
         print("[]")
         return 0
