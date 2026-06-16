@@ -254,5 +254,35 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response.body).to include('data-testid="proposed-auto-close-line"')
       expect(response.body).to include('data-testid="gap-error-circle"')
     end
+
+    it "renders 015 with open and valid preview panels when CORTE is primary and MARCADO is auxiliary", :slow do
+      dxf_015 = Rails.root.join("nesting_engine/tests/fixtures/individuals/015.dxf")
+      project.input_dxf.attach(
+        io: File.open(dxf_015),
+        filename: "015.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      attachment = project.input_dxf_attachments.first!
+      corte = project.project_layers.find_by!(
+        layer_name: "CORTE",
+        active_storage_attachment_id: attachment.id
+      )
+      marcado = project.project_layers.find_by!(
+        layer_name: "MARCADO",
+        active_storage_attachment_id: attachment.id
+      )
+
+      ProjectLayer::SetPrimary.call(corte)
+      marcado.update!(layer_role: :auxiliary, included: true)
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="source-dxf-open-group"')
+      expect(response.body).to include('data-testid="source-dxf-valid-group"')
+      expect(response.body).to include('data-testid="proposed-auto-close-line"')
+      expect(response.body).to include('data-testid="auto-close-gaps-checkbox"')
+    end
   end
 end
