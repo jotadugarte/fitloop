@@ -23,8 +23,13 @@ module Nesting
       @value > 2.0 && @value <= 15.0
     end
 
-    def blocking?
+    # [REQ-FIT-DXF-002] Gaps >15mm are stray open geometry (ignored by extraction), not layer blockers.
+    def ignored?
       @value > 15.0
+    end
+
+    def blocking?
+      false
     end
 
     def to_f

@@ -25,11 +25,19 @@ module Nesting
     end
 
     def blocking?
-      @gaps.any?(&:blocking?)
+      false
     end
 
     def warnable?
-      @gaps.any?(&:warnable?) && @gaps.none?(&:blocking?)
+      @gaps.any?(&:warnable?)
+    end
+
+    def ignored?
+      @gaps.any?(&:ignored?)
+    end
+
+    def max_warnable_distance
+      @gaps.select(&:warnable?).map(&:value).max
     end
 
     def auto_closeable?
@@ -38,9 +46,7 @@ module Nesting
 
     def unresolved?(auto_close_gaps: false)
       @gaps.any? do |g|
-        if g.blocking?
-          true
-        elsif g.warnable?
+        if g.warnable?
           !auto_close_gaps
         else
           false
