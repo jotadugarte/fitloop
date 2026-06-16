@@ -26,10 +26,14 @@ class ProjectReadinessValidator
   private
 
   def unresolved_gaps?
-    @project.project_layers.where(included: true).any? do |layer|
+    gap_validation_layers.any? do |layer|
       report = Nesting::GapReport.from_json(layer.gaps_detected)
       report.unresolved?(auto_close_gaps: !!layer.auto_close_gaps)
     end
+  end
+
+  def gap_validation_layers
+    @project.project_layers.select(&:closed_contour_gap_validation?)
   end
 
   def sheet_stocks?

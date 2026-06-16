@@ -62,8 +62,10 @@ class ProjectLayerSelection
 
         if auxiliary_ids.include?(layer_id)
           layer.update!(layer_role: :auxiliary, included: true)
+          Dxf::LayerGapScanner.clear!(layer)
         else
           layer.update!(layer_role: nil, included: false)
+          Dxf::LayerGapScanner.clear!(layer) unless layer_id == primary_id.to_s
         end
       end
     end
@@ -96,6 +98,11 @@ class ProjectLayerSelection
       included = attrs[:included] == "1" || attrs["included"] == "1"
       auto_close = attrs[:auto_close_gaps] == "1" || attrs["auto_close_gaps"] == "1"
       layer.update!(included: included, auto_close_gaps: auto_close)
+      if included && layer.layer_role.nil?
+        Dxf::LayerGapScanner.refresh!(layer.reload)
+      elsif !included
+        Dxf::LayerGapScanner.clear!(layer)
+      end
     end
   end
 
