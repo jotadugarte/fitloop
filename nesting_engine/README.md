@@ -56,7 +56,7 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
 | `margin_mm` | number | yes | Sheet margin (mm) |
 | `curve_tolerance_mm` | number | yes | Curve flattening tolerance (mm) |
 | `sheet_gap_mm` | number | yes | Horizontal gap between sheets in output DXF (mm) |
-  | `time_limit_sec` | integer | yes | Safety time cap for nesting |
+  | `time_limit_sec` | integer | yes | Safety time cap for nesting; override via env `FITLOOP_NESTING_TIME_LIMIT_SEC` on Rails |
   | `optimization_mode` | string | no | `fast` (default) or `thorough`; Rails sets via `FITLOOP_NESTING_OPTIMIZATION_MODE` |
   | `max_seeds` | integer | no | Thorough multi-start cap (default 16); env `FITLOOP_NESTING_MAX_SEEDS` |
   | `max_local_search_iterations` | integer | no | Thorough local-search cap (default 12); env `FITLOOP_NESTING_MAX_LOCAL_SEARCH_ITERATIONS` |

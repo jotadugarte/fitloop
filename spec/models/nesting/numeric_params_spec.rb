@@ -85,9 +85,27 @@ RSpec.describe Nesting::NestingTimeLimitSec, "[REQ-FIT-JOB-001]" do
   end
 
   describe ".from_project" do
+    around do |example|
+      prior = ENV["FITLOOP_NESTING_TIME_LIMIT_SEC"]
+      example.run
+    ensure
+      if prior.nil?
+        ENV.delete("FITLOOP_NESTING_TIME_LIMIT_SEC")
+      else
+        ENV["FITLOOP_NESTING_TIME_LIMIT_SEC"] = prior
+      end
+    end
+
     it "builds instance from project nesting_time_limit_sec" do
       project = instance_double(Project, nesting_time_limit_sec: 300)
       expect(described_class.from_project(project).to_i).to eq(300)
+    end
+
+    it "prefers FITLOOP_NESTING_TIME_LIMIT_SEC when set" do
+      ENV["FITLOOP_NESTING_TIME_LIMIT_SEC"] = "900"
+      project = instance_double(Project, nesting_time_limit_sec: 300)
+
+      expect(described_class.from_project(project).to_i).to eq(900)
     end
   end
 
