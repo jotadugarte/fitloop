@@ -53,7 +53,7 @@
                      for="primary_layer_<%= attachment.id %>_<%= layer.id %>"><%= layer.layer_name %></label>
             </span>
 
-            <% if report.gaps.any? %>
+            <% if report.gaps.any? && layer.closed_contour_gap_validation? %>
               <div class="layer-gap-warning panel panel--alert" style="margin: 0.5rem 0 0.5rem 3rem; padding: 0.5rem; font-size: 0.9em; border-radius: 4px;" data-testid="layer-gap-warning-<%= layer.id %>">
                 <% max_gap = report.gaps.map(&:value).max %>
                 <% if report.blocking? %>
