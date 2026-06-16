@@ -8,6 +8,7 @@ from shapely.geometry.base import BaseGeometry
 
 from nesting_engine.nest_placement import placed_polygon, sheet_occupancy_union
 from nesting_engine.nest_types import NestedSheet
+from nesting_engine.piece_loader import piece_polygon
 
 
 @dataclass(frozen=True)
@@ -38,7 +39,8 @@ def find_placeable_rects(
         sheet.height_mm - margin_mm,
     )
     placed = [
-        placed_polygon(pieces[row.piece_index], row.placement) for row in sheet.pieces
+        placed_polygon(piece_polygon(pieces[row.piece_index]), row.placement)
+        for row in sheet.pieces
     ]
     occupied = sheet_occupancy_union(placed)
     if occupied is None or occupied.is_empty:

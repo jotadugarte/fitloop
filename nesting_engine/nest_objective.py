@@ -65,7 +65,8 @@ def _sheet_placed_polygons(
 ) -> list[Polygon]:
     worlds: list[Polygon] = []
     for row in sheet.pieces:
-        worlds.append(placed_polygon(pieces[row.piece_index], row.placement))
+        source = piece_polygon(pieces[row.piece_index])
+        worlds.append(placed_polygon(source, row.placement))
     return worlds
 
 

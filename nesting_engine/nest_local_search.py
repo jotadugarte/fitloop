@@ -48,7 +48,7 @@ def _rotate_smallest_strip_seed(
         sheet.pieces,
         key=lambda row: piece_polygon(ctx.pieces[row.piece_index]).area,
     )
-    order = [row.piece_index for row in sheet.pieces if row.piece_index != smallest.piece_index]
+    order = [index for index in range(len(ctx.pieces)) if index != smallest.piece_index]
     order.append(smallest.piece_index)
     profile = "cardinal_90" if smallest.placement.rotation_deg == 0.0 else "as_extracted"
     return NestSeed(

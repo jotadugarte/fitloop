@@ -67,7 +67,10 @@ def _void_pack_one_sheet(
 
     work_pieces = list(sheet.pieces)
     occupied = [
-        apply_kerf(placed_polygon(pieces[row.piece_index], row.placement), kerf_mm)
+        apply_kerf(
+            placed_polygon(piece_polygon(pieces[row.piece_index]), row.placement),
+            kerf_mm,
+        )
         for row in work_pieces
     ]
     for index in strip_candidates:
@@ -99,7 +102,7 @@ def _void_pack_one_sheet(
         )
         if placement is None:
             continue
-        world = placed_polygon(pieces[index], placement)
+        world = placed_polygon(piece_polygon(pieces[index]), placement)
         if any(polygons_overlap_significantly(world, obstacle) for obstacle in occupied):
             continue
         work_pieces.append(placed_piece_from_source(index, pieces[index], placement))
@@ -138,9 +141,10 @@ def _best_strip_placement_in_rects(
 ):
     best = None
     best_key = None
+    geometry = piece_polygon(piece)
     for rect in rects:
         placement = place_with_rotation(
-            piece,
+            geometry,
             bin_width,
             bin_height,
             margin=margin_mm,
@@ -149,7 +153,7 @@ def _best_strip_placement_in_rects(
         )
         if placement is None:
             continue
-        world = placed_polygon(piece, placement)
+        world = placed_polygon(geometry, placement)
         minx, miny, maxx, maxy = world.bounds
         if minx < rect.min_x - 1e-6 or miny < rect.min_y - 1e-6:
             continue
