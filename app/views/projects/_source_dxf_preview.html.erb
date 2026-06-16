@@ -31,8 +31,16 @@
             <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
               <%= t("projects.source_preview.valid_shapes_hint", default: "Estas formas se detectaron como cerradas y están listas para el anidado.") %>
             </p>
-            <div class="source-dxf-preview source-dxf-preview--cad" data-testid="source-dxf-preview-valid">
-              <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-valid", filter: :valid) %>
+            <div class="source-dxf-preview source-dxf-preview--cad nesting-preview--interactive"
+                 data-controller="svg-pan-zoom"
+                 data-testid="source-dxf-preview-valid">
+              <div class="nesting-preview__viewport"
+                   data-svg-pan-zoom-target="viewport"
+                   data-action="wheel->svg-pan-zoom#wheel pointerdown->svg-pan-zoom#pointerDown pointermove->svg-pan-zoom#pointerMove pointerup->svg-pan-zoom#pointerUp pointercancel->svg-pan-zoom#pointerUp">
+                <div class="nesting-preview__canvas" data-svg-pan-zoom-target="canvas">
+                  <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-valid", filter: :valid) %>
+                </div>
+              </div>
             </div>
           </div>
         <% end %>
