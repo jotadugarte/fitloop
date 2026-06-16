@@ -99,11 +99,20 @@ module SourceDxfPreviewHelper
 
   def source_dxf_polyline_path(line, preview:)
     points = line.respond_to?(:points) ? line.points : line
-    points.each_with_index.map do |(x, y), index|
+    segments = points.each_with_index.map do |(x, y), index|
       svg_x = x - preview.offset_x_mm
       svg_y = preview.view_height - (y - preview.offset_y_mm)
       prefix = index.zero? ? "M" : "L"
       "#{prefix} #{svg_x} #{svg_y}"
-    end.join(" ")
+    end
+    path = segments.join(" ")
+    return path unless closed_preview_polyline?(line)
+    return path if points.size < 2
+
+    "#{path} Z"
+  end
+
+  def closed_preview_polyline?(line)
+    line.respond_to?(:is_open) && !line.is_open && !line.internal_cut
   end
 end
