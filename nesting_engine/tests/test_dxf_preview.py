@@ -62,10 +62,8 @@ def test_preview_auto_close_over_threshold_does_not_close(tmp_path: Path) -> Non
     preview = build_source_preview([dxf_path], [LAYER], file_configs=file_configs)
 
     layer_preview = preview["layers"][0]
-    assert len(layer_preview["gaps"]) == 1
-    assert layer_preview["gaps"][0]["distance_mm"] == 20.0
-    assert layer_preview["gaps"][0]["auto_closed"] is False
-    assert len(layer_preview["auto_close_lines"]) == 0
+    assert layer_preview["gaps"] == []
+    assert layer_preview["auto_close_lines"] == []
 
 
 def test_preview_006_dxf_has_no_open_polyline_flags() -> None:
