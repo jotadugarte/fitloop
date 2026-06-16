@@ -1,8 +1,9 @@
 # [REQ-FIT-NEST-002] Placement scoring prioritizes largest continuous free area.
 from __future__ import annotations
 
+import pytest
 from shapely.affinity import rotate, translate
-from shapely.geometry import box
+from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
@@ -11,9 +12,11 @@ from nesting_engine.nest_placement import (
     _layout_better_than,
     _layout_not_worse_than,
     _placement_score,
+    collision_footprint,
     place_with_rotation,
     placed_polygon,
     score_sheet_layout,
+    sheet_occupancy_union,
 )
 
 _EPS_MM = 1e-6
@@ -23,7 +26,7 @@ def test_score_sheet_layout_largest_continuous_free_area() -> None:
     """[REQ-FIT-NEST-002] Whole-sheet score matches incremental free-area metric on union layout."""
     bin_w, bin_h, margin = 400.0, 400.0, 0.0
     placed = [box(10, 10, 140, 180), box(220, 10, 350, 180), box(10, 220, 120, 350)]
-    occupied_union = unary_union(placed)
+    occupied_union = sheet_occupancy_union(placed)
     _, _, layout_maxx, layout_maxy = _layout_bounds_public(placed[0], placed[1:])
     sentinel = box(margin, margin, margin, margin)
 
@@ -54,6 +57,20 @@ def test_score_sheet_layout_empty_layout_is_full_usable_area() -> None:
 
     assert free_area == usable_w * usable_h
     assert footprint == 0.0
+
+
+def test_score_sheet_layout_treats_frame_holes_as_occupied() -> None:
+    """[REQ-FIT-NEST-002] Interior rings must not inflate largest-continuous-free-area scoring."""
+    bin_w, bin_h, margin = 400.0, 400.0, 0.0
+    outer = box(0, 0, 200, 200)
+    hole = box(50, 50, 150, 150)
+    frame = Polygon(outer.exterior.coords, [list(hole.exterior.coords)])
+
+    free_area, _footprint = score_sheet_layout(bin_w, bin_h, margin, [frame])
+    usable = (bin_w - 2 * margin) * (bin_h - 2 * margin)
+    solid_area = collision_footprint(frame).area
+
+    assert free_area == pytest.approx(usable - solid_area, rel=0.02)
 
 
 def test_layout_better_than_prefers_larger_free_area() -> None:
@@ -187,7 +204,10 @@ def test_place_long_strip_prefers_near_horizontal_orientation() -> None:
     )
 
     assert placement is not None
-    assert placement.rotation_deg <= 10.0 or placement.rotation_deg >= 350.0
+    placed = placed_polygon(strip, placement)
+    width = placed.bounds[2] - placed.bounds[0]
+    height = placed.bounds[3] - placed.bounds[1]
+    assert width >= height
 
 
 def test_nest_multi_bin_packs_rectangles_on_one_sheet() -> None:

@@ -38,6 +38,13 @@ def collision_footprint(polygon: Polygon) -> Polygon:
     return make_valid(solid)
 
 
+def sheet_occupancy_union(placed_polygons: list[Polygon]) -> Polygon | None:
+    """[REQ-FIT-NEST-002] Union of solid footprints for free-area scoring on a sheet."""
+    if not placed_polygons:
+        return None
+    return unary_union([collision_footprint(polygon) for polygon in placed_polygons])
+
+
 def placed_polygon(piece: Polygon, placement: Placement) -> Polygon:
     rotated = rotate(piece, placement.rotation_deg, origin="centroid")
     return translate(rotated, xoff=placement.x, yoff=placement.y)
@@ -54,7 +61,7 @@ def place_with_rotation(
 ) -> Placement | None:
     occupied = obstacles or []
     base_x_candidates, base_y_candidates = _anchor_candidates(occupied, margin)
-    occupied_union = unary_union(occupied) if occupied else None
+    occupied_union = sheet_occupancy_union(occupied)
 
     best: Placement | None = None
     best_score: tuple[float, float, float, float, float] | None = None
@@ -288,7 +295,7 @@ def score_sheet_layout(
         assert usable_w > 0 and usable_h > 0, "positive usable area"
         return usable_w * usable_h, 0.0
 
-    occupied_union = unary_union(placed_polygons)
+    occupied_union = sheet_occupancy_union(placed_polygons)
     _lminx, _lminy, layout_maxx, layout_maxy = _layout_bounds(placed_polygons[0], placed_polygons[1:])
     sentinel = box(margin, margin, margin, margin)
     free_area = _largest_continuous_free_area(
@@ -348,7 +355,7 @@ def _largest_continuous_free_area(
         return strip_free
 
     sheet = box(margin, margin, bin_width - margin, bin_height - margin)
-    combined = occupied_union.union(placed)
+    combined = occupied_union.union(collision_footprint(placed))
     free = sheet.difference(combined)
     if free.is_empty:
         return strip_free
