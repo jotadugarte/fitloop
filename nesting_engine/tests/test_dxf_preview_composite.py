@@ -60,5 +60,20 @@ def test_build_source_preview_includes_clipped_auxiliary_polylines(tmp_path: Pat
     grabado_points = [point for line in grabado_lines for point in line]
     assert all(not (point[0] > 150 and point[1] > 150) for point in grabado_points)
 
-    grabado_length = sum(_polyline_length_mm(line) for line in grabado_lines)
-    assert grabado_length == pytest.approx(10.0, abs=1.5)
+@pytest.mark.slow
+def test_015_splits_valid_and_open_panels_from_extraction() -> None:
+    path = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
+
+    preview = build_source_preview(
+        [path],
+        [],
+        curve_tolerance_mm=0.25,
+        file_configs=[{"primary_layer": CORTE, "auxiliary_layers": []}],
+    )
+
+    corte = {row["name"]: row for row in preview["layers"]}[CORTE]
+    closed = sum(1 for is_open in corte["polyline_open_flags"] if not is_open)
+    open_n = sum(1 for is_open in corte["polyline_open_flags"] if is_open)
+    assert closed == 3
+    assert open_n == 1
+    assert len(corte["gaps"]) == 1

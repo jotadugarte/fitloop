@@ -12,7 +12,12 @@ from ezdxf.entities import Insert
 from ezdxf.math import Matrix44, Vec3
 from ezdxf.path import make_path
 
-from nesting_engine.read_layers import layer_catalog_from_file
+from shapely.geometry import Polygon
+from shapely.validation import make_valid
+
+from nesting_engine.read_layers import gap_needs_authorization, layer_catalog_from_file
+
+_GAP_ENDPOINT_TOLERANCE_MM = 1.0
 
 _MAX_ENTITIES = 100_000
 _DEFAULT_MAX_BLOCK_DEPTH = 8
@@ -256,10 +261,11 @@ def _file_layer_polylines(
     from nesting_engine.read_layers import find_layer_gaps
     for name in result:
         gaps = find_layer_gaps(doc, name, curve_tolerance_mm)
+        auth_gaps = [gap for gap in gaps if gap_needs_authorization(gap["distance_mm"])]
         is_auto_close = name in auto_close_layers
         gaps_with_status = []
         auto_close_lines = []
-        for gap in gaps:
+        for gap in auth_gaps:
             should_auto_close = is_auto_close and gap["distance_mm"] <= 15.0
             gap_data = {
                 "distance_mm": gap["distance_mm"],
@@ -273,10 +279,28 @@ def _file_layer_polylines(
 
         result[name]["gaps"] = gaps_with_status
         result[name]["auto_close_lines"] = auto_close_lines
-        if not gaps:
-            result[name]["polyline_open_flags"] = [False] * len(result[name]["polylines"])
+        _sync_open_flags_for_auth_gaps(result[name], auth_gaps)
 
     return {name: data for name, data in result.items() if data["polylines"]}
+
+
+def _sync_open_flags_for_auth_gaps(
+    layer_data: dict[str, object],
+    auth_gaps: list[dict[str, object]],
+) -> None:
+    polylines = layer_data["polylines"]
+    if not auth_gaps:
+        layer_data["polyline_open_flags"] = [False] * len(polylines)
+        return
+
+    flags: list[bool] = []
+    for points in polylines:
+        matches = any(
+            _polyline_endpoints_match_gap(points, gap["start"], gap["end"])
+            for gap in auth_gaps
+        )
+        flags.append(matches)
+    layer_data["polyline_open_flags"] = flags
 
 
 def _composite_file_layer_polylines(
@@ -290,67 +314,177 @@ def _composite_file_layer_polylines(
     file_config: dict[str, object],
 ) -> dict[str, dict[str, object]]:
     from nesting_engine.composite_extract import load_composite_pieces
+    from nesting_engine.read_layers import find_layer_gaps
+
+    auto_close_layers = file_config.get("auto_close_layers") or []
+    auto_close_gaps = primary_layer in auto_close_layers
+    aux_layers = [name for name in auxiliary_layers if name]
+
+    pieces = load_composite_pieces(
+        path,
+        primary_layer,
+        aux_layers,
+        curve_tolerance_mm=curve_tolerance_mm,
+        max_block_depth=max_block_depth,
+        auto_close_gaps=auto_close_gaps,
+    )
 
     result: dict[str, dict[str, object]] = {
-        primary_layer: {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
+        primary_layer: _empty_layer_preview_data(),
     }
+    primary = result[primary_layer]
+    decoration_keys: set[tuple[tuple[float, float], ...]] = set()
+
+    for piece in pieces:
+        _append_polygon_outline(primary, piece.polygon)
+
+    if aux_layers:
+        _append_closed_auxiliary_decorations(result, pieces, aux_layers, decoration_keys)
+
+    all_gaps = find_layer_gaps(doc, primary_layer, curve_tolerance_mm)
+    auth_gaps = [gap for gap in all_gaps if gap_needs_authorization(gap["distance_mm"])]
+    gaps_with_status = []
+    auto_close_lines = []
+    for gap in auth_gaps:
+        should_auto_close = auto_close_gaps and gap["distance_mm"] <= 15.0
+        gaps_with_status.append({
+            "distance_mm": gap["distance_mm"],
+            "start": gap["start"],
+            "end": gap["end"],
+            "auto_closed": should_auto_close,
+        })
+        if should_auto_close:
+            auto_close_lines.append([gap["start"], gap["end"]])
+
+    primary["gaps"] = gaps_with_status
+    primary["auto_close_lines"] = auto_close_lines
+
+    if not auto_close_gaps:
+        _append_auth_open_primary_contours(
+            primary,
+            doc,
+            primary_layer,
+            auth_gaps,
+            curve_tolerance_mm=curve_tolerance_mm,
+            max_block_depth=max_block_depth,
+        )
+
+    return {name: data for name, data in result.items() if data["polylines"]}
+
+
+def _empty_layer_preview_data() -> dict[str, object]:
+    return {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
+
+
+def _append_polygon_outline(layer_data: dict[str, object], polygon: Polygon) -> None:
+    coords = list(polygon.exterior.coords)
+    if len(coords) > 1 and coords[0] == coords[-1]:
+        coords = coords[:-1]
+    if len(coords) < 2:
+        return
+    points = [[float(x), float(y)] for x, y in coords]
+    layer_data["polylines"].append(points)
+    layer_data["polyline_open_flags"].append(False)
+
+
+def _decoration_line_key(coordinates: list) -> tuple[tuple[float, float], ...]:
+    return tuple((round(float(x), 3), round(float(y), 3)) for x, y in coordinates)
+
+
+def _append_line_if_new(
+    layer_data: dict[str, object],
+    coordinates: list,
+    *,
+    is_open: bool,
+    decoration_keys: set[tuple[tuple[float, float], ...]],
+) -> None:
+    if not coordinates or len(coordinates) < 2:
+        return
+    key = _decoration_line_key(coordinates)
+    if key in decoration_keys:
+        return
+    decoration_keys.add(key)
+    points = [[float(x), float(y)] for x, y in coordinates]
+    layer_data["polylines"].append(points)
+    layer_data["polyline_open_flags"].append(is_open)
+
+
+def _append_closed_auxiliary_decorations(
+    result: dict[str, dict[str, object]],
+    pieces: list[object],
+    aux_layers: list[str],
+    decoration_keys: set[tuple[tuple[float, float], ...]],
+) -> None:
+    aux_layer_set = set(aux_layers)
+    for piece in pieces:
+        for decoration in piece.decorations:
+            if decoration.layer_name not in aux_layer_set or decoration.geometry_type != "line":
+                continue
+            coordinates = decoration.payload.get("coordinates")
+            layer_entry = result.setdefault(decoration.layer_name, _empty_layer_preview_data())
+            _append_line_if_new(layer_entry, coordinates, is_open=False, decoration_keys=decoration_keys)
+
+
+def _append_auth_open_primary_contours(
+    primary: dict[str, object],
+    doc: ezdxf.document.Drawing,
+    primary_layer: str,
+    auth_gaps: list[dict[str, object]],
+    *,
+    curve_tolerance_mm: float,
+    max_block_depth: int,
+) -> None:
+    if not auth_gaps:
+        return
+
+    matched_gaps: set[tuple[float, float, float, float]] = set()
     for polyline in _iter_layer_polylines(
         doc,
         {primary_layer},
         curve_tolerance_mm=curve_tolerance_mm,
         max_block_depth=max_block_depth,
     ):
-        result[primary_layer]["polylines"].append(polyline["points"])
-        result[primary_layer]["polyline_open_flags"].append(polyline.get("is_open", False))
+        if not polyline.get("is_open"):
+            continue
+        points = polyline["points"]
+        for gap in auth_gaps:
+            gap_key = (
+                round(float(gap["start"][0]), 3),
+                round(float(gap["start"][1]), 3),
+                round(float(gap["end"][0]), 3),
+                round(float(gap["end"][1]), 3),
+            )
+            if gap_key in matched_gaps:
+                continue
+            if not _polyline_endpoints_match_gap(points, gap["start"], gap["end"]):
+                continue
+            primary["polylines"].append(points)
+            primary["polyline_open_flags"].append(True)
+            matched_gaps.add(gap_key)
+            break
 
-    auto_close_layers = file_config.get("auto_close_layers") or []
-    from nesting_engine.read_layers import find_layer_gaps
-    gaps = find_layer_gaps(doc, primary_layer, curve_tolerance_mm)
-    is_auto_close = primary_layer in auto_close_layers
-    gaps_with_status = []
-    auto_close_lines = []
-    for gap in gaps:
-        should_auto_close = is_auto_close and gap["distance_mm"] <= 15.0
-        gap_data = {
-            "distance_mm": gap["distance_mm"],
-            "start": gap["start"],
-            "end": gap["end"],
-            "auto_closed": should_auto_close
-        }
-        gaps_with_status.append(gap_data)
-        if should_auto_close:
-            auto_close_lines.append([gap["start"], gap["end"]])
 
-    result[primary_layer]["gaps"] = gaps_with_status
-    result[primary_layer]["auto_close_lines"] = auto_close_lines
-    if not gaps:
-        result[primary_layer]["polyline_open_flags"] = [False] * len(result[primary_layer]["polylines"])
+def _polyline_endpoints_match_gap(
+    points: list[list[float]],
+    gap_start: list[float],
+    gap_end: list[float],
+) -> bool:
+    if len(points) < 2:
+        return False
 
-    aux_layers = [name for name in auxiliary_layers if name]
-    if aux_layers:
-        pieces = load_composite_pieces(
-            path,
-            primary_layer,
-            aux_layers,
-            curve_tolerance_mm=curve_tolerance_mm,
-            max_block_depth=max_block_depth,
+    def near(left: tuple[float, float], right: list[float]) -> bool:
+        return (
+            abs(left[0] - float(right[0])) <= _GAP_ENDPOINT_TOLERANCE_MM
+            and abs(left[1] - float(right[1])) <= _GAP_ENDPOINT_TOLERANCE_MM
         )
-        for piece in pieces:
-            for decoration in piece.decorations:
-                if decoration.geometry_type != "line":
-                    continue
-                coordinates = decoration.payload.get("coordinates")
-                if not coordinates or len(coordinates) < 2:
-                    continue
-                points = [[float(x), float(y)] for x, y in coordinates]
-                result.setdefault(
-                    decoration.layer_name,
-                    {"polylines": [], "polyline_open_flags": [], "gaps": [], "auto_close_lines": []}
-                )
-                result[decoration.layer_name]["polylines"].append(points)
-                result[decoration.layer_name]["polyline_open_flags"].append(False)
 
-    return {name: data for name, data in result.items() if data["polylines"]}
+    start = (float(points[0][0]), float(points[0][1]))
+    end = (float(points[-1][0]), float(points[-1][1]))
+    return (
+        near(start, gap_start) and near(end, gap_end)
+    ) or (
+        near(start, gap_end) and near(end, gap_start)
+    )
 
 
 def _empty_preview() -> dict[str, object]:
