@@ -53,31 +53,24 @@
                      for="primary_layer_<%= attachment.id %>_<%= layer.id %>"><%= layer.layer_name %></label>
             </span>
 
-            <% if report.gaps.any? && layer.closed_contour_gap_validation? %>
+            <% if report.warnable? && layer.closed_contour_gap_validation? %>
               <div class="layer-gap-warning panel panel--alert" style="margin: 0.5rem 0 0.5rem 3rem; padding: 0.5rem; font-size: 0.9em; border-radius: 4px;" data-testid="layer-gap-warning-<%= layer.id %>">
-                <% max_gap = report.gaps.map(&:value).max %>
-                <% if report.blocking? %>
-                  <div class="gap-warning-message gap-warning-message--blocking text-danger" style="color: #dc3545; font-weight: 500;">
-                    <%= t("project_layers.blocking_gap_warning", distance: max_gap.round(1)) %>
-                  </div>
-                <% elsif report.warnable? %>
-                  <div class="gap-warning-message gap-warning-message--warnable" style="color: #856404; font-weight: 500; margin-bottom: 0.25rem;">
-                    <%= t("project_layers.warnable_gap_warning", distance: max_gap.round(1)) %>
-                  </div>
-                  <div class="gap-warning-action" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auto_close_gaps]",
-                                      "1",
-                                      layer.auto_close_gaps,
-                                      id: "auto_close_gaps_#{attachment.id}_#{layer.id}",
-                                      class: "auto-close-gaps-checkbox",
-                                      data: {
-                                        testid: "auto-close-gaps-checkbox"
-                                      } %>
-                    <label for="auto_close_gaps_<%= attachment.id %>_<%= layer.id %>" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">
-                      <%= t("project_layers.auto_close_label") %>
-                    </label>
-                  </div>
-                <% end %>
+                <div class="gap-warning-message gap-warning-message--warnable" style="color: #856404; font-weight: 500; margin-bottom: 0.25rem;">
+                  <%= t("project_layers.warnable_gap_warning", distance: report.max_warnable_distance.round(1)) %>
+                </div>
+                <div class="gap-warning-action" style="display: flex; align-items: center; gap: 0.5rem;">
+                  <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auto_close_gaps]",
+                                    "1",
+                                    layer.auto_close_gaps,
+                                    id: "auto_close_gaps_#{attachment.id}_#{layer.id}",
+                                    class: "auto-close-gaps-checkbox",
+                                    data: {
+                                      testid: "auto-close-gaps-checkbox"
+                                    } %>
+                  <label for="auto_close_gaps_<%= attachment.id %>_<%= layer.id %>" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                    <%= t("project_layers.auto_close_label") %>
+                  </label>
+                </div>
               </div>
             <% end %>
           </div>

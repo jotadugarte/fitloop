@@ -32,6 +32,15 @@ def test_layer_gaps_for_file_detects_open_contours_on_demand() -> None:
     dxf_015 = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
     corte_gaps = layer_gaps_for_file(dxf_015, "CORTE")
     marcado_gaps = layer_gaps_for_file(dxf_015, "MARCADO")
-    assert corte_gaps == []
+    assert corte_gaps
+    assert any(gap["distance_mm"] > 10.0 for gap in corte_gaps)
     assert marcado_gaps
     assert max(gap["distance_mm"] for gap in marcado_gaps) > 15.0
+
+
+def test_gap_needs_authorization_matches_diagnose_thresholds() -> None:
+    from nesting_engine.read_layers import gap_is_ignored, gap_needs_authorization
+
+    assert gap_needs_authorization(1.5) is False
+    assert gap_needs_authorization(14.8) is True
+    assert gap_is_ignored(75.0) is True

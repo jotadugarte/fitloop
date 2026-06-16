@@ -24,41 +24,11 @@ def layer_color_hex(layer) -> str:
 
 def find_layer_gaps(doc: ezdxf.document.Drawing, layer_name: str, curve_tolerance_mm: float = 0.25) -> list[dict[str, object]]:
     """
-    Return genuinely open gaps on a layer's contour polylines.
+    Return open-end gaps on explicitly open LWPOLYLINE/POLYLINE entities.
 
-    A "gap" is the distance from the first to the last point of an individual
-    open LWPOLYLINE/POLYLINE that is NOT part of a successfully-closed shape.
-
-    Shapes composed of multiple polyline segments (chain-style or overlapping)
-    look "open" per-polyline but the engine's polygonize step assembles them
-    into a valid closed polygon.  To avoid false positives we run a lightweight
-    extraction: if the engine finds ≥1 valid polygon on the layer we suppress
-    ALL per-polyline open-end reports for that layer.
-
-    Only if extraction yields zero polygons do we fall back to reporting each
-    open polyline's individual gap.
+    [REQ-FIT-DXF-002] Report per-entity gaps even when other closed pieces exist on
+    the same layer (e.g. 015.dxf: three closed pieces plus one auth-range open cut).
     """
-    # ── Try to extract polygons from this layer ───────────────────────────────
-    # If the engine can form closed shapes from the segments, there are no real gaps.
-    try:
-        from nesting_engine.extract import extract_closed_contours
-        # Use auto_close_gaps=False so we only count shapes the engine can form
-        # WITHOUT any user-authorised closing — purely from geometry.
-        polygons = extract_closed_contours(
-            doc.filename,
-            layer_name,
-            curve_tolerance_mm=curve_tolerance_mm,
-            auto_close_gaps=False,  # Use auto_close_gaps=False so we only count shapes the engine can form WITHOUT user-authorized closing
-            warnings=[],
-        )
-        if polygons:
-            # The engine successfully assembled a closed polygon → no real gaps.
-            return []
-    except Exception:
-        # If extraction fails for any reason, fall through to the raw gap scan.
-        pass
-
-    # ── Fallback: raw per-polyline gap scan ───────────────────────────────────
     gaps = []
     for entity in doc.modelspace():
         if not hasattr(entity, "dxf") or not entity.dxf.hasattr("layer"):
@@ -96,6 +66,20 @@ def find_layer_gaps(doc: ezdxf.document.Drawing, layer_name: str, curve_toleranc
                 "end": [round(x1, 4), round(y1, 4)]
             })
     return gaps
+
+
+GAP_SILENT_MM = 2.0
+GAP_AUTH_MAX_MM = 15.0
+
+
+def gap_needs_authorization(distance_mm: float) -> bool:
+    """True for gaps in the 2–15 mm range (matches diagnose_dxf auth classification)."""
+    value = float(distance_mm)
+    return GAP_SILENT_MM < value <= GAP_AUTH_MAX_MM
+
+
+def gap_is_ignored(distance_mm: float) -> bool:
+    return float(distance_mm) > GAP_AUTH_MAX_MM
 
 
 def layer_catalog_from_file(path: Path) -> dict[str, str]:

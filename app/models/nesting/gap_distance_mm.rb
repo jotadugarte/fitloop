@@ -23,8 +23,13 @@ module Nesting
       @value > 2.0 && @value <= 15.0
     end
 
-    def blocking?
+    # [REQ-FIT-DXF-002] Stray open geometry above 15 mm is ignored by extraction.
+    def ignored?
       @value > 15.0
+    end
+
+    def blocking?
+      false
     end
 
     def to_f
