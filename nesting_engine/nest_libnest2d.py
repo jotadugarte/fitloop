@@ -558,6 +558,8 @@ def nest_multi_bin(
     time_limit_sec: float | None = _DEFAULT_TIME_LIMIT_SEC,
     progress_reporter=None,
     optimization_mode: str = "fast",
+    max_seeds: int = 16,
+    max_local_search_iterations: int = 12,
 ) -> MultiBinResult:
     from nesting_engine.nest_pipeline import NestPipelineContext, run_thorough_multi_bin
 
@@ -569,6 +571,8 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         time_limit_sec=time_limit_sec,
         progress_reporter=progress_reporter,
+        max_seeds=max_seeds,
+        max_local_search_iterations=max_local_search_iterations,
     )
     if optimization_mode == "thorough":
         return run_thorough_multi_bin(ctx).to_multi_bin_result()

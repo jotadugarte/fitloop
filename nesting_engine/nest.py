@@ -198,6 +198,9 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         sheet_gap_mm=job_params.sheet_gap_mm,
         time_limit_sec=job_params.time_limit_sec,
         progress_reporter=progress,
+        optimization_mode=job_params.optimization_mode,
+        max_seeds=job_params.max_seeds,
+        max_local_search_iterations=job_params.max_local_search_iterations,
     )
     merged_warnings = warnings + list(result.warnings)
     result = MultiBinResult(
@@ -228,6 +231,7 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         "status": status,
         "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
         "warnings": merged_warnings,
+        "optimization_mode": job_params.optimization_mode,
     }
     progress.report("writing_outputs", 96, pieces_total=len(pieces))
     _write_outputs(output_dir, result, report, pieces=pieces, config=config)

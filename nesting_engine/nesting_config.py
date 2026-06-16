@@ -11,6 +11,12 @@ class JobParameters:
     curve_tolerance_mm: float
     sheet_gap_mm: float
     time_limit_sec: int
+    optimization_mode: str
+    max_seeds: int
+    max_local_search_iterations: int
+
+
+_VALID_OPTIMIZATION_MODES = frozenset({"fast", "thorough"})
 
 
 def parse_job_parameters_from_config(config: dict) -> JobParameters:
@@ -36,10 +42,23 @@ def parse_job_parameters_from_config(config: dict) -> JobParameters:
     if time_limit_sec <= 0:
         raise ValueError("time_limit_sec must be positive")
 
+    optimization_mode = str(config.get("optimization_mode", "fast"))
+    if optimization_mode not in _VALID_OPTIMIZATION_MODES:
+        raise ValueError("optimization_mode must be fast or thorough")
+    max_seeds = int(config.get("max_seeds", 16))
+    max_local_search_iterations = int(config.get("max_local_search_iterations", 12))
+    if max_seeds <= 0:
+        raise ValueError("max_seeds must be positive")
+    if max_local_search_iterations < 0:
+        raise ValueError("max_local_search_iterations must be non-negative")
+
     return JobParameters(
         kerf_mm=kerf_mm,
         margin_mm=margin_mm,
         curve_tolerance_mm=curve_tolerance_mm,
         sheet_gap_mm=sheet_gap_mm,
         time_limit_sec=time_limit_sec,
+        optimization_mode=optimization_mode,
+        max_seeds=max_seeds,
+        max_local_search_iterations=max_local_search_iterations,
     )
