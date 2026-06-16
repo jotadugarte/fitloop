@@ -77,3 +77,4 @@ def test_015_splits_valid_and_open_panels_from_extraction() -> None:
     assert closed == 3
     assert open_n == 1
     assert len(corte["gaps"]) == 1
+    assert len(corte["auto_close_lines"]) == 1

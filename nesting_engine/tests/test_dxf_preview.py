@@ -39,6 +39,17 @@ def create_open_polyline_dxf(path: Path, layer: str, gap_size: float) -> None:
     doc.saveas(path)
 
 
+def test_preview_proposes_auto_close_line_before_authorization(tmp_path: Path) -> None:
+    dxf_path = tmp_path / "preview_auto_close_proposed.dxf"
+    create_open_polyline_dxf(dxf_path, LAYER, 5.0)
+
+    preview = build_source_preview([dxf_path], [LAYER], curve_tolerance_mm=0.25)
+
+    layer_preview = preview["layers"][0]
+    assert len(layer_preview["auto_close_lines"]) == 1
+    assert layer_preview["gaps"][0]["auto_closed"] is False
+
+
 def test_preview_auto_close_under_threshold(tmp_path: Path) -> None:
     dxf_path = tmp_path / "preview_auto_close_under.dxf"
     create_open_polyline_dxf(dxf_path, LAYER, 5.0)

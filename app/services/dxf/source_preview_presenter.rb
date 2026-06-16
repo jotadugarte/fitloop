@@ -29,7 +29,7 @@ module Dxf
     end
 
     def zoom_to_corrections?
-      layers.any?(&:auto_close_gaps)
+      layers.any? { |layer| layer.gaps.any? { |gap| warnable_gap?(gap) } }
     end
 
     def layers
@@ -63,6 +63,19 @@ module Dxf
       max_y = -Float::INFINITY
 
       layers.each do |layer|
+        layer.polylines.each do |polyline|
+          next unless polyline.is_open
+
+          polyline.points.each do |pt|
+            x = pt[0]
+            y = pt[1]
+            min_x = x if x < min_x
+            min_y = y if y < min_y
+            max_x = x if x > max_x
+            max_y = y if y > max_y
+          end
+        end
+
         layer.gaps.each do |gap|
           [gap[:start], gap[:end]].each do |pt|
             x = pt[0]
@@ -254,12 +267,12 @@ module Dxf
     end
 
     def merged_gaps_for(layer_name, preview_gaps, auto_close:)
-      gaps = normalize_gaps(preview_gaps)
+      gaps = normalize_gaps(preview_gaps).select { |gap| warnable_gap?(gap) }
       project_layer = project_layer_for(layer_name)
       return gaps if project_layer.blank?
       return gaps unless project_layer.closed_contour_gap_validation?
 
-      detected = normalize_gaps(project_layer.gaps_detected)
+      detected = normalize_gaps(project_layer.gaps_detected).select { |gap| warnable_gap?(gap) }
       return gaps if detected.empty?
 
       merge_gaps(gaps, detected, auto_close: auto_close)
@@ -268,6 +281,8 @@ module Dxf
     def merge_gaps(preview_gaps, detected_gaps, auto_close:)
       keys = preview_gaps.map { |gap| gap_key(gap) }
       detected_gaps.each do |gap|
+        next unless warnable_gap?(gap)
+
         key = gap_key(gap)
         next if keys.include?(key)
 
@@ -288,11 +303,16 @@ module Dxf
     end
 
     def showable_gaps?(layer)
-      layer.gaps.any? { |gap| gap[:distance_mm].to_f > 2.0 && !gap[:auto_closed] }
+      layer.gaps.any? { |gap| warnable_gap?(gap) && !gap[:auto_closed] }
     end
 
     def showable_detected_gaps?(layer)
-      Nesting::GapReport.from_json(layer.gaps_detected).gaps.any? { |gap| gap.value > 2.0 }
+      Nesting::GapReport.from_json(layer.gaps_detected).warnable?
+    end
+
+    def warnable_gap?(gap)
+      distance = gap[:distance_mm].to_f
+      distance > 2.0 && distance <= 15.0
     end
 
     def project_layer_for(layer_name)

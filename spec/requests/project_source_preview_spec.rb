@@ -80,10 +80,10 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response.body).to include('data-testid="source-dxf-open-group"')
       expect(response.body).to include('data-testid="proposed-auto-close-line"')
       expect(response.body).not_to include('data-testid="gap-error-circle"')
-      expect(response.body).to include('viewBox="-30.0 70.0 65.0 60.0"')
+      expect(response.body).not_to include('viewBox="0 0 100.0 100.0"')
     end
 
-    it "renders open preview from gaps_detected when Python preview omits layer gaps" do
+    it "renders open preview from gaps_detected when Python preview omits warnable layer gaps" do
       layer_data = {
         "width_mm" => 100.0,
         "height_mm" => 100.0,
@@ -112,7 +112,7 @@ RSpec.describe "Project source DXF detail", type: :request do
         included: true,
         gaps_detected: [
           {
-            "distance_mm" => 158.1,
+            "distance_mm" => 14.8,
             "start" => [20.0, 0.0],
             "end" => [0.0, 0.0]
           }
@@ -171,7 +171,7 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response.body).not_to include('data-testid="gap-error-circle"')
     end
 
-    it "renders pulsing red circles with full viewBox when auto_close_gaps is disabled or gap > 15.0 mm" do
+    it "omits ignored gaps from open preview and keeps full viewBox when gap > 15.0 mm" do
       layer_data = {
         "width_mm" => 100.0,
         "height_mm" => 100.0,
@@ -210,8 +210,49 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include('data-testid="source-dxf-open-group"')
       expect(response.body).not_to include('data-testid="proposed-auto-close-line"')
-      expect(response.body).to include('data-testid="gap-error-circle"')
+      expect(response.body).not_to include('data-testid="gap-error-circle"')
       expect(response.body).to include('viewBox="0 0 100.0 100.0"')
+    end
+
+    it "renders proposed auto-close line before authorization when gap is warnable" do
+      layer_data = {
+        "width_mm" => 100.0,
+        "height_mm" => 100.0,
+        "offset_x_mm" => 0.0,
+        "offset_y_mm" => 0.0,
+        "layers" => [
+          {
+            "name" => "PIECES",
+            "color" => "#ff0000",
+            "polylines" => [[[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
+            "polyline_open_flags" => [true],
+            "gaps" => [
+              {
+                "distance_mm" => 5.0,
+                "start" => [5.0, 0.0],
+                "end" => [0.0, 0.0],
+                "auto_closed" => false
+              }
+            ],
+            "auto_close_lines" => [[[5.0, 0.0], [0.0, 0.0]]]
+          }
+        ]
+      }
+      allow(Dxf::SourcePreviewReader).to receive(:preview).and_return(layer_data)
+
+      project.input_dxf.attach(
+        io: File.open(sample_dxf),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      project.project_layers.find_by!(layer_name: "PIECES").update!(included: true, auto_close_gaps: false)
+
+      get project_path(project)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('data-testid="proposed-auto-close-line"')
+      expect(response.body).to include('data-testid="gap-error-circle"')
     end
   end
 end
