@@ -2063,8 +2063,6 @@ def _try_orthogonal_flip_improvements(
     """[REQ-FIT-NEST-002] Try rotating each orthogonal piece by 90° when layout score improves."""
     if len(sheet_pieces) < 2:
         return None
-    if len(sheet_pieces) >= 3:
-        return None
 
     best = sheet_pieces
     best_score = _layout_score_for_pieces(
@@ -2075,70 +2073,77 @@ def _try_orthogonal_flip_improvements(
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
     )
-    improved = False
+    improved_any = False
 
-    for index, placed_row in enumerate(best):
-        piece_index = placed_row.piece_index
-        fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
-        prep = _prepare_solver_piece(fit_geom)
-        if not prep.is_orthogonal:
-            continue
-        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
-            continue
+    while True:
+        pass_improved = False
+        for index, placed_row in enumerate(best):
+            piece_index = placed_row.piece_index
+            fit_geom = piece_polygon(apply_kerf(pieces[piece_index], kerf_mm))
+            prep = _prepare_solver_piece(fit_geom)
+            if not prep.is_orthogonal:
+                continue
+            if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > _EPS_MM:
+                continue
 
-        other_occupied = _occupied_polygons(
-            [row for row_index, row in enumerate(best) if row_index != index],
-            pieces,
-            kerf_mm,
-        )
-        flip_rot = (placed_row.placement.rotation_deg + 90.0) % 360.0
-        solver_placement = place_with_rotation(
-            prep.solver_geometry,
-            bin_width,
-            bin_height,
-            margin=margin_mm,
-            obstacles=other_occupied,
-            allowed_rotations=[flip_rot],
-        )
-        if solver_placement is None:
-            continue
+            other_occupied = _occupied_polygons(
+                [row for row_index, row in enumerate(best) if row_index != index],
+                pieces,
+                kerf_mm,
+            )
+            flip_rot = (placed_row.placement.rotation_deg + 90.0) % 360.0
+            solver_placement = place_with_rotation(
+                prep.solver_geometry,
+                bin_width,
+                bin_height,
+                margin=margin_mm,
+                obstacles=other_occupied,
+                allowed_rotations=[flip_rot],
+            )
+            if solver_placement is None:
+                continue
 
-        new_placement = Placement(
-            solver_placement.x,
-            solver_placement.y,
-            solver_placement.rotation_deg,
-        )
+            new_placement = Placement(
+                solver_placement.x,
+                solver_placement.y,
+                solver_placement.rotation_deg,
+            )
 
-        placed_poly = placed_polygon(fit_geom, new_placement)
-        if not is_ombb_axis_aligned_on_sheet(placed_poly):
-            continue
+            placed_poly = placed_polygon(fit_geom, new_placement)
+            if not is_ombb_axis_aligned_on_sheet(placed_poly):
+                continue
 
-        trial = list(best)
-        trial[index] = placed_piece_from_source(piece_index, pieces[piece_index], new_placement)
-        if not _sheet_pieces_are_valid(
-            trial,
-            pieces,
-            bin_width_mm=bin_width,
-            bin_height_mm=bin_height,
-            margin_mm=margin_mm,
-            kerf_mm=kerf_mm,
-        ):
-            continue
+            trial = list(best)
+            trial[index] = placed_piece_from_source(piece_index, pieces[piece_index], new_placement)
+            if not _sheet_pieces_are_valid(
+                trial,
+                pieces,
+                bin_width_mm=bin_width,
+                bin_height_mm=bin_height,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+            ):
+                continue
 
-        trial_score = _layout_score_for_pieces(
-            trial,
-            pieces,
-            bin_width,
-            bin_height,
-            margin_mm=margin_mm,
-            kerf_mm=kerf_mm,
-        )
-        if _layout_better_than(best_score, trial_score):
-            best = trial
-            best_score = trial_score
-            improved = True
+            trial_score = _layout_score_for_pieces(
+                trial,
+                pieces,
+                bin_width,
+                bin_height,
+                margin_mm=margin_mm,
+                kerf_mm=kerf_mm,
+            )
+            if _layout_better_than(best_score, trial_score):
+                best = trial
+                best_score = trial_score
+                pass_improved = True
+                improved_any = True
+                break
 
-    return best if improved else None
+        if not pass_improved:
+            break
+
+    return best if improved_any else None
 
 
 def _intra_sheet_repack_search(

@@ -288,15 +288,22 @@ def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
     )
 
 
-def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
-    """[REQ-FIT-NEST-002] 90° flip local search improves score when batch orientation is suboptimal."""
-    margin_mm = 0.0
+def test_orthogonal_flip_improvements_works_with_four_pieces() -> None:
+    """[REQ-FIT-NEST-002] Flip search is not limited to two-piece sheets."""
+    margin_mm = 5.0
     kerf_mm = 0.0
-    bin_w, bin_h = 200.0, 200.0
-    pieces = [box(0, 0, 100, 40), box(0, 0, 40, 100)]
+    bin_w, bin_h = 600.0, 400.0
+    pieces = [
+        box(0, 0, 180, 220),
+        box(0, 0, 140, 160),
+        box(0, 0, 120, 120),
+        box(0, 0, 220, 40),
+    ]
     sheet_pieces = [
-        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(0.0, 0.0, 0.0)),
-        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(100.0, 0.0, 0.0)),
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(5.0, 5.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(190.0, 5.0, 0.0)),
+        PlacedPiece(piece_index=2, polygon=pieces[2], placement=Placement(5.0, 230.0, 0.0)),
+        PlacedPiece(piece_index=3, polygon=pieces[3], placement=Placement(200.0, 180.0, 0.0)),
     ]
     baseline_score = _layout_score_for_pieces(
         sheet_pieces,
@@ -326,11 +333,7 @@ def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
         kerf_mm=kerf_mm,
     )
     assert _layout_better_than(baseline_score, improved_score)
-    _assert_all_fit_bin(
-        pieces,
-        [row.placement for row in improved],
-        bin_width_mm=bin_w,
-        bin_height_mm=bin_h,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
+    assert any(
+        improved[index].placement.rotation_deg != sheet_pieces[index].placement.rotation_deg
+        for index in range(len(sheet_pieces))
     )
