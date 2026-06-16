@@ -557,68 +557,24 @@ def nest_multi_bin(
     sheet_gap_mm: float,
     time_limit_sec: float | None = _DEFAULT_TIME_LIMIT_SEC,
     progress_reporter=None,
+    optimization_mode: str = "fast",
 ) -> MultiBinResult:
-    assert margin_mm >= 0 and kerf_mm >= 0 and sheet_gap_mm >= 0, "non-negative job parameters"
-    assert sheet_stocks, "at least one sheet stock required"
-    if time_limit_sec is not None:
-        assert time_limit_sec > 0.0, "time_limit_sec must be positive when set"
+    from nesting_engine.nest_pipeline import NestPipelineContext, run_thorough_multi_bin
 
-    deadline = _time_limit_deadline(time_limit_sec)
-    remaining_indices = _indices_by_descending_area(pieces)
-    stocks = stocks_in_consumption_order(sheet_stocks)
-    total_pieces = len(pieces)
-
-    _report_pipeline_progress(
-        progress_reporter,
-        "fill",
-        12,
-        pieces_total=total_pieces,
-        pieces_placed=0,
-    )
-    sheets, remaining_indices, warnings = _nest_across_stocks(
-        pieces,
-        remaining_indices,
-        stocks,
+    ctx = NestPipelineContext(
+        pieces=pieces,
+        sheet_stocks=sheet_stocks,
         margin_mm=margin_mm,
         kerf_mm=kerf_mm,
         sheet_gap_mm=sheet_gap_mm,
         time_limit_sec=time_limit_sec,
-        deadline=deadline,
         progress_reporter=progress_reporter,
-        pieces_total=total_pieces,
     )
-    placed_count = total_pieces - len(remaining_indices)
-    _report_pipeline_progress(
-        progress_reporter,
-        "fill",
-        55,
-        pieces_total=total_pieces,
-        pieces_placed=placed_count,
-    )
-    sheets = _run_post_fill_phases(
-        sheets,
-        pieces,
-        stocks,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-        sheet_gap_mm=sheet_gap_mm,
-        deadline=deadline,
-        progress_reporter=progress_reporter,
-        pieces_total=total_pieces,
-        pieces_placed=placed_count,
-    )
-    orphans = _orphans_for_remaining(
-        pieces,
-        remaining_indices,
-        stocks,
-        margin_mm=margin_mm,
-        kerf_mm=kerf_mm,
-    )
-    assert len(sheets) >= 0
-    assert not multi_bin_layout_has_significant_overlaps(sheets, pieces, kerf_mm=kerf_mm), (
-        "nest_multi_bin produced overlapping placements"
-    )
-    return MultiBinResult(sheets=sheets, orphans=orphans, warnings=warnings)
+    if optimization_mode == "thorough":
+        return run_thorough_multi_bin(ctx).to_multi_bin_result()
+    from nesting_engine.nest_pipeline import default_seed, run_pipeline
+
+    return run_pipeline(ctx, seed=default_seed()).to_multi_bin_result()
 
 
 def _run_post_fill_phases(
@@ -633,6 +589,7 @@ def _run_post_fill_phases(
     progress_reporter=None,
     pieces_total: int = 0,
     pieces_placed: int = 0,
+    enable_void_pack: bool = False,
 ) -> list[NestedSheet]:
     """[REQ-FIT-NEST-002] Intra repack (×2), consolidate, then inter-sheet search under one deadline."""
     _report_pipeline_progress(
@@ -682,6 +639,16 @@ def _run_post_fill_phases(
         sheet_gap_mm=sheet_gap_mm,
         deadline=deadline,
     )
+    if enable_void_pack:
+        from nesting_engine.nest_void_pack import void_pack_sheets
+
+        sheets = void_pack_sheets(
+            sheets,
+            pieces,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+            deadline=deadline,
+        )
     sheets = _inter_sheet_local_search(
         sheets,
         pieces,
