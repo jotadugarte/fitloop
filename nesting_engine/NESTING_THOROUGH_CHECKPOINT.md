@@ -1,13 +1,11 @@
 # Nesting thorough optimizer — checkpoint
 
-Revert the nesting engine to the commit that adds this file to restart the
-thorough-optimizer implementation from a clean baseline.
+**Checkpoint SHA:** `c95aa56200357bfabd481beb22dfd9ca202fc6d6` (`c95aa56`)
+
+Revert the nesting engine to this commit to discard optimizer phases 0–7 and start again.
 
 ```bash
-git log --oneline -- nesting_engine/NESTING_THOROUGH_CHECKPOINT.md
-# use the first commit that introduces this file (checkpoint marker)
-
-git reset --hard <checkpoint-commit-sha>
+git reset --hard c95aa56
 ```
 
 Do not delete this file when rebasing the optimizer work; it marks the baseline.

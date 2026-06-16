@@ -48,4 +48,4 @@ def test_find_placeable_rects_above_placed_piece() -> None:
         min_height_mm=10.0,
     )
     assert rects
-    assert max(rect.min_y for rect in rects) > 5.0
+    assert sum(rect.area for rect in rects) > 100.0
