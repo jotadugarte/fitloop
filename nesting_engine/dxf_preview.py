@@ -370,6 +370,16 @@ def _composite_file_layer_polylines(
             curve_tolerance_mm=curve_tolerance_mm,
             max_block_depth=max_block_depth,
         )
+        if aux_layers:
+            _append_open_primary_auxiliary_preview(
+                result,
+                doc,
+                primary_layer,
+                aux_layers,
+                gaps=gaps_with_status,
+                curve_tolerance_mm=curve_tolerance_mm,
+                decoration_keys=decoration_keys,
+            )
 
     return {name: data for name, data in result.items() if data["polylines"]}
 
@@ -464,6 +474,91 @@ def _append_auth_open_primary_contours(
             primary["polyline_open_flags"].append(True)
             matched_gaps.add(gap_key)
             break
+
+
+def _append_open_primary_auxiliary_preview(
+    result: dict[str, dict[str, object]],
+    doc: ezdxf.document.Drawing,
+    primary_layer: str,
+    auxiliary_layers: list[str],
+    *,
+    gaps: list[dict[str, object]],
+    curve_tolerance_mm: float,
+    decoration_keys: set[tuple[tuple[float, float], ...]],
+) -> None:
+    """[REQ-FIT-DXF-002] Show auxiliary marks inside auth-range open primary contours."""
+    from nesting_engine.composite_extract import CompositePiece, _attach_auxiliary_entity
+
+    primary = result.get(primary_layer)
+    if primary is None:
+        return
+
+    aux_layer_set = {name for name in auxiliary_layers if name}
+    open_polylines = [
+        points
+        for points, is_open in zip(
+            primary["polylines"],
+            primary["polyline_open_flags"],
+            strict=True,
+        )
+        if is_open
+    ]
+
+    for gap in gaps:
+        if not gap_needs_authorization(float(gap["distance_mm"])):
+            continue
+        preview_polygon = _preview_polygon_for_open_gap(open_polylines, gap)
+        if preview_polygon is None:
+            continue
+
+        piece = CompositePiece(polygon=preview_polygon, primary_layer_name=primary_layer)
+        scanned = 0
+        for entity in doc.modelspace():
+            scanned += 1
+            assert scanned <= _MAX_ENTITIES, "DXF entity limit exceeded"
+            if not hasattr(entity, "dxf") or not entity.dxf.hasattr("layer"):
+                continue
+            if entity.dxf.layer not in aux_layer_set:
+                continue
+            _attach_auxiliary_entity(
+                entity,
+                entity.dxf.layer,
+                [piece],
+                curve_tolerance_mm=curve_tolerance_mm,
+            )
+
+        for decoration in piece.decorations:
+            if decoration.geometry_type != "line":
+                continue
+            coordinates = decoration.payload.get("coordinates")
+            layer_entry = result.setdefault(decoration.layer_name, _empty_layer_preview_data())
+            _append_line_if_new(
+                layer_entry,
+                coordinates,
+                is_open=True,
+                decoration_keys=decoration_keys,
+            )
+
+
+def _preview_polygon_for_open_gap(
+    open_polylines: list[list[list[float]]],
+    gap: dict[str, object],
+) -> Polygon | None:
+    from nesting_engine.extract import _coerce_single_polygon
+
+    start = gap["start"]
+    end = gap["end"]
+    for points in open_polylines:
+        if not _polyline_endpoints_match_gap(points, start, end):
+            continue
+        ring = [(float(x), float(y)) for x, y in points] + [
+            (float(points[0][0]), float(points[0][1]))
+        ]
+        polygon = Polygon(ring)
+        if not polygon.is_valid:
+            polygon = make_valid(polygon)
+        return _coerce_single_polygon(polygon)
+    return None
 
 
 def _polyline_endpoints_match_gap(

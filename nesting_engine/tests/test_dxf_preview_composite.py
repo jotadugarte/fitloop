@@ -78,3 +78,48 @@ def test_015_splits_valid_and_open_panels_from_extraction() -> None:
     assert open_n == 1
     assert len(corte["gaps"]) == 1
     assert len(corte["auto_close_lines"]) == 1
+
+
+@pytest.mark.slow
+def test_015_marcado_auxiliary_shows_on_open_piece_before_auto_close() -> None:
+    path = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
+
+    preview = build_source_preview(
+        [path],
+        [],
+        curve_tolerance_mm=0.25,
+        file_configs=[{"primary_layer": CORTE, "auxiliary_layers": ["MARCADO"]}],
+    )
+
+    layers = {row["name"]: row for row in preview["layers"]}
+    assert "MARCADO" in layers
+    marcado = layers["MARCADO"]
+    assert marcado["polylines"]
+    assert all(marcado["polyline_open_flags"])
+
+
+@pytest.mark.slow
+def test_015_auto_close_moves_open_piece_and_marcado_to_valid_panel() -> None:
+    path = Path(__file__).resolve().parent / "fixtures" / "individuals" / "015.dxf"
+
+    preview = build_source_preview(
+        [path],
+        [],
+        curve_tolerance_mm=0.25,
+        file_configs=[
+            {
+                "primary_layer": CORTE,
+                "auxiliary_layers": ["MARCADO"],
+                "auto_close_layers": [CORTE],
+            }
+        ],
+    )
+
+    layers = {row["name"]: row for row in preview["layers"]}
+    corte = layers[CORTE]
+    assert sum(1 for is_open in corte["polyline_open_flags"] if not is_open) == 4
+    assert not any(corte["polyline_open_flags"])
+
+    marcado = layers["MARCADO"]
+    assert marcado["polylines"]
+    assert not any(marcado["polyline_open_flags"])
