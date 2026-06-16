@@ -158,6 +158,29 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       expect(result.errors).to be_empty
     end
 
+    it "accepts when auxiliary layer stores blocking gaps that are not cut-contour validation" do
+      attachment_id = attach_and_sync_per_file!
+      cut = project.project_layers.find_by!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment_id
+      )
+      ProjectLayer::SetPrimary.call(cut)
+      project.project_layers.create!(
+        layer_name: "MARCADO",
+        active_storage_attachment_id: attachment_id,
+        included: true,
+        layer_role: :auxiliary,
+        gaps_detected: [
+          { "distance_mm" => 158.1, "start" => [0.0, 0.0], "end" => [158.1, 0.0] }
+        ]
+      )
+
+      result = described_class.validate(project)
+
+      expect(result.ok?).to be(true)
+      expect(result.errors).to be_empty
+    end
+
     it "accepts legacy per-file mode when only included layers have no layer_role" do
       attachment_id = attach_and_sync_per_file!
       project.project_layers.find_by!(

@@ -823,6 +823,18 @@ RSpec.describe "Branch coverage remaining gaps" do
       expect(project.project_layers.where(included: true)).to be_empty
     end
 
+    it "preserves gaps_detected when re-syncing an existing layer" do
+      project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
+      Dxf::LayerSyncPerFile.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
+      layer.update!(gaps_detected: gaps)
+
+      Dxf::LayerSyncPerFile.call(project)
+
+      expect(layer.reload.gaps_detected).to eq(gaps)
+    end
+
     it "cleans up tempfiles even when download fails" do
       project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
       attachment = project.input_dxf_attachments.first!
@@ -1793,6 +1805,21 @@ RSpec.describe "Branch coverage remaining gaps" do
       expect do
         Dxf::LayerNamesReader.catalog([ "/tmp/sample.dxf" ])
       end.to raise_error(Dxf::LayerNamesReader::Error, /layer read failed/)
+    end
+
+    it "raises when gap scan paths or layer names are blank" do
+      expect { Dxf::LayerNamesReader.gaps_for(path: "", layer_name: "PIECES") }
+        .to raise_error(ArgumentError, /path must be present/)
+      expect { Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "") }
+        .to raise_error(ArgumentError, /layer_name must be present/)
+    end
+
+    it "raises when the Python gap scan exits non-zero" do
+      allow(Open3).to receive(:capture2).and_return([ "layer gap scan failed", instance_double(Process::Status, success?: false) ])
+
+      expect do
+        Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "PIECES")
+      end.to raise_error(Dxf::LayerNamesReader::Error, /layer gap scan failed/)
     end
   end
 

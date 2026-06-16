@@ -126,11 +126,12 @@ RSpec.describe ProjectLayer, type: :model do
   end
 
   describe "syncing layers with gaps [REQ-FIT-DXF-001]" do
-    it "saves gaps in gaps_detected column" do
+    it "defers gaps at sync and refreshes when primary is set" do
       gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
-        [ { "name" => "PIECES", "color" => "#ffffff", "gaps" => gaps } ]
+        [ { "name" => "PIECES", "color" => "#ffffff", "gaps" => [] } ]
       )
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),
@@ -140,7 +141,42 @@ RSpec.describe ProjectLayer, type: :model do
       Dxf::LayerSyncPerFile.call(project)
 
       layer = project.project_layers.find_by!(layer_name: "PIECES")
-      expect(layer.gaps_detected).to eq(gaps)
+      expect(layer.gaps_detected).to eq([])
+
+      ProjectLayer::SetPrimary.call(layer)
+
+      expect(layer.reload.gaps_detected).to eq(gaps)
+    end
+  end
+
+  describe "#closed_contour_gap_validation? [REQ-FIT-DXF-002]" do
+    let(:attachment_id) { sync_layers_from_sample_dxf! }
+
+    it "is true for primary layers" do
+      layer = project.project_layers.find_by!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment_id
+      )
+      layer.update!(layer_role: :primary, included: true)
+
+      expect(layer.closed_contour_gap_validation?).to be(true)
+    end
+
+    it "is false for auxiliary and unselected layers" do
+      marcado = project.project_layers.create!(
+        layer_name: "MARCADO",
+        active_storage_attachment_id: attachment_id,
+        included: true,
+        layer_role: :auxiliary
+      )
+      idle = project.project_layers.create!(
+        layer_name: "DEFPOINTS",
+        active_storage_attachment_id: attachment_id,
+        included: false
+      )
+
+      expect(marcado.closed_contour_gap_validation?).to be(false)
+      expect(idle.closed_contour_gap_validation?).to be(false)
     end
   end
 end
