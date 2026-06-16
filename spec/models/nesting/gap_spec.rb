@@ -36,17 +36,10 @@ RSpec.describe Nesting::GapDistanceMm do
     end
   end
 
-  describe "#ignored?" do
-    it "returns true if value > 15.0" do
-      expect(described_class.new(15.0).ignored?).to be(false)
-      expect(described_class.new(16.0).ignored?).to be(true)
-    end
-  end
-
   describe "#blocking?" do
-    it "returns false because gaps >15mm are ignored stray geometry" do
-      expect(described_class.new(16.0).blocking?).to be(false)
-      expect(described_class.new(5.0).blocking?).to be(false)
+    it "returns true if value > 15.0" do
+      expect(described_class.new(15.0).blocking?).to be(false)
+      expect(described_class.new(16.0).blocking?).to be(true)
     end
   end
 end
@@ -67,10 +60,10 @@ RSpec.describe Nesting::GapReport do
   end
 
   describe "#unresolved?" do
-    it "returns false for ignored gaps regardless of auto_close_gaps" do
+    it "returns true if any gap is blocking" do
       report = described_class.new([Nesting::GapDistanceMm.new(20.0)])
-      expect(report.unresolved?(auto_close_gaps: true)).to be(false)
-      expect(report.unresolved?(auto_close_gaps: false)).to be(false)
+      expect(report.unresolved?(auto_close_gaps: true)).to be(true)
+      expect(report.unresolved?(auto_close_gaps: false)).to be(true)
     end
 
     it "returns false for warnable gaps when auto_close_gaps is true" do
@@ -87,16 +80,6 @@ RSpec.describe Nesting::GapReport do
       report = described_class.new([Nesting::GapDistanceMm.new(1.5)])
       expect(report.unresolved?(auto_close_gaps: true)).to be(false)
       expect(report.unresolved?(auto_close_gaps: false)).to be(false)
-    end
-
-    it "returns true for warnable gaps when ignored gaps also exist" do
-      report = described_class.new([
-        Nesting::GapDistanceMm.new(14.8),
-        Nesting::GapDistanceMm.new(104.3)
-      ])
-      expect(report.warnable?).to be(true)
-      expect(report.unresolved?(auto_close_gaps: false)).to be(true)
-      expect(report.unresolved?(auto_close_gaps: true)).to be(false)
     end
   end
 end

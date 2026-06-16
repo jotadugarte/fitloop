@@ -101,28 +101,7 @@ RSpec.describe "Project layers", type: :request do
       expect(response.body).not_to include(I18n.t("project_layers.primary_layer.tooltip"))
     end
 
-    it "shows auto-close checkbox when warnable gaps coexist with ignored gaps" do
-      gaps = [
-        { "distance_mm" => 14.8, "start" => [0, 0], "end" => [14.8, 0] },
-        { "distance_mm" => 104.3, "start" => [1, 0], "end" => [105.3, 0] }
-      ]
-      allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
-        [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
-      )
-      allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
-      attachment = attach_per_file_dxf!
-      layer = project.project_layers.find_by!(layer_name: "PIECES")
-      ProjectLayer::SetPrimary.call(layer)
-
-      get project_layers_path(project)
-
-      expect(response.body).to include("layer-gap-warning-#{layer.id}")
-      expect(response.body).to include(I18n.t("project_layers.warnable_gap_warning", distance: 14.8))
-      expect(response.body).to include("auto_close_gaps")
-      expect(response.body).not_to include(I18n.t("project_layers.blocking_gap_warning", distance: 104.3))
-    end
-
-    it "does not show gap warning when only ignored gaps exist" do
+    it "shows blocking gap warning when a layer has gaps > 15mm" do
       gaps = [ { "distance_mm" => 20.0, "start" => [0, 0], "end" => [20, 0] } ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
@@ -134,7 +113,8 @@ RSpec.describe "Project layers", type: :request do
 
       get project_layers_path(project)
 
-      expect(response.body).not_to include("layer-gap-warning-#{layer.id}")
+      expect(response.body).to include("layer-gap-warning-#{layer.id}")
+      expect(response.body).to include(I18n.t("project_layers.blocking_gap_warning", distance: 20.0))
       expect(response.body).not_to include("auto_close_gaps")
     end
 
@@ -183,33 +163,6 @@ RSpec.describe "Project layers", type: :request do
         I18n.t("project_layers.blocking_gap_warning", distance: 158.1)
       )
       expect(response.body).not_to include("layer-gap-warning-#{marcado.id}")
-    end
-
-    it "shows auto-close checkbox on CORTE when 015 has warnable and ignored gaps" do
-      dxf_015 = Rails.root.join("nesting_engine/tests/fixtures/individuals/015.dxf")
-      project.input_dxf.attach(
-        io: File.open(dxf_015),
-        filename: "015.dxf",
-        content_type: "application/dxf"
-      )
-      Dxf::LayerSyncPerFile.call(project)
-      attachment = project.input_dxf_attachments.first!
-      corte = project.project_layers.find_by!(
-        layer_name: "CORTE",
-        active_storage_attachment_id: attachment.id
-      )
-      marcado = project.project_layers.find_by!(
-        layer_name: "MARCADO",
-        active_storage_attachment_id: attachment.id
-      )
-
-      ProjectLayer::SetPrimary.call(corte)
-      marcado.update!(layer_role: :auxiliary, included: true)
-
-      get project_layers_path(project)
-
-      expect(response.body).to include("layer-gap-warning-#{corte.id}")
-      expect(response.body).to include("auto_close_gaps")
     end
 
     it "PATCH sets exclusive primary and auxiliary roles per attachment" do
