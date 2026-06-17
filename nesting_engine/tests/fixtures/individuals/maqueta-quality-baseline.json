@@ -1,0 +1,38 @@
+{
+  "fixture": [
+    "007.dxf",
+    "008.dxf",
+    "009.dxf",
+    "010.dxf",
+    "011.dxf",
+    "012.dxf"
+  ],
+  "margin_mm": 5.0,
+  "kerf_mm": 0.0,
+  "stock": {
+    "width_mm": 700,
+    "height_mm": 700
+  },
+  "cases": {
+    "1": {
+      "quantity": 1,
+      "fast": {
+        "sheet_count": 2,
+        "orphan_count": 1,
+        "total_waste_mm2": 630414.26,
+        "total_free_area_mm2": 148826.61,
+        "total_footprint_mm2": 416334.74
+      }
+    },
+    "2": {
+      "quantity": 2,
+      "fast": {
+        "sheet_count": 2,
+        "orphan_count": 0,
+        "total_waste_mm2": 590554.81,
+        "total_free_area_mm2": 525912.92,
+        "total_footprint_mm2": 515591.25
+      }
+    }
+  }
+}
