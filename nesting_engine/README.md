@@ -62,6 +62,14 @@ Rails `Nesting::CliRunner` creates a per-run directory containing:
   | `max_local_search_iterations` | integer | no | Thorough local-search cap (default 12); env `FITLOOP_NESTING_MAX_LOCAL_SEARCH_ITERATIONS` |
   | `output_dir` | string | yes | Directory for engine output files |
 
+### Environment Variables
+
+The Python nesting engine reads the following environment variables if set:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `FITLOOP_NESTING_SHUFFLE_SEED_BASE` | `42` | Random seed base for thorough mode shuffle pool variations. |
+
 ### Composite layers per file (`input_files`) — v1.2
 
 When the user sets a **primary layer** per DXF file (`REQ-FIT-DXF-002`), Rails emits `input_files[]` instead of top-level `input_dxf_paths` + `included_layers`. Legacy projects without a primary layer keep the flat fields above.

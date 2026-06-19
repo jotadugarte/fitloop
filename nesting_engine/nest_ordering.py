@@ -1,12 +1,20 @@
 # [REQ-FIT-NEST-002] Piece ordering generators for multi-start nesting seeds.
 from __future__ import annotations
 
+import os
 import random
 from dataclasses import dataclass
 
 from nesting_engine.nest_orientation import orientation_profiles
 from nesting_engine.piece_loader import piece_polygon
 from shapely.geometry import Polygon
+
+# Orientation profiles active in thorough mode (fast mode always uses as_extracted only).
+_THOROUGH_PROFILES = ("as_extracted", "cardinal_90", "bar_parallel_long_edge")
+
+# Default base for random shuffle seeds. Override via FITLOOP_NESTING_SHUFFLE_SEED_BASE.
+_DEFAULT_SHUFFLE_SEED_BASE = 42
+_DEFAULT_SHUFFLE_COUNT = 4
 
 
 @dataclass(frozen=True)
@@ -21,16 +29,31 @@ def generate_seeds(
     pieces: list[Polygon] | None = None,
     *,
     max_seeds: int = 16,
+    enable_orientation_profiles: bool = False,
+    shuffle_seed_base: int | None = None,
+    shuffle_count: int = _DEFAULT_SHUFFLE_COUNT,
 ) -> list[OrderingSeed]:
+    """[REQ-FIT-NEST-002] Generate a diverse pool of ordering seeds for multi-start nesting.
+
+    When ``enable_orientation_profiles`` is True (thorough mode), seeds are paired with
+    all three orientation profiles (as_extracted, cardinal_90, bar_parallel_long_edge)
+    and augmented with additional random shuffle orders.
+
+    Pre-condition: piece_count >= 0
+    Post-condition: len(result) <= max_seeds; all piece_order entries are valid permutations
+    """
     assert piece_count >= 0
     if piece_count == 0:
         return [OrderingSeed(name="empty", piece_order=(), orientation_profile="as_extracted")]
 
-    orders = _unique_orders(piece_count, pieces)
-    profiles = ("as_extracted",)
+    seed_base = shuffle_seed_base if shuffle_seed_base is not None else _read_shuffle_seed_base_env()
+    orders = _unique_orders(piece_count, pieces, shuffle_seed_base=seed_base, shuffle_count=shuffle_count)
+
+    active_profiles = _THOROUGH_PROFILES if enable_orientation_profiles else ("as_extracted",)
+
     seeds: list[OrderingSeed] = []
     for order_name, order in orders:
-        for profile in profiles:
+        for profile in active_profiles:
             seeds.append(
                 OrderingSeed(
                     name=f"{order_name}:{profile}",
@@ -43,9 +66,20 @@ def generate_seeds(
     return seeds
 
 
+def _read_shuffle_seed_base_env() -> int:
+    """Read optional FITLOOP_NESTING_SHUFFLE_SEED_BASE from environment (default 42)."""
+    raw = os.environ.get("FITLOOP_NESTING_SHUFFLE_SEED_BASE", "")
+    if raw.strip().isdigit():
+        return int(raw.strip())
+    return _DEFAULT_SHUFFLE_SEED_BASE
+
+
 def _unique_orders(
     piece_count: int,
     pieces: list[Polygon] | None,
+    *,
+    shuffle_seed_base: int = _DEFAULT_SHUFFLE_SEED_BASE,
+    shuffle_count: int = _DEFAULT_SHUFFLE_COUNT,
 ) -> list[tuple[str, tuple[int, ...]]]:
     indices = list(range(piece_count))
     orders: list[tuple[str, tuple[int, ...]]] = []
@@ -82,10 +116,18 @@ def _unique_orders(
         orders.append(("area_asc", tuple(indices)))
     orders.append(("index_desc", tuple(reversed(indices))))
     orders.append(("index_asc", tuple(indices)))
+
+    # Fixed shuffle seed (for reproducibility)
     shuffled = list(indices)
-    rng = random.Random(42)
+    rng = random.Random(shuffle_seed_base)
     rng.shuffle(shuffled)
-    orders.append(("shuffle_42", tuple(shuffled)))
+    orders.append((f"shuffle_{shuffle_seed_base}", tuple(shuffled)))
+
+    # Additional shuffle seeds from the configurable pool
+    for i in range(1, shuffle_count):
+        extra = list(indices)
+        random.Random(shuffle_seed_base + i).shuffle(extra)
+        orders.append((f"shuffle_{shuffle_seed_base + i}", tuple(extra)))
 
     unique: list[tuple[str, tuple[int, ...]]] = []
     seen: set[tuple[int, ...]] = set()

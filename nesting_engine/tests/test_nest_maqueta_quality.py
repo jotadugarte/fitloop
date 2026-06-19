@@ -12,6 +12,7 @@ from nesting_engine.nest_objective import LayoutScore, compare_layouts, layout_s
 from nesting_engine.nest_placement import placed_polygon, polygons_overlap_significantly
 from nesting_engine.nest_types import MultiBinResult, SheetStockSpec
 from nesting_engine.piece_loader import load_pieces, piece_polygon
+from shapely.affinity import translate
 
 _FIXTURES = Path(__file__).resolve().parent / "fixtures" / "individuals"
 _BASELINE_PATH = _FIXTURES / "maqueta-quality-baseline.json"
@@ -52,12 +53,9 @@ def _assert_no_foreign_hole_nesting(
     worlds: list[tuple[str, Polygon]] = []
     for sheet in result.sheets:
         for row in sheet.pieces:
-            worlds.append(
-                (
-                    names[row.piece_index],
-                    placed_polygon(pieces[row.piece_index], row.placement),
-                )
-            )
+            local_poly = placed_polygon(pieces[row.piece_index], row.placement)
+            world_poly = translate(local_poly, xoff=sheet.offset_x_mm)
+            worlds.append((names[row.piece_index], world_poly))
     for left_name, left_poly in worlds:
         for right_name, right_poly in worlds:
             if left_name == right_name:
@@ -72,7 +70,8 @@ def _assert_no_foreign_hole_nesting(
 def _assert_pieces_fit_sheets(result: MultiBinResult, pieces: list[Polygon]) -> None:
     for sheet in result.sheets:
         for row in sheet.pieces:
-            world = placed_polygon(pieces[row.piece_index], row.placement)
+            local_poly = placed_polygon(pieces[row.piece_index], row.placement)
+            world = translate(local_poly, xoff=sheet.offset_x_mm)
             minx, miny, maxx, maxy = world.bounds
             assert minx >= sheet.offset_x_mm + _MARGIN_MM - 1e-3
             assert miny >= _MARGIN_MM - 1e-3

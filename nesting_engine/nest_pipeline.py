@@ -76,6 +76,7 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
         _time_limit_deadline,
         multi_bin_layout_has_significant_overlaps,
     )
+    from nesting_engine.nest_orientation import apply_orientation_profile
 
     active_seed = seed or default_seed()
     assert ctx.margin_mm >= 0 and ctx.kerf_mm >= 0 and ctx.sheet_gap_mm >= 0, "non-negative job parameters"
@@ -83,7 +84,18 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
     if ctx.time_limit_sec is not None:
         assert ctx.time_limit_sec > 0.0, "time_limit_sec must be positive when set"
 
-    pieces = ctx.pieces
+    # [REQ-FIT-NEST-002] Apply orientation profile pre-rotation when seed requests it.
+    if active_seed.orientation_profile != "as_extracted":
+        ref_stock = ctx.sheet_stocks[0]
+        pieces = apply_orientation_profile(
+            ctx.pieces,
+            active_seed.orientation_profile,
+            sheet_width_mm=ref_stock.width_mm,
+            sheet_height_mm=ref_stock.height_mm,
+        )
+    else:
+        pieces = ctx.pieces
+
     deadline = _time_limit_deadline(ctx.time_limit_sec)
     remaining_indices = _resolve_piece_order(pieces, active_seed)
     stocks = stocks_in_consumption_order(ctx.sheet_stocks)
@@ -171,9 +183,31 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
     from nesting_engine.nest_local_search import local_search_pipeline_result
     from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
     from nesting_engine.nest_ordering import generate_seeds
+    from nesting_engine.nest_sheet_assignment import assignment_seeds
+
+    # [REQ-FIT-NEST-002] Prepend multi-sheet assignment seeds in thorough mode.
+    seeds = list(assignment_seeds(ctx.pieces, ctx.sheet_stocks, margin_mm=ctx.margin_mm))
+    seeds.extend(
+        generate_seeds(
+            len(ctx.pieces),
+            ctx.pieces,
+            max_seeds=ctx.max_seeds,
+            enable_orientation_profiles=True,
+        )
+    )
+
+    # Deduplicate seeds by (piece_order, orientation_profile) and cap to max_seeds
+    seen_seeds = set()
+    unique_seeds = []
+    for seed in seeds:
+        key = (seed.piece_order, seed.orientation_profile)
+        if key not in seen_seeds:
+            seen_seeds.add(key)
+            unique_seeds.append(seed)
+    unique_seeds = unique_seeds[:ctx.max_seeds]
 
     best: NestPipelineResult | None = None
-    for seed in generate_seeds(len(ctx.pieces), ctx.pieces, max_seeds=ctx.max_seeds):
+    for seed in unique_seeds:
         thorough_seed = NestSeed(
             name=seed.name,
             piece_order=seed.piece_order,

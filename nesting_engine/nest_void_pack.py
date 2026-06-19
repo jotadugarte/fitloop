@@ -33,10 +33,31 @@ def void_pack_sheets(
     if not sheets:
         return sheets
     baseline = score_nested_layout(sheets, pieces, margin_mm=margin_mm)
-    improved = [
-        _void_pack_one_sheet(sheet, pieces, margin_mm=margin_mm, kerf_mm=kerf_mm, deadline=deadline)
-        for sheet in sheets
-    ]
+
+    # Track all pieces placed across all sheets to prevent duplicates
+    current_placed = {row.piece_index for sheet in sheets for row in sheet.pieces}
+
+    improved = []
+    for sheet in sheets:
+        # Candidates are pieces not placed on ANY sheet yet
+        strip_candidates = [
+            index
+            for index in range(len(pieces))
+            if index not in current_placed and _is_strip_piece(pieces[index])
+        ]
+        new_sheet = _void_pack_one_sheet(
+            sheet,
+            pieces,
+            strip_candidates,
+            margin_mm=margin_mm,
+            kerf_mm=kerf_mm,
+            deadline=deadline,
+        )
+        improved.append(new_sheet)
+        # Update placed set with any newly placed pieces on this sheet
+        for row in new_sheet.pieces:
+            current_placed.add(row.piece_index)
+
     if multi_bin_layout_has_significant_overlaps(improved, pieces, kerf_mm=kerf_mm):
         return sheets
     candidate_score = score_nested_layout(improved, pieces, margin_mm=margin_mm)
@@ -48,6 +69,7 @@ def void_pack_sheets(
 def _void_pack_one_sheet(
     sheet: NestedSheet,
     pieces: list[Polygon],
+    strip_candidates: list[int],
     *,
     margin_mm: float,
     kerf_mm: float,
@@ -56,12 +78,6 @@ def _void_pack_one_sheet(
     if _time_limit_exceeded(deadline):
         return sheet
 
-    placed_indices = {row.piece_index for row in sheet.pieces}
-    strip_candidates = [
-        index
-        for index in range(len(pieces))
-        if index not in placed_indices and _is_strip_piece(pieces[index])
-    ]
     if not strip_candidates:
         return sheet
 

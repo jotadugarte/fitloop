@@ -33,13 +33,17 @@ Per-sheet placement during Shapely fallback and intra-sheet repack continues to 
 ### Thorough pipeline extensions
 
 When `optimization_mode` is `thorough`:
-
-1. Multi-start over piece order and orientation profiles (`nest_ordering`, `nest_orientation`)
-2. Void detection and strip packing (`nest_voids`, `nest_void_pack`) after intra-sheet repack, before gravity
-3. Local search on top-K layouts (`nest_local_search`)
-4. Multi-sheet assignment heuristics (`nest_sheet_assignment`) before fill when stocks allow
-
-`fast` runs one pipeline invocation with the legacy default seed (area-descending order, as-extracted orientation).
+ 
+ 1. Multi-start over piece order and orientation profiles (`nest_ordering`, `nest_orientation`). In v2, this includes:
+    - Orientation profiles: `as_extracted`, `cardinal_90`, and `bar_parallel_long_edge`.
+    - Configurable shuffle seed pool with base `FITLOOP_NESTING_SHUFFLE_SEED_BASE` (default 42) and pool size `shuffle_count` (default 4) to generate random seed variations.
+ 2. Void detection and strip packing (`nest_voids`, `nest_void_pack`) after intra-sheet repack, before gravity
+ 3. Local search on top-K layouts (`nest_local_search`) using two operators round-robin:
+    - Intra-sheet: `_rotate_smallest_strip_seed` (sends the smallest piece of first sheet to end of ordering).
+    - Inter-sheet (v2): `_pull_from_donor_sheet_seed` (pulls the largest piece off the sparsest last sheet to the front of the order to pack it on an earlier sheet).
+ 4. Multi-sheet assignment heuristics (`nest_sheet_assignment`) before fill when stocks allow. In v2, `assignment_seeds()` generates and prepends FFD sheet-aware ordering seeds.
+ 
+ `fast` runs one pipeline invocation with the legacy default seed (area-descending order, as-extracted orientation).
 
 ### Positive consequences
 
