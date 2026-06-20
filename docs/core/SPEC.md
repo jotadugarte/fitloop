@@ -450,7 +450,8 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 
 **Python (`nesting_engine/progress_reporter.py`):**
 
-- Writes `{output_dir}/progress.json` (schema v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- Writes `{output_dir}/progress.json` (schema v2, backward compatible with v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- Extends the progress payload with `eta_sec` (integer or null) estimated by `ThoroughEtaEstimator` which tracks loop execution time during the optimization phase.
 - `phase_id` values: `extracting`, `fill`, `optimizing`, `consolidating`, `refining`, `writing_outputs`.
 - Hooked in `nest.py` / `nest_libnest2d.py` at pipeline boundaries **without** changing placement algorithms.
 
@@ -458,7 +459,7 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 
 - **Enqueue:** `StartsNesting` sets `progress_message` to `nesting.phase.queued` (3%) and `estimated_finished_at` to `now + nesting_time_limit_sec` (not a fixed 30s stub).
 - **Pre-CLI:** `NestingJob` → `nesting.phase.preparing` (8%); `Nesting::JobRunner` → `nesting.phase.starting` (12%) before `CliRunner`.
-- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by time limit).
+- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (using `eta_sec` from the snapshot if available, otherwise falling back to a heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by the time limit).
 - **UI:** `projects/_nesting_progress` shows progress bar (`aria-valuetext` = phase + percent + optional time remaining), **Cancel** (`data-testid="cancel-nesting"`), `nesting.time_remaining`, and `nesting.eta_overrun`. Cancel is **not** duplicated in `show_actions` while processing.
 - **Broadcast / poll:** `Nesting::ProgressBroadcaster` and `ProjectsController#nesting_sync` use `Nesting::ProgressLocals` (`active_run`, `time_remaining`, `eta_overrun`).
 - **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).
