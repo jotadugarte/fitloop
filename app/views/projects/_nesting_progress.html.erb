@@ -25,6 +25,12 @@
             <% end %>
             <%= nesting_progress_message(project) %>
           </p>
+          <% if project.estimated_finished_at.present? && project.estimated_finished_at > Time.current %>
+            <% minutes = ((project.estimated_finished_at - Time.current) / 60.0).ceil %>
+            <% if minutes > 0 %>
+              <p class="time-remaining" data-testid="time-remaining"><%= t("nesting.time_remaining", minutes: minutes) %></p>
+            <% end %>
+          <% end %>
           <% if eta_overrun %>
             <p class="eta-overrun" data-testid="eta-overrun"><%= t("nesting.eta_overrun") %></p>
           <% end %>

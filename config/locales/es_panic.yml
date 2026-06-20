@@ -570,6 +570,7 @@ es_panic:
     input_file_missing: Alguien borró el archivo original. Seguro fue usted, mae.
     progress_heading: Nivel de ansiedad (Progreso)
     eta_overrun: El servidor está sudando frío, dele un toque...
+    time_remaining: "~%{minutes} min antes del colapso"
     time_limit_notice: Me cansé de calcular. Esto es lo mejor que va a obtener a esta hora.
     renest: Barajar de nuevo (Volver a anidar)
     renest_started: Acomodando todo otra vez, a ver si hay suerte...

@@ -581,6 +581,7 @@ es:
     input_file_missing: "No se encontró el archivo DXF. Vuelve a subirlo e intenta de nuevo."
     progress_heading: "Progreso de la distribución"
     eta_overrun: "Sigue en curso — está tardando más de lo estimado."
+    time_remaining: "~%{minutes} min restantes"
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a distribuir"
     renest_started: "Nueva distribución iniciada. Las ejecuciones anteriores se conservan en el historial."

@@ -110,6 +110,7 @@ RSpec.describe "Project layers", type: :request do
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
       )
       allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
       attachment = attach_per_file_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       ProjectLayer::SetPrimary.call(layer)
@@ -127,6 +128,7 @@ RSpec.describe "Project layers", type: :request do
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
       )
       allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
       attachment = attach_per_file_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       ProjectLayer::SetPrimary.call(layer)
@@ -143,6 +145,7 @@ RSpec.describe "Project layers", type: :request do
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
       )
       allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
       attachment = attach_per_file_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       ProjectLayer::SetPrimary.call(layer)

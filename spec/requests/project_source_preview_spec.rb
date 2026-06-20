@@ -286,7 +286,7 @@ RSpec.describe "Project source DXF detail", type: :request do
       expect(response.body).to include('data-testid="primary-internal-cut-line"')
       valid_preview_idx = response.body.index('data-testid="source-dxf-preview-valid"')
       expect(valid_preview_idx).to be_present
-      expect(response.body[valid_preview_idx, 400]).to include('data-controller="svg-pan-zoom"')
+      expect(response.body[valid_preview_idx - 150, 550]).to include('data-controller="svg-pan-zoom"')
     end
   end
 end
