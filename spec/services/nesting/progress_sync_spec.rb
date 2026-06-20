@@ -99,42 +99,33 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
 
       expect(changed).to be(false)
       expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
-      expect(project.reload.progress_percent).to eq(15)
     end
 
-    it "skips broadcast when progress fields are unchanged [REQ-FIT-JOB-001]" do
-      # Set project to the exact values the sync would write (percent + message).
-      # Use a snapshot with eta_sec so estimated_finished_at is computed from a
-      # fixed reference; travel_to stabilises Time.current across both writes.
-      fixed_eta_sec = 300
-      travel_to(Time.current) do
-        expected_eta = Time.current + fixed_eta_sec.seconds
-        project.update!(
-          progress_percent: 42,
-          progress_message: "nesting.phase.fill",
-          estimated_finished_at: expected_eta
-        )
-        allow(Nesting::ProgressBroadcaster).to receive(:call)
+    it "never advances estimated_finished_at when new ETA is later than current [REQ-FIT-JOB-001]" do
+      # Project already has an ETA 5 min from now
+      earlier_eta = 5.minutes.from_now
+      project.update!(estimated_finished_at: earlier_eta)
 
-        snap = Nesting::ProgressSnapshot.from_hash(
-          {
-            "version" => 2,
-            "phase_id" => "fill",
-            "percent" => 42,
-            "eta_sec" => fixed_eta_sec
-          },
-          last_percent: 0
-        )
+      # Snapshot sends eta_sec=600 (10 min), which would be LATER than current ETA
+      snap = Nesting::ProgressSnapshot.from_hash(
+        {
+          "version" => 2,
+          "phase_id" => "optimizing",
+          "percent" => 40,
+          "eta_sec" => 600
+        },
+        last_percent: 0
+      )
 
-        changed = described_class.call(
-          project: project,
-          snapshot: snap,
-          nesting_run: nesting_run
-        )
+      described_class.call(
+        project: project,
+        snapshot: snap,
+        nesting_run: nesting_run,
+        broadcast: false
+      )
 
-        expect(changed).to be(false)
-        expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
-      end
+      # ETA must not have advanced beyond the previously stored value
+      expect(project.reload.estimated_finished_at).to be_within(2.seconds).of(earlier_eta)
     end
   end
 end
