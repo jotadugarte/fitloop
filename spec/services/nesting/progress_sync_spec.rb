@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:project) do
     create_project_for_spec!(
       title: "Progress sync bench",
@@ -101,26 +103,38 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
     end
 
     it "skips broadcast when progress fields are unchanged [REQ-FIT-JOB-001]" do
-      project.update!(
-        progress_percent: 42,
-        progress_message: "nesting.phase.fill",
-        estimated_finished_at: Nesting::ProgressEta.estimate(
-          started_at: nesting_run.started_at,
-          time_limit_sec: project.nesting_time_limit_sec,
-          pieces_total: nil,
-          pieces_placed: nil
+      # Set project to the exact values the sync would write (percent + message).
+      # Use a snapshot with eta_sec so estimated_finished_at is computed from a
+      # fixed reference; travel_to stabilises Time.current across both writes.
+      fixed_eta_sec = 300
+      travel_to(Time.current) do
+        expected_eta = Time.current + fixed_eta_sec.seconds
+        project.update!(
+          progress_percent: 42,
+          progress_message: "nesting.phase.fill",
+          estimated_finished_at: expected_eta
         )
-      )
-      allow(Nesting::ProgressBroadcaster).to receive(:call)
+        allow(Nesting::ProgressBroadcaster).to receive(:call)
 
-      changed = described_class.call(
-        project: project,
-        snapshot: snapshot(percent: 42),
-        nesting_run: nesting_run
-      )
+        snap = Nesting::ProgressSnapshot.from_hash(
+          {
+            "version" => 2,
+            "phase_id" => "fill",
+            "percent" => 42,
+            "eta_sec" => fixed_eta_sec
+          },
+          last_percent: 0
+        )
 
-      expect(changed).to be(false)
-      expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
+        changed = described_class.call(
+          project: project,
+          snapshot: snap,
+          nesting_run: nesting_run
+        )
+
+        expect(changed).to be(false)
+        expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
+      end
     end
   end
 end

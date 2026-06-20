@@ -1,6 +1,8 @@
 # [REQ-FIT-NEST-002] Nest pipeline context, seeds, and run_pipeline entry point.
 from __future__ import annotations
 
+import math
+from collections import deque
 from dataclasses import dataclass, field
 
 from shapely.geometry import Polygon
@@ -8,6 +10,39 @@ from shapely.geometry import Polygon
 from nesting_engine.nest_objective import LayoutScore, layout_score_with_orphans, score_nested_layout
 from nesting_engine.nest_types import MultiBinResult, NestedSheet, OrphanPiece, SheetStockSpec
 from nesting_engine.sheet_stocks_config import stocks_in_consumption_order
+
+
+@dataclass
+class ThoroughEtaEstimator:
+    """[REQ-FIT-JOB-001] Rolling-window ETA estimator for the thorough nesting loop.
+
+    Records the wall-clock duration of each completed iteration (seed or
+    local-search round) and exposes `eta_sec()` as a rough time-remaining
+    estimate based on the average of the last three durations.
+
+    Pre-conditions:
+        total_iterations > 0
+    Post-conditions:
+        eta_sec() is None until first record; non-negative int thereafter.
+    """
+
+    total_iterations: int
+    _window: deque[float] = field(default_factory=lambda: deque(maxlen=3), init=False)
+    _completed: int = field(default=0, init=False)
+
+    def record_iteration(self, elapsed_sec: float) -> None:
+        """Record the wall-clock duration of one finished iteration."""
+        assert elapsed_sec >= 0.0, "elapsed_sec must be non-negative"
+        self._window.append(elapsed_sec)
+        self._completed += 1
+
+    def eta_sec(self) -> int | None:
+        """Return estimated seconds remaining, or None if no data yet."""
+        if not self._window:
+            return None
+        remaining = max(0, self.total_iterations - self._completed)
+        avg = sum(self._window) / len(self._window)
+        return max(0, round(avg * remaining))
 
 
 @dataclass(frozen=True)
@@ -180,6 +215,8 @@ def pick_better_pipeline_result(
 
 
 def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
+    import time as _time
+
     from nesting_engine.nest_local_search import local_search_pipeline_result
     from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
     from nesting_engine.nest_ordering import generate_seeds
@@ -206,8 +243,29 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
             unique_seeds.append(seed)
     unique_seeds = unique_seeds[:ctx.max_seeds]
 
+    # [REQ-FIT-JOB-001] ETA estimator: total = seeds + local search iterations
+    total_iters = len(unique_seeds) + ctx.max_local_search_iterations
+    eta = ThoroughEtaEstimator(total_iterations=max(1, total_iters))
+    n_seeds = len(unique_seeds)
+
+    def _report_optimizing(iteration_index: int) -> None:
+        if ctx.progress_reporter is None:
+            return
+        # Seed loop: 10..70 %; local-search: 70..95 %
+        if iteration_index < n_seeds:
+            pct = 10 + round(60 * iteration_index / max(1, n_seeds))
+        else:
+            ls_done = iteration_index - n_seeds
+            pct = 70 + round(25 * ls_done / max(1, ctx.max_local_search_iterations))
+        ctx.progress_reporter.report(
+            "optimizing",
+            min(95, max(10, pct)),
+            eta_sec=eta.eta_sec(),
+        )
+
     best: NestPipelineResult | None = None
-    for seed in unique_seeds:
+    for i, seed in enumerate(unique_seeds):
+        t0 = _time.monotonic()
         thorough_seed = NestSeed(
             name=seed.name,
             piece_order=seed.piece_order,
@@ -216,6 +274,8 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
             enable_local_search=True,
         )
         candidate = run_pipeline(ctx, seed=thorough_seed)
+        eta.record_iteration(_time.monotonic() - t0)
+        _report_optimizing(i)
         if multi_bin_layout_has_significant_overlaps(
             candidate.sheets,
             ctx.pieces,
@@ -229,9 +289,15 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
 
     if best is None:
         best = run_pipeline(ctx, seed=default_seed())
+
+    t0 = _time.monotonic()
     top_results = local_search_pipeline_result(
         ctx,
         best,
         max_iterations=ctx.max_local_search_iterations,
     )
+    # Record local-search block as a single iteration for ETA
+    eta.record_iteration(_time.monotonic() - t0)
+    _report_optimizing(n_seeds)
+
     return top_results

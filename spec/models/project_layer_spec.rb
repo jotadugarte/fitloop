@@ -132,6 +132,7 @@ RSpec.describe ProjectLayer, type: :model do
         [ { "name" => "PIECES", "color" => "#ffffff", "gaps" => [] } ]
       )
       allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return(gaps)
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
 
       project.input_dxf.attach(
         io: File.open(sample_dxf),

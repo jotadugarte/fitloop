@@ -22,6 +22,13 @@ ENV["ONVO_SECRET_KEY"] = "onvo_test_secret_dummy" if ENV["ONVO_SECRET_KEY"].to_s
 ENV["ONVO_PUBLISHABLE_KEY"] = "onvo_test_publishable_dummy" if ENV["ONVO_PUBLISHABLE_KEY"].to_s.strip.empty?
 ENV["ONVO_WEBHOOK_SECRET"] = "whsec_test_onvo_dummy" if ENV["ONVO_WEBHOOK_SECRET"].to_s.strip.empty?
 
+# Isolate test nesting options from developer .env
+ENV.delete("FITLOOP_NESTING_OPTIMIZATION_MODE")
+ENV.delete("FITLOOP_NESTING_MAX_SEEDS")
+ENV.delete("FITLOOP_NESTING_MAX_LOCAL_SEARCH_ITERATIONS")
+ENV.delete("FITLOOP_NESTING_TIME_LIMIT_SEC")
+ENV.delete("FITLOOP_NESTING_SHUFFLE_SEED_BASE")
+
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
 

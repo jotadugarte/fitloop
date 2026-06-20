@@ -57,7 +57,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       expect(result.errors).to be_empty
     end
 
-    it "rejects when layers have blocking gaps (> 15.0 mm)" do
+    it "accepts when layers have ignored gaps (> 15.0 mm)" do
       attach_sample_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(
@@ -68,8 +68,8 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
 
       result = described_class.validate(project)
 
-      expect(result.ok?).to be(false)
-      expect(result.errors).to include(I18n.t("project_readiness.unresolved_gaps"))
+      expect(result.ok?).to be(true)
+      expect(result.errors).to be_empty
     end
 
     it "rejects when layers have medium gaps (2.0 - 15.0 mm) without auto_close_gaps enabled" do

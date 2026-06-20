@@ -3,7 +3,8 @@
 module Nesting
   # [REQ-FIT-JOB-001] Parses CLI progress.json for live nesting UI updates.
   class ProgressSnapshot
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
+    SUPPORTED_VERSIONS = [1, 2].freeze
 
     PHASE_I18N_KEYS = {
       "extracting" => "nesting.phase.extracting",
@@ -14,7 +15,7 @@ module Nesting
       "writing_outputs" => "nesting.phase.writing_outputs"
     }.freeze
 
-    attr_reader :phase_id, :percent, :message_key, :pieces_total, :pieces_placed
+    attr_reader :phase_id, :percent, :message_key, :pieces_total, :pieces_placed, :eta_sec
 
     def self.read(work_dir, last_percent: 0)
       path = Pathname(work_dir).join("output", "progress.json")
@@ -27,7 +28,7 @@ module Nesting
 
     def self.from_hash(hash, last_percent: 0)
       data = hash.transform_keys(&:to_s)
-      return nil unless data["version"] == SCHEMA_VERSION
+      return nil unless SUPPORTED_VERSIONS.include?(data["version"])
 
       phase_id = data["phase_id"].to_s
       return nil unless PHASE_I18N_KEYS.key?(phase_id)
@@ -42,16 +43,18 @@ module Nesting
         percent: percent,
         message_key: message_key,
         pieces_total: optional_integer(data["pieces_total"]),
-        pieces_placed: optional_integer(data["pieces_placed"])
+        pieces_placed: optional_integer(data["pieces_placed"]),
+        eta_sec: optional_integer(data["eta_sec"])
       )
     end
 
-    def initialize(phase_id:, percent:, message_key:, pieces_total: nil, pieces_placed: nil)
+    def initialize(phase_id:, percent:, message_key:, pieces_total: nil, pieces_placed: nil, eta_sec: nil)
       @phase_id = phase_id
       @percent = percent
       @message_key = message_key
       @pieces_total = pieces_total
       @pieces_placed = pieces_placed
+      @eta_sec = eta_sec
     end
 
     def message

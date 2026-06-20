@@ -58,7 +58,7 @@ def test_cli_mock_writes_outputs_and_stepped_progress(
     progress_path = output_dir / "progress.json"
     assert progress_path.is_file()
     final = json.loads(progress_path.read_text(encoding="utf-8"))
-    assert final["version"] == 1
+    assert final["version"] == 2
     assert final["phase_id"] == "writing_outputs"
     assert final["percent"] >= 95
 

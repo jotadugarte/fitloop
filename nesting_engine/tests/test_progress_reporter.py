@@ -141,3 +141,48 @@ def test_valid_phase_ids_cover_pipeline_phases() -> None:
         "writing_outputs",
     }
     assert expected <= VALID_PHASE_IDS
+
+
+# [REQ-FIT-JOB-001] Step 1: eta_sec field in progress.json (schema v2)
+
+
+def test_schema_version_is_2() -> None:
+    # Fails until PROGRESS_SCHEMA_VERSION is bumped to 2.
+    assert PROGRESS_SCHEMA_VERSION == 2
+
+
+def test_report_without_eta_sec_omits_field(tmp_path: Path) -> None:
+    # eta_sec must be absent from the JSON when not provided (backward compat).
+    path = tmp_path / "progress.json"
+    reporter = ProgressReporter(path)
+    reporter.report("optimizing", 30)
+    data = _read_progress(path)
+    assert "eta_sec" not in data
+
+
+def test_report_with_eta_sec_none_omits_field(tmp_path: Path) -> None:
+    # Explicit None must also produce no eta_sec key.
+    path = tmp_path / "progress.json"
+    reporter = ProgressReporter(path)
+    reporter.report("optimizing", 30, eta_sec=None)
+    data = _read_progress(path)
+    assert "eta_sec" not in data
+
+
+def test_report_with_eta_sec_integer_includes_field(tmp_path: Path) -> None:
+    # Positive integer ETA must appear in the JSON payload.
+    path = tmp_path / "progress.json"
+    reporter = ProgressReporter(path)
+    reporter.report("optimizing", 45, eta_sec=120)
+    data = _read_progress(path)
+    assert data["eta_sec"] == 120
+    assert isinstance(data["eta_sec"], int)
+
+
+def test_report_with_eta_sec_zero_includes_field(tmp_path: Path) -> None:
+    # Zero ETA (just finished) must also be included.
+    path = tmp_path / "progress.json"
+    reporter = ProgressReporter(path)
+    reporter.report("optimizing", 99, eta_sec=0)
+    data = _read_progress(path)
+    assert data["eta_sec"] == 0
