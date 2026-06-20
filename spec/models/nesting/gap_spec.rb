@@ -55,19 +55,19 @@ RSpec.describe Nesting::GapReport do
     it "parses json array of hashes" do
       report = described_class.from_json('[{"distance_mm": 5.0}, {"distance_mm": 20.0}]')
       expect(report.gaps.size).to eq(2)
-      expect(report.gaps.map(&:value)).to eq([5.0, 20.0])
+      expect(report.gaps.map(&:value)).to eq([ 5.0, 20.0 ])
     end
 
     it "parses array of hashes directly" do
-      report = described_class.from_json([{ "distance_mm" => 5.0 }, { "distance_mm" => 20.0 }])
+      report = described_class.from_json([ { "distance_mm" => 5.0 }, { "distance_mm" => 20.0 } ])
       expect(report.gaps.size).to eq(2)
-      expect(report.gaps.map(&:value)).to eq([5.0, 20.0])
+      expect(report.gaps.map(&:value)).to eq([ 5.0, 20.0 ])
     end
   end
 
   describe "#unresolved?" do
     it "returns false for ignored gaps regardless of auto_close_gaps" do
-      report = described_class.new([Nesting::GapDistanceMm.new(20.0)])
+      report = described_class.new([ Nesting::GapDistanceMm.new(20.0) ])
       expect(report.unresolved?(auto_close_gaps: true)).to be(false)
       expect(report.unresolved?(auto_close_gaps: false)).to be(false)
     end
@@ -82,17 +82,17 @@ RSpec.describe Nesting::GapReport do
     end
 
     it "returns false for warnable gaps when auto_close_gaps is true" do
-      report = described_class.new([Nesting::GapDistanceMm.new(5.0)])
+      report = described_class.new([ Nesting::GapDistanceMm.new(5.0) ])
       expect(report.unresolved?(auto_close_gaps: true)).to be(false)
     end
 
     it "returns true for warnable gaps when auto_close_gaps is false" do
-      report = described_class.new([Nesting::GapDistanceMm.new(5.0)])
+      report = described_class.new([ Nesting::GapDistanceMm.new(5.0) ])
       expect(report.unresolved?(auto_close_gaps: false)).to be(true)
     end
 
     it "returns false for silent gaps regardless of auto_close_gaps" do
-      report = described_class.new([Nesting::GapDistanceMm.new(1.5)])
+      report = described_class.new([ Nesting::GapDistanceMm.new(1.5) ])
       expect(report.unresolved?(auto_close_gaps: true)).to be(false)
       expect(report.unresolved?(auto_close_gaps: false)).to be(false)
     end

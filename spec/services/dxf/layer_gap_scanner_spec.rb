@@ -18,7 +18,7 @@ RSpec.describe Dxf::LayerGapScanner, "[REQ-FIT-DXF-002]" do
 
   describe ".refresh!" do
     it "scans gaps when the layer requires closed-contour validation" do
-      gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
+      gaps = [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ]
       allow(Dxf::LayerNamesReader).to receive(:gaps_for_composite).and_return(gaps)
       attach_sample_dxf!
       layer = project.project_layers.find_by!(layer_name: "PIECES")
@@ -52,7 +52,7 @@ RSpec.describe Dxf::LayerGapScanner, "[REQ-FIT-DXF-002]" do
         active_storage_attachment_id: attachment_id,
         included: true,
         layer_role: :auxiliary,
-        gaps_detected: [ { "distance_mm" => 20.0, "start" => [0.0, 0.0], "end" => [20.0, 0.0] } ]
+        gaps_detected: [ { "distance_mm" => 20.0, "start" => [ 0.0, 0.0 ], "end" => [ 20.0, 0.0 ] } ]
       )
 
       described_class.refresh!(layer)
@@ -67,7 +67,7 @@ RSpec.describe Dxf::LayerGapScanner, "[REQ-FIT-DXF-002]" do
         active_storage_attachment_id: attachment_id
       )
       layer.update!(
-        gaps_detected: [ { "distance_mm" => 20.0, "start" => [0.0, 0.0], "end" => [20.0, 0.0] } ]
+        gaps_detected: [ { "distance_mm" => 20.0, "start" => [ 0.0, 0.0 ], "end" => [ 20.0, 0.0 ] } ]
       )
 
       described_class.refresh!(layer)

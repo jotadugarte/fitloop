@@ -103,8 +103,8 @@ RSpec.describe "Project layers", type: :request do
 
     it "shows auto-close checkbox when warnable gaps coexist with ignored gaps" do
       gaps = [
-        { "distance_mm" => 14.8, "start" => [0, 0], "end" => [14.8, 0] },
-        { "distance_mm" => 104.3, "start" => [1, 0], "end" => [105.3, 0] }
+        { "distance_mm" => 14.8, "start" => [ 0, 0 ], "end" => [ 14.8, 0 ] },
+        { "distance_mm" => 104.3, "start" => [ 1, 0 ], "end" => [ 105.3, 0 ] }
       ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
@@ -123,7 +123,7 @@ RSpec.describe "Project layers", type: :request do
     end
 
     it "does not show gap warning when only ignored gaps exist" do
-      gaps = [ { "distance_mm" => 20.0, "start" => [0, 0], "end" => [20, 0] } ]
+      gaps = [ { "distance_mm" => 20.0, "start" => [ 0, 0 ], "end" => [ 20, 0 ] } ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
       )
@@ -140,7 +140,7 @@ RSpec.describe "Project layers", type: :request do
     end
 
     it "shows warnable gap warning and auto-close checkbox when a layer has gaps 2mm..15mm" do
-      gaps = [ { "distance_mm" => 5.0, "start" => [0, 0], "end" => [5, 0] } ]
+      gaps = [ { "distance_mm" => 5.0, "start" => [ 0, 0 ], "end" => [ 5, 0 ] } ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
         [ { "name" => "PIECES", "color" => "#808080", "gaps" => [] } ]
       )

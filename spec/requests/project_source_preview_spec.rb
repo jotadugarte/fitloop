@@ -50,17 +50,17 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
-            "polyline_open_flags" => [true],
+            "polylines" => [ [ [ 5.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 100.0 ], [ 0.0, 100.0 ], [ 0.0, 0.0 ] ] ],
+            "polyline_open_flags" => [ true ],
             "gaps" => [
               {
                 "distance_mm" => 5.0,
-                "start" => [5.0, 0.0],
-                "end" => [0.0, 0.0],
+                "start" => [ 5.0, 0.0 ],
+                "end" => [ 0.0, 0.0 ],
                 "auto_closed" => true
               }
             ],
-            "auto_close_lines" => [[[5.0, 0.0], [0.0, 0.0]]]
+            "auto_close_lines" => [ [ [ 5.0, 0.0 ], [ 0.0, 0.0 ] ] ]
           }
         ]
       }
@@ -93,8 +93,8 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[0.0, 0.0], [100.0, 0.0], [100.0, 50.0], [0.0, 50.0], [0.0, 0.0]]],
-            "polyline_open_flags" => [false],
+            "polylines" => [ [ [ 0.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 50.0 ], [ 0.0, 50.0 ], [ 0.0, 0.0 ] ] ],
+            "polyline_open_flags" => [ false ],
             "gaps" => [],
             "auto_close_lines" => []
           }
@@ -113,8 +113,8 @@ RSpec.describe "Project source DXF detail", type: :request do
         gaps_detected: [
           {
             "distance_mm" => 14.8,
-            "start" => [20.0, 0.0],
-            "end" => [0.0, 0.0]
+            "start" => [ 20.0, 0.0 ],
+            "end" => [ 0.0, 0.0 ]
           }
         ]
       )
@@ -137,8 +137,8 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "CORTE",
             "color" => "#ff0000",
-            "polylines" => [[[0.0, 0.0], [100.0, 0.0], [100.0, 50.0], [0.0, 50.0], [0.0, 0.0]]],
-            "polyline_open_flags" => [false],
+            "polylines" => [ [ [ 0.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 50.0 ], [ 0.0, 50.0 ], [ 0.0, 0.0 ] ] ],
+            "polyline_open_flags" => [ false ],
             "gaps" => [],
             "auto_close_lines" => []
           }
@@ -159,7 +159,7 @@ RSpec.describe "Project source DXF detail", type: :request do
         active_storage_attachment_id: attachment.id,
         included: false,
         gaps_detected: [
-          { "distance_mm" => 158.1, "start" => [20.0, 0.0], "end" => [0.0, 0.0] }
+          { "distance_mm" => 158.1, "start" => [ 20.0, 0.0 ], "end" => [ 0.0, 0.0 ] }
         ]
       )
       ProjectLayer::SetPrimary.call(corte)
@@ -181,13 +181,13 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[20.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
-            "polyline_open_flags" => [true],
+            "polylines" => [ [ [ 20.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 100.0 ], [ 0.0, 100.0 ], [ 0.0, 0.0 ] ] ],
+            "polyline_open_flags" => [ true ],
             "gaps" => [
               {
                 "distance_mm" => 20.0,
-                "start" => [20.0, 0.0],
-                "end" => [0.0, 0.0],
+                "start" => [ 20.0, 0.0 ],
+                "end" => [ 0.0, 0.0 ],
                 "auto_closed" => false
               }
             ],
@@ -224,17 +224,17 @@ RSpec.describe "Project source DXF detail", type: :request do
           {
             "name" => "PIECES",
             "color" => "#ff0000",
-            "polylines" => [[[5.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]]],
-            "polyline_open_flags" => [true],
+            "polylines" => [ [ [ 5.0, 0.0 ], [ 100.0, 0.0 ], [ 100.0, 100.0 ], [ 0.0, 100.0 ], [ 0.0, 0.0 ] ] ],
+            "polyline_open_flags" => [ true ],
             "gaps" => [
               {
                 "distance_mm" => 5.0,
-                "start" => [5.0, 0.0],
-                "end" => [0.0, 0.0],
+                "start" => [ 5.0, 0.0 ],
+                "end" => [ 0.0, 0.0 ],
                 "auto_closed" => false
               }
             ],
-            "auto_close_lines" => [[[5.0, 0.0], [0.0, 0.0]]]
+            "auto_close_lines" => [ [ [ 5.0, 0.0 ], [ 0.0, 0.0 ] ] ]
           }
         ]
       }

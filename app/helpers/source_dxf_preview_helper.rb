@@ -23,11 +23,11 @@ module SourceDxfPreviewHelper
 
     polylines_to_render = if filter == :valid
                             layer.polylines.reject(&:is_open)
-                          elsif filter == :open
+    elsif filter == :open
                             layer.polylines.select(&:is_open)
-                          else
+    else
                             layer.polylines
-                          end
+    end
 
     elements.concat(
       polylines_to_render.map do |line|

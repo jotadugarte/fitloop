@@ -137,18 +137,13 @@ def _reference_sheet_area(stocks: list[SheetStockSpec]) -> float:
     return stocks[0].width_mm * stocks[0].height_mm
 
 
-def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> NestPipelineResult:
-    from nesting_engine.nest_libnest2d import (
-        _nest_across_stocks,
-        _orphans_for_remaining,
-        _report_pipeline_progress,
-        _run_post_fill_phases,
-        _time_limit_deadline,
-        multi_bin_layout_has_significant_overlaps,
-    )
+def _prepare_pieces_and_order(
+    ctx: NestPipelineContext,
+    active_seed: NestSeed,
+) -> tuple[list[Polygon], list[int], list[SheetStockSpec], float | None]:
+    from nesting_engine.nest_libnest2d import _time_limit_deadline
     from nesting_engine.nest_orientation import apply_orientation_profile
 
-    active_seed = seed or default_seed()
     assert ctx.margin_mm >= 0 and ctx.kerf_mm >= 0 and ctx.sheet_gap_mm >= 0, "non-negative job parameters"
     assert ctx.sheet_stocks, "at least one sheet stock required"
     if ctx.time_limit_sec is not None:
@@ -169,8 +164,25 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
     deadline = _time_limit_deadline(ctx.time_limit_sec)
     remaining_indices = _resolve_piece_order(pieces, active_seed)
     stocks = stocks_in_consumption_order(ctx.sheet_stocks)
-    total_pieces = len(pieces)
+    return pieces, remaining_indices, stocks, deadline
 
+
+def _execute_nesting_phases(
+    ctx: NestPipelineContext,
+    active_seed: NestSeed,
+    pieces: list[Polygon],
+    remaining_indices: list[int],
+    stocks: list[SheetStockSpec],
+    deadline: float | None,
+) -> tuple[list[NestedSheet], list[OrphanPiece], list[str]]:
+    from nesting_engine.nest_libnest2d import (
+        _nest_across_stocks,
+        _orphans_for_remaining,
+        _report_pipeline_progress,
+        _run_post_fill_phases,
+    )
+
+    total_pieces = len(pieces)
     _report_pipeline_progress(
         ctx.progress_reporter,
         "fill",
@@ -178,7 +190,7 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
         pieces_total=total_pieces,
         pieces_placed=0,
     )
-    sheets, remaining_indices, warnings = _nest_across_stocks(
+    sheets, remaining, warnings = _nest_across_stocks(
         pieces,
         remaining_indices,
         stocks,
@@ -190,7 +202,7 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
         progress_reporter=ctx.progress_reporter,
         pieces_total=total_pieces,
     )
-    placed_count = total_pieces - len(remaining_indices)
+    placed_count = total_pieces - len(remaining)
     _report_pipeline_progress(
         ctx.progress_reporter,
         "fill",
@@ -213,11 +225,24 @@ def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> N
     )
     orphans = _orphans_for_remaining(
         pieces,
-        remaining_indices,
+        remaining,
         stocks,
         margin_mm=ctx.margin_mm,
         kerf_mm=ctx.kerf_mm,
     )
+    return sheets, orphans, warnings
+
+
+def run_pipeline(ctx: NestPipelineContext, *, seed: NestSeed | None = None) -> NestPipelineResult:
+    from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
+
+    active_seed = seed or default_seed()
+    pieces, remaining_indices, stocks, deadline = _prepare_pieces_and_order(ctx, active_seed)
+
+    sheets, orphans, warnings = _execute_nesting_phases(
+        ctx, active_seed, pieces, remaining_indices, stocks, deadline
+    )
+
     assert not multi_bin_layout_has_significant_overlaps(sheets, pieces, kerf_mm=ctx.kerf_mm), (
         "run_pipeline produced overlapping placements"
     )
@@ -249,9 +274,7 @@ def pick_better_pipeline_result(
     return right
 
 
-def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
-    from nesting_engine.nest_local_search import local_search_pipeline_result
-    from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
+def _generate_unique_seeds(ctx: NestPipelineContext) -> list[NestSeed]:
     from nesting_engine.nest_ordering import generate_seeds
     from nesting_engine.nest_sheet_assignment import assignment_seeds
 
@@ -274,10 +297,16 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
         if key not in seen_seeds:
             seen_seeds.add(key)
             unique_seeds.append(seed)
-    unique_seeds = unique_seeds[:ctx.max_seeds]
+    return unique_seeds[:ctx.max_seeds]
 
-    # [REQ-FIT-JOB-001] Stable ETA: wall-clock countdown anchored to real start time.
-    eta = WallClockEtaEstimator(time_limit_sec=ctx.time_limit_sec)
+
+def _run_multi_start_seeds(
+    ctx: NestPipelineContext,
+    unique_seeds: list[NestSeed],
+    eta: WallClockEtaEstimator,
+) -> NestPipelineResult:
+    from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
+
     n_seeds = len(unique_seeds)
 
     def _report_optimizing(pct: int) -> None:
@@ -312,6 +341,17 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
 
     if best is None:
         best = run_pipeline(ctx, seed=default_seed())
+    return best
+
+
+def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
+    from nesting_engine.nest_local_search import local_search_pipeline_result
+
+    unique_seeds = _generate_unique_seeds(ctx)
+
+    # [REQ-FIT-JOB-001] Stable ETA: wall-clock countdown anchored to real start time.
+    eta = WallClockEtaEstimator(time_limit_sec=ctx.time_limit_sec)
+    best = _run_multi_start_seeds(ctx, unique_seeds, eta)
 
     # [REQ-FIT-JOB-001] Pass eta estimator so local search reports per-iteration.
     return local_search_pipeline_result(

@@ -4,7 +4,7 @@ module Nesting
   # [REQ-FIT-JOB-001] Parses CLI progress.json for live nesting UI updates.
   class ProgressSnapshot
     SCHEMA_VERSION = 2
-    SUPPORTED_VERSIONS = [1, 2].freeze
+    SUPPORTED_VERSIONS = [ 1, 2 ].freeze
 
     PHASE_I18N_KEYS = {
       "extracting" => "nesting.phase.extracting",

@@ -127,7 +127,7 @@ RSpec.describe ProjectLayer, type: :model do
 
   describe "syncing layers with gaps [REQ-FIT-DXF-001]" do
     it "defers gaps at sync and refreshes when primary is set" do
-      gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
+      gaps = [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ]
       allow(Dxf::LayerNamesReader).to receive(:catalog).and_return(
         [ { "name" => "PIECES", "color" => "#ffffff", "gaps" => [] } ]
       )

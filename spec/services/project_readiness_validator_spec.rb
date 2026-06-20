@@ -62,7 +62,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(
         included: true,
-        gaps_detected: [{ "distance_mm" => 20.0, "start" => [0.0, 0.0], "end" => [20.0, 0.0] }],
+        gaps_detected: [ { "distance_mm" => 20.0, "start" => [ 0.0, 0.0 ], "end" => [ 20.0, 0.0 ] } ],
         auto_close_gaps: true
       )
 
@@ -77,7 +77,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(
         included: true,
-        gaps_detected: [{ "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] }],
+        gaps_detected: [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ],
         auto_close_gaps: false
       )
 
@@ -92,7 +92,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(
         included: true,
-        gaps_detected: [{ "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] }],
+        gaps_detected: [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ],
         auto_close_gaps: true
       )
 
@@ -107,7 +107,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
       layer = project.project_layers.find_by!(layer_name: "PIECES")
       layer.update!(
         included: true,
-        gaps_detected: [{ "distance_mm" => 1.5, "start" => [0.0, 0.0], "end" => [1.5, 0.0] }],
+        gaps_detected: [ { "distance_mm" => 1.5, "start" => [ 0.0, 0.0 ], "end" => [ 1.5, 0.0 ] } ],
         auto_close_gaps: false
       )
 
@@ -171,7 +171,7 @@ RSpec.describe ProjectReadinessValidator, "[REQ-FIT-VAL-001]" do
         included: true,
         layer_role: :auxiliary,
         gaps_detected: [
-          { "distance_mm" => 158.1, "start" => [0.0, 0.0], "end" => [158.1, 0.0] }
+          { "distance_mm" => 158.1, "start" => [ 0.0, 0.0 ], "end" => [ 158.1, 0.0 ] }
         ]
       )
 

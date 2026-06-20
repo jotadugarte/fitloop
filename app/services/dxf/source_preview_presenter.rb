@@ -77,7 +77,7 @@ module Dxf
         end
 
         layer.gaps.each do |gap|
-          [gap[:start], gap[:end]].each do |pt|
+          [ gap[:start], gap[:end] ].each do |pt|
             x = pt[0]
             y = pt[1]
             min_x = x if x < min_x
@@ -100,8 +100,8 @@ module Dxf
       svg_width = svg_x2 - svg_x1
       svg_height = svg_y2 - svg_y1
 
-      padding_x = [svg_width * 0.3, 30.0].max
-      padding_y = [svg_height * 0.3, 30.0].max
+      padding_x = [ svg_width * 0.3, 30.0 ].max
+      padding_y = [ svg_height * 0.3, 30.0 ].max
 
       zoom_x = svg_x1 - padding_x
       zoom_y = svg_y1 - padding_y
@@ -150,13 +150,13 @@ module Dxf
                          layer_name: layer_name,
                          active_storage_attachment_id: @attachment.id
                        )&.auto_close_gaps? || false
-                     else
+        else
                        @project.project_layers.where(
                          layer_name: layer_name,
                          included: true,
                          auto_close_gaps: true
                        ).exists?
-                     end
+        end
 
         Layer.new(
           name: layer_name,
@@ -234,7 +234,7 @@ module Dxf
           entry = { primary_layer: primary.layer_name }
           auxiliary = (auxiliary_layers_for(attachment) + preview_layer_names_for(attachment) - [ primary.layer_name ]).uniq.sort
           entry[:auxiliary_layers] = auxiliary if auxiliary.any?
-          entry[:auto_close_layers] = [primary.layer_name] if primary.auto_close_gaps?
+          entry[:auto_close_layers] = [ primary.layer_name ] if primary.auto_close_gaps?
           entry
         else
           names = included_layers_for(attachment)

@@ -827,7 +827,7 @@ RSpec.describe "Branch coverage remaining gaps" do
       project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
       Dxf::LayerSyncPerFile.call(project)
       layer = project.project_layers.find_by!(layer_name: "PIECES")
-      gaps = [ { "distance_mm" => 5.0, "start" => [0.0, 0.0], "end" => [5.0, 0.0] } ]
+      gaps = [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ]
       layer.update!(gaps_detected: gaps)
 
       Dxf::LayerSyncPerFile.call(project)

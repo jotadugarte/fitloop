@@ -6,13 +6,13 @@ module Nesting
 
     def self.from_json(json_data)
       data = case json_data
-             when String
+      when String
                JSON.parse(json_data)
-             when Array
+      when Array
                json_data
-             else
+      else
                []
-             end
+      end
       gaps = data.map do |entry|
         dist = entry.is_a?(Hash) ? entry["distance_mm"] : entry
         GapDistanceMm.new(dist)
