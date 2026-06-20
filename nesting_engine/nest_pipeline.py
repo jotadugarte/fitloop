@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from collections import deque
+import time as _time
 from dataclasses import dataclass, field
 
 from shapely.geometry import Polygon
@@ -13,36 +13,71 @@ from nesting_engine.sheet_stocks_config import stocks_in_consumption_order
 
 
 @dataclass
-class ThoroughEtaEstimator:
-    """[REQ-FIT-JOB-001] Rolling-window ETA estimator for the thorough nesting loop.
+class WallClockEtaEstimator:
+    """[REQ-FIT-JOB-001] Stable, monotonically-decreasing ETA for thorough nesting.
 
-    Records the wall-clock duration of each completed iteration (seed or
-    local-search round) and exposes `eta_sec()` as a rough time-remaining
-    estimate based on the average of the last three durations.
+    Primary mode (time_limit_sec provided — thorough mode):
+        eta = max(0, time_limit_sec - elapsed)
+    This is a simple countdown anchored to the real wall clock — guaranteed
+    monotonically decreasing, never jumps around.
+
+    Fallback mode (time_limit_sec is None):
+        eta = elapsed × (100 - smoothed_pct) / smoothed_pct
+    Uses EWMA-smoothed percent (α = 0.3) to absorb sudden jumps. Requires
+    at least 3 seconds of elapsed time and 5 % progress before emitting.
+
+    A monotonic cap ensures the returned value never increases once set.
 
     Pre-conditions:
-        total_iterations > 0
+        time_limit_sec > 0 when provided
     Post-conditions:
-        eta_sec() is None until first record; non-negative int thereafter.
+        update() returns None when no meaningful estimate is available yet.
+        update() returns a non-negative int otherwise.
     """
 
-    total_iterations: int
-    _window: deque[float] = field(default_factory=lambda: deque(maxlen=3), init=False)
-    _completed: int = field(default=0, init=False)
+    time_limit_sec: float | None
+    _start: float = field(init=False)
+    _smoothed_pct: float = field(default=0.0, init=False)
+    _last_eta: int | None = field(default=None, init=False)
+    _ALPHA: float = field(default=0.3, init=False, repr=False)
 
-    def record_iteration(self, elapsed_sec: float) -> None:
-        """Record the wall-clock duration of one finished iteration."""
-        assert elapsed_sec >= 0.0, "elapsed_sec must be non-negative"
-        self._window.append(elapsed_sec)
-        self._completed += 1
+    def __post_init__(self) -> None:
+        self._start = _time.monotonic()
 
-    def eta_sec(self) -> int | None:
-        """Return estimated seconds remaining, or None if no data yet."""
-        if not self._window:
-            return None
-        remaining = max(0, self.total_iterations - self._completed)
-        avg = sum(self._window) / len(self._window)
-        return max(0, round(avg * remaining))
+    def update(self, percent: int) -> int | None:
+        """Feed current percent (0..100) and return eta_sec, or None if no estimate yet."""
+        if percent <= 0:
+            return self._last_eta
+
+        pct = float(min(100, percent))
+        # EWMA smoothing absorbs sudden percent jumps
+        if self._smoothed_pct <= 0.0:
+            self._smoothed_pct = pct
+        else:
+            self._smoothed_pct = self._ALPHA * pct + (1.0 - self._ALPHA) * self._smoothed_pct
+
+        elapsed = _time.monotonic() - self._start
+
+        if self._smoothed_pct >= 99.9:
+            self._last_eta = 0
+            return 0
+
+        if self.time_limit_sec is not None:
+            # Reliable countdown: monotonically decreasing by construction
+            raw_eta = max(0.0, self.time_limit_sec - elapsed)
+        else:
+            # Fallback: need enough elapsed time and progress to project
+            if elapsed < 3.0 or self._smoothed_pct < 5.0:
+                return self._last_eta
+            remaining_pct = 100.0 - self._smoothed_pct
+            raw_eta = elapsed * remaining_pct / self._smoothed_pct
+
+        eta = max(0, round(raw_eta))
+        # Monotonic cap: once set, ETA never increases
+        if self._last_eta is not None and eta > self._last_eta:
+            eta = self._last_eta
+        self._last_eta = eta
+        return eta
 
 
 @dataclass(frozen=True)
@@ -215,8 +250,6 @@ def pick_better_pipeline_result(
 
 
 def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
-    import time as _time
-
     from nesting_engine.nest_local_search import local_search_pipeline_result
     from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps
     from nesting_engine.nest_ordering import generate_seeds
@@ -243,29 +276,18 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
             unique_seeds.append(seed)
     unique_seeds = unique_seeds[:ctx.max_seeds]
 
-    # [REQ-FIT-JOB-001] ETA estimator: total = seeds + local search iterations
-    total_iters = len(unique_seeds) + ctx.max_local_search_iterations
-    eta = ThoroughEtaEstimator(total_iterations=max(1, total_iters))
+    # [REQ-FIT-JOB-001] Stable ETA: wall-clock countdown anchored to real start time.
+    eta = WallClockEtaEstimator(time_limit_sec=ctx.time_limit_sec)
     n_seeds = len(unique_seeds)
 
-    def _report_optimizing(iteration_index: int) -> None:
+    def _report_optimizing(pct: int) -> None:
         if ctx.progress_reporter is None:
             return
-        # Seed loop: 10..70 %; local-search: 70..95 %
-        if iteration_index < n_seeds:
-            pct = 10 + round(60 * iteration_index / max(1, n_seeds))
-        else:
-            ls_done = iteration_index - n_seeds
-            pct = 70 + round(25 * ls_done / max(1, ctx.max_local_search_iterations))
-        ctx.progress_reporter.report(
-            "optimizing",
-            min(95, max(10, pct)),
-            eta_sec=eta.eta_sec(),
-        )
+        bounded = min(95, max(10, pct))
+        ctx.progress_reporter.report("optimizing", bounded, eta_sec=eta.update(bounded))
 
     best: NestPipelineResult | None = None
     for i, seed in enumerate(unique_seeds):
-        t0 = _time.monotonic()
         thorough_seed = NestSeed(
             name=seed.name,
             piece_order=seed.piece_order,
@@ -274,8 +296,9 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
             enable_local_search=True,
         )
         candidate = run_pipeline(ctx, seed=thorough_seed)
-        eta.record_iteration(_time.monotonic() - t0)
-        _report_optimizing(i)
+        # Report after each seed — percent advances linearly through 10..70
+        seed_pct = 10 + round(60 * (i + 1) / max(1, n_seeds))
+        _report_optimizing(seed_pct)
         if multi_bin_layout_has_significant_overlaps(
             candidate.sheets,
             ctx.pieces,
@@ -290,14 +313,10 @@ def run_thorough_multi_bin(ctx: NestPipelineContext) -> NestPipelineResult:
     if best is None:
         best = run_pipeline(ctx, seed=default_seed())
 
-    t0 = _time.monotonic()
-    top_results = local_search_pipeline_result(
+    # [REQ-FIT-JOB-001] Pass eta estimator so local search reports per-iteration.
+    return local_search_pipeline_result(
         ctx,
         best,
         max_iterations=ctx.max_local_search_iterations,
+        eta_estimator=eta,
     )
-    # Record local-search block as a single iteration for ETA
-    eta.record_iteration(_time.monotonic() - t0)
-    _report_optimizing(n_seeds)
-
-    return top_results

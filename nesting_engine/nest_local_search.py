@@ -12,12 +12,16 @@ def local_search_pipeline_result(
     baseline: NestPipelineResult,
     *,
     max_iterations: int,
+    eta_estimator=None,
 ) -> NestPipelineResult:
     """[REQ-FIT-NEST-002] Iterative local search using two operators round-robin.
 
     Operators:
       1. _rotate_smallest_strip_seed  — intra-sheet: push smallest piece to end of order.
       2. _pull_from_donor_sheet_seed  — inter-sheet: pull largest piece off last (sparse) sheet.
+
+    eta_estimator: optional WallClockEtaEstimator; when provided, progress is
+        broadcast per iteration so the UI timer updates smoothly.
 
     Pre-condition: max_iterations >= 0
     Post-condition: result.score <= baseline.score (lexicographic; never regresses)
@@ -47,7 +51,14 @@ def local_search_pipeline_result(
         ):
             continue
         best = pick_better_pipeline_result(best, candidate)
+        # [REQ-FIT-JOB-001] Report ETA after each local-search iteration (70..95 %)
+        if eta_estimator is not None and ctx.progress_reporter is not None:
+            ls_done = iteration + 1
+            pct = 70 + round(25 * ls_done / max(1, max_iterations))
+            eta_sec = eta_estimator.update(min(95, pct))
+            ctx.progress_reporter.report("optimizing", min(95, pct), eta_sec=eta_sec)
     return best
+
 
 
 def _rotate_smallest_strip_seed(
