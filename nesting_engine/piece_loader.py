@@ -41,7 +41,7 @@ def load_pieces(
             pieces.extend(composite_pieces)
 
     assert isinstance(pieces, list)
-    return pieces
+    return [_simplify_piece(p) for p in pieces]
 
 
 def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
@@ -67,12 +67,12 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
     return [_simplify_piece(p) for p in pieces]
 
 
-def _simplify_piece(piece, tolerance: float = 0.15):
+def _simplify_piece(piece, tolerance: float = 0.25):
     from nesting_engine.composite_extract import CompositePiece
     from shapely.geometry import Polygon
 
     poly = piece_polygon(piece)
-    if len(poly.exterior.coords) <= 100:
+    if len(poly.exterior.coords) <= 50:
         return piece
 
     simplified = poly.simplify(tolerance, preserve_topology=True)
