@@ -34,6 +34,8 @@ module Nesting
       else
         payload[:input_dxf_paths] = @input_paths.map(&:to_s)
         payload[:included_layers] = included_layer_names
+        auto_close = auto_close_layer_names
+        payload[:auto_close_layers] = auto_close if auto_close.any?
       end
     end
 
@@ -56,10 +58,17 @@ module Nesting
         file_entry[:primary_layer] = primary.layer_name
         auxiliary = auxiliary_layers_for(attachment)
         file_entry[:auxiliary_layers] = auxiliary if auxiliary.any?
+
+        auto_close_layers = []
+        auto_close_layers << primary.layer_name if primary.auto_close_gaps
+        file_entry[:auto_close_layers] = auto_close_layers if auto_close_layers.any?
         return
       end
 
-      file_entry[:included_layers] = included_layers_for(attachment)
+      layers = included_layers_records_for(attachment)
+      file_entry[:included_layers] = layers.pluck(:layer_name)
+      auto_close_layers = layers.where(auto_close_gaps: true).pluck(:layer_name)
+      file_entry[:auto_close_layers] = auto_close_layers if auto_close_layers.any?
     end
 
     def primary_layer_for(attachment)
@@ -77,15 +86,19 @@ module Nesting
         .pluck(:layer_name)
     end
 
-    def included_layers_for(attachment)
+
+    def included_layers_records_for(attachment)
       @project.project_layers
         .where(included: true, active_storage_attachment_id: attachment.id)
         .order(:layer_name)
-        .pluck(:layer_name)
     end
 
     def included_layer_names
       @project.project_layers.where(included: true).order(:layer_name).pluck(:layer_name)
+    end
+
+    def auto_close_layer_names
+      @project.project_layers.where(included: true, auto_close_gaps: true).order(:layer_name).pluck(:layer_name)
     end
 
     def merge_split_config!(payload)

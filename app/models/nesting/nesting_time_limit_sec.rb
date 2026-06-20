@@ -3,6 +3,9 @@
 module Nesting
   # [REQ-FIT-JOB-001] Nesting job/engine deadline in seconds.
   class NestingTimeLimitSec
+    DEFAULT = 600
+    ENV_KEY = "FITLOOP_NESTING_TIME_LIMIT_SEC"
+
     attr_reader :value
 
     def self.parse(raw)
@@ -12,7 +15,8 @@ module Nesting
     end
 
     def self.from_project(project)
-      parse(project.nesting_time_limit_sec)
+      raw = ENV.fetch(ENV_KEY, project.nesting_time_limit_sec)
+      parse(raw)
     end
 
     def initialize(raw)

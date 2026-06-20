@@ -49,12 +49,23 @@ class ProjectLayerSelection
 
       layers_on_attachment(attachment_key).find_each do |layer|
         layer_id = layer.id.to_s
+        layer_params = attrs[layer_id]
+
+        if layer_params.is_a?(Hash)
+          auto_close = layer_params["auto_close_gaps"] == "1"
+          layer.update!(auto_close_gaps: auto_close)
+        else
+          layer.update!(auto_close_gaps: false)
+        end
+
         next if layer_id == primary_id.to_s
 
         if auxiliary_ids.include?(layer_id)
           layer.update!(layer_role: :auxiliary, included: true)
+          Dxf::LayerGapScanner.clear!(layer)
         else
           layer.update!(layer_role: nil, included: false)
+          Dxf::LayerGapScanner.clear!(layer)
         end
       end
     end
@@ -85,36 +96,16 @@ class ProjectLayerSelection
       next if attrs.blank?
 
       included = attrs[:included] == "1" || attrs["included"] == "1"
-      layer.update!(included: included)
+      auto_close = attrs[:auto_close_gaps] == "1" || attrs["auto_close_gaps"] == "1"
+      layer.update!(included: included, auto_close_gaps: auto_close)
+      if included && layer.layer_role.nil?
+        Dxf::LayerGapScanner.refresh!(layer.reload)
+      elsif !included
+        Dxf::LayerGapScanner.clear!(layer)
+      end
     end
   end
 
-  def find_layer(attachment_key, layer_key)
-    @project.project_layers.find_by(
-      id: layer_key,
-      active_storage_attachment_id: attachment_key
-    )
-  end
-
-  def apply_layer_role_attrs!(layer, layer_params, primary_id: nil)
-    params = layer_params.stringify_keys
-
-    if params["auxiliary"] == "1"
-      return if primary_id.present? && layer.id.to_s == primary_id.to_s
-
-      layer.update!(layer_role: :auxiliary, included: true)
-      return
-    end
-
-    return unless params.key?("included")
-
-    included = params["included"] == "1"
-    if included
-      layer.update!(included: true, layer_role: nil) unless layer.layer_role == "primary"
-    else
-      layer.update!(included: false, layer_role: nil) unless layer.layer_role == "primary"
-    end
-  end
 
   def apply_primary!(attachment_key, primary_id)
     layer = @project.project_layers.find_by(

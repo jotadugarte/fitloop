@@ -256,3 +256,44 @@ def test_nest_with_derived_composite_children_preserves_auxiliary_layers(tmp_pat
     corte_entities = [entity for entity in modelspace if entity.dxf.layer == CORTE]
     assert len(corte_entities) >= 2
     assert len(grabado_entities) >= 2
+
+
+def test_run_from_config_nests_composite_pieces_thorough(tmp_path: Path) -> None:
+    """[REQ-FIT-DXF-002] [REQ-FIT-NEST-002] E2E composite nest in thorough mode."""
+    dxf_path = tmp_path / "composite-nest-thorough.dxf"
+    output_dir = tmp_path / "output"
+    _write_composite_nest_fixture(dxf_path)
+
+    run_from_config(
+        {
+            "project_id": "composite-thorough",
+            "curve_tolerance_mm": 0.25,
+            "input_files": [
+                {
+                    "path": str(dxf_path),
+                    "primary_layer": CORTE,
+                    "auxiliary_layers": [GRABADO],
+                }
+            ],
+            "sheet_stocks": [
+                {"width_mm": 250.0, "height_mm": 120.0, "quantity": 1, "sort_order": 0}
+            ],
+            "kerf_mm": 2.0,
+            "margin_mm": 5.0,
+            "sheet_gap_mm": 15.0,
+            "time_limit_sec": 60,
+            "optimization_mode": "thorough",
+            "max_seeds": 12,
+            "max_local_search_iterations": 8,
+            "output_dir": str(output_dir),
+        }
+    )
+
+    report = json.loads((output_dir / "report.json").read_text(encoding="utf-8"))
+    placements = json.loads((output_dir / "placements.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "completed"
+    assert placements["orphans"] == []
+    assert len(placements["sheets"]) == 1
+    assert len(placements["sheets"][0]["pieces"]) == 2
+

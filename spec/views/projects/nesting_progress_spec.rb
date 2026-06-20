@@ -40,13 +40,23 @@ RSpec.describe "projects/nesting_progress [REQ-FIT-JOB-001] [REQ-FIT-UI-003]", t
            locals: Nesting::ProgressLocals.for(project).merge(extra_locals)
   end
 
-  it "includes cancel and aria-valuetext while processing [REQ-FIT-JOB-001] [REQ-FIT-UI-003]" do
+  it "includes cancel, time-remaining and aria-valuetext while processing [REQ-FIT-JOB-001] [REQ-FIT-UI-003]" do
     render_progress
 
     expect(rendered).to include('data-testid="nesting-progress"')
     expect(rendered).to include('data-testid="cancel-nesting"')
-    expect(rendered).not_to include('data-testid="time-remaining"')
+    expect(rendered).to include('data-testid="time-remaining"')
     expect(rendered).to include(I18n.t("nesting.cancel"))
+    expect(rendered).to include('aria-valuetext="Placing pieces on sheets, 42%, ~8 min remaining"')
+    expect(rendered).to include("~8 min remaining")
+  end
+
+  it "omits time-remaining when estimated_finished_at is nil" do
+    project.update!(estimated_finished_at: nil)
+    render_progress
+
+    expect(rendered).to include('data-testid="nesting-progress"')
+    expect(rendered).not_to include('data-testid="time-remaining"')
     expect(rendered).to include('aria-valuetext="Placing pieces on sheets, 42%"')
   end
 

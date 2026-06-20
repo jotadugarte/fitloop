@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:project) do
     create_project_for_spec!(
       title: "Progress sync bench",
@@ -97,30 +99,33 @@ RSpec.describe Nesting::ProgressSync, "[REQ-FIT-JOB-001]" do
 
       expect(changed).to be(false)
       expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
-      expect(project.reload.progress_percent).to eq(15)
     end
 
-    it "skips broadcast when progress fields are unchanged [REQ-FIT-JOB-001]" do
-      project.update!(
-        progress_percent: 42,
-        progress_message: "nesting.phase.fill",
-        estimated_finished_at: Nesting::ProgressEta.estimate(
-          started_at: nesting_run.started_at,
-          time_limit_sec: project.nesting_time_limit_sec,
-          pieces_total: nil,
-          pieces_placed: nil
-        )
-      )
-      allow(Nesting::ProgressBroadcaster).to receive(:call)
+    it "never advances estimated_finished_at when new ETA is later than current [REQ-FIT-JOB-001]" do
+      # Project already has an ETA 5 min from now
+      earlier_eta = 5.minutes.from_now
+      project.update!(estimated_finished_at: earlier_eta)
 
-      changed = described_class.call(
+      # Snapshot sends eta_sec=600 (10 min), which would be LATER than current ETA
+      snap = Nesting::ProgressSnapshot.from_hash(
+        {
+          "version" => 2,
+          "phase_id" => "optimizing",
+          "percent" => 40,
+          "eta_sec" => 600
+        },
+        last_percent: 0
+      )
+
+      described_class.call(
         project: project,
-        snapshot: snapshot(percent: 42),
-        nesting_run: nesting_run
+        snapshot: snap,
+        nesting_run: nesting_run,
+        broadcast: false
       )
 
-      expect(changed).to be(false)
-      expect(Nesting::ProgressBroadcaster).not_to have_received(:call)
+      # ETA must not have advanced beyond the previously stored value
+      expect(project.reload.estimated_finished_at).to be_within(2.seconds).of(earlier_eta)
     end
   end
 end

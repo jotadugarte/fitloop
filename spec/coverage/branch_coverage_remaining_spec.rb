@@ -823,6 +823,18 @@ RSpec.describe "Branch coverage remaining gaps" do
       expect(project.project_layers.where(included: true)).to be_empty
     end
 
+    it "preserves gaps_detected when re-syncing an existing layer" do
+      project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
+      Dxf::LayerSyncPerFile.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      gaps = [ { "distance_mm" => 5.0, "start" => [ 0.0, 0.0 ], "end" => [ 5.0, 0.0 ] } ]
+      layer.update!(gaps_detected: gaps)
+
+      Dxf::LayerSyncPerFile.call(project)
+
+      expect(layer.reload.gaps_detected).to eq(gaps)
+    end
+
     it "cleans up tempfiles even when download fails" do
       project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
       attachment = project.input_dxf_attachments.first!
@@ -1794,6 +1806,61 @@ RSpec.describe "Branch coverage remaining gaps" do
         Dxf::LayerNamesReader.catalog([ "/tmp/sample.dxf" ])
       end.to raise_error(Dxf::LayerNamesReader::Error, /layer read failed/)
     end
+
+    it "raises when gap scan paths or layer names are blank" do
+      expect { Dxf::LayerNamesReader.gaps_for(path: "", layer_name: "PIECES") }
+        .to raise_error(ArgumentError, /path must be present/)
+      expect { Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "") }
+        .to raise_error(ArgumentError, /layer_name must be present/)
+    end
+
+    it "raises when the Python gap scan exits non-zero" do
+      allow(Open3).to receive(:capture2).and_return([ "layer gap scan failed", instance_double(Process::Status, success?: false) ])
+
+      expect do
+        Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "PIECES")
+      end.to raise_error(Dxf::LayerNamesReader::Error, /layer gap scan failed/)
+    end
+
+    it "raises when composite gap scan paths or primary layers are blank" do
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "", primary_layer: "CORTE")
+      end.to raise_error(ArgumentError, /path must be present/)
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "/tmp/sample.dxf", primary_layer: "")
+      end.to raise_error(ArgumentError, /primary_layer must be present/)
+    end
+
+    it "raises when the Python composite gap scan exits non-zero" do
+      allow(Open3).to receive(:capture2).and_return([ "composite layer gap scan failed", instance_double(Process::Status, success?: false) ])
+
+      expect do
+        Dxf::LayerNamesReader.gaps_for_composite(path: "/tmp/sample.dxf", primary_layer: "CORTE")
+      end.to raise_error(Dxf::LayerNamesReader::Error, /composite layer gap scan failed/)
+    end
+
+    it "passes auxiliary layers and auto-close flags to the composite gap scan" do
+      allow(Open3).to receive(:capture2).and_return([ "[]", instance_double(Process::Status, success?: true) ])
+
+      Dxf::LayerNamesReader.gaps_for_composite(
+        path: "/tmp/sample.dxf",
+        primary_layer: "CORTE",
+        auxiliary_layers: %w[MARCADO],
+        auto_close_gaps: true
+      )
+
+      expect(Open3).to have_received(:capture2).with(
+        anything,
+        anything,
+        Rails.root.join("nesting_engine/read_layers.py").to_s,
+        "--gaps-for-composite",
+        "CORTE",
+        "/tmp/sample.dxf",
+        "--aux",
+        "MARCADO",
+        "--auto-close"
+      )
+    end
   end
 
   describe "Dxf::PieceRingsLister branches [REQ-FIT-DXF-001]" do
@@ -1922,6 +1989,303 @@ RSpec.describe "Branch coverage remaining gaps" do
       markup = helper.split_plan_preview_svg(orphan, css_class: "split-preview")
 
       expect(markup).to include("svg")
+    end
+  end
+
+  describe "ProjectsController extra coverage" do
+    subject(:controller) { ProjectsController.new }
+
+    it "returns an empty array for unknown sections in render_workspace_turbo_stream" do
+      allow(controller).to receive(:render)
+      controller.send(:render_workspace_turbo_stream, :unknown)
+      expect(controller).to have_received(:render).with(turbo_stream: [], status: :ok)
+    end
+  end
+
+  describe "Nesting::GapDistanceMm extra coverage" do
+    it "covers parsed nil and value methods" do
+      expect { Nesting::GapDistanceMm.parse(nil) }.to raise_error(ArgumentError)
+      gap = Nesting::GapDistanceMm.parse(5.0)
+      expect(gap.to_f).to eq(5.0)
+      expect(gap.hash).to be_an(Integer)
+      expect(gap == "not_a_gap").to be(false)
+    end
+  end
+
+  describe "Nesting::GapReport extra coverage" do
+    it "covers fallback and checks" do
+      report = Nesting::GapReport.from_json(nil)
+      expect(report.gaps).to eq([])
+      expect(report.blocking?).to be(false)
+
+      report_with_array = Nesting::GapReport.from_json([ 5.0 ])
+      expect(report_with_array.gaps.first.value).to eq(5.0)
+
+      report_with_hashes = Nesting::GapReport.from_json([ { "distance_mm" => 20.0 } ])
+      expect(report_with_hashes.ignored?).to be(true)
+      expect(report_with_hashes.auto_closeable?).to be(false)
+    end
+  end
+
+  describe "Dxf::LayerNamesReader extra coverage" do
+    it "returns gaps list on successful gap scan" do
+      allow(Open3).to receive(:capture2).and_return([ "[]", instance_double(Process::Status, success?: true) ])
+      expect(Dxf::LayerNamesReader.gaps_for(path: "/tmp/sample.dxf", layer_name: "PIECES")).to eq([])
+    end
+  end
+
+  describe "Dxf::LayerGapScanner extra coverage" do
+    let(:project) { create_project_for_spec!(title: "Scanner branch gaps") }
+
+    it "uses simple gaps_for for legacy/non-primary layers" do
+      allow(Dxf::LayerNamesReader).to receive(:gaps_for).and_return([])
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(included: true, layer_role: nil)
+
+      Dxf::LayerGapScanner.refresh!(layer)
+
+      expect(Dxf::LayerNamesReader).to have_received(:gaps_for).with(
+        path: anything,
+        layer_name: "PIECES"
+      )
+    end
+
+    it "no-ops tempfile cleanup when Tempfile creation fails" do
+      scanner = Dxf::LayerGapScanner.new(nil)
+      attachment = instance_double(ActiveStorage::Attachment)
+      allow(Tempfile).to receive(:new).and_raise(StandardError, "tempfile failed")
+
+      expect do
+        scanner.send(:with_downloaded_path, attachment) { |_path| :unused }
+      end.to raise_error(StandardError, "tempfile failed")
+    end
+  end
+
+  describe "Dxf::SourcePreviewPresenter extra coverage" do
+    let(:project) { create_project_for_spec!(title: "Presenter branch gaps") }
+
+    it "covers corrections_view_box when no open contours exist" do
+      data = { "width_mm" => 100.0, "height_mm" => 100.0, "offset_x_mm" => 0.0, "offset_y_mm" => 0.0, "layers" => [] }
+      presenter = Dxf::SourcePreviewPresenter.new(project: project)
+      presenter.instance_variable_set(:@data, data)
+      expect(presenter.corrections_view_box).to eq("0 0 100.0 100.0")
+    end
+
+    it "covers included_layer_names and build_layers when attachment is nil" do
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      att_id = project.input_dxf_attachments.first!.id
+      project.project_layers.create!(layer_name: "PIECES", included: true, auto_close_gaps: true, active_storage_attachment_id: att_id)
+
+      data = {
+        "width_mm" => 100.0,
+        "height_mm" => 100.0,
+        "offset_x_mm" => 0.0,
+        "offset_y_mm" => 0.0,
+        "layers" => [
+          {
+            "name" => "PIECES",
+            "color" => "#ff0000",
+            "polylines" => [],
+            "gaps" => [ { "distance_mm" => 5.0, "start" => [ 0, 0 ], "end" => [ 5, 0 ] } ],
+            "auto_close_lines" => []
+          }
+        ]
+      }
+
+      presenter = Dxf::SourcePreviewPresenter.new(project: project)
+      presenter.instance_variable_set(:@data, data)
+
+      expect(presenter.included_layer_names).to eq([ "PIECES" ])
+      expect(presenter.layers.first.auto_close_gaps).to be(true)
+    end
+
+    it "covers empty payload fallback when load_data fails" do
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      project.project_layers.create!(layer_name: "PIECES", included: true, active_storage_attachment_id: nil)
+      allow(Dxf::SourcePreviewReader).to receive(:preview).and_raise(Dxf::SourcePreviewReader::Error, "boom")
+
+      presenter = Dxf::SourcePreviewPresenter.new(project: project)
+      expect(presenter.send(:load_data)).to eq(Dxf::SourcePreviewReader.empty_payload)
+    end
+
+    it "covers preview_attachments and auto_close_layers in preview_input_files" do
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      attachment = project.input_dxf_attachments.first!
+      project.project_layers.create!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment.id,
+        included: true,
+        layer_role: :primary,
+        auto_close_gaps: true
+      )
+      project.project_layers.create!(
+        layer_name: "MARCADO",
+        active_storage_attachment_id: attachment.id,
+        included: true,
+        layer_role: :auxiliary
+      )
+
+      presenter = Dxf::SourcePreviewPresenter.new(project: project, attachment: attachment)
+      expect(presenter.send(:preview_attachments)).to eq([ attachment ])
+      expect(presenter.send(:preview_input_files)).to eq([
+        { primary_layer: "PIECES", auxiliary_layers: [ "MARCADO" ], auto_close_layers: [ "PIECES" ] }
+      ])
+    end
+
+    it "covers auto_close_gaps using safe navigation when project layer exists on attachment" do
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      attachment = project.input_dxf_attachments.first!
+      project.project_layers.create!(
+        layer_name: "PIECES",
+        active_storage_attachment_id: attachment.id,
+        included: true,
+        auto_close_gaps: true
+      )
+
+      presenter = Dxf::SourcePreviewPresenter.new(project: project, attachment: attachment)
+      data = {
+        "layers" => [
+          {
+            "name" => "PIECES",
+            "color" => "#ff0000",
+            "polylines" => [],
+            "gaps" => [],
+            "auto_close_lines" => []
+          }
+        ]
+      }
+      presenter.instance_variable_set(:@data, data)
+      expect(presenter.layers.first.auto_close_gaps).to be(true)
+    end
+
+    it "covers find_by returning nil for attachment layer" do
+      attachment = instance_double(ActiveStorage::Attachment, id: 999)
+      presenter = Dxf::SourcePreviewPresenter.new(project: project, attachment: attachment)
+      data = { "layers" => [ { "name" => "PIECES", "color" => "#fff" } ] }
+      presenter.instance_variable_set(:@data, data)
+      expect(presenter.layers.first.auto_close_gaps).to be(false)
+    end
+
+    it "covers non-warnable gaps in merge_gaps" do
+      presenter = Dxf::SourcePreviewPresenter.new(project: project)
+      preview_gaps = []
+      detected_gaps = [ { distance_mm: 20.0, start: [ 0, 0 ], end: [ 20, 0 ] } ]
+      expect(presenter.send(:merge_gaps, preview_gaps, detected_gaps, auto_close: false)).to eq([])
+    end
+
+    it "covers with_downloaded_dxf_paths when Tempfile creation fails" do
+      attachment = instance_double(ActiveStorage::Attachment)
+      presenter = Dxf::SourcePreviewPresenter.new(project: project, attachment: attachment)
+      allow(Tempfile).to receive(:new).and_raise(StandardError, "tempfile failed")
+      expect { presenter.send(:with_downloaded_dxf_paths) { } }.to raise_error(StandardError)
+    end
+  end
+
+  describe "SourceDxfPreviewHelper extra coverage", type: :helper do
+    it "renders svg preview with various filters and inputs" do
+      preview = instance_double(
+        Dxf::SourcePreviewPresenter,
+        view_box: "0 0 100 100",
+        view_height: 100.0,
+        offset_x_mm: 0.0,
+        offset_y_mm: 0.0,
+        layers: [
+          OpenStruct.new(
+            name: "PIECES",
+            color: "#fff",
+            polylines: [ OpenStruct.new(points: [ [ 0, 0 ], [ 10, 0 ] ], is_open: false, internal_cut: false) ],
+            gaps: [ { distance_mm: 1.5, start: [ 0, 0 ], end: [ 1.5, 0 ] }, { distance_mm: 5.0, start: [ 0, 0 ], end: [ 5, 0 ] } ],
+            auto_close_lines: []
+          )
+        ]
+      )
+      allow(helper).to receive(:closed_preview_polyline?).and_return(false)
+
+      html = helper.source_dxf_preview_svg(preview, css_class: "svg-class")
+      expect(html).to include("svg")
+      expect(html).to include("gap-error-circle")
+    end
+  end
+
+  describe "Nesting::ConfigBuilder extra coverage" do
+    it "covers auto_close_layers in per-file files payload" do
+      project = create_project_for_spec!(title: "Config auto close")
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(included: true, auto_close_gaps: true)
+
+      builder = Nesting::ConfigBuilder.new(project: project, work_dir: "/tmp", input_paths: [ "/tmp/piece.dxf" ])
+      payload = builder.build
+      expect(payload[:input_files].first[:auto_close_layers]).to eq([ "PIECES" ])
+    end
+
+    it "covers auto_close_layers in per-file files payload when no primary layer exists" do
+      project = create_project_for_spec!(title: "Config auto close no primary")
+      project.input_dxf.attach(
+        io: File.open(Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")),
+        filename: "piece.dxf",
+        content_type: "application/dxf"
+      )
+      Dxf::LayerSyncPerFile.call(project)
+      layer = project.project_layers.find_by!(layer_name: "PIECES")
+      layer.update!(included: true, layer_role: nil, auto_close_gaps: true)
+
+      builder = Nesting::ConfigBuilder.new(project: project, work_dir: "/tmp", input_paths: [ "/tmp/piece.dxf" ])
+      payload = builder.build
+      expect(payload[:input_files].first[:auto_close_layers]).to eq([ "PIECES" ])
+    end
+  end
+
+  describe "ProjectLayerSelection extra coverage" do
+    it "no-ops scanner refresh when layer is already included and layer_role is not nil" do
+      project = create_project_for_spec!(title: "Layer no-op", bind_workspace: false)
+      layer = project.project_layers.create!(layer_name: "PIECES", included: true, layer_role: :primary)
+
+      expect(Dxf::LayerGapScanner).not_to receive(:refresh!)
+      expect(Dxf::LayerGapScanner).not_to receive(:clear!)
+
+      ProjectLayerSelection.apply!(project: project, raw_params: { layer.id.to_s => { included: "1" } })
+    end
+  end
+
+  describe "Dxf::SourcePreviewReader extra coverage" do
+    it "covers empty payloads and errors" do
+      expect(Dxf::SourcePreviewReader.preview(paths: nil, curve_tolerance_mm: 0.1)).to eq(Dxf::SourcePreviewReader.empty_payload)
+      expect(Dxf::SourcePreviewReader.preview(paths: [], curve_tolerance_mm: 0.1)).to eq(Dxf::SourcePreviewReader.empty_payload)
+      expect(Dxf::SourcePreviewReader.preview(paths: [ "/tmp/fake.dxf" ], curve_tolerance_mm: 0.1, layer_names: nil, input_files: nil)).to eq(Dxf::SourcePreviewReader.empty_payload)
+
+      allow(File).to receive(:binread).with("/tmp/fake.dxf").and_return("dxf_data")
+      allow(Open3).to receive(:capture2).and_return([ "error", instance_double(Process::Status, success?: false) ])
+      expect do
+        Dxf::SourcePreviewReader.preview(paths: [ "/tmp/fake.dxf" ], curve_tolerance_mm: 0.1, layer_names: [ "PIECES" ])
+      end.to raise_error(Dxf::SourcePreviewReader::Error)
     end
   end
 end

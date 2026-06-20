@@ -24,6 +24,7 @@ class ProjectLayer
         raise "post-condition failed: included" unless @layer.included?
       end
 
+      Dxf::LayerGapScanner.refresh!(@layer.reload)
       @layer
     end
 

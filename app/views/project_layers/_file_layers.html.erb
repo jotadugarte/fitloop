@@ -2,6 +2,7 @@
 <% layers = project.project_layers.where(active_storage_attachment_id: attachment.id).order(:layer_name) %>
 <% primary_layer = layers.find { |layer| layer.layer_role == "primary" } %>
 
+<%= turbo_frame_tag dom_id(attachment, :dxf_file_layers) do %>
 <section class="dxf-file-layers panel panel--inset"
          data-testid="dxf-file-layers"
          data-attachment-id="<%= attachment.id %>">
@@ -18,38 +19,62 @@
       <% layers.each do |layer| %>
         <% is_primary = primary_layer&.id == layer.id %>
         <% is_auxiliary = layer.layer_role == "auxiliary" %>
+        <% report = Nesting::GapReport.from_json(layer.gaps_detected) %>
         <li class="layer-list__item" data-layer-roles-target="row">
-          <span class="layer-list__row">
-            <span class="layer-list__col layer-list__col--primary">
-              <%= radio_button_tag "project_layers[#{attachment.id}][primary_layer_id]",
-                                   layer.id,
-                                   is_primary,
-                                   id: "primary_layer_#{attachment.id}_#{layer.id}",
-                                   disabled: is_auxiliary,
-                                   data: {
-                                     testid: "primary-layer-radio",
-                                     layer_roles_target: "primary",
-                                     action: "layer-roles#primaryChanged"
-                                   } %>
+          <div class="layer-list__item-content" style="display: flex; flex-direction: column; width: 100%;">
+            <span class="layer-list__row">
+              <span class="layer-list__col layer-list__col--primary">
+                <%= radio_button_tag "project_layers[#{attachment.id}][primary_layer_id]",
+                                     layer.id,
+                                     is_primary,
+                                     id: "primary_layer_#{attachment.id}_#{layer.id}",
+                                     disabled: is_auxiliary,
+                                     data: {
+                                       testid: "primary-layer-radio",
+                                       layer_roles_target: "primary",
+                                       action: "layer-roles#primaryChanged"
+                                     } %>
+              </span>
+              <span class="layer-list__col layer-list__col--auxiliary">
+                <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auxiliary]",
+                                  "1",
+                                  is_auxiliary,
+                                  id: "auxiliary_layer_#{attachment.id}_#{layer.id}",
+                                  disabled: is_primary,
+                                  data: {
+                                    testid: "auxiliary-layer-checkbox",
+                                    layer_roles_target: "auxiliary",
+                                    action: "layer-roles#auxiliaryChanged"
+                                  } %>
+              </span>
+              <span class="layer-chip layer-list__col layer-list__col--swatch"
+                    style="--layer-chip-color: <%= layer_chip_color(layer) %>"
+                    aria-hidden="true"></span>
+              <label class="layer-list__name layer-list__col layer-list__col--name"
+                     for="primary_layer_<%= attachment.id %>_<%= layer.id %>"><%= layer.layer_name %></label>
             </span>
-            <span class="layer-list__col layer-list__col--auxiliary">
-              <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auxiliary]",
-                                "1",
-                                is_auxiliary,
-                                id: "auxiliary_layer_#{attachment.id}_#{layer.id}",
-                                disabled: is_primary,
-                                data: {
-                                  testid: "auxiliary-layer-checkbox",
-                                  layer_roles_target: "auxiliary",
-                                  action: "layer-roles#auxiliaryChanged"
-                                } %>
-            </span>
-            <span class="layer-chip layer-list__col layer-list__col--swatch"
-                  style="--layer-chip-color: <%= layer_chip_color(layer) %>"
-                  aria-hidden="true"></span>
-            <label class="layer-list__name layer-list__col layer-list__col--name"
-                   for="primary_layer_<%= attachment.id %>_<%= layer.id %>"><%= layer.layer_name %></label>
-          </span>
+
+            <% if report.warnable? && layer.closed_contour_gap_validation? %>
+              <div class="layer-gap-warning panel panel--alert" style="margin: 0.5rem 0 0.5rem 3rem; padding: 0.5rem; font-size: 0.9em; border-radius: 4px;" data-testid="layer-gap-warning-<%= layer.id %>">
+                <div class="gap-warning-message gap-warning-message--warnable" style="color: #856404; font-weight: 500; margin-bottom: 0.25rem;">
+                  <%= t("project_layers.warnable_gap_warning", distance: report.max_warnable_distance.round(1)) %>
+                </div>
+                <div class="gap-warning-action" style="display: flex; align-items: center; gap: 0.5rem;">
+                  <%= check_box_tag "project_layers[#{attachment.id}][#{layer.id}][auto_close_gaps]",
+                                    "1",
+                                    layer.auto_close_gaps,
+                                    id: "auto_close_gaps_#{attachment.id}_#{layer.id}",
+                                    class: "auto-close-gaps-checkbox",
+                                    data: {
+                                      testid: "auto-close-gaps-checkbox"
+                                    } %>
+                  <label for="auto_close_gaps_<%= attachment.id %>_<%= layer.id %>" style="cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                    <%= t("project_layers.auto_close_label") %>
+                  </label>
+                </div>
+              </div>
+            <% end %>
+          </div>
         </li>
       <% end %>
     </ul>
@@ -57,3 +82,4 @@
     <p><%= t("project_layers.index.empty") %></p>
   <% end %>
 </section>
+<% end %>

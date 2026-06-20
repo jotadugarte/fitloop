@@ -88,8 +88,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('data-testid="dxf-file-entry"')
-    expect(response.body).to match(/data-testid="dxf-file-entry"[^>]*open/m)
+    doc = Nokogiri::HTML.fragment(response.body)
+    expect(doc.css('details[data-testid="dxf-file-entry"]')).not_to be_empty
+    expect(doc.css('details[data-testid="dxf-file-entry"][open]')).not_to be_empty
   end
 
   it "keeps existing file entries collapsed when uploading another DXF" do
@@ -103,9 +104,9 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    body = response.body
-    expect(body.scan(/data-testid="dxf-file-entry"/).size).to eq(2)
-    expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
+    doc = Nokogiri::HTML.fragment(response.body)
+    expect(doc.css('details[data-testid="dxf-file-entry"]').size).to eq(2)
+    expect(doc.css('details[data-testid="dxf-file-entry"][open]').size).to eq(1)
   end
 
   it "opens source DXF detail and expands new file layers after nesting on Mi taller" do
@@ -122,15 +123,12 @@ RSpec.describe "Project DXF upload", "[REQ-FIT-UI-001]", type: :request do
          params: { "files[]" => [ fixture_file_upload(sample_dxf, "second.dxf", "application/dxf") ] },
          headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    body = response.body
     expect(response).to have_http_status(:ok)
-    expect(body).to include("data-collapsible-preserve-open")
-
-    dxf_start = body.index('data-testid="source-dxf-detail"')
-    dxf_tag = body.slice(dxf_start - 120, 280)
-    expect(dxf_tag).to include(" open")
-    expect(body.scan(/data-testid="dxf-file-entry"/).size).to eq(2)
-    expect(body.scan(/data-testid="dxf-file-entry"[^>]*open/m).size).to eq(1)
+    doc = Nokogiri::HTML.fragment(response.body)
+    expect(doc.css('[data-collapsible-preserve-open]')).not_to be_empty
+    expect(doc.css('details[data-testid="source-dxf-detail"][open]')).not_to be_empty
+    expect(doc.css('details[data-testid="dxf-file-entry"]').size).to eq(2)
+    expect(doc.css('details[data-testid="dxf-file-entry"][open]').size).to eq(1)
   end
 
   it "updates source DXF detail via turbo-stream on subsequent uploads" do

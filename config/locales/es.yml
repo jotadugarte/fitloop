@@ -536,6 +536,8 @@ es:
       dxf_upload_hint: "Elige uno o más archivos DXF. Se procesarán al guardar el proyecto."
       dxf_upload_setup_hint: "Al elegir archivos se listan aquí con sus capas para marcar."
       dxf_upload_failed: "No se pudieron cargar los archivos DXF. Inténtalo de nuevo."
+      dxf_upload_processing: "Analizando formas del archivo..."
+      layers_saving: "Guardando cambios..."
       dxf_layers_prompt: "Aún no hay archivos DXF. Elige uno o más arriba."
       dxf_layers_empty: "No se encontraron capas en este archivo."
       dxf_upload_resubmit_hint: "Si habías elegido archivos DXF, vuelve a seleccionarlos antes de guardar."
@@ -579,6 +581,7 @@ es:
     input_file_missing: "No se encontró el archivo DXF. Vuelve a subirlo e intenta de nuevo."
     progress_heading: "Progreso de la distribución"
     eta_overrun: "Sigue en curso — está tardando más de lo estimado."
+    time_remaining: "~%{minutes} min restantes"
     time_limit_notice: "Límite de tiempo alcanzado. Mostrando el mejor resultado disponible."
     renest: "Volver a distribuir"
     renest_started: "Nueva distribución iniciada. Las ejecuciones anteriores se conservan en el historial."
@@ -635,8 +638,12 @@ es:
     no_layers_selected: "Selecciona al menos una capa para incluir en la distribución."
     no_extractable_pieces: "No se encontraron contornos cerrados en las capas seleccionadas."
     primary_layer_required: "Elige una capa principal para cada DXF que tenga capas asociadas."
+    unresolved_gaps: "Corrige los contornos abiertos detectados o activa el cierre automático para continuar."
 
   project_layers:
+    blocking_gap_warning: "Contorno abierto no anidable (abertura de %{distance} mm). Requiere corregir en CAD y volver a subir."
+    warnable_gap_warning: "Se detectó contorno abierto (abertura de %{distance} mm)."
+    auto_close_label: "Cerrar automáticamente (genera diagonal)"
     layer_name: "Capa"
     section_note: "Elige la capa principal para las piezas de corte a distribuir. Grabado, marcas, texto y otras capas auxiliares se desplazan con la pieza que las contiene."
     primary_layer:
@@ -819,12 +826,16 @@ es:
       invalid: "Correo o contraseña no válidos."
       timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
       already_authenticated: "Ya iniciaste sesión."
+      user_not_found_in_database: "Correo o contraseña no válidos."
+      not_found_in_database: "Correo o contraseña no válidos."
       user:
         unauthenticated: "Debes iniciar sesión para continuar."
         unconfirmed: "Confirma tu correo antes de pagar o descargar."
         invalid: "Correo o contraseña no válidos."
         timeout: "Tu sesión expiró. Vuelve a iniciar sesión."
         already_authenticated: "Ya iniciaste sesión."
+        user_not_found_in_database: "Correo o contraseña no válidos."
+        not_found_in_database: "Correo o contraseña no válidos."
     sessions:
       signed_in: "Iniciaste sesión correctamente."
       signed_out: "Cerraste sesión correctamente."

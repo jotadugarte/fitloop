@@ -430,7 +430,12 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 - **`kerf_mm` (piece-to-piece):** Applied in `nest_types.apply_kerf` as a symmetric buffer on each piece polygon before placement; obstacle geometry uses the buffered shape so placed pieces maintain at least `kerf_mm` clearance.
 - **Outputs:** `nested.dxf`, `placements.json`, `report.json` per CLI contract; `sheet_gap_mm` offsets sheet rectangles in the combined output DXF (orthogonal to margin/kerf).
 - **Placement scoring (`nest_placement.py`):** Among valid placements, the engine **maximizes the largest continuous free area** (mm²) inside the usable sheet (`sheet.difference(occupied ∪ placed)`); **layout footprint** (bounding box of all pieces on the sheet) is the **secondary** tie-breaker, then bottom-left preference. Rotation candidates use `ROTATION_STEP_DEG` (default 5°). Compaction slides pieces toward the origin without overlaps.
-- **v1 engine:** Per-piece placement uses Shapely (`nest_placement.py`); single-bin and full-sheet batch paths use libnest2d (`nest_libnest2d.nest_sheet`, `nest_sheet_with_obstacles`). `nest_multi_bin` runs **fill → intra-sheet repack → consolidate → intra-sheet repack → inter-sheet local search** under one `time_limit_sec` (best-so-far on deadline). Intra-sheet repack full re-nests each bin (≥2 pieces), scores with largest continuous free area via `score_sheet_layout`, accepts on layout improvement or successful pull from a later same-stock sheet; rolls back on regression or failed batch map (ADR-0001).
+- **Global layout objective (`nest_objective.py`, ADR-0011):** When comparing full multi-bin results (multi-start, void-pack, local search), lexicographic order is **(1) sheet count**, **(2) total waste mm²**, **(3) total footprint mm²**, **(4) max layout max-Y**, **(5) total largest continuous free area**, **(6) bottom-left**. Orphans count as extra virtual sheets for comparison. Per-sheet `score_sheet_layout` remains the intra-sheet acceptance criterion.
+- **Optimization mode:** CLI `optimization_mode` is `fast` (default, single legacy seed) or `thorough` (multi-start + void-pack + local search within `time_limit_sec`). Rails `Nesting::JobParameters` passes mode and caps from env: `FITLOOP_NESTING_OPTIMIZATION_MODE`, `FITLOOP_NESTING_MAX_SEEDS`, `FITLOOP_NESTING_MAX_LOCAL_SEARCH_ITERATIONS` (no workshop UI toggle in v1). Optional dev/prod override for job deadline: `FITLOOP_NESTING_TIME_LIMIT_SEC` (integer seconds; when unset, `projects.nesting_time_limit_sec`, default 600). Thorough mode includes the following enhancements in v2:
+  - **Multi-profile multi-start:** generates seeds with three orientation profiles (`as_extracted`, `cardinal_90`, `bar_parallel_long_edge`) and a random shuffle seed pool configurable via `FITLOOP_NESTING_SHUFFLE_SEED_BASE` (default 42).
+  - **Multi-sheet assignment seeds:** prepends FFD sheet-aware ordering seeds (`ffd_area`) when multiple sheet stocks or quantity > 1 are configured.
+  - **Inter-sheet local search:** alternates round-robin between intra-sheet `_rotate_smallest_strip_seed` and inter-sheet `_pull_from_donor_sheet_seed` operators during iterative local search optimization.
+- **v1 engine:** Per-piece placement uses Shapely (`nest_placement.py`); single-bin and full-sheet batch paths use libnest2d (`nest_libnest2d.nest_sheet`, `nest_sheet_with_obstacles`). `nest_multi_bin` runs **fill → intra-sheet repack → consolidate → intra-sheet repack → inter-sheet local search → gravity → flip** under one `time_limit_sec` (best-so-far on deadline). In `thorough` mode, **void-pack** runs after the second intra-sheet repack and before gravity (ADR-0011). Intra-sheet repack full re-nests each bin (≥2 pieces), scores with largest continuous free area via `score_sheet_layout`, accepts on layout improvement or successful pull from a later same-stock sheet; rolls back on regression or failed batch map (ADR-0001).
 
 ### REQ-FIT-NEST-003 (detail)
 
@@ -445,7 +450,8 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 
 **Python (`nesting_engine/progress_reporter.py`):**
 
-- Writes `{output_dir}/progress.json` (schema v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- Writes `{output_dir}/progress.json` (schema v2, backward compatible with v1) atomically (temp + rename); throttled updates (≥1s or ≥1% delta); monotonic `percent` 0–100.
+- Extends the progress payload with `eta_sec` (integer or null) estimated by `ThoroughEtaEstimator` which tracks loop execution time during the optimization phase.
 - `phase_id` values: `extracting`, `fill`, `optimizing`, `consolidating`, `refining`, `writing_outputs`.
 - Hooked in `nest.py` / `nest_libnest2d.py` at pipeline boundaries **without** changing placement algorithms.
 
@@ -453,7 +459,7 @@ Branding assets (logos) live under `images/`. UI copy is internationalized (`en`
 
 - **Enqueue:** `StartsNesting` sets `progress_message` to `nesting.phase.queued` (3%) and `estimated_finished_at` to `now + nesting_time_limit_sec` (not a fixed 30s stub).
 - **Pre-CLI:** `NestingJob` → `nesting.phase.preparing` (8%); `Nesting::JobRunner` → `nesting.phase.starting` (12%) before `CliRunner`.
-- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by time limit).
+- **During CLI:** `Nesting::CliRunner` polls `progress.json` every ~0.2s; `Nesting::ProgressSnapshot` + `Nesting::ProgressSync` update `progress_percent`, `progress_message`, and `estimated_finished_at` (using `eta_sec` from the snapshot if available, otherwise falling back to a heuristic from `pieces_placed` / `pieces_total` + elapsed, capped by the time limit).
 - **UI:** `projects/_nesting_progress` shows progress bar (`aria-valuetext` = phase + percent + optional time remaining), **Cancel** (`data-testid="cancel-nesting"`), `nesting.time_remaining`, and `nesting.eta_overrun`. Cancel is **not** duplicated in `show_actions` while processing.
 - **Broadcast / poll:** `Nesting::ProgressBroadcaster` and `ProjectsController#nesting_sync` use `Nesting::ProgressLocals` (`active_run`, `time_remaining`, `eta_overrun`).
 - **Terminal:** 600s `Timeout` in `JobRunner` → `partial` + `nesting.time_limit_notice`; cancel via `cancel_requested_at` + `Nesting::ApplyCancel` (unchanged).

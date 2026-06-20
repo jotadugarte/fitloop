@@ -25,28 +25,6 @@ def test_capabilities_report_holes_and_rotation() -> None:
     assert caps.spike_only is False
 
 
-def test_libnest2d_binding_places_piece_with_hole() -> None:
-    outer = box(0, 0, 80, 40)
-    hole = box(20, 10, 60, 30)
-    piece = Polygon(outer.exterior.coords, [list(hole.exterior.coords)])
-
-    result = binding_spike_nest([piece], bin_width_mm=200.0, bin_height_mm=200.0)
-
-    assert result.all_placed is True
-    assert len(result.placements) == 1
-    assert result.placements[0].rotation_deg >= 0.0
-
-
-def test_libnest2d_binding_uses_non_zero_rotation_when_required() -> None:
-    piece = box(0, 0, 90, 20)
-
-    result = binding_spike_nest([piece], bin_width_mm=50.0, bin_height_mm=100.0, margin_mm=0.0)
-
-    assert result.all_placed is True
-    assert result.placements[0].rotation_deg != 0.0
-    assert result.placements[0].rotation_deg >= 5.0
-
-
 def test_adr_0001_documents_library_decision() -> None:
     assert ADR_PATH.is_file(), f"missing ADR: {ADR_PATH}"
 

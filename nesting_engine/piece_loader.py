@@ -11,7 +11,7 @@ from nesting_engine.composite_extract import (
     DecorationEntity,
     load_composite_pieces,
 )
-from nesting_engine.extract import extract_closed_contours
+from nesting_engine.extract import extract_closed_contours, extract_pieces_with_internal_lines
 from nesting_engine.nest_placement import Placement
 from nesting_engine.nest_types import PlacedPiece
 
@@ -22,6 +22,7 @@ def load_pieces(
     *,
     curve_tolerance_mm: float,
     warnings: list[str],
+    auto_close_layers: list[str] | None = None,
 ) -> list:
     assert curve_tolerance_mm > 0, "curve_tolerance_mm must be positive"
 
@@ -29,16 +30,18 @@ def load_pieces(
     for path_str in input_dxf_paths:
         path = Path(path_str)
         for layer_name in included_layers:
-            contours = extract_closed_contours(
+            auto_close = bool(auto_close_layers and (layer_name in auto_close_layers))
+            composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
-            pieces.extend(contours)
+            pieces.extend(composite_pieces)
 
     assert isinstance(pieces, list)
-    return pieces
+    return [_simplify_piece(p) for p in pieces]
 
 
 def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
@@ -56,11 +59,37 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
             config.get("included_layers", []),
             curve_tolerance_mm=curve_tolerance_mm,
             warnings=warnings,
+            auto_close_layers=config.get("auto_close_layers", []),
         )
 
     pieces = _without_excluded_pieces(pieces, config)
     pieces.extend(_derived_pieces_from_config(config))
-    return pieces
+    return [_simplify_piece(p) for p in pieces]
+
+
+def _simplify_piece(piece, tolerance: float = 0.25):
+    from nesting_engine.composite_extract import CompositePiece
+    from shapely.geometry import Polygon
+
+    poly = piece_polygon(piece)
+    if len(poly.exterior.coords) <= 50:
+        return piece
+
+    simplified = poly.simplify(tolerance, preserve_topology=True)
+    if simplified and not simplified.is_empty:
+        if simplified.geom_type == "Polygon":
+            final_poly = simplified
+        elif simplified.geom_type == "MultiPolygon":
+            final_poly = max(simplified.geoms, key=lambda p: p.area)
+        else:
+            final_poly = poly
+    else:
+        final_poly = poly
+
+    if isinstance(piece, CompositePiece):
+        piece.polygon = final_poly
+        return piece
+    return final_poly
 
 
 def piece_polygon(piece: Polygon | CompositePiece) -> Polygon:
@@ -96,26 +125,31 @@ def _pieces_from_input_files(
     for entry in input_files:
         path = Path(entry["path"])
         primary_layer = entry.get("primary_layer")
+        auto_close_layers = entry.get("auto_close_layers") or []
         if primary_layer:
             auxiliary_layers = list(entry.get("auxiliary_layers") or [])
+            auto_close = primary_layer in auto_close_layers
             composite_pieces = load_composite_pieces(
                 path,
                 primary_layer=str(primary_layer),
                 auxiliary_layers=auxiliary_layers,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
             pieces.extend(composite_pieces)
             continue
 
         for layer_name in entry.get("included_layers", []):
-            contours = extract_closed_contours(
+            auto_close = layer_name in auto_close_layers
+            composite_pieces = extract_pieces_with_internal_lines(
                 path,
                 layer_name,
                 curve_tolerance_mm=curve_tolerance_mm,
                 warnings=warnings,
+                auto_close_gaps=auto_close,
             )
-            pieces.extend(contours)
+            pieces.extend(composite_pieces)
 
     return pieces
 

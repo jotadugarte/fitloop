@@ -27,11 +27,13 @@ export default class extends Controller {
 
     this.pending = true
     this.dirty = false
+    this.element.classList.add("is-saving")
     this.element.requestSubmit()
   }
 
   clearPending() {
     this.pending = false
+    this.element.classList.remove("is-saving")
 
     if (!this.dirty) return
 

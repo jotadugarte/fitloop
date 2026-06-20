@@ -1,0 +1,56 @@
+<%= turbo_frame_tag dom_id(project, :source_dxf_preview) do %>
+  <section class="source-dxf-preview-panel" data-testid="source-dxf-preview-panel">
+    <h2><%= t("projects.source_preview.title") %></h2>
+
+    <% if source_preview.available? %>
+      <div class="source-dxf-previews-container" style="display: flex; flex-direction: column; gap: 2rem;">
+        
+        <% if source_preview.has_open_shapes? %>
+          <div class="source-dxf-preview-group" data-testid="source-dxf-open-group">
+            <h3><%= t("projects.source_preview.open_shapes_title", default: "Contornos Abiertos / Correcciones") %></h3>
+            <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <%= t("projects.source_preview.open_shapes_hint", default: "Estas formas tienen aberturas. Las líneas punteadas muestran el cierre automático propuesto y los círculos indican puntos abiertos.") %>
+            </p>
+            <div class="source-dxf-preview source-dxf-preview--cad nesting-preview--interactive"
+                 data-controller="svg-pan-zoom"
+                 data-testid="source-dxf-preview-open">
+              <div class="nesting-preview__viewport"
+                   data-svg-pan-zoom-target="viewport"
+                   data-action="wheel->svg-pan-zoom#wheel pointerdown->svg-pan-zoom#pointerDown pointermove->svg-pan-zoom#pointerMove pointerup->svg-pan-zoom#pointerUp pointercancel->svg-pan-zoom#pointerUp">
+                <div class="nesting-preview__canvas" data-svg-pan-zoom-target="canvas">
+                  <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-open", filter: :open, zoom_to_corrections: source_preview.zoom_to_corrections?) %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <% if source_preview.has_valid_shapes? %>
+          <div class="source-dxf-preview-group" data-testid="source-dxf-valid-group">
+            <h3><%= t("projects.source_preview.valid_shapes_title", default: "Piezas Válidas (Cerradas)") %></h3>
+            <p style="color: var(--fit-text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">
+              <%= t("projects.source_preview.valid_shapes_hint", default: "Estas formas se detectaron como cerradas y están listas para el anidado.") %>
+            </p>
+            <div class="source-dxf-preview source-dxf-preview--cad nesting-preview--interactive"
+                 data-controller="svg-pan-zoom"
+                 data-testid="source-dxf-preview-valid">
+              <div class="nesting-preview__viewport"
+                   data-svg-pan-zoom-target="viewport"
+                   data-action="wheel->svg-pan-zoom#wheel pointerdown->svg-pan-zoom#pointerDown pointermove->svg-pan-zoom#pointerMove pointerup->svg-pan-zoom#pointerUp pointercancel->svg-pan-zoom#pointerUp">
+                <div class="nesting-preview__canvas" data-svg-pan-zoom-target="canvas">
+                  <%= source_dxf_preview_svg(source_preview, css_class: "source-dxf-preview__svg", testid: "source-dxf-preview-svg-valid", filter: :valid) %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+      </div>
+    <% else %>
+      <div class="source-dxf-preview source-dxf-preview--empty" data-testid="source-dxf-preview-empty">
+        <div class="preview-placeholder preview-placeholder--cad" aria-hidden="true"></div>
+        <p><%= t("projects.source_preview.empty") %></p>
+      </div>
+    <% end %>
+  </section>
+<% end %>

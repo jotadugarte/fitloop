@@ -70,6 +70,8 @@ Per-DXF layer rows: inclusion filter and optional composite roles (`REQ-FIT-DXF-
 | `included` | boolean | no | `false` | Include in extraction/nesting |
 | `layer_role` | string | yes | | `primary` \| `auxiliary` \| null (legacy flat filter) |
 | `color` | string | yes | | UI swatch |
+| `auto_close_gaps` | boolean | no | `false` | Enable automatic closure of polyline gaps for this layer |
+| `gaps_detected` | jsonb | no | `[]` | List of detected gap coordinates and details in the layer DXF |
 | `created_at` | datetime | no | | |
 | `updated_at` | datetime | no | | |
 

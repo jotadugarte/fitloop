@@ -58,9 +58,9 @@ class ProjectInputDxfFilesController < ApplicationController
     attachment = @project.input_dxf_attachments.find_by(id: params[:id])
     if attachment
       attachment.purge
-      Dxf::LayerSyncPerFile.call(@project)
+      @project.project_layers.where(active_storage_attachment_id: params[:id]).destroy_all
     end
-    @expand_layers = false
+    @expand_layers = true
     @expanded_attachment_ids = []
 
     respond_to do |format|

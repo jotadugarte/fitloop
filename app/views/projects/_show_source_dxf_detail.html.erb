@@ -28,5 +28,9 @@
                lock_active: lock_active,
                expand_layers: local_assigns.fetch(:expand_layers, false),
                expanded_attachment_ids: expanded_attachment_ids %>
+
+    <div style="margin-top: 1rem; border-top: 1px solid var(--fit-border); padding: 1.5rem 0 0 0;">
+      <%= render "projects/source_dxf_preview", project: project, source_preview: Dxf::SourcePreviewPresenter.for(project) %>
+    </div>
   </details>
 <% end %>

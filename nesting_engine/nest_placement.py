@@ -7,12 +7,14 @@ from typing import Literal
 from shapely.affinity import rotate, translate
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
+from shapely.validation import make_valid
 
 ROTATION_STEP_DEG = 5
 _MAX_ROTATION_STEPS = 360 // ROTATION_STEP_DEG
 _COMPACT_STEP_MM = 2.0
 _MAX_COMPACT_STEPS = 200
 _EPS_MM = 1e-6
+_OVERLAP_AREA_TOLERANCE_MM2 = 1.0
 
 
 @dataclass(frozen=True)
@@ -22,6 +24,25 @@ class Placement:
     x: float
     y: float
     rotation_deg: float
+
+
+def collision_footprint(polygon: Polygon) -> Polygon:
+    """[REQ-FIT-NEST-002] Solid sheet occupancy; interior rings are not nestable for other pieces."""
+    if polygon.is_empty:
+        return polygon
+    if not polygon.interiors:
+        return polygon
+    solid = Polygon(polygon.exterior)
+    if solid.is_valid:
+        return solid
+    return make_valid(solid)
+
+
+def sheet_occupancy_union(placed_polygons: list[Polygon]) -> Polygon | None:
+    """[REQ-FIT-NEST-002] Union of solid footprints for free-area scoring on a sheet."""
+    if not placed_polygons:
+        return None
+    return unary_union([collision_footprint(polygon) for polygon in placed_polygons])
 
 
 def placed_polygon(piece: Polygon, placement: Placement) -> Polygon:
@@ -36,16 +57,21 @@ def place_with_rotation(
     *,
     margin: float,
     obstacles: list[Polygon] | None = None,
+    allowed_rotations: list[float] | None = None,
 ) -> Placement | None:
     occupied = obstacles or []
     base_x_candidates, base_y_candidates = _anchor_candidates(occupied, margin)
-    occupied_union = unary_union(occupied) if occupied else None
+    occupied_union = sheet_occupancy_union(occupied)
 
     best: Placement | None = None
     best_score: tuple[float, float, float, float, float] | None = None
 
-    for step in range(_MAX_ROTATION_STEPS):
-        angle = float(step * ROTATION_STEP_DEG)
+    if allowed_rotations is not None:
+        angles = [float(a) for a in allowed_rotations]
+    else:
+        angles = [float(step * ROTATION_STEP_DEG) for step in range(_MAX_ROTATION_STEPS)]
+
+    for angle in angles:
         candidate = _best_placement_for_angle(
             piece,
             angle,
@@ -269,7 +295,7 @@ def score_sheet_layout(
         assert usable_w > 0 and usable_h > 0, "positive usable area"
         return usable_w * usable_h, 0.0
 
-    occupied_union = unary_union(placed_polygons)
+    occupied_union = sheet_occupancy_union(placed_polygons)
     _lminx, _lminy, layout_maxx, layout_maxy = _layout_bounds(placed_polygons[0], placed_polygons[1:])
     sentinel = box(margin, margin, margin, margin)
     free_area = _largest_continuous_free_area(
@@ -299,6 +325,16 @@ def _layout_better_than(
     return improved
 
 
+def _layout_not_worse_than(
+    baseline: tuple[float, float, float, float, float],
+    candidate: tuple[float, float, float, float, float],
+) -> bool:
+    """[REQ-FIT-NEST-002] True when candidate matches or strictly improves the layout score tuple."""
+    if _layout_better_than(baseline, candidate):
+        return True
+    return _layout_rank_key(baseline) == _layout_rank_key(candidate)
+
+
 def _layout_rank_key(score: tuple[float, float, float, float, float]) -> tuple[float, float, float, float, float]:
     free_area, footprint, layout_maxy, min_y, min_x = score
     assert free_area >= 0.0 and footprint >= 0.0, "non-negative free area and footprint"
@@ -319,7 +355,7 @@ def _largest_continuous_free_area(
         return strip_free
 
     sheet = box(margin, margin, bin_width - margin, bin_height - margin)
-    combined = occupied_union.union(placed)
+    combined = occupied_union.union(collision_footprint(placed))
     free = sheet.difference(combined)
     if free.is_empty:
         return strip_free
@@ -406,8 +442,21 @@ def _fits_bin(placed: Polygon, bin_width: float, bin_height: float, *, margin: f
     )
 
 
+def overlap_area_mm2(a: Polygon, b: Polygon) -> float:
+    solid_a = collision_footprint(a)
+    solid_b = collision_footprint(b)
+    if not solid_a.intersects(solid_b):
+        return 0.0
+    return float(solid_a.intersection(solid_b).area)
+
+
+def polygons_overlap_significantly(a: Polygon, b: Polygon) -> bool:
+    """True when solid footprints intersect beyond solver quantization noise."""
+    return overlap_area_mm2(a, b) > _OVERLAP_AREA_TOLERANCE_MM2
+
+
 def _overlaps_any(placed: Polygon, obstacles: list[Polygon]) -> bool:
     for obstacle in obstacles:
-        if placed.intersects(obstacle) and not placed.touches(obstacle):
+        if polygons_overlap_significantly(placed, obstacle):
             return True
     return False

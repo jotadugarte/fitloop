@@ -23,6 +23,13 @@
             data-controller="dxf-upload"
             data-dxf-upload-url-value="<%= project_input_dxf_files_path(project) %>"
             data-dxf-upload-failed-value="<%= t("projects.form.dxf_upload_failed") %>">
+    <div class="project-dxf-upload__loading-overlay">
+      <div class="project-dxf-upload__spinner"></div>
+      <div class="project-dxf-upload__loading-text">
+        <%= t("projects.form.dxf_upload_processing") %>
+      </div>
+    </div>
+
     <div class="field project-dxf-file-input"
          data-dxf-upload-empty-files-value="<%= t("projects.form.dxf_upload_no_files") %>"
          data-dxf-upload-files-selected-value="<%= t("projects.form.dxf_upload_files_selected") %>">
@@ -58,6 +65,10 @@
                           action: "change->nesting-parameters-autosave#scheduleSave turbo:submit-end->nesting-parameters-autosave#clearPending"
                         } do %>
             <%= hidden_field_tag :section, "layers" %>
+            <div class="layers-autosave-status">
+              <div class="layers-autosave-status__spinner"></div>
+              <span class="layers-autosave-status__text"><%= t("projects.form.layers_saving") %></span>
+            </div>
             <%= render "projects/dxf_layers_checklist", **checklist_locals %>
           <% end %>
         <% else %>

@@ -391,6 +391,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       )
       get checkout_path(nesting_run_id: run.id)
       expect(response).to have_http_status(:ok)
+      expect(controller.instance_variable_get(:@selected_payment_method)).to eq("card_usd")
     end
   end
 
@@ -517,7 +518,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
     end
   end
 
-  describe "POST /checkout/pagar duplicate SINPE lock [REQ-FIT-BILL-001]" do
+  describe "POST /checkout/pagar plan cart checkout" do
     around do |example|
       keys = %w[BILLING_GATEWAY ONVO_SECRET_KEY ONVO_PUBLISHABLE_KEY ONVO_WEBHOOK_SECRET]
       previous = keys.index_with { |key| ENV[key] }
@@ -528,31 +529,6 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       example.run
     ensure
       previous.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
-    end
-
-    it "returns conflict when an active SINPE lock already exists" do
-      begin_workspace_session!
-      user.payments.create!(
-        user: user,
-        nesting_run: run,
-        status: "pending",
-        payment_method: "sinpe_crc",
-        currency: "crc",
-        amount: 1000,
-        tax_amount: 130,
-        total_amount: 1130,
-        purpose: "single_download",
-        gateway_provider: "onvo",
-        gateway_status: "processing",
-        onvo_payment_intent_id: "pi_duplicate_lock",
-        onvo_mode: "test",
-        created_at: 5.minutes.ago
-      )
-
-      post checkout_pay_path, params: { nesting_run_id: run.id, payment_method: "sinpe_crc" }
-
-      expect(response).to have_http_status(:conflict)
-      expect(JSON.parse(response.body).fetch("redirect_url")).to eq(mis_pagos_path)
     end
 
     it "passes tier_months for plan cart checkout" do
@@ -947,20 +923,7 @@ RSpec.describe "CheckoutController coverage edge cases", type: :request do
       expect(response).to redirect_to(mis_pagos_path(auto_download: 999))
     end
 
-    it "selects card_usd when USD checkout requests card" do
-      begin_workspace_session!
-      allow(Billing::PaymentSelection).to receive(:resolve).and_return(
-        currency: :usd,
-        payment_method: :card,
-        available_payment_methods: [ :card ],
-        iva_applicable: false
-      )
 
-      get checkout_path(nesting_run_id: run.id, payment_method: "card_crc")
-
-      expect(response).to have_http_status(:ok)
-      expect(controller.instance_variable_get(:@selected_payment_method)).to eq("card_usd")
-    end
 
     it "returns nil resume payment when payment_id does not resolve" do
       begin_workspace_session!

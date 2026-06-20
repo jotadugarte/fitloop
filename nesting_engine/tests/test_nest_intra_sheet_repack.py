@@ -7,12 +7,16 @@ from shapely.geometry import box
 
 from nesting_engine.nest_bin import SheetStockSpec
 from nesting_engine.nest_libnest2d import (
+    _apply_orthogonal_flip_pass_to_sheets,
+    _compact_placed_pieces_down,
     _intra_sheet_repack_search,
+    _layout_score_for_pieces,
     _layout_score_for_sheet,
+    _try_orthogonal_flip_improvements,
     nest_sheet,
     nest_sheet_with_obstacles,
 )
-from nesting_engine.nest_placement import Placement, _layout_better_than, placed_polygon, score_sheet_layout
+from nesting_engine.nest_placement import Placement, _layout_better_than, _layout_not_worse_than, placed_polygon, score_sheet_layout
 from nesting_engine.nest_types import NestedSheet, PlacedPiece, apply_kerf
 
 from nesting_engine.tests.test_nest_libnest2d import _assert_all_fit_bin
@@ -236,3 +240,186 @@ def test_intra_sheet_repack_improves_free_area_on_synthetic_hole() -> None:
                 placed_polys[left].intersects(placed_polys[right])
                 and not placed_polys[left].touches(placed_polys[right])
             )
+
+
+def test_orthogonal_flip_improvements_reduces_layout_footprint() -> None:
+    """[REQ-FIT-NEST-002] 90° flip local search improves score when batch orientation is suboptimal."""
+    margin_mm = 0.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 200.0, 200.0
+    pieces = [box(0, 0, 100, 40), box(0, 0, 40, 100)]
+    sheet_pieces = [
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(0.0, 0.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(100.0, 0.0, 0.0)),
+    ]
+    baseline_score = _layout_score_for_pieces(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    improved = _try_orthogonal_flip_improvements(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert improved is not None
+    improved_score = _layout_score_for_pieces(
+        improved,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert _layout_better_than(baseline_score, improved_score)
+    _assert_all_fit_bin(
+        pieces,
+        [row.placement for row in improved],
+        bin_width_mm=bin_w,
+        bin_height_mm=bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+
+def test_orthogonal_flip_improvements_works_with_four_pieces() -> None:
+    """[REQ-FIT-NEST-002] Flip search is not limited to two-piece sheets."""
+    margin_mm = 5.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 600.0, 400.0
+    pieces = [
+        box(0, 0, 180, 220),
+        box(0, 0, 140, 160),
+        box(0, 0, 120, 120),
+        box(0, 0, 220, 40),
+    ]
+    sheet_pieces = [
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(5.0, 5.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(190.0, 5.0, 0.0)),
+        PlacedPiece(piece_index=2, polygon=pieces[2], placement=Placement(5.0, 230.0, 0.0)),
+        PlacedPiece(piece_index=3, polygon=pieces[3], placement=Placement(200.0, 180.0, 0.0)),
+    ]
+    baseline_score = _layout_score_for_pieces(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    improved = _try_orthogonal_flip_improvements(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert improved is not None
+    improved_score = _layout_score_for_pieces(
+        improved,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert _layout_better_than(baseline_score, improved_score)
+    assert any(
+        improved[index].placement.rotation_deg != sheet_pieces[index].placement.rotation_deg
+        for index in range(len(sheet_pieces))
+    )
+
+
+def test_compact_placed_pieces_down_never_worsens_layout_score() -> None:
+    """[REQ-FIT-NEST-002] Gravity drops are skipped when they would regress layout score."""
+    margin_mm = 5.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 400.0, 400.0
+    pieces = [box(0, 0, 200, 200), box(0, 0, 100, 30), box(0, 0, 80, 80)]
+    sheet_pieces = [
+        PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(5.0, 5.0, 0.0)),
+        PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(205.0, 350.0, 0.0)),
+        PlacedPiece(piece_index=2, polygon=pieces[2], placement=Placement(305.0, 5.0, 0.0)),
+    ]
+    baseline_score = _layout_score_for_pieces(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    compacted = _compact_placed_pieces_down(
+        sheet_pieces,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    compacted_score = _layout_score_for_pieces(
+        compacted,
+        pieces,
+        bin_w,
+        bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert _layout_not_worse_than(baseline_score, compacted_score)
+    _assert_all_fit_bin(
+        pieces,
+        [row.placement for row in compacted],
+        bin_width_mm=bin_w,
+        bin_height_mm=bin_h,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+
+def test_apply_orthogonal_flip_pass_to_sheets_improves_suboptimal_layout() -> None:
+    """[REQ-FIT-NEST-002] Post-gravity flip pass accepts sheet-wide orientation gains."""
+    margin_mm = 0.0
+    kerf_mm = 0.0
+    bin_w, bin_h = 200.0, 200.0
+    pieces = [box(0, 0, 100, 40), box(0, 0, 40, 100)]
+    sheet = NestedSheet(
+        stock_sort_order=0,
+        sheet_index=0,
+        width_mm=bin_w,
+        height_mm=bin_h,
+        offset_x_mm=0.0,
+        pieces=[
+            PlacedPiece(piece_index=0, polygon=pieces[0], placement=Placement(0.0, 0.0, 0.0)),
+            PlacedPiece(piece_index=1, polygon=pieces[1], placement=Placement(100.0, 0.0, 0.0)),
+        ],
+    )
+    baseline_score = _layout_score_for_sheet(sheet, pieces, margin_mm=margin_mm, kerf_mm=kerf_mm)
+
+    improved_sheets = _apply_orthogonal_flip_pass_to_sheets(
+        [sheet],
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+
+    assert len(improved_sheets) == 1
+    improved_score = _layout_score_for_sheet(
+        improved_sheets[0],
+        pieces,
+        margin_mm=margin_mm,
+        kerf_mm=kerf_mm,
+    )
+    assert _layout_better_than(baseline_score, improved_score)

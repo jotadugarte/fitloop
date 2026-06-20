@@ -1,18 +1,22 @@
 # [REQ-FIT-NEST-002] Placement scoring prioritizes largest continuous free area.
 from __future__ import annotations
 
+import pytest
 from shapely.affinity import rotate, translate
-from shapely.geometry import box
+from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 from nesting_engine.nest_bin import SheetStockSpec, nest_multi_bin
 from nesting_engine.nest_placement import (
     _largest_continuous_free_area,
     _layout_better_than,
+    _layout_not_worse_than,
     _placement_score,
+    collision_footprint,
     place_with_rotation,
     placed_polygon,
     score_sheet_layout,
+    sheet_occupancy_union,
 )
 
 _EPS_MM = 1e-6
@@ -22,7 +26,7 @@ def test_score_sheet_layout_largest_continuous_free_area() -> None:
     """[REQ-FIT-NEST-002] Whole-sheet score matches incremental free-area metric on union layout."""
     bin_w, bin_h, margin = 400.0, 400.0, 0.0
     placed = [box(10, 10, 140, 180), box(220, 10, 350, 180), box(10, 220, 120, 350)]
-    occupied_union = unary_union(placed)
+    occupied_union = sheet_occupancy_union(placed)
     _, _, layout_maxx, layout_maxy = _layout_bounds_public(placed[0], placed[1:])
     sentinel = box(margin, margin, margin, margin)
 
@@ -53,6 +57,20 @@ def test_score_sheet_layout_empty_layout_is_full_usable_area() -> None:
 
     assert free_area == usable_w * usable_h
     assert footprint == 0.0
+
+
+def test_score_sheet_layout_treats_frame_holes_as_occupied() -> None:
+    """[REQ-FIT-NEST-002] Interior rings must not inflate largest-continuous-free-area scoring."""
+    bin_w, bin_h, margin = 400.0, 400.0, 0.0
+    outer = box(0, 0, 200, 200)
+    hole = box(50, 50, 150, 150)
+    frame = Polygon(outer.exterior.coords, [list(hole.exterior.coords)])
+
+    free_area, _footprint = score_sheet_layout(bin_w, bin_h, margin, [frame])
+    usable = (bin_w - 2 * margin) * (bin_h - 2 * margin)
+    solid_area = collision_footprint(frame).area
+
+    assert free_area == pytest.approx(usable - solid_area, rel=0.02)
 
 
 def test_layout_better_than_prefers_larger_free_area() -> None:
@@ -92,6 +110,13 @@ def test_layout_better_than_rejects_regression_and_equal() -> None:
     assert not _layout_better_than(baseline, worse_free)
     assert not _layout_better_than(baseline, worse_footprint)
     assert not _layout_better_than(baseline, baseline)
+
+
+def test_layout_not_worse_than_accepts_equal_score() -> None:
+    """[REQ-FIT-NEST-002] Equal score tuples are acceptable when geometry still compacts."""
+    baseline = (100.0, 50.0, 200.0, 10.0, 20.0)
+    assert _layout_not_worse_than(baseline, baseline)
+    assert not _layout_not_worse_than(baseline, (90.0, 40.0, 200.0, 10.0, 20.0))
 
 
 def test_placement_score_prefers_larger_continuous_free_area_over_smaller_footprint() -> None:
@@ -179,7 +204,10 @@ def test_place_long_strip_prefers_near_horizontal_orientation() -> None:
     )
 
     assert placement is not None
-    assert placement.rotation_deg <= 10.0 or placement.rotation_deg >= 350.0
+    placed = placed_polygon(strip, placement)
+    width = placed.bounds[2] - placed.bounds[0]
+    height = placed.bounds[3] - placed.bounds[1]
+    assert width >= height
 
 
 def test_nest_multi_bin_packs_rectangles_on_one_sheet() -> None:
@@ -208,3 +236,25 @@ def _layout_bounds_public(placed, occupied: list) -> tuple[float, float, float, 
         maxx = max(maxx, o_maxx)
         maxy = max(maxy, o_maxy)
     return minx, miny, maxx, maxy
+
+
+def test_place_with_rotation_allowed_rotations() -> None:
+    # Test that allowed_rotations restricts the possible placement angles
+    piece = box(0, 0, 100, 50)  # Rectangle of 100 x 50
+    # In a bin of 120 x 70, it can fit at 0° or 180°
+    # If we only allow [90.0, 270.0], it would have to stand up (width=50, height=100)
+    # which will NOT fit in height 70 (height needs to be <= 70 - 2*margin).
+    # With margin=5.0, usable width is 110, usable height is 60.
+    # So standing up (100) doesn't fit, but lying flat (50) fits.
+    # Therefore, if we allow [90.0], it should fail to place (return None).
+    # If we allow [0.0], it should place successfully.
+    
+    # 1. Allowed [90.0] -> Should not fit and return None
+    p1 = place_with_rotation(piece, 120.0, 70.0, margin=5.0, allowed_rotations=[90.0])
+    assert p1 is None
+    
+    # 2. Allowed [0.0] -> Should fit and return a Placement
+    p2 = place_with_rotation(piece, 120.0, 70.0, margin=5.0, allowed_rotations=[0.0])
+    assert p2 is not None
+    assert p2.rotation_deg == 0.0
+

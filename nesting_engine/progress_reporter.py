@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-PROGRESS_SCHEMA_VERSION = 1
+PROGRESS_SCHEMA_VERSION = 2
 
 VALID_PHASE_IDS = frozenset(
     {
@@ -39,6 +39,7 @@ class ProgressReporter:
         pieces_total: int | None = None,
         pieces_placed: int | None = None,
         message_key: str | None = None,
+        eta_sec: int | None = None,
     ) -> None:
         """[REQ-FIT-JOB-001] Record phase progress; skip invalid phase or throttled updates."""
         assert phase_id, "phase_id is required"
@@ -56,6 +57,7 @@ class ProgressReporter:
             pieces_total=pieces_total,
             pieces_placed=pieces_placed,
             message_key=message_key,
+            eta_sec=eta_sec,
         )
         _atomic_write_json(self._path, payload)
         self._last_percent = effective
@@ -87,6 +89,7 @@ def _build_payload(
     pieces_total: int | None,
     pieces_placed: int | None,
     message_key: str | None,
+    eta_sec: int | None = None,
 ) -> dict[str, Any]:
     assert 0 <= percent <= 100
     payload: dict[str, Any] = {
@@ -99,6 +102,8 @@ def _build_payload(
         payload["pieces_total"] = pieces_total
     if pieces_placed is not None:
         payload["pieces_placed"] = pieces_placed
+    if eta_sec is not None:
+        payload["eta_sec"] = int(eta_sec)
     return payload
 
 

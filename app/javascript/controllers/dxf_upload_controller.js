@@ -20,6 +20,9 @@ export default class extends Controller {
     const token = this.csrfToken
     if (token) body.append("authenticity_token", token)
 
+    this.element.classList.add("is-loading")
+    this.inputTarget.disabled = true
+
     fetch(this.urlValue, {
       method: "POST",
       body,
@@ -39,12 +42,17 @@ export default class extends Controller {
         } else if (response.redirected) {
           window.Turbo.visit(response.url)
         }
-
-        this.inputTarget.value = ""
-        this.updateFileLabel()
       })
       .catch(() => {
         fitloopAlert(this.uploadFailedMessage)
+      })
+      .finally(() => {
+        if (this.element.isConnected) {
+          this.element.classList.remove("is-loading")
+          this.inputTarget.disabled = false
+          this.inputTarget.value = ""
+          this.updateFileLabel()
+        }
       })
   }
 

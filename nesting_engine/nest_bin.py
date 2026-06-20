@@ -35,6 +35,9 @@ def nest_multi_bin(
     sheet_gap_mm: float,
     time_limit_sec: float = 600.0,
     progress_reporter=None,
+    optimization_mode: str = "fast",
+    max_seeds: int = 16,
+    max_local_search_iterations: int = 12,
 ) -> MultiBinResult:
     from nesting_engine.nest_libnest2d import nest_multi_bin as libnest_multi_bin
 
@@ -46,4 +49,7 @@ def nest_multi_bin(
         sheet_gap_mm=sheet_gap_mm,
         time_limit_sec=time_limit_sec,
         progress_reporter=progress_reporter,
+        optimization_mode=optimization_mode,
+        max_seeds=max_seeds,
+        max_local_search_iterations=max_local_search_iterations,
     )

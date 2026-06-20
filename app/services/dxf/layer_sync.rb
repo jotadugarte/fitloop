@@ -12,15 +12,28 @@ module Dxf
     end
 
     def call
-      return if @project.input_dxf_attachments.blank?
+      if @project.input_dxf_attachments.blank?
+        @project.project_layers.destroy_all
+        return
+      end
 
+      active_names = []
       with_downloaded_dxf_paths do |paths|
         LayerNamesReader.catalog(paths).each do |entry|
-          layer = @project.project_layers.find_or_initialize_by(layer_name: entry["name"])
+          name = entry["name"]
+          active_names << name
+          layer = @project.project_layers.find_or_initialize_by(
+            layer_name: name,
+            active_storage_attachment_id: nil
+          )
           layer.color = entry["color"] if entry["color"].present?
           layer.save!
         end
       end
+
+      stale = @project.project_layers.where.not(active_storage_attachment_id: nil)
+                                     .or(@project.project_layers.where.not(layer_name: active_names))
+      stale.destroy_all
     end
 
     private

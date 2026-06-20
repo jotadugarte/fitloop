@@ -82,7 +82,7 @@ RSpec.describe Nesting::ProgressSnapshot, "[REQ-FIT-JOB-001]" do
 
     it "returns nil for unsupported schema version [REQ-FIT-JOB-001]" do
       snapshot = described_class.from_hash(
-        { "version" => 2, "phase_id" => "fill", "percent" => 10 },
+        { "version" => 3, "phase_id" => "fill", "percent" => 10 },
         last_percent: 0
       )
 

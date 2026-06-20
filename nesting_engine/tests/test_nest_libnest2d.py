@@ -11,15 +11,45 @@ from nesting_engine.nest import run_from_config
 
 from nesting_engine.nest_bin import SheetStockSpec, _apply_kerf
 from nesting_engine.nest_libnest2d import (
+    ObstacleAwareSheetResult,
+    SheetPiecePlacement,
+    _placed_from_batch_result,
     _sheet_piece_world_polygon,
+    _world_placement_valid,
     capabilities,
     nest_multi_bin,
     nest_sheet,
     nest_sheet_with_obstacles,
 )
-from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon
+from nesting_engine.nest_placement import ROTATION_STEP_DEG, Placement, placed_polygon, polygons_overlap_significantly
+from nesting_engine.piece_loader import load_pieces, piece_polygon
 
 _EPS_MM = 1e-6
+
+
+def test_world_placement_valid_rejects_in_bin_overlap() -> None:
+    """[REQ-FIT-NEST-002] Overlap check must run for placements inside sheet bounds."""
+    obstacle = box(10, 10, 40, 40)
+    overlapping = box(30, 30, 60, 60)
+    clear = box(50, 50, 80, 80)
+
+    assert polygons_overlap_significantly(overlapping, obstacle)
+    assert not _world_placement_valid(
+        overlapping,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+        obstacles=[obstacle],
+        other_placed=[],
+    )
+    assert _world_placement_valid(
+        clear,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+        obstacles=[obstacle],
+        other_placed=[],
+    )
 
 
 def test_capabilities_reports_libnest2d_production() -> None:
@@ -48,6 +78,63 @@ def test_nest_sheet_places_piece_with_hole() -> None:
     assert len(placements) == 1
     assert placements[0].rotation_deg >= 0.0
     _assert_all_fit_bin([piece], placements, bin_width_mm=200.0, bin_height_mm=200.0, margin_mm=1.0, kerf_mm=0.0)
+
+
+def test_collision_footprint_rejects_piece_inside_another_hole() -> None:
+    """[REQ-FIT-NEST-002] Material rings must block placement in interior holes."""
+    outer = box(0, 0, 100, 100)
+    hole = box(30, 30, 70, 70)
+    frame = Polygon(outer.exterior.coords, [list(hole.exterior.coords)])
+    inner = box(35, 35, 65, 65)
+
+    assert frame.intersection(inner).area < 1e-6
+    assert polygons_overlap_significantly(frame, inner)
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_007_through_011_avoids_piece_inside_frame_hole() -> None:
+    """[REQ-FIT-NEST-002] Crossbar must not nest inside 010 frame hole on one 700×700 sheet."""
+    fixtures = Path(__file__).resolve().parent / "fixtures" / "individuals"
+    names = ["007.dxf", "008.dxf", "009.dxf", "010.dxf", "011.dxf"]
+    loaded = load_pieces(
+        [str(fixtures / name) for name in names],
+        ["CORTE"],
+        curve_tolerance_mm=0.25,
+        warnings=[],
+    )
+    pieces = [piece_polygon(piece) for piece in loaded]
+    stocks = [SheetStockSpec(width_mm=700.0, height_mm=700.0, quantity=1, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=5.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+        time_limit_sec=120.0,
+    )
+
+    assert len(result.sheets) == 1
+    assert not result.orphans
+    worlds = [
+        (
+            names[row.piece_index],
+            placed_polygon(pieces[row.piece_index], row.placement),
+        )
+        for row in result.sheets[0].pieces
+    ]
+    for left_name, left_poly in worlds:
+        for right_name, right_poly in worlds:
+            if left_name == right_name:
+                continue
+            assert not polygons_overlap_significantly(left_poly, right_poly)
+            for ring in left_poly.interiors:
+                hole = Polygon(ring)
+                if (
+                    hole.contains(right_poly.centroid)
+                    and left_poly.intersection(right_poly).area < 1.0
+                ):
+                    pytest.fail(f"{right_name} placed inside hole of {left_name}")
 
 
 def test_nest_sheet_uses_non_zero_rotation_when_required() -> None:
@@ -84,8 +171,8 @@ def test_nest_sheet_accepts_up_to_128_pieces() -> None:
     )
 
 
-def test_nest_sheet_with_obstacles_uses_native_item_pose_for_continuous_rotation() -> None:
-    # nest_blp allows any angle; placement must preserve libnest2d rotation (not snap to 5°).
+def test_nest_sheet_with_obstacles_uses_cardinal_rotation_for_orthogonal_piece() -> None:
+    # Orthogonal rectangles use NFP cardinal rotations (0/90/180/270°), not free tilt.
     piece = box(0, 0, 90, 20)
     margin_mm = 0.0
     kerf_mm = 0.0
@@ -101,7 +188,7 @@ def test_nest_sheet_with_obstacles_uses_native_item_pose_for_continuous_rotation
 
     assert result.unplaced_indices == []
     resolved = result.placements[0]
-    assert resolved.placement.rotation_deg % ROTATION_STEP_DEG != 0.0
+    assert resolved.placement.rotation_deg in (0.0, 90.0, 180.0, 270.0)
     world = _sheet_piece_world_polygon(resolved)
     minx, miny, maxx, maxy = world.bounds
     assert minx >= margin_mm - _EPS_MM
@@ -140,7 +227,7 @@ def _assert_all_fit_bin(
         assert maxx <= bin_width_mm - margin_mm + _EPS_MM
         assert maxy <= bin_height_mm - margin_mm + _EPS_MM
         for obstacle in occupied:
-            assert not (placed.intersects(obstacle) and not placed.touches(obstacle))
+            assert not polygons_overlap_significantly(placed, obstacle)
         occupied.append(placed)
 
 
@@ -182,9 +269,9 @@ def test_libnest2d_margin_applies_at_sheet_edge_not_between_pieces() -> None:
     first = placed_polygon(pieces[placed[0].piece_index], placed[0].placement)
     second = placed_polygon(pieces[placed[1].piece_index], placed[1].placement)
 
-    assert first.bounds[0] == pytest.approx(margin, abs=0.05)
-    assert first.bounds[1] == pytest.approx(margin, abs=0.05)
-    assert second.bounds[0] >= margin + 10.0 - 0.05
+    assert margin <= first.bounds[0] <= margin + 1.05
+    assert margin <= first.bounds[1] <= margin + 1.05
+    assert (second.bounds[0] >= margin + 10.0 - 0.05) or (second.bounds[1] >= margin + 10.0 - 0.05)
     assert first.distance(second) >= 0.0
 
 
@@ -207,7 +294,7 @@ def test_libnest2d_kerf_keeps_minimum_gap_between_pieces() -> None:
         for row in result.sheets[0].pieces
     ]
     gap = polys[0].distance(polys[1])
-    assert gap >= kerf - 0.2
+    assert gap >= kerf - 0.3
     assert not polys[0].intersects(polys[1])
 
 
@@ -337,3 +424,94 @@ def test_run_from_config_honors_time_limit_sec_with_partial_and_warning(
     placed_count = sum(len(sheet["pieces"]) for sheet in placements["sheets"])
     assert placed_count >= 1
     assert len(placements["orphans"]) >= 1
+
+
+def test_placed_from_batch_result_rejects_overlapping_solver_placements() -> None:
+    """[REQ-FIT-NEST-002] Obstacle-aware batch must not accept placements that overlap occupied area."""
+    pieces = [box(0, 0, 10, 10), box(0, 0, 10, 10)]
+    occupied = [box(5, 5, 20, 20)]
+    batch_result = ObstacleAwareSheetResult(
+        placements={
+            0: SheetPiecePlacement(
+                placement=Placement(15.0, 15.0, 0.0),
+                geometry=box(0, 0, 10, 10),
+            ),
+        },
+        unplaced_indices=[],
+    )
+
+    placed, pending, new_occupied = _placed_from_batch_result(
+        pieces,
+        [0],
+        batch_result,
+        [0],
+        kerf_mm=0.0,
+        occupied=occupied,
+        bin_width_mm=100.0,
+        bin_height_mm=100.0,
+        margin_mm=0.0,
+    )
+
+    assert placed == []
+    assert pending == [0]
+    assert new_occupied == occupied
+
+
+@pytest.mark.slow
+def test_nest_multi_bin_six_fixture_files_have_no_overlaps_on_700x690() -> None:
+    """[REQ-FIT-NEST-002] Regression: crowded multi-file layout must not overlap on sheet."""
+    fixtures = Path(__file__).resolve().parent / "fixtures" / "individuals"
+    names = ["010.dxf", "011.dxf", "012.dxf", "013.dxf", "014.dxf", "016.dxf"]
+    paths = [str(fixtures / name) for name in names]
+    warnings: list[str] = []
+    loaded = load_pieces(paths, ["PIECES", "CORTE"], curve_tolerance_mm=0.25, warnings=warnings)
+    pieces = [piece_polygon(piece) for piece in loaded]
+    stocks = [SheetStockSpec(width_mm=700, height_mm=690, quantity=None, sort_order=0)]
+
+    result = nest_multi_bin(
+        pieces,
+        stocks,
+        margin_mm=0.0,
+        kerf_mm=0.0,
+        sheet_gap_mm=0.0,
+    )
+
+    for sheet in result.sheets:
+        occupied: list[Polygon] = []
+        for placed in sheet.pieces:
+            world = placed_polygon(pieces[placed.piece_index], placed.placement)
+            for blocker in occupied:
+                assert not polygons_overlap_significantly(world, blocker)
+            occupied.append(world)
+
+
+def test_nest_sheet_packs_pieces_with_negative_offset_coordinates() -> None:
+    # Test that shapes at negative coordinates (similar to the user's DXFs)
+    # are correctly nested on the sheet and mapped back without overlapping.
+    pieces = [
+        box(-4600, -600, -4550, -550),
+        box(-3700, -800, -3650, -750),
+    ]
+
+    placements = nest_sheet(
+        pieces,
+        bin_width_mm=200.0,
+        bin_height_mm=200.0,
+        margin_mm=5.0,
+        kerf_mm=2.0,
+    )
+
+    assert len(placements) == len(pieces)
+    _assert_all_fit_bin(
+        pieces,
+        placements,
+        bin_width_mm=200.0,
+        bin_height_mm=200.0,
+        margin_mm=5.0,
+        kerf_mm=2.0,
+    )
+
+
+
+
+

@@ -33,15 +33,32 @@ module Nesting
         progress_message: @snapshot.message_key
       }
 
-      time_limit = NestingTimeLimitSec.from_project(@project)
-      eta = ProgressEta.estimate(
-        started_at: run_started_at,
-        time_limit_sec: time_limit.to_i,
-        pieces_total: @snapshot.pieces_total,
-        pieces_placed: @snapshot.pieces_placed
-      )
-      attrs[:estimated_finished_at] = eta if eta.present?
+      eta = compute_eta
+      if eta.present?
+        # [REQ-FIT-JOB-001] Monotonic: ETA can only decrease within a run.
+        # If the new estimate is later than what we already have, keep the old one.
+        # This prevents the timer from jumping forward when a slow step follows fast ones.
+        if @project.estimated_finished_at.present? && eta > @project.estimated_finished_at
+          eta = @project.estimated_finished_at
+        end
+        attrs[:estimated_finished_at] = eta
+      end
       attrs
+    end
+
+    def compute_eta
+      if @snapshot.eta_sec
+        # [REQ-FIT-JOB-001] Prefer countdown from WallClockEtaEstimator when available.
+        Time.current + @snapshot.eta_sec.seconds
+      else
+        time_limit = NestingTimeLimitSec.from_project(@project)
+        ProgressEta.estimate(
+          started_at: run_started_at,
+          time_limit_sec: time_limit.to_i,
+          pieces_total: @snapshot.pieces_total,
+          pieces_placed: @snapshot.pieces_placed
+        )
+      end
     end
 
     def run_started_at

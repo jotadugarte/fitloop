@@ -71,4 +71,15 @@ export default class extends Controller {
     const primary = row.querySelector("[data-layer-roles-target='primary']")
     if (primary) primary.disabled = false
   }
+
+  setDeleting(event) {
+    const form = event.target
+    if (form && form.action) {
+      const attachmentId = this.element.dataset.attachmentId
+      const expectedPath = `/input_dxf_files/${attachmentId}`
+      if (form.action.includes(expectedPath)) {
+        this.element.classList.add("is-deleting")
+      }
+    }
+  }
 }

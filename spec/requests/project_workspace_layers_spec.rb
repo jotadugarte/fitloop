@@ -17,7 +17,7 @@ RSpec.describe "Project workspace layers (Tu anidado)", "[REQ-FIT-UI-001]", type
     project
   end
 
-  it "persists clearing an auxiliary layer from Detalle DXF" do
+  it "persists clearing an auxiliary layer and setting auto_close_gaps from Detalle DXF" do
     project = ready_workspace_project!
     attachment = project.input_dxf_attachments.first!
     cut = project.project_layers.find_by!(
@@ -36,14 +36,15 @@ RSpec.describe "Project workspace layers (Tu anidado)", "[REQ-FIT-UI-001]", type
             project_layers: {
               attachment.id.to_s => {
                 primary_layer_id: cut.id.to_s,
-                gravado.id.to_s => { auxiliary: "1" }
+                gravado.id.to_s => { auxiliary: "1", auto_close_gaps: "1" }
               }
             }
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:no_content)
-    expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("turbo-stream")
+    expect(gravado.reload).to have_attributes(layer_role: "auxiliary", included: true, auto_close_gaps: true)
 
     patch workspace_project_path(project),
           params: {
@@ -56,8 +57,40 @@ RSpec.describe "Project workspace layers (Tu anidado)", "[REQ-FIT-UI-001]", type
           },
           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-    expect(response).to have_http_status(:no_content)
-    expect(gravado.reload).to have_attributes(layer_role: nil, included: false)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("turbo-stream")
+    expect(gravado.reload).to have_attributes(layer_role: nil, included: false, auto_close_gaps: false)
     expect(cut.reload).to have_attributes(layer_role: "primary", included: true)
+  end
+
+  it "refreshes layer gap warning in turbo stream when 015 primary is selected" do
+    dxf_015 = Rails.root.join("nesting_engine/tests/fixtures/individuals/015.dxf")
+    project = begin_workspace_session!
+
+    post project_input_dxf_files_path(project),
+         params: { files: [ fixture_file_upload(dxf_015, "015.dxf", "application/dxf") ] }
+
+    project.reload
+    attachment = project.input_dxf_attachments.first!
+    corte = project.project_layers.find_by!(
+      layer_name: "CORTE",
+      active_storage_attachment_id: attachment.id
+    )
+
+    patch workspace_project_path(project),
+          params: {
+            section: "layers",
+            project_layers: {
+              attachment.id.to_s => {
+                primary_layer_id: corte.id.to_s
+              }
+            }
+          },
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(ActionView::RecordIdentifier.dom_id(attachment, :dxf_file_layers))
+    expect(response.body).to include("layer-gap-warning-#{corte.id}")
+    expect(response.body).to include("auto_close_gaps")
   end
 end

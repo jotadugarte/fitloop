@@ -24,6 +24,11 @@ from nesting_engine.composite_extract import (  # noqa: E402
 from nesting_engine.decoration_transform import transform_decorations  # noqa: E402
 from nesting_engine.split_planner import SplitPlanResult, plan_split  # noqa: E402
 from nesting_engine.nesting_config import parse_job_parameters_from_config  # noqa: E402
+from nesting_engine.nest_geometry_classify import (  # noqa: E402
+    is_axis_aligned_on_sheet,
+    is_orthogonal_for_cardinal_nesting,
+)
+from nesting_engine.nest_libnest2d import multi_bin_layout_has_significant_overlaps  # noqa: E402
 from nesting_engine.progress_reporter import ProgressReporter  # noqa: E402
 
 _PLAN_SPLITS_MODE = "plan_splits"
@@ -47,15 +52,44 @@ def _piece_bounds_dict(polygon: Polygon, *, piece_index: int, extra: dict | None
 
 def _piece_placement_dict(placed: PlacedPiece, *, label: str | None = None) -> dict:
     world = _placed_world_polygon(placed)
+    export_placement = placed.placement
+    report_rotation_deg = placed.placement.rotation_deg
+    if is_orthogonal_for_cardinal_nesting(placed.polygon):
+        from nesting_engine.nest_libnest2d import (  # noqa: PLC0415
+            _prepare_solver_piece,
+            _restore_placement_to_source,
+        )
+
+        export_placement = _restore_placement_to_source(
+            placed.polygon,
+            placed.polygon,
+            placed.placement,
+            world_geometry=world,
+        )
+        prep = _prepare_solver_piece(placed.polygon)
+        if prep.pre_align_deg is not None and abs(prep.pre_align_deg) > 1e-9:
+            report_rotation_deg = (export_placement.rotation_deg + prep.pre_align_deg) % 360.0
+        else:
+            report_rotation_deg = export_placement.rotation_deg
+        world = _placed_world_polygon(
+            PlacedPiece(
+                piece_index=placed.piece_index,
+                polygon=placed.polygon,
+                placement=export_placement,
+                primary_layer_name=placed.primary_layer_name,
+                decorations=placed.decorations,
+            )
+        )
     minx, miny, maxx, maxy = world.bounds
+    orthogonal_export = is_orthogonal_for_cardinal_nesting(placed.polygon)
     payload = {
         "piece_index": placed.piece_index,
         "x_mm": float(minx),
         "y_mm": float(miny),
-        "rotation_deg": placed.placement.rotation_deg,
+        "rotation_deg": report_rotation_deg,
         "width_mm": float(maxx - minx),
         "height_mm": float(maxy - miny),
-        "rings": _polygon_rings(world),
+        "rings": _polygon_rings(world, allow_simplify=not orthogonal_export),
     }
     if placed.primary_layer_name:
         payload["primary_layer_name"] = placed.primary_layer_name
@@ -63,7 +97,7 @@ def _piece_placement_dict(placed: PlacedPiece, *, label: str | None = None) -> d
         transformed = transform_decorations(
             list(placed.decorations),
             placed.polygon,
-            placed.placement,
+            export_placement,
         )
         payload["decorations"] = [_decoration_entity_dict(row) for row in transformed]
     if label:
@@ -98,9 +132,21 @@ def _placed_world_polygon(placed: PlacedPiece) -> Polygon:
     return translate(rotated, xoff=placed.placement.x, yoff=placed.placement.y)
 
 
-def _polygon_rings(polygon: Polygon, *, simplify_tolerance_mm: float = 0.5) -> list[list[list[float]]]:
+def _polygon_rings(
+    polygon: Polygon,
+    *,
+    simplify_tolerance_mm: float = 0.5,
+    allow_simplify: bool = True,
+) -> list[list[list[float]]]:
     geometry = polygon
-    if simplify_tolerance_mm > 0 and len(polygon.exterior.coords) > 120:
+    # [REQ-FIT-NEST-002] Douglas-Peucker on dense orthogonal contours chamfers step vertices
+    # and makes the preview SVG look tilted (~11°) even when rotation_deg is cardinal.
+    if (
+        allow_simplify
+        and simplify_tolerance_mm > 0
+        and len(polygon.exterior.coords) > 120
+        and not is_axis_aligned_on_sheet(polygon)
+    ):
         simplified = polygon.simplify(simplify_tolerance_mm, preserve_topology=True)
         if isinstance(simplified, Polygon) and not simplified.is_empty:
             geometry = simplified
@@ -152,6 +198,9 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         sheet_gap_mm=job_params.sheet_gap_mm,
         time_limit_sec=job_params.time_limit_sec,
         progress_reporter=progress,
+        optimization_mode=job_params.optimization_mode,
+        max_seeds=job_params.max_seeds,
+        max_local_search_iterations=job_params.max_local_search_iterations,
     )
     merged_warnings = warnings + list(result.warnings)
     result = MultiBinResult(
@@ -160,11 +209,29 @@ def run_from_config(config: dict) -> MultiBinResult | dict:
         warnings=merged_warnings,
     )
 
+    if multi_bin_layout_has_significant_overlaps(
+        result.sheets,
+        pieces,
+        kerf_mm=job_params.kerf_mm,
+    ):
+        merged_warnings.append("layout_overlap_detected")
+        result = MultiBinResult(sheets=[], orphans=result.orphans, warnings=merged_warnings)
+        report = {
+            "status": "failed",
+            "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
+            "warnings": merged_warnings,
+        }
+        progress.report("writing_outputs", 96, pieces_total=len(pieces))
+        (output_dir / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+        progress.report("writing_outputs", 99, pieces_total=len(pieces))
+        return result
+
     status = "completed" if not result.orphans else "partial"
     report = {
         "status": status,
         "orphans": [{"piece_index": o.piece_index, "reason": o.reason} for o in result.orphans],
         "warnings": merged_warnings,
+        "optimization_mode": job_params.optimization_mode,
     }
     progress.report("writing_outputs", 96, pieces_total=len(pieces))
     _write_outputs(output_dir, result, report, pieces=pieces, config=config)

@@ -161,7 +161,9 @@ module Nesting
       now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       return if now - @cancel_cache_checked_at < CANCEL_CACHE_TTL_SEC
 
-      @cancel_requested_at = NestingRun.where(id: @nesting_run.id).pick(:cancel_requested_at)
+      @cancel_requested_at = NestingRun.uncached do
+        NestingRun.where(id: @nesting_run.id).pick(:cancel_requested_at)
+      end
       @cancel_cache_checked_at = now
     end
 

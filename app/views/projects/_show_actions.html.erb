@@ -13,7 +13,10 @@
                           params: { nest_updated_pieces: true },
                           class: "btn btn-primary",
                           form: { data: { turbo_frame: "_top" } },
-                          data: { testid: "nest-updated-pieces" },
+                          data: {
+                            testid: "nest-updated-pieces",
+                            action: "click->collapsible-persistence#forceCollapseDetail"
+                          },
                           disabled: lock_active %>
           <% elsif project.nested_dxf.attached? && (project.completed? || project.partial?) %>
             <%= button_to t("nesting.renest"),
@@ -21,7 +24,10 @@
                             method: :post,
                             class: "btn btn-secondary",
                             form: { data: { turbo_frame: "_top" } },
-                            data: { testid: "renest-nesting" },
+                            data: {
+                              testid: "renest-nesting",
+                              action: "click->collapsible-persistence#forceCollapseDetail"
+                            },
                             disabled: lock_active %>
           <% elsif project.draft? || project.ready? || project.failed? %>
             <%= button_to t("nesting.start"),
@@ -29,7 +35,10 @@
                             method: :post,
                             class: "btn btn-primary",
                             form: { data: { turbo_frame: "_top" } },
-                            data: { testid: "start-nesting" },
+                            data: {
+                              testid: "start-nesting",
+                              action: "click->collapsible-persistence#forceCollapseDetail"
+                            },
                             disabled: lock_active %>
           <% end %>
 

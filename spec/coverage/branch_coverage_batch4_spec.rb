@@ -502,16 +502,17 @@ RSpec.describe "Branch coverage batch 4" do
   end
 
   describe ProjectLayerSelection, "[REQ-FIT-DXF-002]" do
-    it "skips deselecting primary layers via apply_layer_role_attrs!" do
+    it "keeps primary layers included even if explicitly deselecting them in params" do
       project = create_project_for_spec!(title: "Primary deselect", bind_workspace: false)
       sample_dxf = Rails.root.join("nesting_engine/tests/fixtures/sample_piece.dxf")
       project.input_dxf.attach(io: File.open(sample_dxf), filename: "piece.dxf", content_type: "application/dxf")
       Dxf::LayerSyncPerFile.call(project)
       layer = project.project_layers.first!
       layer.update!(included: true, layer_role: :primary)
-      service = described_class.new(project: project, raw_params: {})
+      attachment_id = project.input_dxf_attachments.first!.id.to_s
+      params = { attachment_id => { "primary_layer_id" => layer.id.to_s, layer.id.to_s => { included: "0" } } }
 
-      service.send(:apply_layer_role_attrs!, layer, { included: "0" })
+      described_class.apply!(project: project, raw_params: params)
 
       expect(layer.reload.included?).to be(true)
       expect(layer.layer_role).to eq("primary")

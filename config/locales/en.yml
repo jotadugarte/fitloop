@@ -521,6 +521,8 @@ en:
       dxf_upload_hint: "Choose one or more DXF files. They will be processed after you save the project."
       dxf_upload_setup_hint: "When you choose files they appear here with layers to select."
       dxf_upload_failed: "Could not upload DXF files. Try again."
+      dxf_upload_processing: "Analyzing file geometry..."
+      layers_saving: "Saving changes..."
       dxf_layers_prompt: "No DXF files yet. Choose one or more above."
       dxf_layers_empty: "No layers found in this file."
       dxf_upload_resubmit_hint: "If you had selected DXF files, choose them again before saving."
@@ -564,6 +566,7 @@ en:
     input_file_missing: "The DXF file is missing. Upload it again and retry nesting."
     progress_heading: "Nesting progress"
     eta_overrun: "Still working — this is taking longer than estimated."
+    time_remaining: "~%{minutes} min remaining"
     time_limit_notice: "Time limit reached. Showing the best result so far."
     renest: "Re-nest"
     renest_started: "Re-nesting started. Previous runs are kept in history."
@@ -620,8 +623,12 @@ en:
     no_layers_selected: "Select at least one layer to include in nesting."
     no_extractable_pieces: "No closed contours were found on the selected layers."
     primary_layer_required: "Choose a primary layer for each DXF file that includes associated layers."
+    unresolved_gaps: "Please resolve open shapes (gaps) in your CAD layers or enable 'Auto-close' to proceed."
 
   project_layers:
+    blocking_gap_warning: "Non-nestable open contour (gap of %{distance} mm). Must correct in CAD and upload again."
+    warnable_gap_warning: "Open contour detected (gap of %{distance} mm)."
+    auto_close_label: "Auto-close (generates diagonal)"
     layer_name: "Layer"
     section_note: "Choose the primary layer for outlines to nest. Engraving, marks, text, and other auxiliary layers move with the piece that contains them."
     primary_layer:
@@ -804,12 +811,16 @@ en:
       invalid: "Invalid email or password."
       timeout: "Your session expired. Please sign in again."
       already_authenticated: "You are already signed in."
+      user_not_found_in_database: "Invalid email or password."
+      not_found_in_database: "Invalid email or password."
       user:
         unauthenticated: "You need to sign in to continue."
         unconfirmed: "Confirm your email before paying or downloading."
         invalid: "Invalid email or password."
         timeout: "Your session expired. Please sign in again."
         already_authenticated: "You are already signed in."
+        user_not_found_in_database: "Invalid email or password."
+        not_found_in_database: "Invalid email or password."
     sessions:
       signed_in: "Signed in successfully."
       signed_out: "Signed out successfully."

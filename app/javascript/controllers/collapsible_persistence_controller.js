@@ -44,6 +44,10 @@ function lockedClosedOnPath(path, key, details) {
   if (details?.dataset.collapsiblePreserveOpen === "true") return false
   if (path !== "/taller") return false
   if (document.querySelector("[data-workshop-setup-mode='true']")) return false
+
+  const pageState = readStore()[path] || {}
+  if (pageState[key] === true) return false
+
   return key === "workshop-sheet-inventory" || key === "workshop-source-dxf-detail"
 }
 
@@ -107,5 +111,18 @@ export default class extends Controller {
       delete details.dataset.collapsiblePreserveOpen
     }
     writeStore(store)
+  }
+
+  forceCollapseDetail() {
+    const path = pagePath()
+    const store = readStore()
+    if (!store[path]) store[path] = {}
+    store[path]["workshop-source-dxf-detail"] = false
+    writeStore(store)
+
+    const details = document.querySelector('details[data-collapsible-key="workshop-source-dxf-detail"]')
+    if (details) {
+      details.open = false
+    }
   }
 }

@@ -130,7 +130,9 @@ class ProjectsController < ApplicationController
 
     ProjectLayerSelection.apply!(project: @project, raw_params: params[:project_layers])
     # Avoid replacing the layer form on autosave — rapid radio/check changes race with turbo streams.
-    head :no_content
+    # Instead, we only update the status badge and action buttons to reflect the readiness state.
+    @project.reload
+    render_workspace_turbo_stream(:layers)
   end
 
   def update_workspace_billing!
@@ -159,6 +161,9 @@ class ProjectsController < ApplicationController
     when :sheets
       @project.reload
       sheet_workspace_streams
+    when :layers
+      @project.reload
+      layer_workspace_streams
     else
       []
     end
@@ -243,6 +248,36 @@ class ProjectsController < ApplicationController
 
     redirect_to(start_project_path, alert: I18n.t("workspace.expired"))
     true
+  end
+
+  def layer_workspace_streams
+    streams = [
+      turbo_stream.replace(
+        project_dom_id(:show_actions),
+        partial: "projects/show_actions",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:status_badge),
+        partial: "projects/status_badge",
+        locals: { project: @project }
+      ),
+      turbo_stream.replace(
+        project_dom_id(:source_dxf_preview),
+        partial: "projects/source_dxf_preview",
+        locals: { project: @project, source_preview: Dxf::SourcePreviewPresenter.for(@project) }
+      )
+    ]
+
+    @project.input_dxf_attachments.find_each do |attachment|
+      streams << turbo_stream.replace(
+        ActionView::RecordIdentifier.dom_id(attachment, :dxf_file_layers),
+        partial: "project_layers/file_layers",
+        locals: { project: @project, attachment: attachment }
+      )
+    end
+
+    streams
   end
 
   def sheet_workspace_streams

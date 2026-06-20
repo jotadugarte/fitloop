@@ -16,6 +16,19 @@ def test_parse_job_parameters_from_config_defaults():
     assert params.time_limit_sec == 600
 
 
+def test_parse_job_parameters_from_config_defaults_optimization_mode() -> None:
+    params = parse_job_parameters_from_config({})
+
+    assert params.optimization_mode == "fast"
+    assert params.max_seeds == 16
+    assert params.max_local_search_iterations == 12
+
+
+def test_parse_job_parameters_from_config_rejects_unknown_optimization_mode() -> None:
+    with pytest.raises(ValueError, match="optimization_mode"):
+        parse_job_parameters_from_config({"optimization_mode": "turbo"})
+
+
 def test_parse_job_parameters_from_config_rejects_negative_kerf():
     with pytest.raises(ValueError, match="kerf_mm"):
         parse_job_parameters_from_config({"kerf_mm": -0.1})

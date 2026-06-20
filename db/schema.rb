@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_021038) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -179,8 +179,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_09_120000) do
 
   create_table "project_layers", force: :cascade do |t|
     t.bigint "active_storage_attachment_id"
+    t.boolean "auto_close_gaps", default: false, null: false
     t.string "color"
     t.datetime "created_at", null: false
+    t.jsonb "gaps_detected", default: [], null: false
     t.boolean "included", default: false, null: false
     t.string "layer_name", null: false
     t.string "layer_role"

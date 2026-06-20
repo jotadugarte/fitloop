@@ -18,6 +18,13 @@ class ProjectLayer < ApplicationRecord
     SetPrimary.call(layer)
   end
 
+  # [REQ-FIT-DXF-002] Marking/auxiliary layers use decoration rules, not closed-contour gaps.
+  def closed_contour_gap_validation?
+    return false if auxiliary?
+
+    primary? || (layer_role.nil? && included?)
+  end
+
   private
 
   def only_one_primary_per_attachment

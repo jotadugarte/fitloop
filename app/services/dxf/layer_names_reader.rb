@@ -13,7 +13,12 @@ module Dxf
     def self.catalog(paths)
       raise ArgumentError, "paths must be present" if paths.blank?
 
-      output, status = Open3.capture2(Python.executable, SCRIPT.to_s, *paths.map(&:to_s))
+      output, status = Open3.capture2(
+        Python.subprocess_env,
+        Python.executable,
+        SCRIPT.to_s,
+        *paths.map(&:to_s)
+      )
       raise Error, output.presence || "layer discovery failed" unless status.success?
 
       JSON.parse(output)
@@ -21,6 +26,48 @@ module Dxf
 
     def self.union(paths)
       catalog(paths).pluck("name").sort
+    end
+
+    # [REQ-FIT-DXF-002] On-demand closed-contour gap scan for primary / legacy cut layers.
+    def self.gaps_for(path:, layer_name:)
+      raise ArgumentError, "path must be present" if path.blank?
+      raise ArgumentError, "layer_name must be present" if layer_name.blank?
+
+      output, status = Open3.capture2(
+        Python.subprocess_env,
+        Python.executable,
+        SCRIPT.to_s,
+        "--gaps-for",
+        layer_name.to_s,
+        path.to_s
+      )
+      raise Error, output.presence || "layer gap scan failed" unless status.success?
+
+      JSON.parse(output)
+    end
+
+    # [REQ-FIT-DXF-002] Primary-layer scan with composite extraction filter (008 false positives).
+    def self.gaps_for_composite(path:, primary_layer:, auxiliary_layers: [], auto_close_gaps: false)
+      raise ArgumentError, "path must be present" if path.blank?
+      raise ArgumentError, "primary_layer must be present" if primary_layer.blank?
+
+      argv = [
+        "--gaps-for-composite",
+        primary_layer.to_s,
+        path.to_s
+      ]
+      argv << "--aux" << Array(auxiliary_layers).join(",") if auxiliary_layers.present?
+      argv << "--auto-close" if auto_close_gaps
+
+      output, status = Open3.capture2(
+        Python.subprocess_env,
+        Python.executable,
+        SCRIPT.to_s,
+        *argv
+      )
+      raise Error, output.presence || "composite layer gap scan failed" unless status.success?
+
+      JSON.parse(output)
     end
   end
 end
