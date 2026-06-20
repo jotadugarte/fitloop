@@ -25,13 +25,9 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
     dxf_idx = body.index('data-testid="source-dxf-detail"')
     expect(inventory_idx).to be < dxf_idx
 
-    inventory_start = body.index('data-testid="show-sheet-inventory"')
-    inventory_tag = body.slice(inventory_start - 60, 200)
-    expect(inventory_tag).not_to include(" open")
-
-    dxf_start = body.index('data-testid="source-dxf-detail"')
-    dxf_tag = body.slice(dxf_start - 60, 220)
-    expect(dxf_tag).not_to include(" open")
+    doc = Nokogiri::HTML.fragment(body)
+    expect(doc.css('details[data-testid="show-sheet-inventory"][open]')).to be_empty
+    expect(doc.css('details[data-testid="source-dxf-detail"][open]')).to be_empty
   end
 
   it "[REQ-FIT-UI-003] opens láminas and DXF panels in setup mode before the first nest" do
@@ -43,13 +39,9 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
     body = response.body
     expect(body).to include('data-workshop-setup-mode="true"')
 
-    inventory_start = body.index('data-testid="show-sheet-inventory"')
-    inventory_tag = body.slice(inventory_start - 60, 200)
-    expect(inventory_tag).to include(" open")
-
-    dxf_start = body.index('data-testid="source-dxf-detail"')
-    dxf_tag = body.slice(dxf_start - 60, 220)
-    expect(dxf_tag).to include(" open")
+    doc = Nokogiri::HTML.fragment(body)
+    expect(doc.css('details[data-testid="show-sheet-inventory"][open]')).not_to be_empty
+    expect(doc.css('details[data-testid="source-dxf-detail"][open]')).not_to be_empty
   end
 
   it "[REQ-FIT-UI-003] keeps panels collapsed even when entering via legacy /projects/:id route (D37)" do
@@ -64,13 +56,9 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
     expect(response).to have_http_status(:ok)
     body = response.body
 
-    inventory_start = body.index('data-testid="show-sheet-inventory"')
-    inventory_tag = body.slice(inventory_start - 60, 200)
-    expect(inventory_tag).not_to include(" open")
-
-    dxf_start = body.index('data-testid="source-dxf-detail"')
-    dxf_tag = body.slice(dxf_start - 60, 220)
-    expect(dxf_tag).not_to include(" open")
+    doc = Nokogiri::HTML.fragment(body)
+    expect(doc.css('details[data-testid="show-sheet-inventory"][open]')).to be_empty
+    expect(doc.css('details[data-testid="source-dxf-detail"][open]')).to be_empty
   end
 
   it "[REQ-FIT-UI-003] opens source DXF detail after uploading on Mi taller so layers stay visible (D37)" do
@@ -84,12 +72,10 @@ RSpec.describe "Workshop panels default collapsed", "[REQ-FIT-UI-003]", type: :r
 
     expect(response).to have_http_status(:ok)
     body = response.body
-    expect(body).to include('data-testid="source-dxf-detail"')
-    expect(body).to include("data-collapsible-preserve-open")
-
-    dxf_start = body.index('data-testid="source-dxf-detail"')
-    dxf_tag = body.slice(dxf_start - 120, 280)
-    expect(dxf_tag).to include(" open")
-    expect(body).to match(/data-testid="dxf-file-entry"[^>]*open/m)
+    doc = Nokogiri::HTML.fragment(body)
+    expect(doc.css('details[data-testid="source-dxf-detail"]')).not_to be_empty
+    expect(doc.css('[data-collapsible-preserve-open]')).not_to be_empty
+    expect(doc.css('details[data-testid="source-dxf-detail"][open]')).not_to be_empty
+    expect(doc.css('details[data-testid="dxf-file-entry"][open]')).not_to be_empty
   end
 end
