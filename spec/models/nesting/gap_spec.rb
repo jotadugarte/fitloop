@@ -7,6 +7,10 @@ RSpec.describe Nesting::GapDistanceMm do
     it "raises ArgumentError when raw is nil" do
       expect { described_class.parse(nil) }.to raise_error(ArgumentError)
     end
+
+    it "parses a valid raw gap distance" do
+      expect(described_class.parse(5.0).value).to eq(5.0)
+    end
   end
 
   describe "#initialize" do

@@ -65,7 +65,7 @@ class ProjectLayerSelection
           Dxf::LayerGapScanner.clear!(layer)
         else
           layer.update!(layer_role: nil, included: false)
-          Dxf::LayerGapScanner.clear!(layer) unless layer_id == primary_id.to_s
+          Dxf::LayerGapScanner.clear!(layer)
         end
       end
     end
@@ -106,32 +106,6 @@ class ProjectLayerSelection
     end
   end
 
-  def find_layer(attachment_key, layer_key)
-    @project.project_layers.find_by(
-      id: layer_key,
-      active_storage_attachment_id: attachment_key
-    )
-  end
-
-  def apply_layer_role_attrs!(layer, layer_params, primary_id: nil)
-    params = layer_params.stringify_keys
-
-    if params["auxiliary"] == "1"
-      return if primary_id.present? && layer.id.to_s == primary_id.to_s
-
-      layer.update!(layer_role: :auxiliary, included: true)
-      return
-    end
-
-    return unless params.key?("included")
-
-    included = params["included"] == "1"
-    if included
-      layer.update!(included: true, layer_role: nil) unless layer.layer_role == "primary"
-    else
-      layer.update!(included: false, layer_role: nil) unless layer.layer_role == "primary"
-    end
-  end
 
   def apply_primary!(attachment_key, primary_id)
     layer = @project.project_layers.find_by(

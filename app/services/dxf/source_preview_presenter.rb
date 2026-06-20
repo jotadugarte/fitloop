@@ -359,7 +359,7 @@ module Dxf
       end
       yield paths
     ensure
-      tempfiles&.each do |tempfile|
+      tempfiles.each do |tempfile|
         tempfile.close
         tempfile.unlink
       end

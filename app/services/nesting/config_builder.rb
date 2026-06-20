@@ -86,12 +86,6 @@ module Nesting
         .pluck(:layer_name)
     end
 
-    def included_layers_for(attachment)
-      @project.project_layers
-        .where(included: true, active_storage_attachment_id: attachment.id)
-        .order(:layer_name)
-        .pluck(:layer_name)
-    end
 
     def included_layers_records_for(attachment)
       @project.project_layers
