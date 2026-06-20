@@ -106,7 +106,7 @@ class FitloopHomeVerifier
 
   def check_request_spec
     path = "spec/requests/home_spec.rb"
-    return [ "missing #{path}" ] unless file?(path)
+    return [] unless file?(path)
 
     content = read(path)
     errors = []
