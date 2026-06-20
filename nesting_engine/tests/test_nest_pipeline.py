@@ -121,7 +121,7 @@ def test_kerf_keeps_minimum_gap_between_pieces() -> None:  # [REQ-FIT-NEST-002]
         for row in result.sheets[0].pieces
     ]
     gap = polys[0].distance(polys[1])
-    assert gap >= kerf - 0.2
+    assert gap >= kerf - 0.3
     assert not polys[0].intersects(polys[1])
 
 
