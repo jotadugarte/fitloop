@@ -64,7 +64,32 @@ def load_pieces_from_config(config: dict, *, warnings: list[str]) -> list:
 
     pieces = _without_excluded_pieces(pieces, config)
     pieces.extend(_derived_pieces_from_config(config))
-    return pieces
+    return [_simplify_piece(p) for p in pieces]
+
+
+def _simplify_piece(piece, tolerance: float = 0.15):
+    from nesting_engine.composite_extract import CompositePiece
+    from shapely.geometry import Polygon
+
+    poly = piece_polygon(piece)
+    if len(poly.exterior.coords) <= 100:
+        return piece
+
+    simplified = poly.simplify(tolerance, preserve_topology=True)
+    if simplified and not simplified.is_empty:
+        if simplified.geom_type == "Polygon":
+            final_poly = simplified
+        elif simplified.geom_type == "MultiPolygon":
+            final_poly = max(simplified.geoms, key=lambda p: p.area)
+        else:
+            final_poly = poly
+    else:
+        final_poly = poly
+
+    if isinstance(piece, CompositePiece):
+        piece.polygon = final_poly
+        return piece
+    return final_poly
 
 
 def piece_polygon(piece: Polygon | CompositePiece) -> Polygon:
